@@ -7,13 +7,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   phone: string;
-  avatar: string;
-  dateOfBirth: Date;
-  verified: boolean;
-  name: {
-    firstName: string;
-    lastName: string;
-  };
+  name: string;
   role: ROLE;
   live: boolean;
 }
@@ -22,13 +16,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   phone: { type: String, required: false },
-  avatar: { type: String, required: false },
-  dateOfBirth: { type: Date, required: false },
-  verified: { type: Boolean, default: false },
-  name: { 
-    firstName: { type: String, required: false },
-    lastName: { type: String, required: false },
-  },
+  name: { type: String, required: false },
   role: {
     type: String,
     default: ROLES.Customer,

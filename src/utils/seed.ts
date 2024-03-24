@@ -1,0 +1,35 @@
+import User from '../models/user';
+import setupDB from "./db";
+import bcrypt from "bcrypt";
+import mongoose from 'mongoose';
+import {ROLES} from "../constants";
+
+const seedUsers = [
+  { email: 'superadmin@2024fc.xyz', password: 'superadmin2024', role: ROLES.SuperAdmin },
+  { email: 'customer@2024fc.xyz', password: 'customer2024', role: ROLES.Customer },
+  { email: 'orderclerk@2024fc.xyz', password: 'orderclerk2024', role: ROLES.OrderClerk },
+  { email: 'finance@2024fc.xyz', password: 'finance2024', role: ROLES.FinancialStaff },
+  { email: 'user@2024fc.xyz', password: 'password123' }, // A user without a specified role defaults to a general user role, if applicable
+  // 更多用户...
+];
+
+const createUsers = async (): Promise<void> => {
+  try {
+
+    setupDB()
+
+    for (const user of seedUsers) {
+      const hashedPassword = await bcrypt.hash(user.password, 12);
+      await User.create({ email: user.email, password: hashedPassword, role: user.role });
+    }
+
+    console.log('All users have been created successfully!');
+  } catch (err) {
+    console.error('Error creating users:', err);
+  } finally {
+    await mongoose.disconnect();
+    console.log('MongoDB Disconnected');
+  }
+};
+
+createUsers();

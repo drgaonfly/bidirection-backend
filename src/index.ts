@@ -1,0 +1,51 @@
+import express, { Express, Request, Response } from 'express';
+import dotenv from 'dotenv';
+
+import { errorHandler, notFound } from './middlewares/errorMiddleware';
+import morgan from 'morgan';
+import cors from 'cors';
+
+import userRoutes from './routes/userRoutes';
+import authRoutes from './routes/authRoutes';
+
+
+import setupDB from "./utils/db";
+import { handleFileUpload, uploadFileToOSS, uploadFileToS3 } from './routes/uploadController';
+
+dotenv.config();
+
+const app: Express = express();
+
+app.use(cors());
+
+
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+app.use(express.json());
+
+
+app.get('/', (req: Request, res: Response) => {
+  res.send('API is running...ok');
+});
+
+app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
+
+if (process.env.FILE_STORAGE === 'aliyun') {
+  app.post('/api/upload', handleFileUpload, uploadFileToOSS);
+} else {
+  app.post('/api/upload', handleFileUpload, uploadFileToS3);
+}
+
+app.use(notFound);
+app.use(errorHandler);
+
+const PORT: string | number = process.env.PORT || 5000;
+setupDB()
+
+app.listen(PORT, () =>
+  console.log(`
+🚀 Server ready at: http://localhost:${PORT}`),
+);

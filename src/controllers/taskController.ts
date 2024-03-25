@@ -2,15 +2,38 @@
 import { Request, Response } from 'express';
 import handleAsync from '../utils/handleAsync'; // Adjust the import path as necessary
 import Task from '../models/task';
+import { RequestCustom } from 'user';
 
-export const createTask = handleAsync(async (req: Request, res: Response) => {
-  const task = new Task(req.body);
+export const createTask = handleAsync(async (req: RequestCustom, res: Response) => {
+  // 创建一个新任务，将用户ID作为任务的user字段
+  const taskData = { ...req.body, user: req.user._id };
+  const task = new Task(taskData);
+  
+  // 保存任务到数据库
   const savedTask = await task.save();
+  
+  // 返回成功响应和保存的任务
   res.status(201).json({ success: true, data: savedTask });
 });
 
+
 export const getAllTasks = handleAsync(async (req: Request, res: Response) => {
-  const tasks = await Task.find();
+  // 从请求的查询参数中获取country和platform
+  const { country, platform } = req.query;
+
+  // 构建一个查询对象，仅当提供了相应的查询参数时才添加对应的过滤条件
+  const queryConditions: any = {};
+  if (country) {
+    queryConditions.country = country;
+  }
+  if (platform) {
+    queryConditions.platform = platform;
+  }
+
+  // 使用过滤条件执行查询
+  const tasks = await Task.find(queryConditions);
+
+  // 返回查询结果
   res.status(200).json({ success: true, data: tasks });
 });
 

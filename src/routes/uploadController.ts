@@ -39,7 +39,7 @@ export const uploadFileToS3 = handleAsync(async (req: CustomRequest, res: Respon
   }
 
   const bucketName = process.env.AWS_BUCKET_NAME;
-  const key = `s3Uploads/${file.filename}`;
+  const key = `taskS3Uploads/${file.filename}`;
   const fileContent = fs.readFileSync(file.path);
 
   // Upload parameters for S3
@@ -76,14 +76,13 @@ export const uploadFileToOSS = handleAsync(async (req: CustomRequest, res: Respo
   }
 
   const filePath = file.path; // This now points to the /tmp directory
-  const ossPath = `ossUploads/${file.filename}`;
+  const ossPath = `taskOssUploads/${file.filename}`;
 
   // Read the file from /tmp directory
   const fileContent = fs.readFileSync(filePath);
 
   // Upload the file content to OSS
   await ossClient.put(ossPath, fileContent);
-  console.log("ossPath", ossPath);
 
   // Optionally, delete the file from /tmp directory after uploading
   fs.unlinkSync(filePath);

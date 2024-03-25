@@ -11,6 +11,7 @@ import authRoutes from './routes/authRoutes';
 
 import setupDB from "./utils/db";
 import { handleFileUpload, uploadFileToOSS, uploadFileToS3 } from './routes/uploadController';
+import taskRoutes from './routes/taskRoutes';
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ app.get('/', (req: Request, res: Response) => {
 
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/tasks', taskRoutes);
 
 if (process.env.FILE_STORAGE === 'aliyun') {
   app.post('/api/upload', handleFileUpload, uploadFileToOSS);

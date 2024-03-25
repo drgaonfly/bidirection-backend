@@ -24,6 +24,4 @@ router
   .get(getUserById)
   .put(protect, allow(ROLES.SuperAdmin), updateUser);
 
-router.post('/:userId/recharge', protect, allow(ROLES.SuperAdmin));
-
 export default router;

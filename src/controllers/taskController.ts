@@ -4,15 +4,26 @@ import handleAsync from '../utils/handleAsync'; // Adjust the import path as nec
 import Task from '../models/task';
 import { RequestCustom } from 'user';
 import { transformDocumentImages } from '../utils/transformUtils';
+import { processExcelFile } from '../utils/processExcelFile';
 
 export const createTask = handleAsync(async (req: RequestCustom, res: Response) => {
-  // 创建一个新任务，将用户ID作为任务的user字段
-  const taskData = { ...req.body, user: req.user._id };
+  const { file } = req.body; // 假设前端发送的是OSS中文件的key
+
+  if (!file) {
+    res.status(400).json({ success: false, message: '文件未提供' });
+    return;
+  }
+
+  // 处理Excel文件：下载、修改、上传
+  const uploadedFile = await processExcelFile(file);
+
+  // 创建新任务，包含处理后的文件路径
+  const taskData = { ...req.body, user: req.user._id, uploadedFile };
   const task = new Task(taskData);
-  
+
   // 保存任务到数据库
   const savedTask = await task.save();
-  
+
   // 返回成功响应和保存的任务
   res.status(201).json({ success: true, data: savedTask });
 });

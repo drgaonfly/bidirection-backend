@@ -2,26 +2,22 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ITask extends Document {
   country: string;
-  platform: string;
-  file: string; // Assuming this might be a URL or file path
-  user: Schema.Types.ObjectId; // Reference to a User model
-  quantity: number;
-  store: string; // Assuming the store name or ID as a simple string; adjust if this is a reference
-  orderNumber: string;
-  amount: number;
-  buyerAccount: string; // Assuming a simple string; adjust if this needs to be more complex
+  file: string; // 假设这可能是一个URL或文件路径
+  uploadedFile: string; // 上传文件路径或URL
+  user: Schema.Types.ObjectId; // 对User模型的引用
+  orderTime: Date; // 下单时间
+  orderNote?: string; // 下单备注，可选字段
+  review?: string; // 评价，可选字段
 }
 
 const TaskSchema: Schema = new Schema({
   country: { type: String, required: true },
-  platform: { type: String, required: false },
   file: { type: String, required: true },
+  uploadedFile: { type: String, required: true },
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  quantity: { type: Number, required: false },
-  store: { type: String, required: false },
-  orderNumber: { type: String, required: false },
-  amount: { type: Number, required: false },
-  buyerAccount: { type: String, required: false },
+  orderTime: { type: Date, required: true },
+  orderNote: { type: String, required: false }, // 下单备注
+  review: { type: String, required: false }, // 评价
 }, { timestamps: true });
 
 export default mongoose.model<ITask>('Task', TaskSchema);

@@ -47,7 +47,7 @@
     "ts.check": "tsc --project tsconfig.json",
     "add-build": "git add dist",
     "seed": "npx ts-node src/utils/seed.ts",
-    "deploy": "npx vercel --prod"
+    "deploy": "npm run build && npx vercel --prod"
   },
   "author": "",
   "license": "Apache-2.0",

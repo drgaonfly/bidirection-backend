@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ITask extends Document {
   country: string;
+  platform: string;
   file: string; // 假设这可能是一个URL或文件路径
   uploadedFile: string; // 上传文件路径或URL
   user: Schema.Types.ObjectId; // 对User模型的引用
@@ -15,6 +16,7 @@ export interface ITask extends Document {
 
 const TaskSchema: Schema = new Schema({
   country: { type: String, required: true },
+  platform: { type: String, required: true },
   file: { type: String, required: true },
   uploadedFile: { type: String, required: false },
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },

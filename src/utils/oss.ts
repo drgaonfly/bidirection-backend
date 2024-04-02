@@ -10,7 +10,7 @@ const ossClient = new OSS({
   accessKeySecret: process.env.OSS_ACCESS_KEY_SECRET,
   bucket: process.env.OSS_BUCKET,
   secure: true, // 使用 HTTPS
-  internal: process.env.OSS_INTERNAL === 'true'
+  // internal: process.env.OSS_INTERNAL === 'true'
 });
 
 export default ossClient;

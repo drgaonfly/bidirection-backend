@@ -12,6 +12,7 @@ export interface ITask extends Document {
   orderNote?: string; // 下单备注，可选字段
   reviewType?: 'NormalReview' | 'ReviewAfterModification'; // 评价类型
   reviewFile?: string; // 评价文件路径或URL，用于评价后补
+  status: 'Active' | 'Cancelled'; // 任务状态
 }
 
 const TaskSchema: Schema = new Schema({
@@ -26,6 +27,7 @@ const TaskSchema: Schema = new Schema({
   orderNote: { type: String, required: false, default: '' }, // 下单备注，默认为空字符串
   reviewType: { type: String, required: true, enum: ['NormalReview', 'ReviewAfterModification'], default: 'NormalReview' }, // 评价类型，默认为'NormalReview'
   reviewFile: { type: String, required: false }, // 评价文件路径或URL，可选字段
+  status: { type: String, required: true, enum: ['Active', 'Cancelled'], default: 'Active' }, // 任务状态
 }, { timestamps: true });
 
 export default mongoose.model<ITask>('Task', TaskSchema);

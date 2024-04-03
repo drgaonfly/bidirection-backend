@@ -14,7 +14,7 @@ const router: Router = express.Router();
 
 router
   .route('/')
-  .get(protect, allow(ROLES.SuperAdmin), getUsers)
+  .get(protect, allow([ROLES.SuperAdmin, ROLES.Admin]), getUsers)
   .delete(protect, allow(ROLES.SuperAdmin), deleteMultipleUsers)
   .post(protect, allow(ROLES.SuperAdmin), addUser);
 

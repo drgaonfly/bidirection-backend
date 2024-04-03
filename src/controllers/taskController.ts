@@ -14,11 +14,11 @@ export const createTask = handleAsync(async (req: RequestCustom, res: Response) 
     return;
   }
 
-  // // 处理Excel文件：下载、修改、上传
-  // const uploadedFile = await processExcelFile(file);
+  // 判断请求体中是否提供了user，如果提供了就使用该user，否则使用认证用户的_id
+  const userId = req.body.user || req.user._id;
 
-  // 创建新任务，包含处理后的文件路径
-  const taskData = { ...req.body, user: req.user._id };
+  // 创建新任务时，使用确定的userId
+  const taskData = { ...req.body, user: userId };
   const task = new Task(taskData);
 
   // 保存任务到数据库
@@ -28,10 +28,9 @@ export const createTask = handleAsync(async (req: RequestCustom, res: Response) 
   res.status(201).json({ success: true, data: savedTask });
 });
 
-
 export const getAllTasks = handleAsync(async (req: Request, res: Response) => {
   // 从请求的查询参数中获取country, platform和status
-  const { country, platform, status, _id, orderTimeType, reviewType } = req.query;
+  const { country, platform, status, _id, orderTimeType, reviewType, orderType } = req.query;
 
   // 构建一个查询对象，仅当提供了相应的查询参数时才添加对应的过滤条件
   const queryConditions: any = {};
@@ -52,6 +51,9 @@ export const getAllTasks = handleAsync(async (req: Request, res: Response) => {
   }
   if (reviewType) {
     queryConditions.reviewType = reviewType;
+  }
+  if (orderType) {
+    queryConditions.orderType = orderType;
   }
 
   // 使用过滤条件执行查询，并填充user字段以获取用户详情
@@ -136,7 +138,7 @@ export const cancelTask = handleAsync(async (req: RequestCustom, res: Response) 
   }
 
   // If within the time limit, update the task's status to 'Cancelled'
-  const updatedTask = await Task.findByIdAndUpdate(id, { status: 'Cancelled' }, { new: true });
+const updatedTask = await Task.findByIdAndUpdate(id, { status: 'Cancelled' }, { new: true });
 
   // Though we've already checked for task existence, it's good practice to still check the update result
   if (!updatedTask) {

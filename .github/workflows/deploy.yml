@@ -14,3 +14,19 @@ jobs:
           password: )3zE_2VQe%Nks9M?
           port: 22
           script: cd /www/wwwroot/ordersystem-new.2024fc.xyz/task-backend && git pull --rebase origin main && npm run build && pm2 restart dist/index.js
+    steps:
+      - name: Send Email
+        uses: hilarion5/send-mail@v1
+        with:
+          smtp-server: smtp.mailgun.org
+          smtp-port: 587
+          smtp-secure: true
+          from-email: hfpp2012@gmail.com
+          to-email: ganweiliang@swqztech.com
+          username: postmaster@sandbox09de08ecb12d45b98b940177c4541054.mailgun.org
+          password: 21961d72ea25a9e8fff4bbd50945139a
+          subject: task system github action
+          body: 部署成功
+          html: |
+            <h1>github action</h1>
+            <p>task system</p>

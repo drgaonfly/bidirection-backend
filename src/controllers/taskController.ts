@@ -30,8 +30,8 @@ export const createTask = handleAsync(async (req: RequestCustom, res: Response) 
 
 
 export const getAllTasks = handleAsync(async (req: Request, res: Response) => {
-  // 从请求的查询参数中获取country和platform
-  const { country, platform } = req.query;
+  // 从请求的查询参数中获取country, platform和status
+  const { country, platform, status } = req.query;
 
   // 构建一个查询对象，仅当提供了相应的查询参数时才添加对应的过滤条件
   const queryConditions: any = {};
@@ -40,6 +40,9 @@ export const getAllTasks = handleAsync(async (req: Request, res: Response) => {
   }
   if (platform) {
     queryConditions.platform = platform;
+  }
+  if (status) {
+    queryConditions.status = status;
   }
 
   // 使用过滤条件执行查询，并填充user字段以获取用户详情
@@ -51,7 +54,6 @@ export const getAllTasks = handleAsync(async (req: Request, res: Response) => {
   // 返回查询结果
   res.status(200).json({ success: true, data: modifiedFileTasks });
 });
-
 
 
 export const getTaskById = handleAsync(async (req: Request, res: Response) => {
@@ -104,3 +106,37 @@ export const deleteMultipleTasks = handleAsync(async (req: Request, res: Respons
     data: { deletedCount: result.deletedCount } // Optionally include more detailed data
   });
 });
+
+export const cancelTask = handleAsync(async (req: RequestCustom, res: Response) => {
+  const { id } = req.params; // Assuming the task ID is passed as a URL parameter
+
+  // First, find the task by its ID to check the creation time
+  const task = await Task.findById(id);
+
+  if (!task) {
+    res.status(404).json({ success: false, message: '任务未找到' });
+    return;
+  }
+
+  // Calculate the difference between now and the task's createdAt timestamp
+  const timeElapsed = Date.now() - task.createdAt.getTime();
+
+  // If more than 15 minutes have passed, do not allow cancellation
+  if (timeElapsed > 15 * 60 * 1000) { // 15 minutes in milliseconds
+    res.status(400).json({ success: false, message: '超过创建后15分钟，不能取消任务' });
+    return;
+  }
+
+  // If within the time limit, update the task's status to 'Cancelled'
+  const updatedTask = await Task.findByIdAndUpdate(id, { status: 'Cancelled' }, { new: true });
+
+  // Though we've already checked for task existence, it's good practice to still check the update result
+  if (!updatedTask) {
+    res.status(404).json({ success: false, message: '更新任务状态时发生错误' });
+    return;
+  }
+
+  // Return the updated task
+  res.status(200).json({ success: true, data: updatedTask });
+});
+

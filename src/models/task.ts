@@ -13,6 +13,8 @@ export interface ITask extends Document {
   reviewType?: 'NormalReview' | 'ReviewAfterModification'; // 评价类型
   reviewFile?: string; // 评价文件路径或URL，用于评价后补
   status: 'Active' | 'Cancelled'; // 任务状态
+  createdAt?: Date; // Time of document creation
+  updatedAt?: Date; // Time the document was last updated
 }
 
 const TaskSchema: Schema = new Schema({

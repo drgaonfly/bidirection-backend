@@ -64,8 +64,6 @@ export const getAllTasks = handleAsync(async (req: Request, res: Response) => {
   res.status(200).json({ success: true, data: modifiedFileTasks });
 });
 
-
-
 export const getTaskById = handleAsync(async (req: Request, res: Response) => {
   const task = await Task.findById(req.params.id);
   if (!task) {

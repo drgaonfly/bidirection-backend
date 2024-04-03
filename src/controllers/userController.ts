@@ -7,12 +7,16 @@ import { exclude } from '../utils/handleData';
 
 const getUsers = handleAsync(async (req: Request, res: Response) => {
   // 假设这些值来自于请求参数
-  const { email, name, live, current = '1', pageSize = '10' } = req.query;
+  const { email, name, role, live, current = '1', pageSize = '10' } = req.query;
 
   const query: any = {};
 
   if (email) {
     query.email = email;
+  }
+  
+  if (role) {
+    query.role = role;
   }
 
   if (name) {

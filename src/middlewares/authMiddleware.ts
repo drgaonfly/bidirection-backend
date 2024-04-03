@@ -33,15 +33,20 @@ const protect = handleAsync(async (req: RequestCustom, res: Response, next: Next
   }
 });
 
-const allow = (role: string) => {
+const allow = (roles: string | string[]) => {
   return (req: RequestCustom, res: Response, next: NextFunction): void => {
-    console.log("req.user.role", req.user.role)
-    if (req.user && (req.user.role === role || req.user.role === ROLES.SuperAdmin)) {
+    console.log("req.user.role", req.user.role);
+    // 将单个角色字符串转换为数组形式，以统一处理逻辑
+    const rolesArray = Array.isArray(roles) ? roles : [roles];
+    
+    // 检查req.user.role是否在rolesArray中，或者是否是SuperAdmin
+    if (req.user && (rolesArray.includes(req.user.role) || req.user.role === ROLES.SuperAdmin)) {
       next();
     } else {
-      res.status(401).send({ message: `Not authorized as an ${role}` });
+      res.status(401).send({ message: `Not authorized as any of the required roles` });
     }
   };
-}
+};
+
 
 export { protect, allow };

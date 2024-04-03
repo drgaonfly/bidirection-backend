@@ -10,6 +10,7 @@ const seedUsers = [
   { email: 'orderclerk@2024fc.xyz', password: 'orderclerk2024', role: ROLES.OrderClerk },
   { email: 'finance@2024fc.xyz', password: 'finance2024', role: ROLES.FinancialStaff },
   { email: 'user@2024fc.xyz', password: 'password123' }, // A user without a specified role defaults to a general user role, if applicable
+  { email: 'admin@2024fc.xyz', password: 'password123', role: ROLES.Admin }, // A user without a specified role defaults to a general user role, if applicable
   // 更多用户...
 ];
 

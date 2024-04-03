@@ -14,7 +14,6 @@ jobs:
           password: )3zE_2VQe%Nks9M?
           port: 22
           script: cd /www/wwwroot/ordersystem-new.2024fc.xyz/task-backend && git pull --rebase origin main && npm run build && pm2 restart dist/index.js
-    steps:
       - name: Send Email
         uses: hilarion5/send-mail@v1
         with:

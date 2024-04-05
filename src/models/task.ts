@@ -11,7 +11,7 @@ export interface ITask extends Document {
   orderNote?: string; // 下单备注，可选字段
   reviewType?: 'NormalReview' | 'ReviewAfterModification'; // 评价类型
   reviewFile?: string; // 评价文件路径或URL，用于评价后补
-  status: 'Active' | 'Cancelled'; // 任务状态
+  status: 'Active' | 'Cancelled' | 'Processing' | 'Completed' | 'Issue';
   quantity: number; // 单量
   orderType: ('NormalOrder' | 'ContactForVolumeWeight' | 'ContactForInventory' | 'ContactForPrice')[];
   createdAt?: Date; // Time of document creation
@@ -29,7 +29,12 @@ const TaskSchema: Schema = new Schema({
   orderNote: { type: String, required: false, default: '' }, // 下单备注，默认为空字符串
   reviewType: { type: String, required: true, enum: ['NormalReview', 'ReviewAfterModification'], default: 'NormalReview' }, // 评价类型，默认为'NormalReview'
   reviewFile: { type: String, required: false }, // 评价文件路径或URL，可选字段
-  status: { type: String, required: true, enum: ['Active', 'Cancelled'], default: 'Active' }, // 任务状态
+  status: {
+    type: String,
+    required: true,
+    enum: ['Active', 'Cancelled', 'Processing', 'Completed', 'Issue'],
+    default: 'Active'
+  },
   quantity: { type: Number, required: true }, // 单量
   orderType: [{ type: String, enum: ['NormalOrder', 'ContactForVolumeWeight', 'ContactForInventory', 'ContactForPrice'] }] // 非正常下单原因
 }, { timestamps: true });

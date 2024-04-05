@@ -53,7 +53,7 @@ export const getAllTasks = handleAsync(async (req: Request, res: Response) => {
     queryConditions.reviewType = reviewType;
   }
   if (orderType) {
-    queryConditions.orderType = orderType;
+    queryConditions.orderType = { $in: orderType };
   }
 
   // 使用过滤条件执行查询，并填充user字段以获取用户详情

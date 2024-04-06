@@ -53,7 +53,7 @@ export const getAllTasks = handleAsync(async (req: RequestCustom, res: Response)
     queryConditions.reviewType = reviewType;
   }
   if (orderType) {
-    queryConditions.orderType = { $in: orderType.split(",") }; // Assuming orderType could be a CSV of order types
+    queryConditions.orderType = { $in: orderType }; // Assuming orderType could be a CSV of order types
   }
 
   // Role-based query restriction for customer role

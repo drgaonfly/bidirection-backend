@@ -30,14 +30,9 @@ export const createTask = handleAsync(async (req: RequestCustom, res: Response) 
 });
 
 export const getAllTasks = handleAsync(async (req: RequestCustom, res: Response) => {
-  // 从请求的查询参数中获取country, platform和status
-  const { country, platform, status, _id, orderTimeType, reviewType, orderType } = req.query;
-  
-  // 假设用户信息和角色存储在req.user中
-  const userRole = req.user.role; // 获取用户角色
-  const userId = req.user._id; // 假设用户ID存储在_req.user._id_中
+  // Extracting pagination parameters or providing default values
+  const { current = '1', pageSize = '10', country, platform, status, _id, orderTimeType, reviewType, orderType } = req.query;
 
-  // 构建一个查询对象，仅当提供了相应的查询参数时才添加对应的过滤条件
   const queryConditions: any = {};
   if (country) {
     queryConditions.country = country;
@@ -58,22 +53,34 @@ export const getAllTasks = handleAsync(async (req: RequestCustom, res: Response)
     queryConditions.reviewType = reviewType;
   }
   if (orderType) {
-    queryConditions.orderType = { $in: orderType };
+    queryConditions.orderType = { $in: orderType.split(",") }; // Assuming orderType could be a CSV of order types
   }
 
-  // 如果用户角色是CUSTOMER，限制查询仅返回该用户的任务
-  if (userRole === ROLES.Customer) {
-    queryConditions.user = userId; // 假设任务文档中有一个`user`字段存储用户ID
+  // Role-based query restriction for customer role
+  if (req.user.role === ROLES.Customer) {
+    queryConditions.user = req.user._id;
   }
 
-  // 使用过滤条件执行查询，并填充user字段以获取用户详情
-  const tasks = await Task.find(queryConditions).populate('user');
+  // Count total tasks matching the query conditions for pagination
+  const total = await Task.countDocuments(queryConditions);
 
-  // 使用定义的函数来处理 file 字段
+  // Fetching tasks with pagination applied
+  const tasks = await Task.find(queryConditions)
+    .populate('user')
+    .skip((+current - 1) * +pageSize)
+    .limit(+pageSize);
+
+  // Optionally transform tasks data
   const modifiedFileTasks = await transformDocumentImages(tasks, ['file', 'uploadedFile']);
-  
-  // 返回查询结果，指定要返回的字段
-  res.status(200).json({ success: true, data: modifiedFileTasks });
+
+  // Returning the paginated tasks along with pagination details
+  res.status(200).json({
+    success: true,
+    data: modifiedFileTasks,
+    total,
+    current: +current,
+    pageSize: +pageSize
+  });
 });
 
 

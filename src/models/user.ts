@@ -10,6 +10,8 @@ export interface IUser extends Document {
   name: string;
   role: ROLE;
   live: boolean;
+  createdAt?: Date; // Time of document creation
+  updatedAt?: Date; // Time the document was last updated
 }
 
 const userSchema = new mongoose.Schema({

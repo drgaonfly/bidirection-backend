@@ -35,7 +35,6 @@ const protect = handleAsync(async (req: RequestCustom, res: Response, next: Next
 
 const allow = (roles: string | string[]) => {
   return (req: RequestCustom, res: Response, next: NextFunction): void => {
-    console.log("req.user.role", req.user.role);
     // 将单个角色字符串转换为数组形式，以统一处理逻辑
     const rolesArray = Array.isArray(roles) ? roles : [roles];
     

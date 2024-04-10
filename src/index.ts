@@ -7,11 +7,11 @@ import cors from 'cors';
 
 import userRoutes from './routes/userRoutes';
 import authRoutes from './routes/authRoutes';
+import taskRoutes from './routes/taskRoutes';
 
 
 import setupDB from "./utils/db";
 import { handleFileUpload, uploadFileToOSS, uploadFileToS3 } from './routes/uploadController';
-import taskRoutes from './routes/taskRoutes';
 
 dotenv.config();
 

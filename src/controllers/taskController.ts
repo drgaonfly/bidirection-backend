@@ -193,7 +193,7 @@ export const downloadUpdatedTaskFile = handleAsync(async (req: Request, res: Res
 
 export const uploadBillFile = handleAsync(async (req: Request, res: Response) => {
   const taskId = req.body._id;
-  const task = await Task.findById(taskId)
+  const task = await Task.findById(taskId).populate('bills')
 
   if (!task) {
     res.status(404);

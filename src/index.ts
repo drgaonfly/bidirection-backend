@@ -8,6 +8,7 @@ import cors from 'cors';
 import userRoutes from './routes/userRoutes';
 import authRoutes from './routes/authRoutes';
 import taskRoutes from './routes/taskRoutes';
+import billRoutes from './routes/billRoutes';
 
 
 import setupDB from "./utils/db";
@@ -34,6 +35,7 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/bills', billRoutes);
 
 if (process.env.FILE_STORAGE === 'aliyun') {
   app.post('/api/upload', handleFileUpload, uploadFileToOSS);

@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import handleAsync from '../utils/handleAsync';
 import EmptyPackage from '../models/emptyPackage';  // Updated import to use EmptyPackage model
 import { RequestCustom } from 'user';
+import { transformDocumentImages } from '../utils/transformUtils';
 
 export const createEmptyPackage = handleAsync(async (req: RequestCustom, res: Response) => {
   const emptyPackageData = new EmptyPackage({
@@ -16,7 +17,7 @@ export const createEmptyPackage = handleAsync(async (req: RequestCustom, res: Re
 
 export const getAllEmptyPackages = handleAsync(async (req: Request, res: Response) => {
   // Extracting pagination and filter parameters or providing default values
-  const { current = '1', pageSize = '10', country, platform } = req.query;
+  const { current = '1', pageSize = '10', country, _id, platform } = req.query;
 
   const queryConditions: any = {};
   if (country) {
@@ -24,6 +25,9 @@ export const getAllEmptyPackages = handleAsync(async (req: Request, res: Respons
   }
   if (platform) {
     queryConditions.platform = platform;
+  }
+  if (_id) {
+    queryConditions._id = _id;
   }
 
   // Convert current and pageSize to numbers to use in skip and limit
@@ -38,11 +42,13 @@ export const getAllEmptyPackages = handleAsync(async (req: Request, res: Respons
     .populate('user')
     .skip((currentNum - 1) * pageSizeNum)
     .limit(pageSizeNum);
+    
+  const modifiedEmptyPackages = await transformDocumentImages(emptyPackages, ['pdfFile', 'zipFile']);
 
   // Returning the paginated empty packages along with pagination details
   res.status(200).json({
     success: true,
-    data: emptyPackages,
+    data: modifiedEmptyPackages,
     total,
     current: currentNum,
     pageSize: pageSizeNum

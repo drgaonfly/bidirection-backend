@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { errorHandler, notFound } from './middlewares/errorMiddleware';
 import morgan from 'morgan';
 import cors from 'cors';
+import path from 'path'
 
 import userRoutes from './routes/userRoutes';
 import authRoutes from './routes/authRoutes';
@@ -38,6 +39,8 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/bills', billRoutes);
 app.use('/api/empty-packages', emptyPackageRoutes);
 app.use('/api/upload', uploadRoutes);
+
+app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 
 app.use(notFound);
 app.use(errorHandler);

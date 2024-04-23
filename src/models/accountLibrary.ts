@@ -26,18 +26,17 @@ const accountLibrarySchema = new mongoose.Schema<IAccountLibrary>({
   },
   address: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   accountNumber: {
     type: String,
-    required: true,
-    unique: true,
+    required: false,
     trim: true
   },
   serialNumber: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   storeAccount: {

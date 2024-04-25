@@ -4,7 +4,7 @@ import handleAsync from '../utils/handleAsync';
 import AccountLibrary from '../models/accountLibrary';  // Updated import to use AccountLibrary model
 import { RequestCustom } from 'user';
 import { readAccountExcelData } from '../utils/processExcelFile';
-import { countryMapping } from '../constants';
+import { countryMapping, platformMapping } from '../constants';
 
 export const createAccount = handleAsync(async (req: RequestCustom, res: Response) => {
   const accountData = new AccountLibrary({
@@ -94,6 +94,8 @@ export const deleteMultipleAccounts = handleAsync(async (req: Request, res: Resp
   res.json({ success: true, message: `${result.deletedCount} accounts deleted successfully` });
 });
 
+
+
 export const uploadAccountLibrary = handleAsync(async (req: Request, res: Response) => {
   const file = req.body.file;
  
@@ -108,6 +110,9 @@ export const uploadAccountLibrary = handleAsync(async (req: Request, res: Respon
   const savedAccounts = await Promise.all(
     accountData.map((account) => {
       let mappedCountry = account.country.trim();
+      
+      const standardPlatform = account.platform.toLowerCase().replace(/^\w/, c => c.toUpperCase());
+      const mappedPlatform = platformMapping[standardPlatform];
 
       // 处理传入数据中的特定地区名称
       if (account.country.includes('河内')) {
@@ -125,7 +130,7 @@ export const uploadAccountLibrary = handleAsync(async (req: Request, res: Respon
   
       return new AccountLibrary({
         country: mappedCountry,
-        platform: account.platform,
+        platform: mappedPlatform ? mappedPlatform : account.platform,
         accountNumber: account.accountNumber,
         serialNumber: account.serialNumber,
         storeAccount: account.storeAccount

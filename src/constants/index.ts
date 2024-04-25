@@ -15,8 +15,8 @@ export const countryMapping = {
   '印尼': 'Indonesia'
 };
 
-export const platformMapping = {
-  'Shopee': 'Shopee',
-  'Lazada': 'Lazada',
-  'TikTok': 'TikTok'
+export const platformMapping: { [key: string]: string } = {
+  Shopee: 'Shopee',
+  Lazada: 'Lazada',
+  TikTok: 'TikTok'
 };

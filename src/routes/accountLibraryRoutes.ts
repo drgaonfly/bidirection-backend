@@ -5,7 +5,8 @@ import {
   getAccountById,
   updateAccount,
   deleteAccount,
-  deleteMultipleAccounts
+  deleteMultipleAccounts,
+  uploadAccountLibrary
 } from '../controllers/accountLibraryController'; // Adjust the import path as necessary
 import { protect, allow } from '../middlewares/authMiddleware';
 import { ROLES } from '../constants';
@@ -19,5 +20,7 @@ router.get('/:id', protect, allow([ROLES.Customer, ROLES.Admin]), getAccountById
 router.put('/:id', protect, allow([ROLES.Customer, ROLES.Admin]), updateAccount);
 router.delete('/:id', protect, allow([ROLES.Admin]), deleteAccount);
 router.delete('/', protect, allow([ROLES.Admin]), deleteMultipleAccounts);
+
+router.post('/upload', protect, allow([ROLES.Customer, ROLES.Admin]), uploadAccountLibrary);
 
 export default router;

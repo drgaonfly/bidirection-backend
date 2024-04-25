@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import ExcelJS from 'exceljs';
 import { IBill } from "../models/bill";
+import { IAccountLibrary } from "../models/accountLibrary";
 
 export const processExcelFile = async (ossKey: string): Promise<string> => {
   // 从OSS下载文件
@@ -127,6 +128,58 @@ export async function readExcelData(ossKey: string): Promise<IBill[]> {
     fs.unlinkSync(tempDownloadPath);
 
     return bills;
+  } catch (error) {
+    console.error("Error reading Excel data:", error);
+    // Ensure cleanup even in the case of an error
+    if (fs.existsSync(tempDownloadPath)) {
+      fs.unlinkSync(tempDownloadPath);
+    }
+    throw error;
+  }
+}
+
+export async function readAccountExcelData(ossKey: string): Promise<IAccountLibrary[]> {
+  const tempDownloadPath = path.join('/tmp', path.basename(ossKey));
+
+  try {
+    // Download the file from OSS to the temporary directory
+    const result = await ossClient.get(ossKey, tempDownloadPath);
+
+    // Check if the file was downloaded successfully
+    if (result.res.status !== 200) {
+      throw new Error('Failed to download the file from OSS');
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(tempDownloadPath);
+
+    // Ensure the worksheet exists
+    const worksheet = workbook.getWorksheet(1);
+    if (!worksheet) {
+      throw new Error('Worksheet "New Data Sheet" not found');
+    }
+
+    const accounts: IAccountLibrary[] = [];
+
+    // Start reading from the second row, assuming the first row contains headers
+    worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+      // Assuming the first row is the header and actual data starts from the second row
+      if (rowNumber > 1) {
+        const account: IAccountLibrary = {
+          country: row.getCell(1).text,          // Country is in the first column
+          platform: row.getCell(2).text,         // Platform is in the second column
+          accountNumber: row.getCell(3).text,    // Account Number is in the fourth column
+          serialNumber: row.getCell(4).text,     // Serial Number is in the fifth column
+          storeAccount: row.getCell(5).text,     // Store Account is in the sixth column
+        } as IAccountLibrary;
+        accounts.push(account);
+      }
+    });
+
+    // Clean up the temporary file
+    fs.unlinkSync(tempDownloadPath);
+
+    return accounts;
   } catch (error) {
     console.error("Error reading Excel data:", error);
     // Ensure cleanup even in the case of an error

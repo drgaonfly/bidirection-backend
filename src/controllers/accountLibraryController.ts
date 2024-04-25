@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import handleAsync from '../utils/handleAsync';
 import AccountLibrary from '../models/accountLibrary';  // Updated import to use AccountLibrary model
 import { RequestCustom } from 'user';
+import { readAccountExcelData } from '../utils/processExcelFile';
 
 export const createAccount = handleAsync(async (req: RequestCustom, res: Response) => {
   const accountData = new AccountLibrary({
@@ -90,4 +91,33 @@ export const deleteMultipleAccounts = handleAsync(async (req: Request, res: Resp
   }
 
   res.json({ success: true, message: `${result.deletedCount} accounts deleted successfully` });
+});
+
+export const uploadAccountLibrary = handleAsync(async (req: Request, res: Response) => {
+  const file = req.body.file;
+ 
+  if (!file) {
+    res.status(400)
+    throw new Error('File not provided in the request body');
+  }
+
+  const accountData = await readAccountExcelData(file);
+
+  // Save each account to the database
+  const savedAccounts = await Promise.all(
+    accountData.map((account) => new AccountLibrary({
+      country: account.country,
+      platform: account.platform,
+      accountNumber: account.accountNumber,
+      serialNumber: account.serialNumber,
+      storeAccount: account.storeAccount
+    }).save())
+  );
+  const accountIds = savedAccounts.map(account => account._id);
+
+  res.json({
+    success: true,
+    message: 'Account library saved successfully',
+    data: accountIds
+  });
 });

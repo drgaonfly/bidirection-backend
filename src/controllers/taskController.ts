@@ -229,7 +229,7 @@ export const uploadBillFile = handleAsync(async (req: Request, res: Response) =>
   task.billFile = req.body.billFile;
 
   // Read data from the stored Excel file (assumes `task.billFile` is a path to the file)
- const billsData = await readExcelData(task.billFile);
+  const billsData = await readExcelData(task.billFile);
 
   // Save each bill to the database and collect their IDs
   const savedBills = await Promise.all(

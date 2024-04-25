@@ -115,10 +115,10 @@ export async function readExcelData(ossKey: string): Promise<IBill[]> {
       // Assuming the first row is the header and actual data starts from the second row
       if (rowNumber > 1) {
         const bill: IBill = {
-          storeName: row.getCell(1).text,    // '店铺名字' is in the first column
-          orderNumber: row.getCell(2).text,  // '订单号' is in the second column
+          storeName: row.getCell(1).text.trim(),    // '店铺名字' is in the first column
+          orderNumber: row.getCell(2).text.trim(),  // '订单号' is in the second column
           amount: +row.getCell(3).value,     // '金额' is in the third column
-          buyerId: row.getCell(4).text,      // '买手号' is in the fourth column
+          buyerId: row.getCell(4).text.trim(),      // '买手号' is in the fourth column
         } as IBill;
         bills.push(bill);
       }
@@ -166,11 +166,11 @@ export async function readAccountExcelData(ossKey: string): Promise<IAccountLibr
       // Assuming the first row is the header and actual data starts from the second row
       if (rowNumber > 1) {
         const account: IAccountLibrary = {
-          country: row.getCell(1).text,          // Country is in the first column
-          platform: row.getCell(2).text,         // Platform is in the second column
-          accountNumber: row.getCell(3).text,    // Account Number is in the fourth column
-          serialNumber: row.getCell(4).text,     // Serial Number is in the fifth column
-          storeAccount: row.getCell(5).text,     // Store Account is in the sixth column
+          country: row.getCell(1).text.trim(),          // Country is in the first column
+          platform: row.getCell(2).text.trim(),         // Platform is in the second column
+          accountNumber: row.getCell(3).text.trim(),    // Account Number is in the fourth column
+          serialNumber: row.getCell(4).text.trim(),     // Serial Number is in the fifth column
+          storeAccount: row.getCell(5).text.trim(),     // Store Account is in the sixth column
         } as IAccountLibrary;
         accounts.push(account);
       }

@@ -4,6 +4,7 @@ import handleAsync from '../utils/handleAsync';
 import AccountLibrary from '../models/accountLibrary';  // Updated import to use AccountLibrary model
 import { RequestCustom } from 'user';
 import { readAccountExcelData } from '../utils/processExcelFile';
+import { countryMapping } from '../constants';
 
 export const createAccount = handleAsync(async (req: RequestCustom, res: Response) => {
   const accountData = new AccountLibrary({
@@ -105,13 +106,31 @@ export const uploadAccountLibrary = handleAsync(async (req: Request, res: Respon
 
   // Save each account to the database
   const savedAccounts = await Promise.all(
-    accountData.map((account) => new AccountLibrary({
-      country: account.country,
-      platform: account.platform,
-      accountNumber: account.accountNumber,
-      serialNumber: account.serialNumber,
-      storeAccount: account.storeAccount
-    }).save())
+    accountData.map((account) => {
+      let mappedCountry = account.country.trim();
+
+      // 处理传入数据中的特定地区名称
+      if (account.country.includes('河内')) {
+        mappedCountry = '越南河内';
+      } else if (account.country.includes('胡志明')) {
+        mappedCountry = '越南胡志明';
+      }
+
+      // 使用countryMapping对象进行映射
+      Object.keys(countryMapping).forEach((region) => {
+        if (mappedCountry.includes(region)) {
+          mappedCountry = countryMapping[region as keyof typeof countryMapping];
+        }
+      });
+  
+      return new AccountLibrary({
+        country: mappedCountry,
+        platform: account.platform,
+        accountNumber: account.accountNumber,
+        serialNumber: account.serialNumber,
+        storeAccount: account.storeAccount
+      }).save();
+    })
   );
   const accountIds = savedAccounts.map(account => account._id);
 

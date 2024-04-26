@@ -17,12 +17,12 @@ export const createAccount = handleAsync(async (req: RequestCustom, res: Respons
 });
 
 export const getAllAccounts = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10', country, platform, address, accountNumber, assignedTime } = req.query;
+  const { current = '1', pageSize = '10', country, platform, loginAccount, accountNumber, assignedTime } = req.query;
 
   const queryConditions: any = {};
   if (country) queryConditions.country = country;
   if (platform) queryConditions.platform = platform;
-  if (address) queryConditions.address = address;
+  if (loginAccount) queryConditions.loginAccount = loginAccount;
   if (accountNumber) queryConditions.accountNumber = accountNumber;
   if (assignedTime) queryConditions.assignedTime = assignedTime;
 
@@ -132,8 +132,8 @@ export const uploadAccountLibrary = handleAsync(async (req: Request, res: Respon
         country: mappedCountry,
         platform: mappedPlatform ? mappedPlatform : account.platform,
         accountNumber: account.accountNumber,
-        serialNumber: account.serialNumber,
-        storeAccount: account.storeAccount
+        loginAccount: account.loginAccount,
+        loginPassword: account.loginPassword
       }).save();
     })
   );

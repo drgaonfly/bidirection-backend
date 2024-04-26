@@ -169,8 +169,8 @@ export async function readAccountExcelData(ossKey: string): Promise<IAccountLibr
           country: row.getCell(1).text.trim(),          // Country is in the first column
           platform: row.getCell(2).text.trim(),         // Platform is in the second column
           accountNumber: row.getCell(3).text.trim(),    // Account Number is in the fourth column
-          serialNumber: row.getCell(4).text.trim(),     // Serial Number is in the fifth column
-          storeAccount: row.getCell(5).text.trim(),     // Store Account is in the sixth column
+          loginAccount: row.getCell(4).text.trim(),     // Serial Number is in the fifth column
+          loginPassword: row.getCell(5).text.trim(),     // Store Account is in the sixth column
         } as IAccountLibrary;
         accounts.push(account);
       }

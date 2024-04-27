@@ -51,6 +51,7 @@ export const getAllAssignments = handleAsync(async (req: Request, res: Response)
   const total = await AccountAssignment.countDocuments(queryConditions);
   const assignments = await AccountAssignment.find(queryConditions)
     .populate("accountLibraries")
+    .populate('user')
     .skip((currentNum - 1) * pageSizeNum)
     .limit(pageSizeNum);
 

@@ -10,6 +10,7 @@ export interface IAccountLibrary extends Document {
   createdAt?: Date;    // Time of document creation
   updatedAt?: Date;    // Time the document was last updated
   assignedTime?: string;
+  isAssigned: boolean;  // Indicates whether the account is assigned or not
   user: mongoose.Schema.Types.ObjectId;
 }
 
@@ -43,6 +44,10 @@ const accountLibrarySchema = new mongoose.Schema<IAccountLibrary>({
   assignedTime: {
     type: String,
     required: false
+  },
+  isAssigned: {
+    type: Boolean,
+    default: false
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,

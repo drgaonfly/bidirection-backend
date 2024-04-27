@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import handleAsync from '../utils/handleAsync';
 import AccountAssignment from '../models/accountAssignment';  // 确保路径正确
 import { RequestCustom } from 'user';
+import AccountLibrary from '../models/accountLibrary';
 
 export const createAssignment = handleAsync(async (req: RequestCustom, res: Response) => {
   // Get the current date and format it as YYYY-MM-DD
@@ -96,3 +97,32 @@ export const deleteMultipleAssignments = handleAsync(async (req: Request, res: R
 
   res.json({ success: true, message: `${result.deletedCount} assignments deleted successfully` });
 });
+
+
+export const findAvailableAccounts = handleAsync(async (req: Request, res: Response) => {
+  const { country, numberOfAccounts, platform } = req.body;
+
+  // 查询满足条件且未分配的账号
+  const availableAccounts = await AccountLibrary.aggregate([
+    { $match: { country, platform, isAssigned: false } },
+    { $sample: { size: numberOfAccounts } }
+  ]);
+
+  // 如果没有找到足够的账号，返回错误信息
+  if (availableAccounts.length < numberOfAccounts) {
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    const accountsWithOldAssignments = await AccountLibrary.aggregate([
+      { $match: { country, platform, isAssigned: false, assignedTime: { $lt: oneMonthAgo } } },
+      { $sample: { size: numberOfAccounts - availableAccounts.length } }
+    ]);
+    availableAccounts.push(...accountsWithOldAssignments);
+  }
+
+  // 返回查找到的账号
+  res.status(200).json({
+    success: true,
+    data: availableAccounts
+  });
+});
+

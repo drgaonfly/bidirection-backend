@@ -27,7 +27,7 @@ const priceListSchema = new mongoose.Schema({
   serviceFee: { type: Number, required: false },
   country: { type: String, required: true },
   platform: { type: String, required: true },
-}, { _id: false });
+});
 
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },

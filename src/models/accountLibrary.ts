@@ -12,6 +12,7 @@ export interface IAccountLibrary extends Document {
   assignedTime?: string;
   isAssigned: boolean;  // Indicates whether the account is assigned or not
   user: mongoose.Schema.Types.ObjectId;
+  storeAccount?: string;
 }
 
 // Mongoose schema definition for AccountLibrary
@@ -24,6 +25,11 @@ const accountLibrarySchema = new mongoose.Schema<IAccountLibrary>({
   platform: {
     type: String,
     required: true,
+    trim: true
+  },
+  storeAccount: {
+    type: String,
+    required: false,
     trim: true
   },
   accountNumber: {

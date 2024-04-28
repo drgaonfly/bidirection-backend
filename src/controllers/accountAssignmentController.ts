@@ -26,6 +26,7 @@ export const createAssignment = handleAsync(async (req: RequestCustom, res: Resp
       if (accountLibrary) {
         accountLibrary.assignedTime = currentDate;
         accountLibrary.isAssigned = true;
+        accountLibrary.storeAccount = assignmentData.storeAccount;
         await accountLibrary.save();
         assignmentData.accountLibraries.push(accountLibrary);
        

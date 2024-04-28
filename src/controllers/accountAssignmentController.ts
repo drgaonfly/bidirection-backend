@@ -4,6 +4,7 @@ import handleAsync from '../utils/handleAsync';
 import AccountAssignment from '../models/accountAssignment';  // 确保路径正确
 import { RequestCustom } from 'user';
 import AccountLibrary from '../models/accountLibrary';
+import AccountAssignmentRecord from '../models/accountAssignmentRecord';
 
 export const createAssignment = handleAsync(async (req: RequestCustom, res: Response) => {
   // Get the current date and format it as YYYY-MM-DD
@@ -27,6 +28,16 @@ export const createAssignment = handleAsync(async (req: RequestCustom, res: Resp
         accountLibrary.isAssigned = true;
         await accountLibrary.save();
         assignmentData.accountLibraries.push(accountLibrary);
+       
+        const record = new AccountAssignmentRecord({
+          country: accountLibrary.country,
+          platform: accountLibrary.platform,
+          storeAccount: assignmentData.storeAccount,
+          assignedTime: currentDate,
+          accountLibrary: accountLibrary._id,
+          user: req.body.user || req.user._id,
+        });
+        await record.save();
       }
     }
   }

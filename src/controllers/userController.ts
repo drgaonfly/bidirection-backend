@@ -45,7 +45,7 @@ const getUsers = handleAsync(async (req: Request, res: Response) => {
 });
 
 const addUser = handleAsync(async (req: Request, res: Response) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, priceList } = req.body;
 
   const userExists = await User.findOne({ email });
 
@@ -62,6 +62,7 @@ const addUser = handleAsync(async (req: Request, res: Response) => {
     email,
     role,
     password: hashPassword,
+    priceList
   });
 
   const savedUser = await newUser.save();
@@ -88,7 +89,7 @@ const getUserById = handleAsync(async (req: Request, res: Response) => {
 
 const updateUser = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { password, name, email, live, role } = req.body;
+  const { password, name, email, live, role, priceList } = req.body;
 
   // 寻找用户是否存在
   const user = await User.findById(id);
@@ -111,7 +112,7 @@ const updateUser = handleAsync(async (req: Request, res: Response) => {
   // 更新用户信息
   const updatedUser = await User.findByIdAndUpdate(
     id,
-    { name, email, password: hashPassword, live, role: newRole },
+    { name, email, password: hashPassword, live, role: newRole, priceList },
     { new: true }
   );
 

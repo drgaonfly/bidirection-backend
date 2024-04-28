@@ -1,7 +1,15 @@
 // src/controllers/billController.ts
 import { Request, Response } from 'express';
 import handleAsync from '../utils/handleAsync'; // Adjust the import path as necessary
-import Bill from '../models/bill';
+import Bill, { IBill } from '../models/bill';
+import * as XLSX from 'xlsx';
+import { resolve } from 'path';
+import ossClient from '../utils/oss';
+import fs from "fs"
+import { generateSignedUrlForOSS } from '../utils/generateSignedUrl';
+import { countryMapping } from '../constants';
+import { ITask } from '../models/task';
+import { IUser } from '../models/user';
 
 export const createBill = handleAsync(async (req: Request, res: Response) => {
   const { storeName, orderNumber, amount, buyerId, task } = req.body;
@@ -25,11 +33,11 @@ export const createBill = handleAsync(async (req: Request, res: Response) => {
 
 export const getBills = handleAsync(async (req: Request, res: Response) => {
   const {
-    current = '1', 
-    pageSize = '10', 
-    storeName, 
-    orderNumber, 
-    buyerId, 
+    current = '1',
+    pageSize = '10',
+    storeName,
+    orderNumber,
+    buyerId,
     task,
     country,
     uploadTime
@@ -111,5 +119,84 @@ export const deleteMultipleBills = handleAsync(async (req: Request, res: Respons
     success: true,
     message: `${result.deletedCount} bills deleted successfully`,
     data: { deletedCount: result.deletedCount }
+  });
+});
+
+export const exportBillsToExcel = handleAsync(async (req: Request, res: Response) => {
+  const {
+    storeName,
+    orderNumber,
+    buyerId,
+    task,
+    country,
+    uploadTime
+  } = req.query;
+
+  const queryConditions: any = {};
+  // Adding filters for storeName, orderNumber, buyerId, and task
+  if (storeName) {
+    queryConditions.storeName = { $regex: storeName, $options: 'i' }; // Case-insensitive search
+  }
+  if (orderNumber) {
+    queryConditions.orderNumber = orderNumber;
+  }
+  if (buyerId) {
+    queryConditions.buyerId = buyerId;
+  }
+  if (task) {
+    queryConditions.task = task; // Filtering by task ID
+  }
+  if (country) {
+    queryConditions.country = country; // Filtering by country within the task document
+  }
+  if (uploadTime) {
+    queryConditions.uploadTime = uploadTime;
+  }
+
+  // Retrieve all bills that match the query conditions
+  const bills = await Bill.find(queryConditions)
+    .populate("task") // Ensure to populate necessary task fields
+    .populate("customer") // Populate the customer field if needed
+    .exec();
+
+  const billsPlainObjects = bills.map((bill: IBill) => ({
+    '关联任务': bill.task ? (bill.task as ITask)._id : '无',
+    '客户': bill.customer && (bill.customer as IUser).email ? (bill.customer as IUser).email : '未知',
+    '国家': countryMapping.reverse()[bill.country],
+    '订单号': bill.orderNumber,
+    '下单时间': bill.uploadTime,
+    '店铺名': bill.storeName,
+    '金额': bill.amount,
+    '汇率': bill.exchangeRate,
+    '服务费': bill.serviceFee,
+    '支付金额': bill.paymentAmount,
+    '买手号': bill.buyerId,
+    '创建时间': bill.createdAt,
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(billsPlainObjects);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Bills");
+
+  const timestamp = Date.now();
+  const path = resolve('/tmp', `bills-${timestamp}.xlsx`);
+  XLSX.writeFile(wb, path);
+
+  // Read the file into a buffer
+  const buffer = fs.readFileSync(path);
+
+  // Upload the file to OSS
+  const newOssKey = `bills-${timestamp}.xlsx`;
+  await ossClient.put(newOssKey, buffer);
+
+  // Clean up the temporary file
+  fs.unlinkSync(path);
+
+  // Generate the URL of the uploaded file
+  const signedURL = await generateSignedUrlForOSS(newOssKey);
+
+  res.json({
+    success: true,
+    data: { signedURL, file: newOssKey },
   });
 });

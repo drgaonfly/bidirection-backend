@@ -5,6 +5,7 @@ import {
   updateBill,
   deleteBill,
   deleteMultipleBills,
+  exportBillsToExcel,
 } from '../controllers/billController';
 import { protect, allow } from '../middlewares/authMiddleware';
 import { ROLES } from "../constants";
@@ -19,9 +20,15 @@ router
   .post(protect, allow(ROLES.Admin), createBill);                // Add a new bill
 
 router
+  .route('/export')
+  .get(protect, allow(ROLES.Admin), exportBillsToExcel); 
+  
+router
   .route('/:id')
   .delete(protect, allow(ROLES.Admin), deleteBill)            // Delete a specific bill
   .get(protect, allow([ROLES.Admin]), updateBill)             // Get details of a specific bill
   .put(protect, allow(ROLES.Admin), updateBill);              // Update a bill
+ 
+ // Export bills to Excel
 
 export default router;

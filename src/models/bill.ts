@@ -1,4 +1,6 @@
 import mongoose, { Document } from 'mongoose';
+import { ITask } from './task';
+import { IUser } from './user';
 
 // TypeScript interface for Bill
 export interface IBill extends Document {
@@ -6,13 +8,13 @@ export interface IBill extends Document {
   orderNumber: string;  // 订单号
   amount: number;  // 金额
   buyerId: string;  // 买手号
-  task?: mongoose.Schema.Types.ObjectId;  // 关联的任务ID
+  task?: mongoose.Schema.Types.ObjectId | ITask;  // 关联的任务ID
   createdAt?: Date; // Time of document creation
   updatedAt?: Date; // Time the document was last updated
   country?: string; // Country of the task
   uploadTime?: string; // Time the bill was uploaded
   user: mongoose.Schema.Types.ObjectId;
-  customer: mongoose.Schema.Types.ObjectId;  // New field for the customer
+  customer: mongoose.Schema.Types.ObjectId | IUser;  // New field for the customer
   exchangeRate: number;
   serviceFee: number;
   paymentAmount: number;

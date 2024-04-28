@@ -9,6 +9,8 @@ import fs from "fs"
 import { generateSignedUrlForOSS } from '../utils/generateSignedUrl';
 import { countryMapping } from '../constants';
 import { IUser } from '../models/user';
+import AfterSalesOrder from '../models/afterSalesOrder';
+import { RequestCustom } from 'user';
 
 export const createBill = handleAsync(async (req: Request, res: Response) => {
   const { storeName, orderNumber, amount, buyerId, task } = req.body;
@@ -202,5 +204,32 @@ export const exportBillsToExcel = handleAsync(async (req: Request, res: Response
   res.json({
     success: true,
     data: { signedURL, file: newOssKey },
+  });
+});
+
+
+export const createAfterSalesOrder = handleAsync(async (req: RequestCustom, res: Response) => {
+  const { reason, refundAmount, image, id } = req.body;
+
+  const billExists = await Bill.findById(id);
+  
+  if (!billExists) {
+    res.status(400)
+    throw new Error('Invalid bill ID.');
+  }
+
+  const afterSalesOrder = new AfterSalesOrder({
+    reason,
+    refundAmount,
+    image,
+    bill: id,
+    user: req.body.user || req.user._id,
+  });
+
+  await afterSalesOrder.save();
+
+  res.json({
+    success: true,
+    data: afterSalesOrder,
   });
 });

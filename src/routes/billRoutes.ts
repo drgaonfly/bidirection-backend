@@ -6,6 +6,7 @@ import {
   deleteBill,
   deleteMultipleBills,
   exportBillsToExcel,
+  createAfterSalesOrder,
 } from '../controllers/billController';
 import { protect, allow } from '../middlewares/authMiddleware';
 import { ROLES } from "../constants";
@@ -28,6 +29,10 @@ router
   .delete(protect, allow(ROLES.Admin), deleteBill)            // Delete a specific bill
   .get(protect, allow([ROLES.Admin]), updateBill)             // Get details of a specific bill
   .put(protect, allow(ROLES.Admin), updateBill);              // Update a bill
+
+router
+  .route('/after-sales-order')
+  .post(protect, allow(ROLES.Admin), createAfterSalesOrder);
  
  // Export bills to Excel
 

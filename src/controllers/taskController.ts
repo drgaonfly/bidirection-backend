@@ -237,8 +237,6 @@ export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Respon
  
   const user = await User.findById(task.user);
   
-  console.log('1', user.priceList)
-  
   const priceTableEntry = user.priceList.find(entry => entry.country === task.country);
 
   // Save each bill to the database and collect their IDs

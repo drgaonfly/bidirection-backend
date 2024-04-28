@@ -62,6 +62,7 @@ export const getBills = handleAsync(async (req: Request, res: Response) => {
   // Retrieve bills with pagination and populate task details
   const bills = await Bill.find(queryConditions)
     .populate("task") // Ensure to populate necessary task fields
+    .populate("customer") // Populate the customer field if needed
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .exec();

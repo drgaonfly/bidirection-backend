@@ -3,7 +3,6 @@ import { ROLES } from '../constants'; // Adjust the import path as necessary
 
 type ROLE = typeof ROLES[keyof typeof ROLES];
 export interface IPriceList {
-  isLocalCurrency: boolean;
   exchangeRate: number;
   serviceFee: number;
   country: string;
@@ -22,9 +21,9 @@ export interface IUser extends Document {
 }
 
 const priceListSchema = new mongoose.Schema({
-  isLocalCurrency: { type: Boolean, required: true },
-  exchangeRate: { type: Number, required: false },
-  serviceFee: { type: Number, required: false },
+  // isLocalCurrency: { type: Boolean, required: true },
+  exchangeRate: { type: Number, required: true },
+  serviceFee: { type: Number, required: true },
   country: { type: String, required: true },
 });
 

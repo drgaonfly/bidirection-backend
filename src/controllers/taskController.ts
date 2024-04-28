@@ -8,6 +8,7 @@ import { ROLES } from '../constants';
 import { handleExcelTask, readExcelData } from '../utils/processExcelFile';
 import { generateSignedUrlForOSS } from '../utils/generateSignedUrl';
 import Bill from '../models/bill';
+import User from '../models/user';
 // import { processExcelFile } from '../utils/processExcelFile';
 
 export const createTask = handleAsync(async (req: RequestCustom, res: Response) => {
@@ -233,16 +234,29 @@ export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Respon
 
   // Read data from the stored Excel file (assumes `task.billFile` is a path to the file)
   const billsData = await readExcelData(task.billFile);
+ 
+  const user = await User.findById(task.user);
+  
+  const priceTableEntry = user.priceList.find(entry => entry.country === task.country);
 
   // Save each bill to the database and collect their IDs
   const savedBills = await Promise.all(
-    billsData.map((billData) => new Bill({ 
-      ...billData,
-      task: task._id,
-      country: task.country,
-      uploadTime: task.uploadTime,
-      user: req.user._id
-    }).save())
+    billsData.map((billData) => {
+      const exchangeRate = priceTableEntry?.exchangeRate || 1;
+      const serviceFee = priceTableEntry?.serviceFee || 0;
+      const paymentAmount = billData.amount * exchangeRate + serviceFee;
+      return new Bill({ 
+        ...billData,
+        task: task._id,
+        country: task.country,
+        uploadTime: task.uploadTime,
+        user: req.user._id,
+        customer: task.user,
+        exchangeRate,
+        serviceFee,
+        paymentAmount
+      }).save();
+    })
   );
   const billIds = savedBills.map(bill => bill._id);
 

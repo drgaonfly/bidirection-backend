@@ -12,6 +12,10 @@ export interface IBill extends Document {
   country?: string; // Country of the task
   uploadTime?: string; // Time the bill was uploaded
   user: mongoose.Schema.Types.ObjectId;
+  customer: mongoose.Schema.Types.ObjectId;  // New field for the customer
+  exchangeRate: number;
+  serviceFee: number;
+  paymentAmount: number;
 }
 
 // Mongoose schema definition for Bill
@@ -52,7 +56,18 @@ const billSchema = new mongoose.Schema<IBill>({
     type: mongoose.Schema.Types.ObjectId,
     required: true,
     ref: 'User'  // Assuming a User model exists
-  }
+  },
+  customer: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: 'User'  // Assuming a User model exists
+  },
+  exchangeRate: { type: Number, required: false },
+  serviceFee: { type: Number, required: false },
+  paymentAmount: {
+    type: Number,
+    required: false
+  },
 }, { timestamps: true });
 
 // Mongoose model for Bill

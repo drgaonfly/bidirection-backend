@@ -39,7 +39,8 @@ export const getBills = handleAsync(async (req: Request, res: Response) => {
     buyerId,
     task,
     country,
-    uploadTime
+    uploadTime,
+    afterSales
   } = req.query;
 
   const queryConditions: any = {};
@@ -61,6 +62,9 @@ export const getBills = handleAsync(async (req: Request, res: Response) => {
   }
   if (uploadTime) {
     queryConditions.uploadTime = uploadTime;
+  }
+  if (typeof afterSales === 'string' && afterSales !== '') {
+    queryConditions.afterSales = afterSales === 'true';  // Convert 'true'/'false' string from query to boolean
   }
 
   // Calculate the total number of bills that match the query conditions

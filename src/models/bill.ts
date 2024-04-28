@@ -18,6 +18,7 @@ export interface IBill extends Document {
   exchangeRate: number;
   serviceFee: number;
   paymentAmount: number;
+  afterSales: boolean; 
 }
 
 // Mongoose schema definition for Bill
@@ -69,6 +70,10 @@ const billSchema = new mongoose.Schema<IBill>({
   paymentAmount: {
     type: Number,
     required: false
+  },
+  afterSales: {
+    type: Boolean,
+    default: false,
   },
 }, { timestamps: true });
 

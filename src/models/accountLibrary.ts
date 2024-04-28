@@ -13,6 +13,7 @@ export interface IAccountLibrary extends Document {
   isAssigned: boolean;  // Indicates whether the account is assigned or not
   user: mongoose.Schema.Types.ObjectId;
   storeAccount?: string;
+  isAbnormal: boolean;
 }
 
 // Mongoose schema definition for AccountLibrary
@@ -54,6 +55,10 @@ const accountLibrarySchema = new mongoose.Schema<IAccountLibrary>({
   isAssigned: {
     type: Boolean,
     default: false
+  },
+  isAbnormal: {
+    type: Boolean,
+    default: false,
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,

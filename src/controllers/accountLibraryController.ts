@@ -17,7 +17,7 @@ export const createAccount = handleAsync(async (req: RequestCustom, res: Respons
 });
 
 export const getAllAccounts = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10', country, platform, storeAccount, loginAccount, accountNumber, assignedTime } = req.query;
+  const { current = '1', pageSize = '10', country, platform, storeAccount, isAssigned, isAbnormal, loginAccount, accountNumber, assignedTime } = req.query;
 
   const queryConditions: any = {};
   if (country) queryConditions.country = country;
@@ -26,6 +26,12 @@ export const getAllAccounts = handleAsync(async (req: Request, res: Response) =>
   if (accountNumber) queryConditions.accountNumber = accountNumber;
   if (assignedTime) queryConditions.assignedTime = assignedTime;
   if (storeAccount) queryConditions.storeAccount = storeAccount;
+  if (typeof isAssigned === 'string' && isAssigned !== '') {
+    queryConditions.isAssigned = isAssigned === 'true';  // Convert 'true'/'false' string from query to boolean
+  }
+  if (typeof isAbnormal === 'string' && isAbnormal !== '') {
+    queryConditions.isAbnormal = isAbnormal === 'true';  // Convert 'true'/'false' string from query to boolean
+  }
 
   const currentNum = parseInt(current as string, 10);
   const pageSizeNum = parseInt(pageSize as string, 10);

@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import handleAsync from '../utils/handleAsync';
 import AfterSalesOrder from '../models/afterSalesOrder';
 import { RequestCustom } from 'user';
+import { transformDocumentImages } from '../utils/transformUtils';
 
 // Create an after sales order
 export const createAfterSalesOrder = handleAsync(async (req: RequestCustom, res: Response) => {
@@ -25,12 +26,16 @@ export const getAfterSalesOrders = handleAsync(async (req: Request, res: Respons
   const {
     current = '1',
     pageSize = '10',
-    bill // Assuming bill ID can be a filter
-  } = req.query as { current: string; pageSize: string; bill?: string };
+    bill, // Assuming bill ID can be a filter
+    status,
+  } = req.query as { current: string; status: string; pageSize: string; bill?: string };
 
   const queryConditions: any = {};
   if (bill) {
     queryConditions.bill = bill;  // Filtering by the bill ID linked to the after sales order
+  }
+  if (status) {
+    queryConditions.status = status;
   }
 
   // More complex filters can be implemented here if needed.
@@ -39,12 +44,14 @@ export const getAfterSalesOrders = handleAsync(async (req: Request, res: Respons
   const total = await AfterSalesOrder.countDocuments(queryConditions);
 
   // Retrieve after sales orders with pagination and populate related bill and user data
-  const orders = await AfterSalesOrder.find(queryConditions)
+  let orders = await AfterSalesOrder.find(queryConditions)
     .populate('bill')
     .populate('user')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .exec();
+    
+    orders = await transformDocumentImages(orders, ['image']);
 
   // Send response with order data, total count, and pagination details
   res.json({

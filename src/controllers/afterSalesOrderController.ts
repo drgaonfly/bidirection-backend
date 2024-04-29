@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import handleAsync from '../utils/handleAsync';
 import AfterSalesOrder from '../models/afterSalesOrder';
 import { RequestCustom } from 'user';
-// import { transformDocumentImages } from '../utils/transformUtils';
+import { transformDocumentImages } from '../utils/transformUtils';
 
 // Create an after sales order
 export const createAfterSalesOrder = handleAsync(async (req: RequestCustom, res: Response) => {
@@ -44,14 +44,14 @@ export const getAfterSalesOrders = handleAsync(async (req: Request, res: Respons
   const total = await AfterSalesOrder.countDocuments(queryConditions);
 
   // Retrieve after sales orders with pagination and populate related bill and user data
-  const orders = await AfterSalesOrder.find(queryConditions)
+  let orders = await AfterSalesOrder.find(queryConditions)
     .populate('bill')
     .populate('user')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .exec();
     
-    // orders = await transformDocumentImages(orders, ['image']);
+    orders = await transformDocumentImages(orders, ['image']);
 
   // Send response with order data, total count, and pagination details
   res.json({

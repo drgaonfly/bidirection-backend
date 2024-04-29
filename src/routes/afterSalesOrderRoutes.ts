@@ -4,7 +4,8 @@ import {
   getAfterSalesOrders,
   updateAfterSalesOrder,
   deleteAfterSalesOrder,
-  reviewAfterSalesOrder
+  reviewAfterSalesOrder,
+  deleteMultipleAfterSalesOrders
 } from '../controllers/afterSalesOrderController';
 import { protect, allow } from '../middlewares/authMiddleware';
 import { ROLES } from "../constants";
@@ -14,7 +15,8 @@ const router: Router = express.Router();
 router
   .route('/')
   .get(protect, getAfterSalesOrders)  // Get list of after sales orders
-  .post(protect, allow(ROLES.Admin), createAfterSalesOrder);  // Add a new after sales order
+  .post(protect, allow(ROLES.Admin), createAfterSalesOrder)  // Add a new after sales order
+  .delete(protect, allow([ROLES.Admin]), deleteMultipleAfterSalesOrders);
 
 router
   .route('/:id')

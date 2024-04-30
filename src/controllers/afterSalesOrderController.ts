@@ -47,11 +47,12 @@ export const getAfterSalesOrders = handleAsync(async (req: Request, res: Respons
   let orders = await AfterSalesOrder.find(queryConditions)
     .populate('bill')
     .populate('user')
+    .sort('-createdAt')  // Add this line to sort by creation time in descending order
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .exec();
-    
-    orders = await transformDocumentImages(orders, ['image']);
+
+  orders = await transformDocumentImages(orders, ['image']);
 
   // Send response with order data, total count, and pagination details
   res.json({
@@ -81,7 +82,7 @@ export const updateAfterSalesOrder = handleAsync(async (req: Request, res: Respo
 export const deleteAfterSalesOrder = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const deletedOrder = await AfterSalesOrder.findByIdAndDelete(id);
-  
+
   if (!deletedOrder) {
     res.status(404);
     throw new Error('After Sales Order not found');

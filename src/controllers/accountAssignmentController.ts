@@ -29,7 +29,7 @@ export const createAssignment = handleAsync(async (req: RequestCustom, res: Resp
         accountLibrary.storeAccount = assignmentData.storeAccount;
         await accountLibrary.save();
         assignmentData.accountLibraries.push(accountLibrary);
-       
+
         const record = new AccountAssignmentRecord({
           country: accountLibrary.country,
           platform: accountLibrary.platform,
@@ -64,6 +64,7 @@ export const getAllAssignments = handleAsync(async (req: Request, res: Response)
   const assignments = await AccountAssignment.find(queryConditions)
     .populate("accountLibraries")
     .populate('user')
+    .sort('-createdAt')  // Add this line to sort by creation time in descending order
     .skip((currentNum - 1) * pageSizeNum)
     .limit(pageSizeNum);
 

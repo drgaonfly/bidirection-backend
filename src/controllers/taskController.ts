@@ -21,7 +21,7 @@ export const createTask = handleAsync(async (req: RequestCustom, res: Response) 
 
   // 判断请求体中是否提供了user，如果提供了就使用该user，否则使用认证用户的_id
   const userId = req.body.user || req.user._id;
- 
+
   // 如果有uploadTime，使用正则表达式提取年月日
   if (req.body.uploadTime) {
     const dateMatch = req.body.uploadTime.match(/(\d{4}-\d{2}-\d{2})/);
@@ -83,6 +83,7 @@ export const getAllTasks = handleAsync(async (req: RequestCustom, res: Response)
   const tasks = await Task.find(queryConditions)
     .populate('user')
     .populate('bills')
+    .sort('-createdAt')  // Add this line to sort by creation time in descending order
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize);
 
@@ -197,7 +198,7 @@ export const cancelTask = handleAsync(async (req: RequestCustom, res: Response) 
 export const downloadUpdatedTaskFile = handleAsync(async (req: Request, res: Response) => {
   const taskId = req.body.taskId; // 使用POST方法，因此从req.body获取taskId
   const task = await Task.findById(taskId);
-  
+
   if (!task || !task.file) {
     res.status(404)
     throw new Error('Task not found or file missing');
@@ -205,7 +206,7 @@ export const downloadUpdatedTaskFile = handleAsync(async (req: Request, res: Res
 
   const newOssKey = await handleExcelTask(task.file);
   const signedURL = await generateSignedUrlForOSS(newOssKey);
-  
+
   task.status = 'Processing';
   await task.save(); // Make sure to save the update
 
@@ -234,9 +235,9 @@ export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Respon
 
   // Read data from the stored Excel file (assumes `task.billFile` is a path to the file)
   const billsData = await readExcelData(task.billFile);
- 
+
   const user = await User.findById(task.user);
-  
+
   const priceTableEntry = user.priceList.find(entry => entry.country === task.country);
 
   // Save each bill to the database and collect their IDs
@@ -245,7 +246,7 @@ export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Respon
       const exchangeRate = priceTableEntry?.exchangeRate || 1;
       const serviceFee = priceTableEntry?.serviceFee || 0;
       const paymentAmount = billData.amount * exchangeRate + serviceFee;
-      return new Bill({ 
+      return new Bill({
         ...billData,
         task: task._id,
         country: task.country,
@@ -262,7 +263,7 @@ export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Respon
 
   // Add the saved bill's IDs to the task's bills array
   task.bills.push(...billIds);
-  
+
   await task.save();
 
   res.json({

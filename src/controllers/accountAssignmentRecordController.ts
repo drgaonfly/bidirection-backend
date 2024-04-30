@@ -28,6 +28,7 @@ export const getAllAccountAssignmentRecords = handleAsync(async (req: Request, r
 
   const total = await AccountAssignmentRecord.countDocuments(queryConditions);
   const records = await AccountAssignmentRecord.find(queryConditions)
+    .sort('-createdAt')  // Add this line to sort by creation time in descending order
     .skip((currentNum - 1) * pageSizeNum)
     .limit(pageSizeNum)
     .populate('user')

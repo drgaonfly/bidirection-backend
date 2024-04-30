@@ -43,9 +43,10 @@ export const getAllEmptyPackages = handleAsync(async (req: Request, res: Respons
   // Fetching empty packages with pagination applied
   const emptyPackages = await EmptyPackage.find(queryConditions)
     .populate('user')
+    .sort('-createdAt')  // Add this line to sort by creation time in descending order
     .skip((currentNum - 1) * pageSizeNum)
     .limit(pageSizeNum);
-    
+
   const modifiedEmptyPackages = await transformDocumentImages(emptyPackages, ['pdfFile', 'zipFile']);
 
   // Returning the paginated empty packages along with pagination details
@@ -71,7 +72,12 @@ export const getEmptyPackageById = handleAsync(async (req: Request, res: Respons
 });
 
 export const updateEmptyPackage = handleAsync(async (req: Request, res: Response) => {
-  const emptyPackage = await EmptyPackage.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  // Remove pdfFile and zipFile from the update
+  const update = { ...req.body };
+  delete update.pdfFile;
+  delete update.zipFile;
+
+  const emptyPackage = await EmptyPackage.findByIdAndUpdate(req.params.id, update, { new: true });
 
   if (!emptyPackage) {
     res.status(404)

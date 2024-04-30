@@ -76,6 +76,7 @@ export const getBills = handleAsync(async (req: Request, res: Response) => {
   const bills = await Bill.find(queryConditions)
     .populate("task") // Ensure to populate necessary task fields
     .populate("customer") // Populate the customer field if needed
+    .sort('-createdAt')  // Add this line to sort by creation time in descending order
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .exec();
@@ -162,7 +163,7 @@ export const exportBillsToExcel = handleAsync(async (req: Request, res: Response
   const bills = await Bill.find(queryConditions)
     .populate("customer") // Populate the customer field if needed
     .exec();
-    
+
   const countryMappingReverse = Object.fromEntries(Object.entries(countryMapping).map(([key, value]) => [value, key]));
 
   const billsPlainObjects = bills.map((bill: IBill) => ({
@@ -212,7 +213,7 @@ export const createAfterSalesOrder = handleAsync(async (req: RequestCustom, res:
   const { reason, refundAmount, image, id } = req.body;
 
   const billExists = await Bill.findById(id);
-  
+
   if (!billExists) {
     res.status(400)
     throw new Error('Invalid bill ID.');

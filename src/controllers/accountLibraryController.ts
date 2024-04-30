@@ -38,8 +38,9 @@ export const getAllAccounts = handleAsync(async (req: Request, res: Response) =>
 
   const total = await AccountLibrary.countDocuments(queryConditions);
   const accounts = await AccountLibrary.find(queryConditions)
+    .sort('-createdAt')  // Add this line to sort by creation time in descending order
     .skip((currentNum - 1) * pageSizeNum)
-    .limit(pageSizeNum);
+    .limit(pageSizeNum);;
 
   res.status(200).json({
     success: true,
@@ -105,7 +106,7 @@ export const deleteMultipleAccounts = handleAsync(async (req: Request, res: Resp
 
 export const uploadAccountLibrary = handleAsync(async (req: RequestCustom, res: Response) => {
   const file = req.body.file;
- 
+
   if (!file) {
     res.status(400)
     throw new Error('File not provided in the request body');
@@ -117,7 +118,7 @@ export const uploadAccountLibrary = handleAsync(async (req: RequestCustom, res: 
   const savedAccounts = await Promise.all(
     accountData.map((account) => {
       let mappedCountry = account.country.trim();
-      
+
       const standardPlatform = account.platform.toLowerCase().replace(/^\w/, c => c.toUpperCase());
       const mappedPlatform = platformMapping[standardPlatform];
 
@@ -134,7 +135,7 @@ export const uploadAccountLibrary = handleAsync(async (req: RequestCustom, res: 
           mappedCountry = countryMapping[region as keyof typeof countryMapping];
         }
       });
-  
+
       return new AccountLibrary({
         country: mappedCountry,
         platform: mappedPlatform ? mappedPlatform : account.platform,

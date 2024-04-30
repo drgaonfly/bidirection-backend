@@ -14,7 +14,7 @@ const getUsers = handleAsync(async (req: Request, res: Response) => {
   if (email) {
     query.email = email;
   }
-  
+
   if (role) {
     query.role = role;
   }
@@ -29,6 +29,7 @@ const getUsers = handleAsync(async (req: Request, res: Response) => {
 
   // 执行查询
   const users = await User.find(query)
+    .sort('-createdAt')  // Add this line to sort by creation time in descending order
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .exec();
@@ -107,7 +108,7 @@ const updateUser = handleAsync(async (req: Request, res: Response) => {
     hashPassword = await bcrypt.hash(password, salt);
   }
 
-  const newRole  = role ? role : user.role;
+  const newRole = role ? role : user.role;
 
   // 更新用户信息
   const updatedUser = await User.findByIdAndUpdate(
@@ -154,4 +155,4 @@ const deleteMultipleUsers = handleAsync(async (req: Request, res: Response) => {
 });
 
 
-export { deleteMultipleUsers, updateUser, deleteUser, getUsers, addUser, getUserById  }
+export { deleteMultipleUsers, updateUser, deleteUser, getUsers, addUser, getUserById }

@@ -1,9 +1,10 @@
 // controllers/userController.ts
 import { Request, Response } from 'express';
-import User from '../models/user';
+import User, { IUser } from '../models/user';
 import handleAsync from '../utils/handleAsync';
 import bcrypt from "bcrypt";
 import { exclude } from '../utils/handleData';
+import { readUserExcelData } from '../utils/processExcelFile';
 
 const getUsers = handleAsync(async (req: Request, res: Response) => {
   // 假设这些值来自于请求参数
@@ -154,5 +155,43 @@ const deleteMultipleUsers = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
+export const uploadUsers = handleAsync(async (req: Request, res: Response) => {
+  const file = req.body.file;
+
+  if (!file) {
+    res.status(400);
+    throw new Error('File not provided in the request body');
+  }
+
+  const userData = await readUserExcelData(file);
+
+  // Save each user to the database
+  const savedUsers = await Promise.all(
+    userData.map(async (user: IUser) => {
+      try {
+        const newUser = new User({
+          email: user.email,
+          name: user.name,
+          password: user.password,
+        });
+        return await newUser.save();
+      } catch (error) {
+        console.error(`Failed to save user: ${user.email}`, error);
+        return null;
+      }
+    })
+  );
+
+  // Filter out null values (failed operations)
+  const successfulUsers = savedUsers.filter(user => user !== null);
+
+  const userIds = successfulUsers.map(user => user._id);
+ 
+  res.json({
+    success: true,
+    message: 'Users uploaded successfully',
+    data: userIds
+  });
+});
 
 export { deleteMultipleUsers, updateUser, deleteUser, getUsers, addUser, getUserById }

@@ -6,6 +6,7 @@ import {
   getUsers,
   deleteMultipleUsers,
   addUser,
+  uploadUsers,
 } from '../controllers/userController';
 import { protect, allow } from '../middlewares/authMiddleware';
 import {ROLES} from "../constants";
@@ -17,6 +18,10 @@ router
   .get(protect, allow([ROLES.SuperAdmin, ROLES.Admin]), getUsers)
   .delete(protect, allow(ROLES.SuperAdmin), deleteMultipleUsers)
   .post(protect, allow(ROLES.SuperAdmin), addUser);
+ 
+router
+  .route('/batch-upload')
+  .post(protect, allow(ROLES.SuperAdmin), uploadUsers);  // Add this line
 
 router
   .route('/:id')

@@ -5,6 +5,7 @@ import path from 'path';
 import ExcelJS from 'exceljs';
 import { IBill } from "../models/bill";
 import { IAccountLibrary } from "../models/accountLibrary";
+import { IUser } from "../models/user";
 
 export const processExcelFile = async (ossKey: string): Promise<string> => {
   // 从OSS下载文件
@@ -19,8 +20,8 @@ export const processExcelFile = async (ossKey: string): Promise<string> => {
   // 添加新列
   const range = XLSX.utils.decode_range(worksheet['!ref']!);
   for (let C = range.e.c + 1; C <= range.e.c + 3; C++) {
-    const address = XLSX.utils.encode_cell({r: 0, c: C}); // 第一行，新列
-    worksheet[address] = {t: 's', v: `新列${C-range.e.c}`}; // 添加列名
+    const address = XLSX.utils.encode_cell({ r: 0, c: C }); // 第一行，新列
+    worksheet[address] = { t: 's', v: `新列${C - range.e.c}` }; // 添加列名
   }
   range.e.c += 3; // 扩展范围以包含新列
   worksheet['!ref'] = XLSX.utils.encode_range(range);
@@ -42,13 +43,13 @@ export const handleExcelTask = async (ossKey: string): Promise<string> => {
   const tempDownloadPath = path.join('/tmp', path.basename(ossKey));
 
   try {
-   // Download the file from OSS to the temporary directory
-   const result = await ossClient.get(ossKey, tempDownloadPath);
+    // Download the file from OSS to the temporary directory
+    const result = await ossClient.get(ossKey, tempDownloadPath);
 
-   // Check if the file was downloaded successfully
-   if (result.res.status !== 200) {
-     throw new Error('Failed to download the file from OSS');
-   }
+    // Check if the file was downloaded successfully
+    if (result.res.status !== 200) {
+      throw new Error('Failed to download the file from OSS');
+    }
 
     // Initialize a new workbook and read the existing Excel file
     const workbook = new ExcelJS.Workbook();
@@ -180,6 +181,64 @@ export async function readAccountExcelData(ossKey: string): Promise<IAccountLibr
     fs.unlinkSync(tempDownloadPath);
 
     return accounts;
+  } catch (error) {
+    console.error("Error reading Excel data:", error);
+    // Ensure cleanup even in the case of an error
+    if (fs.existsSync(tempDownloadPath)) {
+      fs.unlinkSync(tempDownloadPath);
+    }
+    throw error;
+  }
+}
+
+export async function readUserExcelData(ossKey: string): Promise<IUser[]> {
+  const tempDownloadPath = path.join('/tmp', path.basename(ossKey));
+
+  try {
+    // Download the file from OSS to the temporary directory
+    const result = await ossClient.get(ossKey, tempDownloadPath);
+
+    // Check if the file was downloaded successfully
+    if (result.res.status !== 200) {
+      throw new Error('Failed to download the file from OSS');
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(tempDownloadPath);
+
+    // Ensure the worksheet exists
+    const worksheet = workbook.getWorksheet(1);
+    if (!worksheet) {
+      throw new Error('Worksheet not found');
+    }
+
+    const users: IUser[] = [];
+
+    // Start reading from the second row, assuming the first row contains headers
+    const emailRegex = /[\w-.]+@([\w-]+\.)+[\w-]{2,4}/g;
+
+    worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+      // Assuming the first row is the header and actual data starts from the second row
+      if (rowNumber > 1) {
+        const possibleEmail = String(row.getCell(1).text.trim()); // Ensure we are working with a string
+        const match = possibleEmail.match(emailRegex);
+        const email = match ? match[0].trim() : null; // Only take the first match and trim spaces
+
+        if (email) {
+          const user: IUser = {
+            email: email, // Processed email
+            name: row.getCell(2).text.trim(), // Username is in the second column
+            password: row.getCell(3).text.trim(), // Password is in the third column
+          } as IUser;
+          users.push(user);
+        }
+      }
+    });
+
+    // Clean up the temporary file
+    fs.unlinkSync(tempDownloadPath);
+
+    return users;
   } catch (error) {
     console.error("Error reading Excel data:", error);
     // Ensure cleanup even in the case of an error

@@ -49,13 +49,16 @@ export const getAfterSalesOrders = handleAsync(async (req: Request, res: Respons
 
   // Retrieve after sales orders with pagination and populate related bill and user data
   let orders = await AfterSalesOrder.find(queryConditions)
-    .populate('bill')
+    .populate({
+      path: 'bill',
+      populate: { path: 'customer' }  // Populate the customer field in the bill document
+    })
     .populate('user')
-    .sort('-createdAt')  // Add this line to sort by creation time in descending order
+    .sort('-createdAt')  // Sort by creation time in descending order
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .exec();
-
+   
   orders = await transformDocumentImages(orders, ['image']);
 
   // Send response with order data, total count, and pagination details

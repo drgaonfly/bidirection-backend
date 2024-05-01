@@ -77,9 +77,15 @@ export const getBills = handleAsync(async (req: Request, res: Response) => {
 
   // Retrieve bills with pagination and populate task details
   const bills = await Bill.find(queryConditions)
-    .populate("task") // Ensure to populate necessary task fields
+    .populate({
+      path: 'task',
+      populate: [
+        { path: 'bills' },  // Populate the bills field in the task document
+        { path: 'user' }   // Populate the user field in the task document
+      ]
+    })
     .populate("customer") // Populate the customer field if needed
-    .sort('-createdAt')  // Add this line to sort by creation time in descending order
+    .sort('-createdAt')  // Sort by creation time in descending order
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .exec();

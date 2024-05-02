@@ -1,10 +1,10 @@
 // controllers/userController.ts
 import { Request, Response } from 'express';
-import User, { IUser } from '../models/user';
+import User, { IPriceList, IUser } from '../models/user';
 import handleAsync from '../utils/handleAsync';
 import bcrypt from "bcrypt";
 import { exclude } from '../utils/handleData';
-import { readUserExcelData } from '../utils/processExcelFile';
+import { readPriceExcelData, readUserExcelData } from '../utils/processExcelFile';
 
 const getUsers = handleAsync(async (req: Request, res: Response) => {
   // 假设这些值来自于请求参数
@@ -186,11 +186,38 @@ export const uploadUsers = handleAsync(async (req: Request, res: Response) => {
   const successfulUsers = savedUsers.filter(user => user !== null);
 
   const userIds = successfulUsers.map(user => user._id);
- 
+
   res.json({
     success: true,
     message: 'Users uploaded successfully',
     data: userIds
+  });
+});
+
+export const uploadPrices = handleAsync(async (req: Request, res: Response) => {
+  const file = req.body.file;
+
+  if (!file) {
+    res.status(400);
+    throw new Error('File not provided in the request body');
+  }
+
+  const priceData: { email: string; priceList: IPriceList[] }[] = await readPriceExcelData(file);
+
+  for (const data of priceData) {
+    const user = await User.findOne({ email: data.email });
+
+    if (user) {
+      user.priceList = data.priceList;
+      await user.save();
+    }
+  }
+  // Save each price to the database
+
+  res.json({
+    success: true,
+    message: 'Prices uploaded successfully',
+    data: priceData
   });
 });
 

@@ -6,7 +6,6 @@ export interface IPriceList {
   exchangeRate: number;
   serviceFee: number;
   country: string;
-  platform: string;
 }
 export interface IUser extends Document {
   email: string;

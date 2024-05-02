@@ -5,7 +5,7 @@ import path from 'path';
 import ExcelJS from 'exceljs';
 import { IBill } from "../models/bill";
 import { IAccountLibrary } from "../models/accountLibrary";
-import { IUser } from "../models/user";
+import { IPriceList, IUser } from "../models/user";
 
 export const processExcelFile = async (ossKey: string): Promise<string> => {
   // 从OSS下载文件
@@ -239,6 +239,73 @@ export async function readUserExcelData(ossKey: string): Promise<IUser[]> {
     fs.unlinkSync(tempDownloadPath);
 
     return users;
+  } catch (error) {
+    console.error("Error reading Excel data:", error);
+    // Ensure cleanup even in the case of an error
+    if (fs.existsSync(tempDownloadPath)) {
+      fs.unlinkSync(tempDownloadPath);
+    }
+    throw error;
+  }
+}
+
+export async function readPriceExcelData(ossKey: string): Promise<{email: string, priceList: IPriceList[]}[]> {
+  const tempDownloadPath = path.join('/tmp', path.basename(ossKey));
+  const emailRegex = /[\w-.]+@([\w-]+\.)+[\w-]{2,4}/g;
+
+  try {
+    // Download the file from OSS to the temporary directory
+    const result = await ossClient.get(ossKey, tempDownloadPath);
+
+    // Check if the file was downloaded successfully
+    if (result.res.status !== 200) {
+      throw new Error('Failed to download the file from OSS');
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(tempDownloadPath);
+
+    // Ensure the worksheet exists
+    const worksheet = workbook.getWorksheet(1);
+    if (!worksheet) {
+      throw new Error('Worksheet not found');
+    }
+
+    // Start reading from the second row, assuming the first row contains headers
+    const priceLists: { email: string; priceList: IPriceList[] }[] = [];
+
+    worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+      // Assuming the first row is the header and actual data starts from the second row
+      if (rowNumber > 1) {
+        const possibleEmail = String(row.getCell(1).text.trim()); // Ensure we are working with a string
+        const match = possibleEmail.match(emailRegex);
+        const email = match ? match[0].trim() : null;
+
+        if (email) {
+          const priceList: IPriceList = {
+            country: row.getCell(2).text.trim(), // Country is in the second column
+            exchangeRate: parseFloat(row.getCell(3).text.trim()), // Exchange rate is in the third column
+            serviceFee: parseFloat(row.getCell(4).text.trim()), // Service fee is in the fourth column
+          };
+
+          // Check if the email already exists in the priceLists array
+          const existingEntry = priceLists.find((entry) => entry.email === email);
+
+          if (existingEntry) {
+            // If the email already exists, push the new priceList to the existing array
+            existingEntry.priceList.push(priceList);
+          } else {
+            // If the email does not exist, create a new entry
+            priceLists.push({ email: email, priceList: [priceList] });
+          }
+        }
+      }
+    });
+
+    // Clean up the temporary file
+    fs.unlinkSync(tempDownloadPath);
+
+    return priceLists;
   } catch (error) {
     console.error("Error reading Excel data:", error);
     // Ensure cleanup even in the case of an error

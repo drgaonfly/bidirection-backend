@@ -7,6 +7,7 @@ import {
   deleteMultipleUsers,
   addUser,
   uploadUsers,
+  uploadPrices,
 } from '../controllers/userController';
 import { protect, allow } from '../middlewares/authMiddleware';
 import {ROLES} from "../constants";
@@ -28,5 +29,7 @@ router
   .delete(protect, allow(ROLES.SuperAdmin), deleteUser)
   .get(getUserById)
   .put(protect, allow(ROLES.SuperAdmin), updateUser);
-
+router
+  .route('/upload-prices')
+  .post(protect, allow(ROLES.SuperAdmin), uploadPrices);
 export default router;

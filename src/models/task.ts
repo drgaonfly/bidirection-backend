@@ -5,7 +5,7 @@ export interface ITask extends Document {
   country: string;
   platform: string;
   file: string; // 假设这可能是一个URL或文件路径
-  uploadedFile: string; // 上传文件路径或URL
+  uploadedFile: string; // 评论后补文件
   billFile?: string; // 账单文件路径或URL，可选字段
   user: Schema.Types.ObjectId; // 对User模型的引用
   orderTime: Date; // 下单时间

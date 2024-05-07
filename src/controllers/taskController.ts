@@ -118,7 +118,7 @@ export const getAllTasks = handleAsync(async (req: RequestCustom, res: Response)
     .limit(+pageSize);
 
   // Optionally transform tasks data
-  const modifiedFileTasks = await transformDocumentImages(tasks, ['file', 'uploadedFile']);
+  const modifiedFileTasks = await transformDocumentImages(tasks, ['file', 'uploadedFile', 'billFile']);
 
   // Returning the paginated tasks along with pagination details
   res.status(200).json({

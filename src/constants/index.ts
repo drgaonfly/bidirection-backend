@@ -15,6 +15,15 @@ export const countryMapping: { [key: string]: string } = {
   '印尼': 'Indonesia'
 };
 
+export const countryCodeMapping: { [key: string]: string } = {
+  'Vietnam Ho Chi Minh': 'VNH',
+  'Vietnam Hanoi': 'VN',
+  'Thailand': 'TH',
+  'Malaysia': 'MY',
+  'Philippines': 'PH',
+  'Indonesia': 'ID'
+};
+
 export const platformMapping: { [key: string]: string } = {
   Shopee: 'Shopee',
   Lazada: 'Lazada',

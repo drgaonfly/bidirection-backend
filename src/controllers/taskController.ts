@@ -4,7 +4,7 @@ import handleAsync from '../utils/handleAsync'; // Adjust the import path as nec
 import Task from '../models/task';
 import { RequestCustom } from 'user';
 import { transformDocumentImages } from '../utils/transformUtils';
-import { ROLES } from '../constants';
+import { ROLES, countryCodeMapping } from '../constants';
 import { handleExcelTask, readExcelData } from '../utils/processExcelFile';
 import { generateSignedUrlForOSS } from '../utils/generateSignedUrl';
 import Bill from '../models/bill';
@@ -32,6 +32,36 @@ export const createTask = handleAsync(async (req: RequestCustom, res: Response) 
 
   // 创建新任务时，使用确定的userId
   const taskData = { ...req.body, user: userId };
+
+  // 获取国家编码
+  const countryInEnglish = taskData.country;
+  const countryCode = countryCodeMapping[countryInEnglish];
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new Error(`User not found for id ${userId}`);
+  }
+
+  // 获取客户名称
+  const customerName = user.name;
+
+  /// 获取传过来的上传时间
+  const uploadTimeStr = taskData.uploadTime;
+
+  // 获取这个客户在指定日期上传的表格数量
+  const count = await Task.countDocuments({ user: userId, country: taskData.country, uploadTime: uploadTimeStr });
+  // 生成任务编码
+  const uploadDate = new Date(taskData.uploadTime);
+
+  // 获取年、月和日
+  const year = uploadDate.getFullYear().toString().substr(-2); // 获取年份的最后两位
+  const month = (uploadDate.getMonth() + 1).toString().padStart(2, '0'); // 获取月份并确保它是两位数
+  const day = uploadDate.getDate().toString().padStart(2, '0'); // 获取日期并确保它是两位数
+
+  // 生成任务编码
+  taskData.code = `${year}${month}${day}${countryCode}${customerName}(${count + 1})`;
+
   const task = new Task(taskData);
 
   // 保存任务到数据库
@@ -43,7 +73,7 @@ export const createTask = handleAsync(async (req: RequestCustom, res: Response) 
 
 export const getAllTasks = handleAsync(async (req: RequestCustom, res: Response) => {
   // Extracting pagination parameters or providing default values
-  const { current = '1', pageSize = '10', country, uploadTime, platform, status, _id, orderTimeType, reviewType, orderType } = req.query;
+  const { current = '1', pageSize = '10', country, uploadTime, platform, status, code, orderTimeType, reviewType, orderType } = req.query;
 
   const queryConditions: any = {};
   if (country) {
@@ -58,8 +88,8 @@ export const getAllTasks = handleAsync(async (req: RequestCustom, res: Response)
   if (status) {
     queryConditions.status = status;
   }
-  if (_id) {
-    queryConditions._id = _id;
+  if (code) {
+    queryConditions.code = code;
   }
   if (orderTimeType) {
     queryConditions.orderTimeType = orderTimeType;

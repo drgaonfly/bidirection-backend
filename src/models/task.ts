@@ -20,6 +20,7 @@ export interface ITask extends Document {
   createdAt?: Date; // Time of document creation
   updatedAt?: Date; // Time the document was last updated
   bills: IBill['_id'][];
+  code: string; 
 }
 
 const TaskSchema: Schema = new Schema({
@@ -50,6 +51,7 @@ const TaskSchema: Schema = new Schema({
     ref: 'Bill'
   }],
   uploadTime: { type: String, required: true }, // 新增上传时间字段
+  code: { type: String, required: true },
 }, { timestamps: true });
 
 export default mongoose.model<ITask>('Task', TaskSchema);

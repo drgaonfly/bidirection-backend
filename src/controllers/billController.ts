@@ -44,6 +44,8 @@ export const getBills = handleAsync(async (req: Request, res: Response) => {
     country,
     uploadTime,
     afterSales,
+    isSigned,
+    isReviewed
   } = req.query;
 
   const queryConditions: any = {};
@@ -57,6 +59,12 @@ export const getBills = handleAsync(async (req: Request, res: Response) => {
   if (buyerId) {
     queryConditions.buyerId = buyerId;
   }
+  if (isSigned) {
+    queryConditions.isSigned = isSigned;
+  }
+  if (isReviewed) {
+    queryConditions.isReviewed = isReviewed;
+  }
   if (task) {
     // Find the task with the given code
     const taskDocument = await Task.findOne({ code: task });
@@ -68,9 +76,6 @@ export const getBills = handleAsync(async (req: Request, res: Response) => {
   }
   if (country) {
     queryConditions.country = country; // Filtering by country within the task document
-  }
-  if (uploadTime) {
-    queryConditions.uploadTime = uploadTime;
   }
   if (uploadTime) {
     queryConditions.uploadTime = uploadTime;

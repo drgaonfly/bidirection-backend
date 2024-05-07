@@ -19,6 +19,8 @@ export interface IBill extends Document {
   serviceFee: number;
   paymentAmount: number;
   afterSales: boolean; 
+  isSigned?: boolean;  // Whether the bill is signed
+  isReviewed?: boolean;  // Whether the bill is reviewed
 }
 
 // Mongoose schema definition for Bill
@@ -72,6 +74,14 @@ const billSchema = new mongoose.Schema<IBill>({
     required: false
   },
   afterSales: {
+    type: Boolean,
+    default: false,
+  },
+  isSigned: {
+    type: Boolean,
+    default: false,
+  },
+  isReviewed: {
     type: Boolean,
     default: false,
   },

@@ -149,7 +149,7 @@ export const exportEmptyPackagesToExcel = handleAsync(async (req: Request, res: 
   const countryMappingReverse = Object.fromEntries(Object.entries(countryMapping).map(([key, value]) => [value, key]));
 
   const emptyPackagesPlainObjects = emptyPackages.map((emptyPackage: IEmptyPackage) => ({
-    '编号': emptyPackage._id,
+    '编号': emptyPackage._id.toString(),
     '国家': countryMappingReverse[emptyPackage.country],
     '平台': emptyPackage.platform,
     'PDF 文件': emptyPackage.pdfFile,

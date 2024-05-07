@@ -3,8 +3,7 @@ import { IUser } from './user';
 
 // TypeScript interface for EmptyPackage
 export interface IEmptyPackage extends Document {
-  pdfFile: string;  // Path or identifier for the PDF file, if applicable
-  zipFile: string;  // Path or identifier for the ZIP file, if applicable
+  file: string;
   country: string;  // Country associated with the empty package
   platform: string;  // Platform the empty package is posted on
   quantity: number;  // Number of empty packages
@@ -21,14 +20,9 @@ const emptyPackageSchema = new mongoose.Schema<IEmptyPackage>({
     required: true,
     default: false  // Initially, packages are not processed
   },
-  pdfFile: {
+  file: {
     type: String,
     required: false,  // Not every empty package may have a PDF
-    trim: true
-  },
-  zipFile: {
-    type: String,
-    required: false,  // Not every empty package may have a ZIP
     trim: true
   },
   country: {

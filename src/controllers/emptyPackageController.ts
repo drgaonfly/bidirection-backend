@@ -55,7 +55,7 @@ export const getAllEmptyPackages = handleAsync(async (req: Request, res: Respons
     .skip((currentNum - 1) * pageSizeNum)
     .limit(pageSizeNum);
 
-  const modifiedEmptyPackages = await transformDocumentImages(emptyPackages, ['pdfFile', 'zipFile']);
+  const modifiedEmptyPackages = await transformDocumentImages(emptyPackages, ['file']);
 
   // Returning the paginated empty packages along with pagination details
   res.status(200).json({
@@ -82,8 +82,7 @@ export const getEmptyPackageById = handleAsync(async (req: Request, res: Respons
 export const updateEmptyPackage = handleAsync(async (req: Request, res: Response) => {
   // Remove pdfFile and zipFile from the update
   const update = { ...req.body };
-  delete update.pdfFile;
-  delete update.zipFile;
+  delete update.file;
 
   const emptyPackage = await EmptyPackage.findByIdAndUpdate(req.params.id, update, { new: true });
 
@@ -149,15 +148,13 @@ export const exportEmptyPackagesToExcel = handleAsync(async (req: Request, res: 
   const countryMappingReverse = Object.fromEntries(Object.entries(countryMapping).map(([key, value]) => [value, key]));
 
   const emptyPackagesPlainObjects = await Promise.all(emptyPackages.map(async (emptyPackage: IEmptyPackage) => {
-    const pdfFileUrl = await generateSignedUrl(emptyPackage.pdfFile, 7 * 24 * 60 * 60);
-    const zipFileUrl = await generateSignedUrl(emptyPackage.zipFile, 7 * 24 * 60 * 60);
+    const fileUrl = await generateSignedUrl(emptyPackage.file, 7 * 24 * 60 * 60);
 
     return {
       '编号': emptyPackage._id.toString(),
       '国家': countryMappingReverse[emptyPackage.country],
       '平台': emptyPackage.platform,
-      'PDF 文件': pdfFileUrl,
-      '压缩文件': zipFileUrl,
+      '文件': fileUrl,
       '上传用户': (emptyPackage.user as IUser)?.name,
       '单量': emptyPackage.quantity,
       '是否处理': emptyPackage.isProcessed ? '是' : '否',

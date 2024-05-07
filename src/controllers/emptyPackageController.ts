@@ -9,7 +9,7 @@ import fs from 'fs';
 import { resolve } from 'path';
 import { IUser } from '../models/user'; // Assuming you have this interface
 import { IEmptyPackage } from '../models/emptyPackage'; // Assuming you have this interface
-import { generateSignedUrlForOSS } from '../utils/generateSignedUrl';
+import { generateSignedUrl } from '../utils/generateSignedUrl';
 import { countryMapping } from '../constants';
 import ossClient from '../utils/oss';
 
@@ -145,18 +145,23 @@ export const exportEmptyPackagesToExcel = handleAsync(async (req: Request, res: 
   const emptyPackages = await EmptyPackage.find(queryConditions)
     .populate("user")
     .exec();
-    
+
   const countryMappingReverse = Object.fromEntries(Object.entries(countryMapping).map(([key, value]) => [value, key]));
 
-  const emptyPackagesPlainObjects = emptyPackages.map((emptyPackage: IEmptyPackage) => ({
-    '编号': emptyPackage._id.toString(),
-    '国家': countryMappingReverse[emptyPackage.country],
-    '平台': emptyPackage.platform,
-    'PDF 文件': emptyPackage.pdfFile,
-    '压缩文件': emptyPackage.zipFile,
-    '上传用户': (emptyPackage.user as IUser)?.name,
-    '单量': emptyPackage.quantity,
-    '是否处理': emptyPackage.isProcessed ? '是' : '否',
+  const emptyPackagesPlainObjects = await Promise.all(emptyPackages.map(async (emptyPackage: IEmptyPackage) => {
+    const pdfFileUrl = await generateSignedUrl(emptyPackage.pdfFile, 7 * 24 * 60 * 60);
+    const zipFileUrl = await generateSignedUrl(emptyPackage.zipFile, 7 * 24 * 60 * 60);
+
+    return {
+      '编号': emptyPackage._id.toString(),
+      '国家': countryMappingReverse[emptyPackage.country],
+      '平台': emptyPackage.platform,
+      'PDF 文件': pdfFileUrl,
+      '压缩文件': zipFileUrl,
+      '上传用户': (emptyPackage.user as IUser)?.name,
+      '单量': emptyPackage.quantity,
+      '是否处理': emptyPackage.isProcessed ? '是' : '否',
+    };
   }));
 
   const ws = XLSX.utils.json_to_sheet(emptyPackagesPlainObjects);
@@ -174,7 +179,7 @@ export const exportEmptyPackagesToExcel = handleAsync(async (req: Request, res: 
 
   fs.unlinkSync(path);
 
-  const signedURL = await generateSignedUrlForOSS(newOssKey);
+  const signedURL = await generateSignedUrl(newOssKey);
 
   res.json({
     success: true,

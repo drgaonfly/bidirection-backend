@@ -6,7 +6,7 @@ import * as XLSX from 'xlsx';
 import { resolve } from 'path';
 import ossClient from '../utils/oss';
 import fs from "fs"
-import { generateSignedUrlForOSS } from '../utils/generateSignedUrl';
+import { generateSignedUrl } from '../utils/generateSignedUrl';
 import { countryMapping } from '../constants';
 import { IUser } from '../models/user';
 import AfterSalesOrder from '../models/afterSalesOrder';
@@ -209,7 +209,7 @@ export const exportBillsToExcel = handleAsync(async (req: Request, res: Response
   fs.unlinkSync(path);
 
   // Generate the URL of the uploaded file
-  const signedURL = await generateSignedUrlForOSS(newOssKey);
+  const signedURL = await generateSignedUrl(newOssKey);
 
   res.json({
     success: true,

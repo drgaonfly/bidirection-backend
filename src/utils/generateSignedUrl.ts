@@ -8,12 +8,12 @@ import ossClient from '../utils/oss'; // 假设你的 OSS 客户端配置在这�
  * @param bucketName The name of the S3 bucket.
  * @returns A promise that resolves to the signed URL.
  */
-export async function generateSignedUrlForS3(filePath: string): Promise<string> {
+export async function generateSignedUrlForS3(filePath: string, expires = 3600): Promise<string> {
   try {
     const signedUrlParams = {
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: filePath,
-      Expires: 3600, // URL expiration time in seconds (e.g., 1 hour)
+      Expires: expires, // Use the provided expires value or the default value
     };
 
     // Generate the signed URL
@@ -32,10 +32,10 @@ export async function generateSignedUrlForS3(filePath: string): Promise<string> 
  * @param filePath The file path in the OSS bucket.
  * @returns A promise that resolves to the signed URL.
  */
-export async function generateSignedUrlForOSS(filePath: string): Promise<string> {
+export async function generateSignedUrlForOSS(filePath: string, expires = 3600): Promise<string> {
   try {
     const signedUrl = await ossClient.signatureUrl(filePath, {
-      expires: 3600, // 设置URL的过期时间，例如1小时
+      expires, // 使用传入的 expires 值或默认值
       method: 'GET'
     });
     return signedUrl;
@@ -45,6 +45,6 @@ export async function generateSignedUrlForOSS(filePath: string): Promise<string>
   }
 }
 
-export async function generateSignedUrl(filePath: string): Promise<string> {
-  return generateSignedUrlForOSS(filePath);
+export async function generateSignedUrl(filePath: string, expires = 3600): Promise<string> {
+  return generateSignedUrlForOSS(filePath, expires);
 }

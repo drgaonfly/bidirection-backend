@@ -16,12 +16,12 @@ const router = express.Router();
 // Define the routes for the EmptyPackage operations
 router.post('/', protect, allow([ROLES.Customer, ROLES.Admin]), createEmptyPackage);
 router.get('/', protect, allow([ROLES.Customer, ROLES.Admin]), getAllEmptyPackages);
+router.get('/export', protect, allow([ROLES.Admin]), exportEmptyPackagesToExcel);
 router.get('/:id', protect, allow([ROLES.Customer, ROLES.Admin]), getEmptyPackageById);
 router.put('/:id', protect, allow([ROLES.Customer, ROLES.Admin]), updateEmptyPackage);
 router.delete('/:id', protect, allow([ROLES.Admin]), deleteEmptyPackage);
 router.delete('/', protect, allow([ROLES.Admin]), deleteMultipleEmptyPackages);
 
 // Add a new route for exporting empty packages to Excel
-router.get('/export', protect, allow([ROLES.Admin]), exportEmptyPackagesToExcel);
 
 export default router;

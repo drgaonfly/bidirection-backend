@@ -6,7 +6,7 @@ import { RequestCustom } from 'user';
 import { transformDocumentImages } from '../utils/transformUtils';
 import { ROLES, countryCodeMapping } from '../constants';
 import { handleExcelTask, readExcelData } from '../utils/processExcelFile';
-import { generateSignedUrlForOSS } from '../utils/generateSignedUrl';
+import { generateSignedUrl } from '../utils/generateSignedUrl';
 import Bill from '../models/bill';
 import User from '../models/user';
 // import { processExcelFile } from '../utils/processExcelFile';
@@ -235,7 +235,7 @@ export const downloadUpdatedTaskFile = handleAsync(async (req: Request, res: Res
   }
 
   const newOssKey = await handleExcelTask(task.file);
-  const signedURL = await generateSignedUrlForOSS(newOssKey);
+  const signedURL = await generateSignedUrl(newOssKey);
 
   task.status = 'Processing';
   await task.save(); // Make sure to save the update

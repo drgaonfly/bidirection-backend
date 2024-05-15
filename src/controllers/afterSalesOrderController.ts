@@ -53,7 +53,7 @@ export const getAfterSalesOrders = handleAsync(async (req: Request, res: Respons
       path: 'bill',
       populate: { path: 'customer' }  // Populate the customer field in the bill document
     })
-    .populate('user')
+    .populate('user', '-password')
     .sort('-createdAt')  // Sort by creation time in descending order
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -76,7 +76,7 @@ export const updateAfterSalesOrder = handleAsync(async (req: Request, res: Respo
   const { id } = req.params;  // Using req.params to get the id from the route parameter
   const updatedOrder = await AfterSalesOrder.findByIdAndUpdate(id, req.body, { new: true })
     .populate('bill')
-    .populate('user');
+    .populate('user', '-password');
 
   if (!updatedOrder) {
     res.status(404);
@@ -133,7 +133,7 @@ export const reviewAfterSalesOrder = handleAsync(async (req: Request, res: Respo
 
   const updatedOrder = await AfterSalesOrder.findByIdAndUpdate(id, { status, rejectionReason }, { new: true })
     .populate('bill')
-    .populate('user');
+    .populate('user', '-password');
 
   if (!updatedOrder) {
     res.status(404);

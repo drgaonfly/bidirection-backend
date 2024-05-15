@@ -111,7 +111,7 @@ export const getAllTasks = handleAsync(async (req: RequestCustom, res: Response)
 
   // Fetching tasks with pagination applied
   const tasks = await Task.find(queryConditions)
-    .populate('user')
+    .populate('user', '-password')
     .populate('bills')
     .sort('-createdAt')  // Add this line to sort by creation time in descending order
     .skip((+current - 1) * +pageSize)

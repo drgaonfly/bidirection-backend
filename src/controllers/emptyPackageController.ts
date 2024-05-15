@@ -50,7 +50,7 @@ export const getAllEmptyPackages = handleAsync(async (req: Request, res: Respons
 
   // Fetching empty packages with pagination applied
   const emptyPackages = await EmptyPackage.find(queryConditions)
-    .populate('user')
+    .populate('user', '-password')
     .sort('-createdAt')  // Add this line to sort by creation time in descending order
     .skip((currentNum - 1) * pageSizeNum)
     .limit(pageSizeNum);

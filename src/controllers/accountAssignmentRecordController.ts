@@ -31,7 +31,7 @@ export const getAllAccountAssignmentRecords = handleAsync(async (req: Request, r
     .sort('-createdAt')  // Add this line to sort by creation time in descending order
     .skip((currentNum - 1) * pageSizeNum)
     .limit(pageSizeNum)
-    .populate('user')
+    .populate('user', '-password')
     .populate('accountLibrary');
 
   res.status(200).json({

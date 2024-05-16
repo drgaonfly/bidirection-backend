@@ -7,6 +7,7 @@ import {
   deleteMultipleBills,
   exportBillsToExcel,
   createAfterSalesOrder,
+  updateBillsBulk
 } from '../controllers/billController';
 import { protect, allow } from '../middlewares/authMiddleware';
 import { ROLES } from "../constants";
@@ -23,17 +24,17 @@ router
 router
   .route('/export')
   .get(protect, allow(ROLES.Admin), exportBillsToExcel); 
-  
+router
+  .route('/bulk-setting')
+  .put(protect, allow(ROLES.Admin), updateBillsBulk);  
 router
   .route('/:id')
   .delete(protect, allow(ROLES.Admin), deleteBill)            // Delete a specific bill
   .get(protect, allow([ROLES.Admin]), updateBill)             // Get details of a specific bill
   .put(protect, allow(ROLES.Admin), updateBill);              // Update a bill
-
+  
 router
   .route('/after-sales-order')
   .post(protect, allow(ROLES.Admin), createAfterSalesOrder);
- 
- // Export bills to Excel
 
 export default router;

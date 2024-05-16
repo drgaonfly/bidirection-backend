@@ -268,3 +268,29 @@ export const createAfterSalesOrder = handleAsync(async (req: RequestCustom, res:
     data: afterSalesOrder,
   });
 });
+
+export const updateBillsBulk = handleAsync(async (req: Request, res: Response) => {
+  const { ids, isSigned, isReviewed } = req.body;
+  console.log("first", isSigned)
+  console.log("first", isReviewed)
+
+  // 构建更新条件
+  const filter = { _id: { $in: ids } };
+  
+  // 构建更新内容
+  const update: any = {};
+  if (isSigned !== undefined) {
+    update.isSigned = isSigned;
+  }
+  if (isReviewed !== undefined) {
+    update.isReviewed = isReviewed;
+  }
+
+  // 执行更新操作
+  const result = await Bill.updateMany(filter, update);
+
+  res.json({
+    success: true,
+    data: result,
+  });
+});

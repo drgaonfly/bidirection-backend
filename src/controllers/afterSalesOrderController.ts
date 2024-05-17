@@ -73,7 +73,11 @@ export const getAfterSalesOrders = handleAsync(async (req: Request, res: Respons
 
 // Update an after sales order
 export const updateAfterSalesOrder = handleAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;  // Using req.params to get the id from the route parameter
+  const { id } = req.params;
+
+  // Get the current order before updating
+  const currentOrder = await AfterSalesOrder.findById(id);
+
   const updatedOrder = await AfterSalesOrder.findByIdAndUpdate(id, req.body, { new: true })
     .populate('bill')
     .populate('user', '-password');
@@ -82,6 +86,13 @@ export const updateAfterSalesOrder = handleAsync(async (req: Request, res: Respo
     res.status(404);
     throw new Error('After Sales Order not found');
   }
+
+  // If image was not set before but is set now, change status to Processing
+  if (!currentOrder.image && updatedOrder.image) {
+    updatedOrder.status = 'Processing';
+    await updatedOrder.save();
+  }
+
   res.json({ success: true, data: updatedOrder });
 });
 

@@ -240,7 +240,7 @@ export const exportBillsToExcel = handleAsync(async (req: Request, res: Response
 
 
 export const createAfterSalesOrder = handleAsync(async (req: RequestCustom, res: Response) => {
-  const { reason, refundAmount, image, id } = req.body;
+  const { reason, refundAmount, id } = req.body;
 
   const billExists = await Bill.findById(id);
 
@@ -252,7 +252,6 @@ export const createAfterSalesOrder = handleAsync(async (req: RequestCustom, res:
   const afterSalesOrder = new AfterSalesOrder({
     reason,
     refundAmount,
-    image,
     bill: id,
     orderNumber: billExists.orderNumber,
     user: req.body.user || req.user._id,

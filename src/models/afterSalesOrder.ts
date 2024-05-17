@@ -29,7 +29,7 @@ const afterSalesOrderSchema = new mongoose.Schema<IAfterSalesOrder>({
   },
   image: {
     type: String,
-    required: true,
+    required: false,
   },
   bill: {
     type: mongoose.Schema.Types.ObjectId,

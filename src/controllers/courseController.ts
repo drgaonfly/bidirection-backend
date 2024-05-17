@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import handleAsync from '../utils/handleAsync';
 import Course from '../models/course';  // Updated import to use Course model
 import { RequestCustom } from 'user';
+import { transformDocumentImages } from '../utils/transformUtils';
 
 export const createCourse = handleAsync(async (req: RequestCustom, res: Response) => {
   const courseData = new Course({
@@ -34,12 +35,13 @@ export const getAllCourses = handleAsync(async (req: Request, res: Response) => 
   const total = await Course.countDocuments(queryConditions);
 
   // Fetching courses with pagination applied
-  const courses = await Course.find(queryConditions)
+  let courses = await Course.find(queryConditions)
     .populate('user', '-password')  // Populate user but exclude password
     .sort('weight')  // Sort by weight in ascending order
     .skip((currentNum - 1) * pageSizeNum)
     .limit(pageSizeNum);
-
+  // Assuming transformCourseVideoUrl is defined somewhere
+  courses = await transformDocumentImages(courses, ['videoUrl']);
   // Returning the paginated courses along with pagination details
   res.status(200).json({
     success: true,

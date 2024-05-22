@@ -1,5 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 import { IAccountLibrary } from './accountLibrary';
+import { IUser } from './user';
 
 // TypeScript interface for AccountAssignmentRecord
 export interface IAccountAssignmentRecord extends Document {
@@ -8,7 +9,7 @@ export interface IAccountAssignmentRecord extends Document {
   storeAccount: string;      // Store account related to this assignment
   assignedTime: string;      // Time when the account was assigned
   accountLibrary: IAccountLibrary; // Reference to the account library
-  user: mongoose.Schema.Types.ObjectId;  // Reference to the User model
+  user: mongoose.Schema.Types.ObjectId | IUser;  // Reference to the User model
 }
 
 const accountAssignmentRecordSchema = new mongoose.Schema<IAccountAssignmentRecord>({

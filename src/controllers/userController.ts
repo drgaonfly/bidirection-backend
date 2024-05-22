@@ -5,6 +5,7 @@ import handleAsync from '../utils/handleAsync';
 import bcrypt from "bcrypt";
 import { exclude } from '../utils/handleData';
 import { readPriceExcelData, readUserExcelData } from '../utils/processExcelFile';
+import { ROLES } from '../constants';
 
 const getUsers = handleAsync(async (req: Request, res: Response) => {
   // 假设这些值来自于请求参数
@@ -29,13 +30,19 @@ const getUsers = handleAsync(async (req: Request, res: Response) => {
   }
 
   // 执行查询
-  const users = await User.find(query)
-    .sort('-createdAt')  // Add this line to sort by creation time in descending order
+  const users = await User.find({
+    ...query,
+    role: { $ne: ROLES.SuperAdmin }  // Exclude users with the role of SuperAdmin
+  })
+    .sort('-createdAt')  // Sort by creation time in descending order
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .exec();
 
-  const total = await User.countDocuments(query).exec();
+  const total = await User.countDocuments({
+    ...query,
+    role: { $ne: ROLES.SuperAdmin }  // Exclude users with the role of SuperAdmin
+  }).exec();
 
   res.json({
     success: true,

@@ -53,30 +53,29 @@ export const handleExcelTask = async (ossKey: string): Promise<string> => {
     }
 
     // Initialize a new workbook and read the existing Excel file
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(tempDownloadPath);
+    const workbook = XLSX.readFile(tempDownloadPath);
 
     // Create a new worksheet with headers
-    const newSheet = workbook.addWorksheet('New Data Sheet');
-    newSheet.columns = [
-      { header: '店铺名字', key: 'storeName', width: 15 },
-      { header: '订单号', key: 'orderNumber', width: 15 },
-      { header: '金额', key: 'amount', width: 10 },
-      { header: '买手号', key: 'buyerId', width: 15 }
+    const wsData = [
+      ['店铺名字', '订单号', '金额', '买手号'],
     ];
+    const newSheet = XLSX.utils.aoa_to_sheet(wsData);
+    const newSheetName = 'New Data Sheet';
+    workbook.SheetNames.push(newSheetName);
+    workbook.Sheets[newSheetName] = newSheet;
 
-    // Add a row directly below the headers
-    // newSheet.addRow({ storeName: 'Store A', orderNumber: '1001', amount: 200, buyerId: 'B001' });
-
-    // Write the workbook to a buffer
-    const buffer = await workbook.xlsx.writeBuffer();
+    // Write the workbook to a new file
+    const newFilePath = path.join('/tmp', `modified-${path.basename(ossKey)}`);
+    XLSX.writeFile(workbook, newFilePath);
 
     // Upload the modified file to OSS
+    const buffer = fs.readFileSync(newFilePath);
     const newOssKey = `modified-${ossKey}`;
     await ossClient.put(newOssKey, buffer);
 
-    // Clean up the temporary file
+    // Clean up the temporary files
     fs.unlinkSync(tempDownloadPath);
+    fs.unlinkSync(newFilePath);
 
     return newOssKey; // Return the new file's OSS path
   } catch (error) {

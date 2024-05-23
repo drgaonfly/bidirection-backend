@@ -100,20 +100,20 @@ export async function readExcelData(ossKey: string): Promise<IBill[]> {
     }
 
     const options = {
-      worksheets: 'emit',
+      worksheets: 'emit' as const, // Change the value to either "emit" or "ignore"
     };
     const workbookReader = new ExcelJS.stream.xlsx.WorkbookReader(stream, options);
     const bills: IBill[] = [];
     let worksheetCounter = 0;
 
     return new Promise((resolve, reject) => {
-      workbookReader.on('worksheet', worksheet => {
+      workbookReader.on('worksheet', (worksheet: any) => {
         worksheetCounter++;
         if (worksheetCounter !== 2) {
           return;
         }
 
-        worksheet.on('row', row => {
+        worksheet.on('row', (row: any) => {
           if (row.number > 1) {
             const storeName = row.getCell(1).value?.toString().trim();
             const orderNumber = row.getCell(2).value?.toString().trim();
@@ -144,7 +144,7 @@ export async function readExcelData(ossKey: string): Promise<IBill[]> {
         resolve(bills);
       });
 
-      workbookReader.on('error', (err) => {
+      workbookReader.on('error', (err: any) => {
         reject(err);
       });
 

@@ -265,6 +265,11 @@ export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Respon
 
   const priceTableEntry = user.priceList.find(entry => entry.country === task.country);
 
+  // Delete the existing bills from the database
+  for (const billId of task.bills) {
+    await Bill.findByIdAndDelete(billId);
+  }
+
   // Clear the existing bills
   task.bills = [];
 

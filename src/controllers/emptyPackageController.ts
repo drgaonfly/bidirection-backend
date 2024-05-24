@@ -7,23 +7,40 @@ import { transformDocumentImages } from '../utils/transformUtils';
 import XLSX from 'xlsx';
 import fs from 'fs';
 import { resolve } from 'path';
-import { IUser } from '../models/user'; // Assuming you have this interface
+import User, { IUser } from '../models/user'; // Assuming you have this interface
 import { IEmptyPackage } from '../models/emptyPackage'; // Assuming you have this interface
 import { generateSignedUrl } from '../utils/generateSignedUrl';
 import { countryMapping } from '../constants';
 import ossClient from '../utils/oss';
 
 export const createEmptyPackage = handleAsync(async (req: RequestCustom, res: Response) => {
-  if (req.body.uploadTime) {
-    const dateMatch = req.body.uploadTime.match(/(\d{4}-\d{2}-\d{2})/);
+  const { uploadTime } = req.body
+  
+  if (uploadTime) {
+    const dateMatch = uploadTime.match(/(\d{4}-\d{2}-\d{2})/);
     if (dateMatch) {
       req.body.uploadTime = dateMatch[0]; // 如果找到匹配项，则只保留年月日
     }
   }
+  const user = await User.findById(req.body.user) || req.user;
+
+  // 获取这个客户在指定日期上传的空包数量
+  const count = await EmptyPackage.countDocuments({ user: user._id, uploadTime: req.body.uploadTime });
+
+  // 生成空包编码
+  const uploadDate = new Date(req.body.uploadTime);
+
+  // 获取年、月和日
+  const year = uploadDate.getFullYear().toString().substr(-2); // 获取年份的最后两位
+  const month = (uploadDate.getMonth() + 1).toString().padStart(2, '0'); // 获取月份并确保它是两位数
+  const day = uploadDate.getDate().toString().padStart(2, '0'); // 获取日期并确保它是两位数
+
+  // 生成空包编码
+  req.body.code = `${year}${month}${day}${user.name}KB(${count + 1})`;
 
   const emptyPackageData = new EmptyPackage({
     ...req.body,
-    user: req.body.user || req.user._id,  // Assuming 'user' is authenticated and attached to req
+    user: user._id,
   });
 
   const savedEmptyPackage = await emptyPackageData.save();
@@ -32,7 +49,7 @@ export const createEmptyPackage = handleAsync(async (req: RequestCustom, res: Re
 
 export const getAllEmptyPackages = handleAsync(async (req: Request, res: Response) => {
   // Extracting pagination and filter parameters or providing default values
-  const { current = '1', pageSize = '10', isProcessed, uploadTime, country, _id, platform } = req.query;
+  const { current = '1', pageSize = '10', code, isProcessed, uploadTime, country, _id, platform } = req.query;
 
   const queryConditions: any = {};
   if (country) {
@@ -49,6 +66,9 @@ export const getAllEmptyPackages = handleAsync(async (req: Request, res: Respons
   }
   if (_id) {
     queryConditions._id = _id;
+  }
+  if (code) {
+    queryConditions.code = code;
   }
 
   // Convert current and pageSize to numbers to use in skip and limit

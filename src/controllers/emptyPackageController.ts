@@ -14,6 +14,13 @@ import { countryMapping } from '../constants';
 import ossClient from '../utils/oss';
 
 export const createEmptyPackage = handleAsync(async (req: RequestCustom, res: Response) => {
+  if (req.body.uploadTime) {
+    const dateMatch = req.body.uploadTime.match(/(\d{4}-\d{2}-\d{2})/);
+    if (dateMatch) {
+      req.body.uploadTime = dateMatch[0]; // 如果找到匹配项，则只保留年月日
+    }
+  }
+
   const emptyPackageData = new EmptyPackage({
     ...req.body,
     user: req.body.user || req.user._id,  // Assuming 'user' is authenticated and attached to req
@@ -25,11 +32,14 @@ export const createEmptyPackage = handleAsync(async (req: RequestCustom, res: Re
 
 export const getAllEmptyPackages = handleAsync(async (req: Request, res: Response) => {
   // Extracting pagination and filter parameters or providing default values
-  const { current = '1', pageSize = '10', isProcessed, country, _id, platform } = req.query;
+  const { current = '1', pageSize = '10', isProcessed, uploadTime, country, _id, platform } = req.query;
 
   const queryConditions: any = {};
   if (country) {
     queryConditions.country = country;
+  }
+  if (uploadTime) {
+    queryConditions.uploadTime = uploadTime;
   }
   if (platform) {
     queryConditions.platform = platform;
@@ -80,7 +90,14 @@ export const getEmptyPackageById = handleAsync(async (req: Request, res: Respons
 });
 
 export const updateEmptyPackage = handleAsync(async (req: Request, res: Response) => {
-  // Remove pdfFile and zipFile from the update
+  // 检查是否有uploadTime传入，并用正则表达式提取年月日部分
+  if (req.body.uploadTime) {
+    const dateMatch = req.body.uploadTime.match(/(\d{4}-\d{2}-\d{2})/);
+    if (dateMatch) {
+      req.body.uploadTime = dateMatch[0]; // 如果找到匹配项，则只保留年月日
+    }
+  }
+
   const update = { ...req.body };
   delete update.file;
 

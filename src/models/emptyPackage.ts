@@ -11,6 +11,7 @@ export interface IEmptyPackage extends Document {
   createdAt?: Date; // Time of document creation
   updatedAt?: Date; // Time the document was last updated
   isProcessed: boolean;  // Whether the package has been processed
+  uploadTime: string;
 }
 
 // Mongoose schema definition for EmptyPackage
@@ -43,7 +44,8 @@ const emptyPackageSchema = new mongoose.Schema<IEmptyPackage>({
     type: mongoose.Schema.Types.ObjectId,
     required: true,
     ref: 'User'  // Assuming a User model exists
-  }
+  },
+  uploadTime: { type: String, required: true }, // 新增上传时间字段
 }, { timestamps: true });
 
 // Mongoose model for EmptyPackage

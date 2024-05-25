@@ -21,6 +21,7 @@ export interface IBill extends Document {
   afterSales: boolean; 
   isSigned?: boolean;  // Whether the bill is signed
   isReviewed?: boolean;  // Whether the bill is reviewed
+  operations?: { user: mongoose.Schema.Types.ObjectId | IUser, operation: string, operationTime: Date }[];  // New field for operations
 }
 
 // Mongoose schema definition for Bill
@@ -85,6 +86,21 @@ const billSchema = new mongoose.Schema<IBill>({
     type: Boolean,
     default: false,
   },
+  operations: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: 'User'  // Assuming a User model exists
+    },
+    operation: {
+      type: String,
+      required: true
+    },
+    operationTime: {
+      type: Date,
+      default: Date.now
+    }
+  }],
 }, { timestamps: true });
 
 // Mongoose model for Bill

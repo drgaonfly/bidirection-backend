@@ -99,6 +99,10 @@ export const getBills = handleAsync(async (req: Request, res: Response) => {
     })
     .populate("user", "-password")
     .populate("customer") // Populate the customer field if needed
+    .populate({
+      path: "operations.user",
+      select: "-password"  // Exclude the password field
+    })
     .sort('-createdAt')  // Sort by creation time in descending order
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)

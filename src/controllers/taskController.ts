@@ -275,11 +275,11 @@ export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Respon
 
   // Save each bill to the database and collect their IDs
   const savedBills = await Promise.all(
-    billsData.map((billData) => {
+    billsData.map(async (billData) => {
       const exchangeRate = priceTableEntry?.exchangeRate || 1;
       const serviceFee = priceTableEntry?.serviceFee || 0;
       const paymentAmount = billData.amount * exchangeRate + serviceFee;
-      return new Bill({
+      const bill = new Bill({
         ...billData,
         task: task._id,
         country: task.country,
@@ -289,7 +289,15 @@ export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Respon
         exchangeRate,
         serviceFee,
         paymentAmount
-      }).save();
+      });
+
+      bill.operations.push({
+        user: req.user._id,
+        operation: 'uploadBills',
+        operationTime: new Date()
+      });
+
+      return bill.save();
     })
   );
   const billIds = savedBills.map(bill => bill._id);

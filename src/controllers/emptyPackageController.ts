@@ -227,3 +227,24 @@ export const exportEmptyPackagesToExcel = handleAsync(async (req: Request, res: 
     data: { signedURL, file: newOssKey },
   });
 });
+
+export const setEmptyPackagesBulk = handleAsync(async (req: Request, res: Response) => {
+  const { ids, isProcessed } = req.body;
+
+  // 构建更新条件
+  const filter = { _id: { $in: ids } };
+
+  // 构建更新内容
+  const update: any = {};
+  if (isProcessed !== undefined) {
+    update.isProcessed = isProcessed;
+  }
+
+  // 执行更新操作
+  const result = await EmptyPackage.updateMany(filter, update);
+
+  res.json({
+    success: true,
+    data: result,
+  });
+});

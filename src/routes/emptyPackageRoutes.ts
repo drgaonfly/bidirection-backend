@@ -6,7 +6,8 @@ import {
   updateEmptyPackage,
   deleteEmptyPackage,
   deleteMultipleEmptyPackages,
-  exportEmptyPackagesToExcel // Make sure to import this function
+  exportEmptyPackagesToExcel, // Make sure to import this function
+  setEmptyPackagesBulk
 } from '../controllers/emptyPackageController'; // Adjust the import path as necessary
 import { protect, allow } from '../middlewares/authMiddleware';
 import { ROLES } from '../constants';
@@ -18,6 +19,8 @@ router.post('/', protect, allow([ROLES.Customer, ROLES.Admin]), createEmptyPacka
 router.get('/', protect, allow([ROLES.Customer, ROLES.Admin]), getAllEmptyPackages);
 router.get('/export', protect, allow([ROLES.Admin]), exportEmptyPackagesToExcel);
 router.get('/:id', protect, allow([ROLES.Customer, ROLES.Admin]), getEmptyPackageById);
+router.route('/bulk-setting')
+  .put(protect, allow([ROLES.Admin]), setEmptyPackagesBulk);
 router.put('/:id', protect, allow([ROLES.Customer, ROLES.Admin]), updateEmptyPackage);
 router.delete('/:id', protect, allow([ROLES.Admin]), deleteEmptyPackage);
 router.delete('/', protect, allow([ROLES.Admin]), deleteMultipleEmptyPackages);

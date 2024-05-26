@@ -15,7 +15,7 @@ import ossClient from '../utils/oss';
 
 export const createEmptyPackage = handleAsync(async (req: RequestCustom, res: Response) => {
   const { uploadTime } = req.body
-  
+
   if (uploadTime) {
     const dateMatch = uploadTime.match(/(\d{4}-\d{2}-\d{2})/);
     if (dateMatch) {
@@ -49,7 +49,7 @@ export const createEmptyPackage = handleAsync(async (req: RequestCustom, res: Re
 
 export const getAllEmptyPackages = handleAsync(async (req: Request, res: Response) => {
   // Extracting pagination and filter parameters or providing default values
-  const { current = '1', pageSize = '10', code, isProcessed, uploadTime, country, _id, platform } = req.query;
+  const { current = '1', pageSize = '10', code, isProcessed, uploadTime, country, _id, platform, user } = req.query;
 
   const queryConditions: any = {};
   if (country) {
@@ -69,6 +69,13 @@ export const getAllEmptyPackages = handleAsync(async (req: Request, res: Respons
   }
   if (code) {
     queryConditions.code = code;
+  }
+
+  if (user) {
+    const foundUser = await User.findOne({ name: user });
+    if (foundUser) {
+      queryConditions.user = foundUser._id;
+    }
   }
 
   // Convert current and pageSize to numbers to use in skip and limit

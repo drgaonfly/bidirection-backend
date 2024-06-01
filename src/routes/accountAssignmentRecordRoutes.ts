@@ -5,7 +5,8 @@ import {
   getAccountAssignmentRecordById,
   updateAccountAssignmentRecord,
   deleteAccountAssignmentRecord,
-  exportAccountAssignmentRecordsToExcel
+  exportAccountAssignmentRecordsToExcel,
+  deleteMultipleAssignmentRecords
 } from '../controllers/accountAssignmentRecordController'; // Adjust the import path as necessary
 import { protect, allow } from '../middlewares/authMiddleware';
 import { ROLES } from '../constants';
@@ -19,5 +20,6 @@ router.get('/export', protect, allow([ROLES.Admin]), exportAccountAssignmentReco
 router.get('/:id', protect, allow([ROLES.Customer, ROLES.Admin]), getAccountAssignmentRecordById);
 router.put('/:id', protect, allow([ROLES.Customer, ROLES.Admin]), updateAccountAssignmentRecord);
 router.delete('/:id', protect, allow([ROLES.Admin]), deleteAccountAssignmentRecord);
+router.delete('/', protect, allow([ROLES.Admin]), deleteMultipleAssignmentRecords);
 
 export default router;

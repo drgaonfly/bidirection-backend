@@ -10,6 +10,7 @@ import fs from 'fs';
 import AccountLibrary, { IAccountLibrary } from '../models/accountLibrary';
 import { IUser } from '../models/user';
 import { countryMapping } from '../constants';
+import { CloudWatchLogs } from 'aws-sdk';
 
 // Create a new AccountAssignmentRecord
 export const createAccountAssignmentRecord = handleAsync(async (req: RequestCustom, res: Response) => {
@@ -105,6 +106,24 @@ export const deleteAccountAssignmentRecord = handleAsync(async (req: Request, re
   res.status(200).json({ success: true, data: {} });
 });
 
+export const deleteMultipleAssignmentRecords = handleAsync(async (req: Request, res: Response) => {
+  const { ids } = req.body; // Array of assignment record IDs to delete
+
+  if (!ids || !ids.length) {
+    res.status(400);
+    throw new Error('No assignment record IDs provided to delete');
+  }
+
+  const result = await AccountAssignmentRecord.deleteMany({ _id: { $in: ids } });
+
+  if (result.deletedCount === 0) {
+    res.status(404).send({ success: false, message: 'No assignment records found to delete' });
+    return;
+  }
+
+  res.json({ success: true, message: `${result.deletedCount} assignment records deleted successfully` });
+});
+
 export const exportAccountAssignmentRecordsToExcel = handleAsync(async (req: Request, res: Response) => {
   const { country, platform, storeAccount, assignedTime } = req.query;
 
@@ -129,16 +148,51 @@ export const exportAccountAssignmentRecordsToExcel = handleAsync(async (req: Req
 
   const countryMappingReverse = Object.fromEntries(Object.entries(countryMapping).map(([key, value]) => [value, key]));
 
-  const recordsPlainObjects = await Promise.all(records.map(async (record: IAccountAssignmentRecord) => {
+  // Group records by account library
+  const groupedRecords = records.reduce((groups, record) => {
+    const key = (record.accountLibrary as IAccountLibrary)._id.toString();
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+    groups[key].push(record);
+    return groups;
+  }, {} as Record<string, IAccountAssignmentRecord[]>);
+
+  console.log(groupedRecords)
+
+  const groupLengths = [];
+  for (const key in groupedRecords) {
+    const groupLength = groupedRecords[key].length;
+    groupLengths.push(groupLength);
+  }
+
+  const maxGroupLength = Math.max(...groupLengths);
+
+  console.log(maxGroupLength); // This will print the maximum length of the arrays in groupedRecordshis will print the maximum length of the arrays in groupedRecords
+  // Process each group of records
+  const recordsPlainObjects = await Promise.all(Object.entries(groupedRecords).map(async ([_, group]) => {
+    const baseFields = {
+      '国家': countryMappingReverse[group[0].country],
+      '平台': group[0].platform,
+      '账号库账号': (group[0].accountLibrary as IAccountLibrary)?.accountNumber,
+      '账号库登录账号': (group[0].accountLibrary as IAccountLibrary)?.loginAccount,
+      '账号库登录密码': (group[0].accountLibrary as IAccountLibrary)?.loginPassword,
+      '': ''
+    };
+
+    const headers = Array.from({ length: maxGroupLength }, (_, index) => {
+      return {
+        [`店铺账号${index + 1}`]: group[index]?.storeAccount || '',
+        [`分配时间${index + 1}`]: group[index]?.assignedTime || '',
+        [`操作员${index + 1}`]: (group[index]?.user as IUser)?.name || '',
+      };
+    }).reduce((prev, curr) => ({ ...prev, ...curr }), {});
+
+    console.log(headers); // This will print the headers
+
     return {
-      '国家': countryMappingReverse[record.country],
-      '平台': record.platform,
-      '店铺账号': record.storeAccount,
-      '账号库账号': (record.accountLibrary as IAccountLibrary)?.accountNumber,
-      '账号库登录账号': (record.accountLibrary as IAccountLibrary)?.loginAccount,
-      '账号库登录密码': (record.accountLibrary as IAccountLibrary)?.loginPassword,
-      '分配时间': record.assignedTime,
-      '操作员': (record.user as IUser)?.name,
+      ...baseFields,
+      ...headers,
     };
   }));
 

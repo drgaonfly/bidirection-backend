@@ -17,7 +17,7 @@ export const createAccount = handleAsync(async (req: RequestCustom, res: Respons
 });
 
 export const getAllAccounts = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10', country, platform, storeAccount, isAssigned, isAbnormal, loginAccount, accountNumber, assignedTime } = req.query;
+  const { current = '1', pageSize = '10', sorter, country, platform, storeAccount, isAssigned, isAbnormal, loginAccount, accountNumber, assignedTime } = req.query;
 
   const queryConditions: any = {};
   if (country) queryConditions.country = country;
@@ -36,9 +36,18 @@ export const getAllAccounts = handleAsync(async (req: Request, res: Response) =>
   const currentNum = parseInt(current as string, 10);
   const pageSizeNum = parseInt(pageSize as string, 10);
 
+
+  let sortCondition = '-createdAt'; // Default sort condition
+  if (sorter) {
+    const sorterObj = JSON.parse(sorter as string);
+    if (sorterObj.assignedTime) {
+      sortCondition = sorterObj.assignedTime === 'descend' ? '-assignedTime' : 'assignedTime';
+    }
+  }
+
   const total = await AccountLibrary.countDocuments(queryConditions);
   const accounts = await AccountLibrary.find(queryConditions)
-    .sort('-createdAt')  // Add this line to sort by creation time in descending order
+    .sort(sortCondition)  // Add this line to sort by creation time in descending order
     .skip((currentNum - 1) * pageSizeNum)
     .limit(pageSizeNum);;
 

@@ -207,6 +207,70 @@ export async function readAccountExcelData(ossKey: string): Promise<IAccountLibr
   }
 }
 
+export async function readAccountAssignmentRecordExcelData(ossKey: string): Promise<IAccountLibrary[]> {
+  const tempDownloadPath = path.join('/tmp', path.basename(ossKey));
+
+  try {
+    // Download the file from OSS to the temporary directory
+    const result = await ossClient.get(ossKey, tempDownloadPath);
+
+    // Check if the file was downloaded successfully
+    if (result.res.status !== 200) {
+      throw new Error('Failed to download the file from OSS');
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(tempDownloadPath);
+
+    // Ensure the worksheet exists
+    const worksheet = workbook.getWorksheet(1);
+    if (!worksheet) {
+      throw new Error('Worksheet "New Data Sheet" not found');
+    }
+
+    const records: IAccountLibrary[] = [];
+
+    // Start reading from the second row, assuming the first row contains headers
+    worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+      // Assuming the first row is the header and actual data starts from the second row
+      if (rowNumber > 1) {
+        const record: IAccountLibrary = {
+          country: row.getCell(1).text.trim(), // Country is in the first column
+          platform: row.getCell(2).text.trim(), // Platform is in the second column
+          accountNumber: row.getCell(3).text.trim(), // Account Number is in the third column
+          loginAccount: row.getCell(4).text.trim(), // Login Account is in the fourth column
+          loginPassword: row.getCell(5).text.trim(), // Login Password is in the fifth column
+          accountAssignmentRecords: []
+        } as unknown as IAccountLibrary;
+
+        for (let i = 6; i < row.cellCount; i += 3) {
+          if (row.getCell(i).text.trim() && row.getCell(i + 1).text.trim() && row.getCell(i + 2).text.trim()) {
+            record.accountAssignmentRecords.push({
+              storeAccount: row.getCell(i).text.trim(),
+              assignedTime: row.getCell(i + 1).text.trim(),
+              username: row.getCell(i + 2).text.trim(),
+            });
+          }
+        }
+
+        records.push(record);
+      }
+    });
+
+    // Clean up the temporary file
+    fs.unlinkSync(tempDownloadPath);
+
+    return records;
+  } catch (error) {
+    console.error("Error reading Excel data:", error);
+    // Ensure cleanup even in the case of an error
+    if (fs.existsSync(tempDownloadPath)) {
+      fs.unlinkSync(tempDownloadPath);
+    }
+    throw error;
+  }
+}
+
 export async function readUserExcelData(ossKey: string): Promise<IUser[]> {
   const tempDownloadPath = path.join('/tmp', path.basename(ossKey));
 

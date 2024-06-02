@@ -6,7 +6,8 @@ import {
   updateAccountAssignmentRecord,
   deleteAccountAssignmentRecord,
   exportAccountAssignmentRecordsToExcel,
-  deleteMultipleAssignmentRecords
+  deleteMultipleAssignmentRecords,
+  uploadAccountAssignmentRecords
 } from '../controllers/accountAssignmentRecordController'; // Adjust the import path as necessary
 import { protect, allow } from '../middlewares/authMiddleware';
 import { ROLES } from '../constants';
@@ -21,5 +22,8 @@ router.get('/:id', protect, allow([ROLES.Customer, ROLES.Admin]), getAccountAssi
 router.put('/:id', protect, allow([ROLES.Customer, ROLES.Admin]), updateAccountAssignmentRecord);
 router.delete('/:id', protect, allow([ROLES.Admin]), deleteAccountAssignmentRecord);
 router.delete('/', protect, allow([ROLES.Admin]), deleteMultipleAssignmentRecords);
+
+
+router.post('/upload', protect, allow([ROLES.Customer, ROLES.Admin]), uploadAccountAssignmentRecords);
 
 export default router;

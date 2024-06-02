@@ -9,7 +9,8 @@ import XLSX from 'xlsx';
 import fs from 'fs';
 import AccountLibrary, { IAccountLibrary } from '../models/accountLibrary';
 import { IUser } from '../models/user';
-import { countryMapping } from '../constants';
+import { countryMapping, platformMapping } from '../constants';
+import { readAccountAssignmentRecordExcelData } from '../utils/processExcelFile';
 // Create a new AccountAssignmentRecord
 export const createAccountAssignmentRecord = handleAsync(async (req: RequestCustom, res: Response) => {
   const record: IAccountAssignmentRecord = new AccountAssignmentRecord({
@@ -179,7 +180,6 @@ export const exportAccountAssignmentRecordsToExcel = handleAsync(async (req: Req
       '账号库账号': (group[0].accountLibrary as IAccountLibrary)?.accountNumber,
       '账号库登录账号': (group[0].accountLibrary as IAccountLibrary)?.loginAccount,
       '账号库登录密码': (group[0].accountLibrary as IAccountLibrary)?.loginPassword,
-      '': ''
     };
 
     const headers = Array.from({ length: maxGroupLength }, (_, index) => {
@@ -218,5 +218,35 @@ export const exportAccountAssignmentRecordsToExcel = handleAsync(async (req: Req
   res.json({
     success: true,
     data: { signedURL, file: newOssKey },
+  });
+});
+
+export const uploadAccountAssignmentRecords = handleAsync(async (req: RequestCustom, res: Response) => {
+  const file = req.body.file;
+
+  if (!file) {
+    res.status(400)
+    throw new Error('File not provided in the request body');
+  }
+
+  const recordData = await readAccountAssignmentRecordExcelData(file);
+
+  // // Save each record to the database
+  // const savedRecords = await Promise.all(
+  //   recordData.map((record) => {
+  //     return new AccountAssignmentRecord({
+  //       storeAccount: record.storeAccount,
+  //       assignedTime: record.assignedTime,
+  //       accountLibrary: record.accountLibrary,
+  //       user: req.user._id
+  //     }).save();
+  //   })
+  // );
+  // const recordIds = savedRecords.map(record => record._id);
+
+  res.json({
+    success: true,
+    message: 'Account assignment records saved successfully',
+    data: recordData
   });
 });

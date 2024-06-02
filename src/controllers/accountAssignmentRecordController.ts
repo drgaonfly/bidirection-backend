@@ -23,13 +23,16 @@ export const createAccountAssignmentRecord = handleAsync(async (req: RequestCust
 });
 
 function generateDateRange(startDateStr: string, endDateStr: string): string[] {
+  const startDateFormatted = new Date(startDateStr).toISOString().slice(0, 10);
+  const endDateFormatted = new Date(endDateStr).toISOString().slice(0, 10);
+
   const dates: string[] = [];
-  let currentDate = new Date(startDateStr);
-  const endDate = new Date(endDateStr);
+  let currentDate = new Date(startDateFormatted);
+  const endDate = new Date(endDateFormatted);
 
   while (currentDate <= endDate) {
-      dates.push(currentDate.toISOString().slice(0, 10));
-      currentDate.setDate(currentDate.getDate() + 1);
+    dates.push(currentDate.toISOString().slice(0, 10));
+    currentDate.setDate(currentDate.getDate() + 1);
   }
 
   return dates;
@@ -44,7 +47,7 @@ export const getAllAccountAssignmentRecords = handleAsync(async (req: Request, r
   if (platform) queryConditions.platform = platform;
   if (assignedTime && (assignedTime as string[]).length === 2) {
     const dates = generateDateRange((assignedTime as string[])[0], (assignedTime as string[])[1]);
-  
+
     queryConditions.assignedTime = { $in: dates };
   }
   if (storeAccount) queryConditions.storeAccount = storeAccount;
@@ -151,11 +154,22 @@ export const exportAccountAssignmentRecordsToExcel = handleAsync(async (req: Req
   if (platform) {
     queryConditions.platform = platform;
   }
+
+  let dates: any[];
   if (assignedTime && (assignedTime as string[]).length === 2) {
-    const dates = generateDateRange((assignedTime as string[])[0], (assignedTime as string[])[1]);
-  
-    queryConditions.assignedTime = { $in: dates };
+    const startDate = new Date(JSON.parse((assignedTime as string[])[0])).toISOString().slice(0, 10);
+    const endDate = new Date(JSON.parse((assignedTime as string[])[1])).toISOString().slice(0, 10);
+
+    dates = generateDateRange(startDate, endDate);
+  } else {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
+
+    dates = generateDateRange(startOfMonth, endOfMonth);
   }
+  queryConditions.assignedTime = { $in: dates };
+
   if (storeAccount) {
     queryConditions.storeAccount = storeAccount;
   }
@@ -183,16 +197,6 @@ export const exportAccountAssignmentRecordsToExcel = handleAsync(async (req: Req
 
   console.log(groupedRecords)
 
-  const groupLengths = [];
-  for (const key in groupedRecords) {
-    const groupLength = groupedRecords[key].length;
-    groupLengths.push(groupLength);
-  }
-
-  const maxGroupLength = Math.max(...groupLengths);
-
-  console.log(maxGroupLength); // This will print the maximum length of the arrays in groupedRecordshis will print the maximum length of the arrays in groupedRecords
-  // Process each group of records
   const recordsPlainObjects = await Promise.all(Object.entries(groupedRecords).map(async ([_, group]) => {
     const baseFields = {
       '国家': countryMappingReverse[group[0].country],
@@ -202,12 +206,20 @@ export const exportAccountAssignmentRecordsToExcel = handleAsync(async (req: Req
       '账号库登录密码': (group[0].accountLibrary as IAccountLibrary)?.loginPassword,
     };
 
-    const headers = Array.from({ length: maxGroupLength }, (_, index) => {
-      return {
-        [`店铺账号${index + 1}`]: group[index]?.storeAccount || '',
-        [`分配时间${index + 1}`]: group[index]?.assignedTime || '',
-        [`操作员${index + 1}`]: (group[index]?.user as IUser)?.name || '',
-      };
+    const headers = dates.map((date, index) => {
+      if (group[index]?.assignedTime?.slice(0, 10) === date) {
+        return {
+          [`店铺账号${index + 1}`]: group[index]?.storeAccount || '',
+          [`分配时间${index + 1}`]: date.slice(5), // 获取日期字符串的后5个字符
+          [`操作员${index + 1}`]: (group[index]?.user as IUser)?.name || '',
+        };
+      } else {
+        return {
+          [`店铺账号${index + 1}`]: '',
+          [`分配时间${index + 1}`]: date.slice(5), // 获取日期字符串的后5个字符
+          [`操作员${index + 1}`]: '',
+        };
+      }
     }).reduce((prev, curr) => ({ ...prev, ...curr }), {});
 
     console.log(headers); // This will print the headers
@@ -251,6 +263,8 @@ export const uploadAccountAssignmentRecords = handleAsync(async (req: RequestCus
 
   const recordData = await readAccountAssignmentRecordExcelData(file);
 
+  console.log(recordData);
+
   for (const record of recordData) {
     const { country, platform } = mapCountryAndPlatform(record)
 
@@ -276,16 +290,20 @@ export const uploadAccountAssignmentRecords = handleAsync(async (req: RequestCus
       newRecord.country = country;
       newRecord.platform = platform;
 
+      const currentYear = new Date().getFullYear();
+
       const existingRecord = await AccountAssignmentRecord.findOne({
         accountLibrary: newRecord.accountLibrary,
-        assignedTime: newRecord.assignedTime,
+        assignedTime: `${currentYear}-${new Date(newRecord.assignedTime).toISOString().slice(5, 10)}`,
       });
 
       if (existingRecord) {
         if (existingRecord.storeAccount !== newRecord.storeAccount || existingRecord.user !== newRecord.user) {
+          const { assignedTime, ...restOfNewRecord } = newRecord; // remove assignedTime from newRecord
+
           await AccountAssignmentRecord.findOneAndUpdate(
             { _id: existingRecord._id }, // find a document with that filter
-            newRecord, // document to insert when nothing was found
+            restOfNewRecord, // document to insert when nothing was found
             { new: true, upsert: true, runValidators: true }, // options
           );
         }

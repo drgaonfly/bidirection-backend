@@ -134,7 +134,7 @@ export const findAvailableAccounts = handleAsync(async (req: Request, res: Respo
 
   // 查询满足条件且未分配的账号
   const availableAccounts = await AccountLibrary.aggregate([
-    { $match: { country, platform, isAssigned: false, isAbnormal: false } },
+    { $match: { country, platform, isAbnormal: false } },
     { $sample: { size: numberOfAccounts } }
   ]);
 
@@ -143,7 +143,7 @@ export const findAvailableAccounts = handleAsync(async (req: Request, res: Respo
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
     const accountsWithOldAssignments = await AccountLibrary.aggregate([
-      { $match: { country, platform, isAssigned: false, assignedTime: { $lt: oneMonthAgo }, isAbnormal: false } },
+      { $match: { country, platform, assignedTime: { $lt: oneMonthAgo }, isAbnormal: false } },
       { $sample: { size: numberOfAccounts - availableAccounts.length } }
     ]);
     availableAccounts.push(...accountsWithOldAssignments);

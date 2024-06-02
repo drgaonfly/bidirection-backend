@@ -47,6 +47,7 @@ export const getAllAccounts = handleAsync(async (req: Request, res: Response) =>
 
   const total = await AccountLibrary.countDocuments(queryConditions);
   const accounts = await AccountLibrary.find(queryConditions)
+    .populate('user', '-password')
     .sort(sortCondition)  // Add this line to sort by creation time in descending order
     .skip((currentNum - 1) * pageSizeNum)
     .limit(pageSizeNum);;

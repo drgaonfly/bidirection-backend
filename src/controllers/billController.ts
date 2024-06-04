@@ -211,13 +211,14 @@ export const exportBillsToExcel = handleAsync(async (req: Request, res: Response
 
   // Retrieve all bills that match the query conditions
   const bills = await Bill.find(queryConditions)
+    .populate("task")
     .populate("customer") // Populate the customer field if needed
     .exec();
 
   const countryMappingReverse = Object.fromEntries(Object.entries(countryMapping).map(([key, value]) => [value, key]));
 
   const billsPlainObjects = bills.map((bill: IBill) => ({
-    '关联任务': bill.task.toString(),
+    '关联任务': (bill.task as ITask).code,
     '客户': bill.customer && (bill.customer as IUser).email ? (bill.customer as IUser).email : '未知',
     '国家': countryMappingReverse[bill.country],
     '订单号': bill.orderNumber,
@@ -229,6 +230,7 @@ export const exportBillsToExcel = handleAsync(async (req: Request, res: Response
     '支付金额': bill.paymentAmount,
     '买手号': bill.buyerId,
     '创建时间': bill.createdAt,
+    '是否售后': bill.afterSales ? '是' : '否'
   }));
 
   const ws = XLSX.utils.json_to_sheet(billsPlainObjects);

@@ -195,7 +195,7 @@ export const exportEmptyPackagesToExcel = handleAsync(async (req: Request, res: 
     const fileUrl = await generateSignedUrl(emptyPackage.file, 7 * 24 * 60 * 60);
 
     return {
-      '编号': emptyPackage._id.toString(),
+      '编号': emptyPackage.code,
       '国家': countryMappingReverse[emptyPackage.country],
       '平台': emptyPackage.platform,
       '文件': fileUrl,

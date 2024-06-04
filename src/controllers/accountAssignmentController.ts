@@ -16,8 +16,6 @@ export const createAssignment = handleAsync(async (req: RequestCustom, res: Resp
     for (const accountLibraryId of accountLibraryList) {
       const accountLibrary = await AccountLibrary.findById(accountLibraryId);
       if (accountLibrary) {
-        await accountLibrary.save();
-
         const record = new AccountAssignmentRecord({
           country: accountLibrary.country,
           platform: accountLibrary.platform,
@@ -125,40 +123,26 @@ export const deleteMultipleAssignments = handleAsync(async (req: Request, res: R
 
 
 export const findAvailableAccounts = handleAsync(async (req: Request, res: Response) => {
-  const { country, numberOfAccounts, platform } = req.body;
-  // 获取今天的日期
+  const { country, numberOfAccounts, platform, storeAccount, assignedTime } = req.body;
 
-  // 查询满足条件且未分配的账号
-  const availableAccounts = await AccountLibrary.aggregate([
-    {
-      $lookup: {
-        from: "AccountAssignment",
-        localField: "accountLibraries",
-        foreignField: "accountLibraries",
-        as: "accountAssignment"
-      }
-    },
-    {
-      $unwind: "$accountAssignment"
-    },
-    {
-      $lookup: {
-        from: "storeAccount",
-        localField: "accountAssignment.storeAccount",
-        foreignField: "_id",
-        as: "accountAssignment.storeAccount"
-      }
-    },
-    {
-      $match: {
-        "accountAssignment": { $eq: [] },
-        country,
-        platform,
-        isAbnormal: false
-      }
-    },
-    { $sample: { size: numberOfAccounts } }
-  ]);
+  // 将 assignedTime 转换为年月日格式
+  const assignedDate = new Date(assignedTime).toISOString().split('T')[0];
+
+  // 从 AccountAssignmentRecord 表中取出所有的 accountLibrary
+  const assignedRecords = await AccountAssignmentRecord.find({
+    storeAccount,
+    assignedTime: assignedDate
+  });
+
+  const assignedAccountLibraries = assignedRecords.map(record => record.accountLibrary);
+
+  // 使用这些 accountLibrary 去查询 AccountLibrary 表
+  const availableAccounts = await AccountLibrary.find({
+    _id: { $nin: assignedAccountLibraries },
+    country,
+    platform,
+    isAbnormal: false
+  }).limit(numberOfAccounts);
 
   // 返回查找到的账号
   res.status(200).json({

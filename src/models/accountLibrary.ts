@@ -9,9 +9,7 @@ export interface IAccountLibrary extends Document {
   loginPassword: string;  // Store account associated with this account
   createdAt?: Date;    // Time of document creation
   updatedAt?: Date;    // Time the document was last updated
-  assignedTime?: string;
   user: mongoose.Schema.Types.ObjectId;
-  storeAccount?: string;
   isAbnormal: boolean; // 是否异常
   accountAssignmentRecords: Partial<IAccountAssignmentRecord>[]
 }

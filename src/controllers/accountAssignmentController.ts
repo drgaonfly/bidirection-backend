@@ -10,28 +10,18 @@ export const createAssignment = handleAsync(async (req: RequestCustom, res: Resp
   // Get the current date and format it as YYYY-MM-DD
   const currentDate = new Date().toISOString().split('T')[0]; // This will give you a date string like "2024-04-03"
 
-  const assignmentData = new AccountAssignment({
-    ...req.body,
-    assignedTime: currentDate, // Use the formatted date as the assigned time
-    numberOfAccounts: req.body.accountLibraries.length,
-    user: req.body.user || req.user._id, // Assuming 'user' is authenticated and attached to req
-  });
-
   // Set the assignedTime and isAssigned properties for each account in the account library list
   const accountLibraryList = req.body.accountLibraries;
   if (accountLibraryList && accountLibraryList.length > 0) {
-    assignmentData.accountLibraries = [];
     for (const accountLibraryId of accountLibraryList) {
       const accountLibrary = await AccountLibrary.findById(accountLibraryId);
       if (accountLibrary) {
-        accountLibrary.storeAccount = assignmentData.storeAccount;
         await accountLibrary.save();
-        assignmentData.accountLibraries.push(accountLibrary);
 
         const record = new AccountAssignmentRecord({
           country: accountLibrary.country,
           platform: accountLibrary.platform,
-          storeAccount: assignmentData.storeAccount,
+          storeAccount: req.body.storeAccount,
           assignedTime: currentDate,
           accountLibrary: accountLibrary._id,
           user: req.body.user || req.user._id,
@@ -41,8 +31,7 @@ export const createAssignment = handleAsync(async (req: RequestCustom, res: Resp
     }
   }
 
-  const savedAssignment = await assignmentData.save();
-  res.status(201).json({ success: true, data: savedAssignment });
+  res.status(201).json({ success: true });
 });
 
 export const getAllAssignments = handleAsync(async (req: Request, res: Response) => {
@@ -136,9 +125,8 @@ export const deleteMultipleAssignments = handleAsync(async (req: Request, res: R
 
 
 export const findAvailableAccounts = handleAsync(async (req: Request, res: Response) => {
-  const { country, numberOfAccounts, platform, storeAccount } = req.body;
+  const { country, numberOfAccounts, platform } = req.body;
   // 获取今天的日期
-  const today = new Date().toISOString().slice(0, 10);
 
   // 查询满足条件且未分配的账号
   const availableAccounts = await AccountLibrary.aggregate([

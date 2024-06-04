@@ -1,6 +1,6 @@
 import { countryMapping, platformMapping } from "../constants";
 
-export function mapCountryAndPlatform(record: { country: string, platform: string }) {
+export function mapCountryAndPlatform(record: { country: string, platform: string }): { country: string, platform: string } {
   let mappedCountry = record.country.trim();
 
   const standardPlatform = record.platform.toLowerCase().replace(/^\w/, c => c.toUpperCase());

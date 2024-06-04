@@ -305,6 +305,8 @@ export const uploadAccountAssignmentRecords = handleAsync(async (req: RequestCus
         if (existingRecord.storeAccount !== newRecord.storeAccount || existingRecord.user !== newRecord.user) {
           const { assignedTime, ...restOfNewRecord } = newRecord; // remove assignedTime from newRecord
 
+          console.log(assignedTime)
+
           await AccountAssignmentRecord.findOneAndUpdate(
             { _id: existingRecord._id }, // find a document with that filter
             restOfNewRecord, // document to insert when nothing was found

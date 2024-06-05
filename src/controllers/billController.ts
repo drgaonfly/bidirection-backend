@@ -206,7 +206,8 @@ export const exportBillsToExcel = handleAsync(async (req: Request, res: Response
     queryConditions.country = country; // Filtering by country within the task document
   }
   if (uploadTime) {
-    const date = new Date(uploadTime as string);
+    console.log(uploadTime)
+    const date = new Date(JSON.parse(uploadTime as string));
     const formattedDate = date.toISOString().split('T')[0];
     queryConditions.uploadTime = formattedDate;
   }

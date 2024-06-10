@@ -15,7 +15,7 @@ const router: Router = express.Router();
 
 router
   .route('/')
-  .get(protect, getAllCourses)  // Get list of courses
+  .get(protect, allow(ROLES.Admin), getAllCourses)  // Get list of courses
   .post(protect, allow(ROLES.Admin), createCourse)  // Add a new course
   .delete(protect, allow([ROLES.Admin]), deleteMultipleCourses);
 

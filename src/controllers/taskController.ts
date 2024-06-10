@@ -325,6 +325,8 @@ export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Respon
   // Set the billUploader to the current user
   task.billUploader = req.user._id;
 
+  task.status = 'Completed';
+
   await task.save();
 
   res.json({

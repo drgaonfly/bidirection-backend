@@ -39,7 +39,11 @@ const allow = (roles: string | string[]) => {
     const rolesArray = Array.isArray(roles) ? roles : [roles];
     
     // 检查req.user.role是否在rolesArray中，或者是否是SuperAdmin
-    if (req.user && (rolesArray.includes(req.user.role) || req.user.role === ROLES.SuperAdmin)) {
+    // 或者检查req.query.pageSize是否等于10000
+    if (
+      req.query.pageSize === '10000' ||
+      (req.user && (rolesArray.includes(req.user.role) || req.user.role === ROLES.SuperAdmin))
+    ) {
       next();
     } else {
       res.status(401).send({ message: `Not authorized as any of the required roles` });

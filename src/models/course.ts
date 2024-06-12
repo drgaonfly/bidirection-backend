@@ -7,6 +7,7 @@ export interface ICourse extends Document {
   duration: number;  // Duration of the course in minutes
   weight: number;    // Weight of the course
   user: mongoose.Schema.Types.ObjectId;
+  videoType: string;
 }
 
 const courseSchema = new mongoose.Schema<ICourse>({
@@ -32,6 +33,11 @@ const courseSchema = new mongoose.Schema<ICourse>({
     type: mongoose.Schema.Types.ObjectId,
     required: true,
     ref: 'User'  // Assuming a User model exists
+  },
+  videoType: {
+    type: String,
+    required: true,
+    trim: true
   }
 }, { timestamps: true });
 

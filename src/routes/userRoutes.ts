@@ -16,9 +16,9 @@ const router: Router = express.Router();
 
 router
   .route('/')
-  .get(protect, allow([ROLES.SuperAdmin, ROLES.Admin]), getUsers)
-  .delete(protect, allow(ROLES.SuperAdmin), deleteMultipleUsers)
-  .post(protect, allow(ROLES.SuperAdmin), addUser);
+  .get(protect, allow([ROLES.SuperAdmin, ROLES.Admin, ROLES.CustomerService]), getUsers)
+  .delete(protect, allow([ROLES.SuperAdmin, ROLES.Admin]), deleteMultipleUsers)
+  .post(protect, allow([ROLES.SuperAdmin, ROLES.Admin, ROLES.CustomerService]), addUser);
  
 router
   .route('/batch-upload')

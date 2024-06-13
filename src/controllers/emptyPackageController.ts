@@ -12,6 +12,7 @@ import { IEmptyPackage } from '../models/emptyPackage'; // Assuming you have thi
 import { generateSignedUrl } from '../utils/generateSignedUrl';
 import { countryMapping } from '../constants';
 import ossClient from '../utils/oss';
+import { ROLES } from '../constants';
 
 export const createEmptyPackage = handleAsync(async (req: RequestCustom, res: Response) => {
   const { uploadTime } = req.body
@@ -47,7 +48,7 @@ export const createEmptyPackage = handleAsync(async (req: RequestCustom, res: Re
   res.status(201).json({ success: true, data: savedEmptyPackage });
 });
 
-export const getAllEmptyPackages = handleAsync(async (req: Request, res: Response) => {
+export const getAllEmptyPackages = handleAsync(async (req: RequestCustom, res: Response) => {
   // Extracting pagination and filter parameters or providing default values
   const { current = '1', pageSize = '10', code, isProcessed, uploadTime, country, _id, platform, user } = req.query;
 
@@ -70,7 +71,9 @@ export const getAllEmptyPackages = handleAsync(async (req: Request, res: Respons
   if (code) {
     queryConditions.code = code;
   }
-
+  if (req.user.role !== ROLES.Admin && req.user.role !== ROLES.SuperAdmin) {
+    queryConditions.name = req.user.role;
+  }
   if (user) {
     const foundUser = await User.findOne({ name: user });
     if (foundUser) {

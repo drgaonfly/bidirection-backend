@@ -14,10 +14,10 @@ import { ROLES } from '../constants';
 const router = express.Router();
 
 // Define the routes for the Account Library operations
-router.post('/', protect, allow([ROLES.Customer, ROLES.Admin]), createAccount);
-router.get('/', protect, allow([ROLES.Customer, ROLES.Admin,ROLES.CustomerService]), getAllAccounts);
-router.get('/:id', protect, allow([ROLES.Customer, ROLES.Admin]), getAccountById);
-router.put('/:id', protect, allow([ROLES.Customer, ROLES.Admin]), updateAccount);
+router.post('/', protect, allow([ROLES.Admin]), createAccount);
+router.get('/', protect, allow([ROLES.Admin, ROLES.CustomerService]), getAllAccounts);
+router.get('/:id', protect, allow([ROLES.Admin]), getAccountById);
+router.put('/:id', protect, allow([ROLES.Admin]), updateAccount);
 router.delete('/:id', protect, allow([ROLES.Admin]), deleteAccount);
 router.delete('/', protect, allow([ROLES.Admin]), deleteMultipleAccounts);
 

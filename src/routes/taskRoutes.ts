@@ -14,7 +14,7 @@ router.delete('/', protect, allow([ROLES.Admin]), deleteMultipleTasks);
 router.patch('/download-task', protect, allow([ROLES.Admin, ROLES.CustomerService]), downloadUpdatedTaskFile);
 router.patch('/:id/cancel', protect, allow([ROLES.Customer, ROLES.Admin, ROLES.CustomerService]), cancelTask);
 
-router.post('/upload-bills', protect, allow([ROLES.Admin, ROLES.CustomerService]), uploadBillFile);
+router.post('/upload-bills', protect, allow([ROLES.Admin, ROLES.CustomerService, ROLES.OrderPlacer]), uploadBillFile);
 router.patch('/:id/claim', protect, allow([ROLES.Admin, ROLES.CustomerService]), claimTask);
 
 export default router;

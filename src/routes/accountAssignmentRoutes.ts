@@ -14,7 +14,7 @@ import { ROLES } from '../constants';
 const router = express.Router();
 
 // Define the routes for the Account Assignment operations
-router.post('/', protect, allow([ROLES.Customer, ROLES.Admin]), createAssignment);
+router.post('/', protect, allow([ROLES.Customer, ROLES.Admin, ROLES.CustomerService, ROLES.OrderPlacer]), createAssignment);
 router.get('/', protect, allow([ROLES.Customer, ROLES.Admin]), getAllAssignments);
 router.get('/:id', protect, allow([ROLES.Customer, ROLES.Admin]), getAssignmentById);
 router.put('/:id', protect, allow([ROLES.Customer, ROLES.Admin]), updateAssignment);

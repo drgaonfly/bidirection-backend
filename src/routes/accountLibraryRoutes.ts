@@ -17,10 +17,10 @@ const router = express.Router();
 router.post('/', protect, allow([ROLES.Admin]), createAccount);
 router.get('/', protect, allow([ROLES.Admin, ROLES.CustomerService]), getAllAccounts);
 router.get('/:id', protect, allow([ROLES.Admin]), getAccountById);
-router.put('/:id', protect, allow([ROLES.Admin]), updateAccount);
+router.put('/:id', protect, allow([ROLES.Admin, ROLES.CustomerService]), updateAccount);
 router.delete('/:id', protect, allow([ROLES.Admin]), deleteAccount);
 router.delete('/', protect, allow([ROLES.Admin]), deleteMultipleAccounts);
 
-router.post('/upload', protect, allow([ROLES.Customer, ROLES.Admin]), uploadAccountLibrary);
+router.post('/upload', protect, allow([ROLES.CustomerService, ROLES.Admin]), uploadAccountLibrary);
 
 export default router;

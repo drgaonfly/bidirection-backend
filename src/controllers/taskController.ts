@@ -9,6 +9,8 @@ import { handleExcelTask, readExcelData } from '../utils/processExcelFile';
 import { generateSignedUrl } from '../utils/generateSignedUrl';
 import Bill from '../models/bill';
 import User from '../models/user';
+import path from 'path';
+import ossClient from '../utils/oss';
 // import { processExcelFile } from '../utils/processExcelFile';
 
 export const createTask = handleAsync(async (req: RequestCustom, res: Response) => {
@@ -63,6 +65,23 @@ export const createTask = handleAsync(async (req: RequestCustom, res: Response) 
   taskData.code = `${year}${month}${day}${countryCode}${customerName}(${count + 1})`;
 
   const task = new Task(taskData);
+
+  const oldFilePath = task.file;
+  const dir = path.dirname(oldFilePath);
+
+  const ext = path.extname(oldFilePath);
+
+  // 创建新的文件路径
+  const newFilePath = path.join(dir, `${task.code}${ext}`);
+
+  // 复制对象到新的文件路径
+  await ossClient.copy(newFilePath, oldFilePath);
+
+  // 删除原来的对象
+  await ossClient.delete(oldFilePath);
+
+  // 更新 task.file
+  task.file = newFilePath;
 
   // 保存任务到数据库
   const savedTask = await task.save();

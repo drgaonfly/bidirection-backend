@@ -5,7 +5,7 @@ import { ROLES } from '../constants';
 
 const router = express.Router();
 
-router.post('/', protect, allow([ROLES.Customer, ROLES.Admin]), createTask);
+router.post('/', protect, allow([ROLES.Customer, ROLES.CustomerService, ROLES.Admin]), createTask);
 router.get('/', protect, allow([ROLES.Customer, ROLES.Admin, ROLES.CustomerService, ROLES.OrderPlacer, ROLES.Reviewer]), getAllTasks);
 router.get('/:id', protect, allow([ROLES.Customer, ROLES.Admin]), getTaskById);
 router.put('/:id', protect, allow([ROLES.Customer, ROLES.Admin, ROLES.CustomerService]), updateTask);

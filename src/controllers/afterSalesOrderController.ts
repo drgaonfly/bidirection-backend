@@ -4,6 +4,7 @@ import handleAsync from '../utils/handleAsync';
 import AfterSalesOrder from '../models/afterSalesOrder';
 import { RequestCustom } from 'user';
 import { transformDocumentImages } from '../utils/transformUtils';
+import Bill, { IBill } from '../models/bill';
 
 // Create an after sales order
 export const createAfterSalesOrder = handleAsync(async (req: RequestCustom, res: Response) => {
@@ -58,7 +59,7 @@ export const getAfterSalesOrders = handleAsync(async (req: Request, res: Respons
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .exec();
-   
+
   orders = await transformDocumentImages(orders, ['image']);
 
   // Send response with order data, total count, and pagination details
@@ -158,9 +159,22 @@ export const reviewAfterSalesOrder = handleAsync(async (req: Request, res: Respo
     throw new Error('After Sales Order not found');
   }
 
-  
+  // 创建新的账单记录
+  if (status === 'Approved') {
+    // @ts-ignore
+    const { _id, ...billData } = updatedOrder.bill._doc; // 从 updatedOrder.bill._doc 中排除 _id 属性
 
-  res.json({ success: true, data: updatedOrder });
+    const bill = new Bill({
+      ...billData, // 使用排除了 _id 的 billData
+      uploadTime: reviewTime,
+      amount: -updatedOrder.refundAmount,
+    });
+
+    const savedBill = await bill.save();
+    res.json({ success: true, data: updatedOrder, bill: savedBill });
+  } else {
+    res.json({ success: true, data: updatedOrder });
+  }
 });
 
 

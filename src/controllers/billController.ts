@@ -7,7 +7,7 @@ import { resolve } from 'path';
 import ossClient from '../utils/oss';
 import fs from "fs"
 import { generateSignedUrl } from '../utils/generateSignedUrl';
-import { countryMapping } from '../constants';
+import { ROLES, countryMapping } from '../constants';
 import { IUser } from '../models/user';
 import AfterSalesOrder from '../models/afterSalesOrder';
 import { RequestCustom } from 'user';
@@ -33,7 +33,7 @@ export const createBill = handleAsync(async (req: Request, res: Response) => {
   res.status(201).json({ success: true, data: savedBill });
 });
 
-export const getBills = handleAsync(async (req: Request, res: Response) => {
+export const getBills = handleAsync(async (req: RequestCustom, res: Response) => {
   const {
     current = '1',
     pageSize = '10',
@@ -83,6 +83,10 @@ export const getBills = handleAsync(async (req: Request, res: Response) => {
   }
   if (typeof afterSales === 'string' && afterSales !== '') {
     queryConditions.afterSales = afterSales === 'true';  // Convert 'true'/'false' string from query to boolean
+  }
+
+  if (req.user.role === ROLES.Customer) {
+    queryConditions.customer = req.user._id; // 只查询当前用户的账单
   }
 
   // Calculate the total number of bills that match the query conditions

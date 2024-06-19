@@ -170,6 +170,7 @@ export const reviewAfterSalesOrder = handleAsync(async (req: Request, res: Respo
       ...billData, // 使用排除了 _id 的 billData
       uploadTime: reviewTime,
       amount: -updatedOrder.refundAmount,
+      billNote: updatedOrder.reason
     });
 
     const savedBill = await bill.save();

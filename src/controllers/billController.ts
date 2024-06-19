@@ -237,7 +237,8 @@ export const exportBillsToExcel = handleAsync(async (req: Request, res: Response
     '支付金额': bill.paymentAmount,
     '买手号': bill.buyerId,
     '创建时间': bill.createdAt,
-    '是否售后': bill.afterSales ? '是' : ''
+    '是否售后': bill.afterSales ? '是' : '',
+    '备注': bill.billNote
   }));
 
   const ws = XLSX.utils.json_to_sheet(billsPlainObjects);

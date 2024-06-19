@@ -321,7 +321,8 @@ export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Respon
         customer: task.user,
         exchangeRate,
         serviceFee,
-        paymentAmount
+        paymentAmount,
+        billNote: task.orderNote
       });
 
       bill.operations.push({

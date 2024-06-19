@@ -128,35 +128,21 @@ export const findAvailableAccounts = handleAsync(async (req: Request, res: Respo
   // 将日期对象转换为北京时间并格式化为年月日格式
   const assignedDate = parsedDateTime.tz("Asia/Shanghai").format('YYYY-MM-DD');
 
-  // 从 AccountLibrary 表中取出所有的 accountLibrary
-  const allAccounts = await AccountLibrary.find({
-    country,
-    platform,
-    isAbnormal: false
-  });
-
-  const allAccountLibraries = allAccounts.map(account => account._id.toString());
-  console.log("allAccountLibraries", allAccountLibraries)
-
   // 从 AccountAssignmentRecord 表中取出已分配的 accountLibrary
   const assignedRecords = await AccountAssignmentRecord.find({
     storeAccount,
     assignedTime: assignedDate
   });
 
-
   // 将取出的 accountLibrary 形成一个数组
   const assignedAccountLibraries = assignedRecords.map(record => record.accountLibrary.toString());
-  console.log("assignedAccountLibraries", assignedAccountLibraries)
 
-  // 去掉已分配的 accountLibrary
-  const availableAccountLibraries = allAccountLibraries.filter(library => !assignedAccountLibraries.includes(library));
-
-  console.log("availableAccountLibraries", availableAccountLibraries)
-
-  // 使用 availableAccountLibraries 去查询 AccountLibrary 表，并限制结果数量为 numberOfAccounts
+  // 使用 $nin 操作符直接在查询 AccountLibrary 时排除已经被分配的账户
   const availableAccounts = await AccountLibrary.find({
-    _id: { $in: availableAccountLibraries }
+    _id: { $nin: assignedAccountLibraries },
+    country,
+    platform,
+    isAbnormal: false
   }).limit(numberOfAccounts);
 
   // 返回查找到的账号

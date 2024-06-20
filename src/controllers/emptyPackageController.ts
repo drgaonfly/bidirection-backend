@@ -13,6 +13,7 @@ import { generateSignedUrl } from '../utils/generateSignedUrl';
 import { countryMapping } from '../constants';
 import ossClient from '../utils/oss';
 import { ROLES } from '../constants';
+import moment from 'moment-timezone';
 
 export const createEmptyPackage = handleAsync(async (req: RequestCustom, res: Response) => {
   const { uploadTime } = req.body
@@ -177,7 +178,7 @@ export const deleteMultipleEmptyPackages = handleAsync(async (req: Request, res:
 
 
 export const exportEmptyPackagesToExcel = handleAsync(async (req: Request, res: Response) => {
-  const { isProcessed, country, _id, platform } = req.query;
+  const { isProcessed, country, _id, platform, uploadTime } = req.query;
 
   const queryConditions: any = {};
   if (country) {
@@ -191,6 +192,13 @@ export const exportEmptyPackagesToExcel = handleAsync(async (req: Request, res: 
   }
   if (_id) {
     queryConditions._id = _id;
+  }
+
+  if (uploadTime) {
+    const parsedDateTime = moment((uploadTime as string).replace(/"/g, ''));
+    // 将日期对象转换为北京时间并格式化为年月日格式
+    const beijingDate = parsedDateTime.tz("Asia/Shanghai").format('YYYY-MM-DD');
+    queryConditions.uploadTime = beijingDate;
   }
 
   const emptyPackages = await EmptyPackage.find(queryConditions)
@@ -207,6 +215,7 @@ export const exportEmptyPackagesToExcel = handleAsync(async (req: Request, res: 
       '上传用户': (emptyPackage.user as IUser)?.name,
       '单量': emptyPackage.quantity,
       '是否处理': emptyPackage.isProcessed ? '是' : '否',
+      '上传时间': emptyPackage.uploadTime,
     };
   }));
 

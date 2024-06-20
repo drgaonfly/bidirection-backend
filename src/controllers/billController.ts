@@ -211,8 +211,6 @@ export const exportBillsToExcel = handleAsync(async (req: Request, res: Response
     queryConditions.country = country; // Filtering by country within the task document
   }
   if (uploadTime) {
-    console.log(uploadTime)
-
     const parsedDateTime = moment((uploadTime as string).replace(/"/g, ''));
     // 将日期对象转换为北京时间并格式化为年月日格式
     const beijingDate = parsedDateTime.tz("Asia/Shanghai").format('YYYY-MM-DD');

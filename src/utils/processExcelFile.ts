@@ -6,7 +6,7 @@ import ExcelJS from 'exceljs';
 import { IBill } from "../models/bill";
 import { IAccountLibrary } from "../models/accountLibrary";
 import { IPriceList, IUser } from "../models/user";
-import { countryMapping } from "../constants";
+import { reversedCountryCodeMapping } from "../constants";
 
 export const processExcelFile = async (ossKey: string): Promise<string> => {
   // 从OSS下载文件
@@ -363,16 +363,10 @@ export async function readPriceExcelData(ossKey: string): Promise<{ email: strin
 
 
         if (email) {
-          const countryInChinese = row.getCell(2).text.trim();
-          let countryInEnglish = '';
+          const countryInExcel = row.getCell(2).text.trim();
+          let countryInEnglish = reversedCountryCodeMapping[countryInExcel];
 
-          if (countryInChinese.includes('河内')) {
-            countryInEnglish = countryMapping['越南河内'];
-          } else if (countryInChinese.includes('胡志明')) {
-            countryInEnglish = countryMapping['越南胡志明'];
-          } else {
-            countryInEnglish = countryMapping[countryInChinese];
-          }
+
           const priceList: IPriceList = {
             country: countryInEnglish, // Country is in the second column
             exchangeRate: parseFloat(row.getCell(3).text.trim()), // Exchange rate is in the third column

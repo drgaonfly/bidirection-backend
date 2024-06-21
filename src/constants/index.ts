@@ -25,6 +25,11 @@ export const countryCodeMapping: { [key: string]: string } = {
   'Indonesia': 'ID'
 };
 
+export const reversedCountryCodeMapping: { [key: string]: string } = Object.entries(countryCodeMapping).reduce((acc, [key, value]) => {
+  acc[value] = key;
+  return acc;
+}, {} as { [key: string]: string });
+
 export const platformMapping: { [key: string]: string } = {
   Shopee: 'Shopee',
   Lazada: 'Lazada',

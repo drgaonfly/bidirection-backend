@@ -13,6 +13,7 @@ export interface IEmptyPackage extends Document {
   isProcessed: boolean;  // Whether the package has been processed
   uploadTime: string;
   code: string;
+  note?: string;  // 备注
 }
 
 // Mongoose schema definition for EmptyPackage
@@ -45,6 +46,11 @@ const emptyPackageSchema = new mongoose.Schema<IEmptyPackage>({
     type: mongoose.Schema.Types.ObjectId,
     required: true,
     ref: 'User'  // Assuming a User model exists
+  },
+  note: {
+    type: String,
+    required: false,
+    trim: true
   },
   uploadTime: { type: String, required: true }, // 新增上传时间字段
   code: { type: String, required: true },

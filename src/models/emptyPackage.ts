@@ -14,6 +14,7 @@ export interface IEmptyPackage extends Document {
   uploadTime: string;
   code: string;
   note?: string;  // 备注
+  operator?: mongoose.Schema.Types.ObjectId | IUser;  // 操作人
 }
 
 // Mongoose schema definition for EmptyPackage
@@ -54,6 +55,11 @@ const emptyPackageSchema = new mongoose.Schema<IEmptyPackage>({
   },
   uploadTime: { type: String, required: true }, // 新增上传时间字段
   code: { type: String, required: true },
+  operator: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',  // Assuming a User model exists
+    required: true
+  },
 }, { timestamps: true });
 
 // Mongoose model for EmptyPackage

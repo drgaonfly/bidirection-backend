@@ -42,6 +42,7 @@ export const createEmptyPackage = handleAsync(async (req: RequestCustom, res: Re
 
   const emptyPackageData = new EmptyPackage({
     ...req.body,
+    operator: req.user._id,
     user: user._id,
   });
 
@@ -97,6 +98,7 @@ export const getAllEmptyPackages = handleAsync(async (req: RequestCustom, res: R
   // Fetching empty packages with pagination applied
   const emptyPackages = await EmptyPackage.find(queryConditions)
     .populate('user', '-password')
+    .populate('operator', '-password')
     .sort('-createdAt')  // Add this line to sort by creation time in descending order
     .skip((currentNum - 1) * pageSizeNum)
     .limit(pageSizeNum);

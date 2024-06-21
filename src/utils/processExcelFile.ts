@@ -377,6 +377,7 @@ export async function readPriceExcelData(ossKey: string): Promise<{ email: strin
             country: countryInEnglish, // Country is in the second column
             exchangeRate: parseFloat(row.getCell(3).text.trim()), // Exchange rate is in the third column
             serviceFee: parseFloat(row.getCell(4).text.trim()), // Service fee is in the fourth column
+            emptyPackageFee: parseFloat(row.getCell(5).text.trim()), // Service fee is in the fourth column
           };
 
           // Check if the email already exists in the priceLists array

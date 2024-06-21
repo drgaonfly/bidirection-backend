@@ -6,6 +6,7 @@ export interface IPriceList {
   exchangeRate: number;
   serviceFee: number;
   country: string;
+  emptyPackageFee: number;
 }
 export interface IUser extends Document {
   email: string;
@@ -24,6 +25,7 @@ const priceListSchema = new mongoose.Schema({
   exchangeRate: { type: Number, required: true },
   serviceFee: { type: Number, required: true },
   country: { type: String, required: true },
+  emptyPackageFee: { type: Number, required: true },
 });
 
 const userSchema = new mongoose.Schema({

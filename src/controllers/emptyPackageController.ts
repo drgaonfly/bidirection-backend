@@ -40,10 +40,14 @@ export const createEmptyPackage = handleAsync(async (req: RequestCustom, res: Re
   // 生成空包编码
   req.body.code = `${year}${month}${day}${user.name}KB(${count + 1})`;
 
+  const priceTableEntry = user.priceList.find(entry => entry.country === req.body.country);
+
   const emptyPackageData = new EmptyPackage({
     ...req.body,
     operator: req.user._id,
     user: user._id,
+    amount: priceTableEntry?.emptyPackageFee || 0,  // 从 priceTableEntry 获取 amount
+    paymentAmount: (priceTableEntry?.emptyPackageFee || 0) * req.body.quantity,  // 计算 paymentAmount
   });
 
   const savedEmptyPackage = await emptyPackageData.save();

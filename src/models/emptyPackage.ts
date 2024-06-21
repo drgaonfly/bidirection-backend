@@ -15,6 +15,8 @@ export interface IEmptyPackage extends Document {
   code: string;
   note?: string;  // 备注
   operator?: mongoose.Schema.Types.ObjectId | IUser;  // 操作人
+  amount?: number;  // 金额
+  paymentAmount?: number;  // 支付金额
 }
 
 // Mongoose schema definition for EmptyPackage
@@ -59,6 +61,14 @@ const emptyPackageSchema = new mongoose.Schema<IEmptyPackage>({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',  // Assuming a User model exists
     required: true
+  },
+  amount: {
+    type: Number,
+    required: false
+  },
+  paymentAmount: {
+    type: Number,
+    required: false
   },
 }, { timestamps: true });
 

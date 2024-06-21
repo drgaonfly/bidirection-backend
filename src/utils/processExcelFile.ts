@@ -364,7 +364,7 @@ export async function readPriceExcelData(ossKey: string): Promise<{ email: strin
 
         if (email) {
           const countryInExcel = row.getCell(2).text.trim();
-          let countryInEnglish = reversedCountryCodeMapping[countryInExcel];
+          const countryInEnglish = reversedCountryCodeMapping[countryInExcel];
 
 
           const priceList: IPriceList = {

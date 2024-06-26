@@ -226,7 +226,7 @@ export const exportBillsToExcel = handleAsync(async (req: Request, res: Response
   const countryMappingReverse = Object.fromEntries(Object.entries(countryMapping).map(([key, value]) => [value, key]));
 
   const billsPlainObjects = bills.map((bill: IBill) => ({
-    '关联任务': (bill.task as ITask).code,
+    '关联任务': (bill.task as ITask)?.code,
     '客户': bill.customer && (bill.customer as IUser).name ? (bill.customer as IUser).name : '未知',
     '国家': countryMappingReverse[bill.country],
     '订单号': bill.orderNumber,

@@ -145,7 +145,7 @@ export const deleteMultipleAssignmentRecords = handleAsync(async (req: Request, 
 });
 
 export const exportAccountAssignmentRecordsToExcel = handleAsync(async (req: Request, res: Response) => {
-  const { country, platform, storeAccount, assignedTime, accountNumber, loginAccount  } = req.query;
+  const { country, platform, storeAccount, assignedTime, accountNumber, loginAccount } = req.query;
 
   const queryConditions: any = {};
   if (country) {
@@ -234,11 +234,13 @@ export const exportAccountAssignmentRecordsToExcel = handleAsync(async (req: Req
     };
 
     const headers = dates.map((date, index) => {
-      if (group[0]?.assignedTime === date) {
+      const found = group.find(item => item?.assignedTime === date);
+
+      if (found) {
         return {
-          [`店铺账号${index + 1}`]: group[0]?.storeAccount || '',
+          [`店铺账号${index + 1}`]: found.storeAccount || '',
           [`分配时间${index + 1}`]: date.slice(5), // 获取日期字符串的后5个字符
-          [`操作员${index + 1}`]: (group[0]?.user as IUser)?.name || '',
+          [`操作员${index + 1}`]: (found.user as IUser)?.name || '',
         };
       } else {
         return {
@@ -248,8 +250,6 @@ export const exportAccountAssignmentRecordsToExcel = handleAsync(async (req: Req
         };
       }
     }).reduce((prev, curr) => ({ ...prev, ...curr }), {});
-
-    console.log(headers); // This will print the headers
 
     return {
       ...baseFields,

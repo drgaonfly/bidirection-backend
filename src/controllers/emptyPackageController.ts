@@ -6,7 +6,7 @@ import { RequestCustom } from 'user';
 import { transformDocumentImages } from '../utils/transformUtils';
 import XLSX from 'xlsx';
 import fs from 'fs';
-import { resolve } from 'path';
+import path, { resolve } from 'path';
 import User, { IUser } from '../models/user'; // Assuming you have this interface
 import { IEmptyPackage } from '../models/emptyPackage'; // Assuming you have this interface
 import { generateSignedUrl } from '../utils/generateSignedUrl';
@@ -49,6 +49,24 @@ export const createEmptyPackage = handleAsync(async (req: RequestCustom, res: Re
     amount: priceTableEntry?.emptyPackageFee || 0,  // 从 priceTableEntry 获取 amount
     paymentAmount: (priceTableEntry?.emptyPackageFee || 0) * req.body.quantity,  // 计算 paymentAmount
   });
+
+  // rename
+  const oldFilePath = emptyPackageData.file;
+  const dir = path.dirname(oldFilePath);
+
+  const ext = path.extname(oldFilePath);
+
+  // 创建新的文件路径
+  const newFilePath = path.join(dir, `${emptyPackageData.code}${ext}`);
+
+  // 复制对象到新的文件路径
+  await ossClient.copy(newFilePath, oldFilePath);
+
+  // 删除原来的对象
+  await ossClient.delete(oldFilePath);
+
+  // 更新 emptyPackage.file
+  emptyPackageData.file = newFilePath;
 
   const savedEmptyPackage = await emptyPackageData.save();
   res.status(201).json({ success: true, data: savedEmptyPackage });

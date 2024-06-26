@@ -12,6 +12,7 @@ export interface IAccountAssignment extends Document {
   user: mongoose.Schema.Types.ObjectId;  // Reference to the User model
 }
 
+// 这个可能用不上的，但是一个 controller 在用
 const accountAssignmentSchema = new mongoose.Schema<IAccountAssignment>({
   country: {
     type: String,

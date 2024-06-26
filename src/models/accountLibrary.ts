@@ -11,7 +11,8 @@ export interface IAccountLibrary extends Document {
   updatedAt?: Date;    // Time the document was last updated
   user: mongoose.Schema.Types.ObjectId;
   isAbnormal: boolean; // 是否异常
-  accountAssignmentRecords: Partial<IAccountAssignmentRecord>[]
+  accountAssignmentRecords: Partial<IAccountAssignmentRecord>[];
+  remark: string;
 }
 
 // Mongoose schema definition for AccountLibrary
@@ -49,7 +50,11 @@ const accountLibrarySchema = new mongoose.Schema<IAccountLibrary>({
     type: mongoose.Schema.Types.ObjectId,
     required: true,
     ref: 'User'  // Assuming a User model exists
-  }
+  },
+  remark: {
+    type: String,
+    trim: true
+  },
 }, { timestamps: true });
 
 // Mongoose model for AccountLibrary

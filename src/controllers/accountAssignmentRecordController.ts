@@ -234,11 +234,11 @@ export const exportAccountAssignmentRecordsToExcel = handleAsync(async (req: Req
     };
 
     const headers = dates.map((date, index) => {
-      if (group[index]?.assignedTime?.slice(0, 10) === date) {
+      if (group[0]?.assignedTime === date) {
         return {
-          [`店铺账号${index + 1}`]: group[index]?.storeAccount || '',
+          [`店铺账号${index + 1}`]: group[0]?.storeAccount || '',
           [`分配时间${index + 1}`]: date.slice(5), // 获取日期字符串的后5个字符
-          [`操作员${index + 1}`]: (group[index]?.user as IUser)?.name || '',
+          [`操作员${index + 1}`]: (group[0]?.user as IUser)?.name || '',
         };
       } else {
         return {

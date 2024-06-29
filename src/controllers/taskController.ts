@@ -286,7 +286,7 @@ export const downloadUpdatedTaskFile = handleAsync(async (req: Request, res: Res
   });
 });
 
-export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Response) => {
+export const getBillsData = handleAsync(async (req: RequestCustom, res: Response) => {
   const taskId = req.body._id;
   const task = await Task.findById(taskId).populate('bills')
 
@@ -300,6 +300,19 @@ export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Respon
 
   // Read data from the stored Excel file (assumes `task.billFile` is a path to the file)
   const billsData = await readExcelData(task.billFile);
+
+  res.status(200).json({ success: true, data: billsData });
+});
+
+export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Response) => {
+  const taskId = req.body._id;
+  const billsData = req.body.billsData;
+  const task = await Task.findById(taskId).populate('bills')
+
+  if (!task) {
+    res.status(404);
+    throw new Error("Task not found")
+  }
 
   const user = await User.findById(task.user);
 
@@ -315,7 +328,7 @@ export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Respon
 
   // Save each bill to the database and collect their IDs
   const savedBills = await Promise.all(
-    billsData.map(async (billData) => {
+    billsData.map(async (billData: any) => {
       const exchangeRate = priceTableEntry?.exchangeRate;
       const serviceFee = priceTableEntry?.serviceFee || 0;
       const paymentAmount = billData.amount * exchangeRate + serviceFee;

@@ -329,7 +329,7 @@ export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Respon
   // Save each bill to the database and collect their IDs
   const savedBills = await Promise.all(
     billsData.map(async (billData: any) => {
-      const exchangeRate = priceTableEntry?.exchangeRate;
+      const exchangeRate = priceTableEntry?.exchangeRate || 0;
       const serviceFee = priceTableEntry?.serviceFee || 0;
       const paymentAmount = billData.amount * exchangeRate + serviceFee;
       const bill = new Bill({

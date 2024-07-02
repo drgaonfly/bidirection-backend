@@ -298,6 +298,8 @@ export const getBillsData = handleAsync(async (req: RequestCustom, res: Response
   // Save the received billFile to the task
   task.billFile = req.body.billFile;
 
+  await task.save();
+
   // Read data from the stored Excel file (assumes `task.billFile` is a path to the file)
   const billsData = await readExcelData(task.billFile);
 

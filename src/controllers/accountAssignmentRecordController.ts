@@ -280,6 +280,72 @@ export const exportAccountAssignmentRecordsToExcel = handleAsync(async (req: Req
   });
 });
 
+export const deleteAccountAssignmentRecords = handleAsync(async (req: Request, res: Response) => {
+  const { country, platform, storeAccount, assignedTime, accountNumber, loginAccount } = req.body;
+
+  const queryConditions: any = {};
+  if (country) {
+    queryConditions.country = country;
+  }
+  if (platform) {
+    queryConditions.platform = platform;
+  }
+
+  if (storeAccount) queryConditions.storeAccount = storeAccount;
+
+  if (accountNumber) {
+    // Find the accountLibrary with the given accountNumber
+    const accountLibrary = await AccountLibrary.findOne({ accountNumber: accountNumber });
+    if (accountLibrary) {
+      // If found, use its _id in the query conditions
+      queryConditions.accountLibrary = accountLibrary._id;
+    } else {
+      res.status(200).json({ success: true, data: [], total: 0 });
+      return;
+    }
+  }
+
+  if (loginAccount) {
+    // Find the accountLibrary with the given accountNumber
+    const accountLibrary = await AccountLibrary.findOne({ loginAccount: loginAccount });
+    if (accountLibrary) {
+      // If found, use its _id in the query conditions
+      queryConditions.accountLibrary = accountLibrary._id;
+    } else {
+      res.status(200).json({ success: true, data: [], total: 0 });
+      return;
+    }
+  }
+
+  let dates: any[];
+  if (assignedTime && (assignedTime as string[]).length === 2) {
+    const startDate = new Date(JSON.parse((assignedTime as string[])[0])).toISOString().slice(0, 10);
+    const endDate = new Date(JSON.parse((assignedTime as string[])[1])).toISOString().slice(0, 10);
+
+    dates = generateDateRange(startDate, endDate);
+  } else {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
+
+    dates = generateDateRange(startOfMonth, endOfMonth);
+  }
+  console.log("dates", dates)
+  queryConditions.assignedTime = { $in: dates };
+
+  if (storeAccount) {
+    queryConditions.storeAccount = storeAccount;
+  }
+
+  // Delete the records that match the query conditions
+  const deleteResult = await AccountAssignmentRecord.deleteMany(queryConditions);
+
+  res.json({
+    success: true,
+    data: { deletedCount: deleteResult.deletedCount },
+  });
+});
+
 export const uploadAccountAssignmentRecords = handleAsync(async (req: RequestCustom, res: Response) => {
   const file = req.body.file;
 

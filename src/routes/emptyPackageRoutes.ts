@@ -7,7 +7,8 @@ import {
   deleteEmptyPackage,
   deleteMultipleEmptyPackages,
   exportEmptyPackagesToExcel, // Make sure to import this function
-  setEmptyPackagesBulk
+  setEmptyPackagesBulk,
+  deleteEmptyPackages
 } from '../controllers/emptyPackageController'; // Adjust the import path as necessary
 import { protect, allow } from '../middlewares/authMiddleware';
 import { ROLES } from '../constants';
@@ -18,6 +19,7 @@ const router = express.Router();
 router.post('/', protect, allow([ROLES.CustomerService, ROLES.Admin]), createEmptyPackage);
 router.get('/', protect, allow([ROLES.Customer, ROLES.Admin, ROLES.CustomerService]), getAllEmptyPackages);
 router.get('/export', protect, allow([ROLES.Admin]), exportEmptyPackagesToExcel);
+router.delete('/delete-records', protect, allow([ROLES.Admin]), deleteEmptyPackages);
 router.get('/:id', protect, allow([ROLES.Customer, ROLES.Admin]), getEmptyPackageById);
 router.route('/bulk-setting')
   .put(protect, allow([ROLES.Admin]), setEmptyPackagesBulk);

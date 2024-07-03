@@ -275,6 +275,39 @@ export const exportEmptyPackagesToExcel = handleAsync(async (req: Request, res: 
   });
 });
 
+export const deleteEmptyPackages = handleAsync(async (req: Request, res: Response) => {
+  const { isProcessed, country, _id, platform, uploadTime } = req.body;
+
+  const queryConditions: any = {};
+  if (country) {
+    queryConditions.country = country;
+  }
+  if (platform) {
+    queryConditions.platform = platform;
+  }
+  if (typeof isProcessed === 'string' && isProcessed !== '') {
+    queryConditions.isProcessed = isProcessed === 'true';  // Convert 'true'/'false' string from query to boolean
+  }
+  if (_id) {
+    queryConditions._id = _id;
+  }
+
+  if (uploadTime) {
+    const parsedDateTime = moment((uploadTime as string).replace(/"/g, ''));
+    // 将日期对象转换为北京时间并格式化为年月日格式
+    const beijingDate = parsedDateTime.tz("Asia/Shanghai").format('YYYY-MM-DD');
+    queryConditions.uploadTime = beijingDate;
+  }
+
+  // Delete the empty packages that match the query conditions
+  const deleteResult = await EmptyPackage.deleteMany(queryConditions);
+
+  res.json({
+    success: true,
+    data: { deletedCount: deleteResult.deletedCount },
+  });
+});
+
 export const setEmptyPackagesBulk = handleAsync(async (req: Request, res: Response) => {
   const { ids, isProcessed } = req.body;
 

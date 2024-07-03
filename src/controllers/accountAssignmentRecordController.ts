@@ -323,15 +323,8 @@ export const deleteAccountAssignmentRecords = handleAsync(async (req: Request, r
     const endDate = new Date(JSON.parse((assignedTime as string[])[1])).toISOString().slice(0, 10);
 
     dates = generateDateRange(startDate, endDate);
-  } else {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
-
-    dates = generateDateRange(startOfMonth, endOfMonth);
-  }
-  console.log("dates", dates)
-  queryConditions.assignedTime = { $in: dates };
+    queryConditions.assignedTime = { $in: dates };
+  } 
 
   if (storeAccount) {
     queryConditions.storeAccount = storeAccount;

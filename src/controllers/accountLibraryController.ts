@@ -17,11 +17,22 @@ export const createAccount = handleAsync(async (req: RequestCustom, res: Respons
 });
 
 export const getAllAccounts = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10', country, platform, isAbnormal, loginAccount, accountNumber } = req.query;
+  const { current = '1', pageSize = '10', country, platform, isAbnormal, loginAccount, accountNumber, createdAt } = req.query;
 
   const queryConditions: any = {};
   if (country) queryConditions.country = country;
   if (platform) queryConditions.platform = platform;
+
+  if (createdAt) {
+    const date = new Date(createdAt as string); // Convert createdAt to a valid Date object
+    const nextDate = new Date(date);
+    nextDate.setDate(date.getDate() + 1);
+
+    queryConditions.createdAt = {
+      $gte: date.toISOString(),
+      $lt: nextDate.toISOString()
+    };
+  }
   if (loginAccount) queryConditions.loginAccount = loginAccount;
   if (accountNumber) queryConditions.accountNumber = accountNumber;
   if (typeof isAbnormal === 'string' && isAbnormal !== '') {

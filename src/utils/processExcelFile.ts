@@ -117,12 +117,19 @@ export async function readExcelData(ossKey: string): Promise<IBill[]> {
             const storeName = row.getCell(1).value?.toString().trim();
             const orderNumber = row.getCell(2).value?.toString().trim();
             const amount = typeof row.getCell(3).value === 'number' ? row.getCell(3).value : 0;
-            const buyerId = row.getCell(4).value?.toString().trim();
+            let buyerId = '';
+            const cellValue = row.getCell(4).value;
+            if (typeof cellValue === 'object' && cellValue?.richText) {
+              buyerId = cellValue.richText.map((item: any) => item.text).join('');
+            } else if (typeof cellValue === 'string') {
+              buyerId = cellValue.trim();
+            }
+
+            console.dir(buyerId)
 
             console.log('storeName:', storeName);
             console.log('orderNumber:', orderNumber);
             console.log('amount:', amount);
-            console.log('buyerId:', buyerId);
 
             if (!storeName || !orderNumber || !buyerId || amount === 0) {
               return;

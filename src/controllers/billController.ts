@@ -8,7 +8,7 @@ import ossClient from '../utils/oss';
 import fs from "fs"
 import { generateSignedUrl } from '../utils/generateSignedUrl';
 import { ROLES, countryMapping } from '../constants';
-import { IUser } from '../models/user';
+import User, { IUser } from '../models/user';
 import AfterSalesOrder from '../models/afterSalesOrder';
 import { RequestCustom } from 'user';
 import Task, { ITask } from '../models/task';
@@ -46,7 +46,8 @@ export const getBills = handleAsync(async (req: RequestCustom, res: Response) =>
     uploadTime,
     afterSales,
     isSigned,
-    isReviewed
+    isReviewed,
+    customer
   } = req.query;
 
   const queryConditions: any = {};
@@ -88,6 +89,13 @@ export const getBills = handleAsync(async (req: RequestCustom, res: Response) =>
 
   if (req.user.role === ROLES.Customer) {
     queryConditions.customer = req.user._id; // 只查询当前用户的账单
+  }
+
+  if (customer) {
+    const foundUser = await User.findOne({ name: customer });
+    if (foundUser) {
+      queryConditions.customer = foundUser._id;
+    }
   }
 
   // Calculate the total number of bills that match the query conditions

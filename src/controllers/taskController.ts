@@ -64,6 +64,10 @@ export const createTask = handleAsync(async (req: RequestCustom, res: Response) 
   // 生成任务编码
   taskData.code = `${year}${month}${day}${countryCode}${customerName}(${count + 1})`;
 
+  const countNumber = await Task.countDocuments({ country: taskData.country, uploadTime: uploadTimeStr });
+  const taskNumber = (countNumber + 1).toString().padStart(2, '0');
+  taskData.sequenceNumber = `${year}${month}${day}${countryCode}-${taskNumber}`;
+
   const task = new Task(taskData);
 
   const oldFilePath = task.file;

@@ -13,7 +13,7 @@ export interface IBill extends Document {
   updatedAt?: Date; // Time the document was last updated
   country?: string; // Country of the task
   uploadTime?: string; // Time the bill was uploaded
-  user: mongoose.Schema.Types.ObjectId;
+  user: mongoose.Schema.Types.ObjectId | IUser;
   customer: mongoose.Schema.Types.ObjectId | IUser;  // New field for the customer
   exchangeRate: number;
   serviceFee: number;

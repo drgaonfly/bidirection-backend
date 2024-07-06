@@ -237,6 +237,7 @@ export const exportBillsToExcel = handleAsync(async (req: Request, res: Response
     '关联任务': (bill.task as ITask)?.code,
     '客户': bill.customer && (bill.customer as IUser).name ? (bill.customer as IUser).name : '未知',
     '国家': countryMappingReverse[bill.country],
+    '操作员': bill.user && (bill.user as IUser).name ? (bill.user as IUser).name : '未知',
     '订单号': bill.orderNumber,
     '下单时间': bill.uploadTime,
     '店铺名': bill.storeName,

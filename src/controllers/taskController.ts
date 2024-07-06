@@ -86,6 +86,7 @@ export const createTask = handleAsync(async (req: RequestCustom, res: Response) 
 
   // 更新 task.file
   task.file = newFilePath;
+  task.creator = req.user._id;
 
   // 保存任务到数据库
   const savedTask = await task.save();

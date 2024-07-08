@@ -398,7 +398,7 @@ export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Respon
   });
 });
 
-export const claimTask = handleAsync(async (req: Request, res: Response) => {
+export const claimTask = handleAsync(async (req: RequestCustom, res: Response) => {
   const task = await Task.findById(req.params.id);
   if (!task) {
     res.status(404).send({ success: false, message: 'Task not found' });
@@ -411,6 +411,7 @@ export const claimTask = handleAsync(async (req: Request, res: Response) => {
   }
 
   task.status = 'Processing';
+  task.claimer = req.user._id; // 保存领取人
   await task.save();
 
   const downloadUrl = await generateSignedUrl(task.file);

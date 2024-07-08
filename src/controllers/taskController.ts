@@ -150,6 +150,10 @@ export const getAllTasks = handleAsync(async (req: RequestCustom, res: Response)
     queryConditions.user = req.user._id;
   }
 
+  if (req.user.role === ROLES.OrderPlacer) {
+    queryConditions.claimer = req.user._id;
+  }
+
   // Count total tasks matching the query conditions for pagination
   const total = await Task.countDocuments(queryConditions);
 

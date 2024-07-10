@@ -234,19 +234,19 @@ export const exportEmptyPackagesToExcel = handleAsync(async (req: Request, res: 
 
   const emptyPackagesPlainObjects = await Promise.all(emptyPackages.map(async (emptyPackage: IEmptyPackage) => {
     return {
-      '编号': emptyPackage.code,
-      '上传用户': (emptyPackage.user as IUser)?.name,
       '国家': countryMappingReverse[emptyPackage.country],
+      '编号': emptyPackage.code,
       '备注1': '',
       '备注2': '',
       '备注3': '',
+      '备注4': '',
       '数量': emptyPackage.quantity,
       '金额': '',
-      '备注4': '',
       '支付金额': '',
+      '上传用户': (emptyPackage.user as IUser)?.name,
+      '平台': emptyPackage.platform,
       '上传人 ID': (emptyPackage.operator as IUser)?.name,
       '上传时间': emptyPackage.uploadTime,
-      '平台': emptyPackage.platform,
       '是否处理': emptyPackage.isProcessed ? '是' : '否',
       '备注': emptyPackage.note,
     };

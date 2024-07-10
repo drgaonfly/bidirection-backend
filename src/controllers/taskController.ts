@@ -97,7 +97,7 @@ export const createTask = handleAsync(async (req: RequestCustom, res: Response) 
 
 export const getAllTasks = handleAsync(async (req: RequestCustom, res: Response) => {
   // Extracting pagination parameters or providing default values
-  const { current = '1', pageSize = '10', customer, country, user, billUploader, uploadTime, platform, status, code, orderTimeType, reviewType, orderType } = req.query;
+  const { current = '1', pageSize = '10', customer, claimer, country, user, billUploader, uploadTime, platform, status, code, orderTimeType, reviewType, orderType } = req.query;
 
   const queryConditions: any = {};
   if (country) {
@@ -138,6 +138,13 @@ export const getAllTasks = handleAsync(async (req: RequestCustom, res: Response)
     }
   }
 
+  if (claimer) {
+    const foundClaimer = await User.findOne({ name: claimer });
+    if (foundClaimer) {
+      queryConditions.claimer = foundClaimer._id;
+    }
+  }
+
   if (user) {
     const foundUser = await User.findOne({ name: user });
     if (foundUser) {
@@ -163,6 +170,7 @@ export const getAllTasks = handleAsync(async (req: RequestCustom, res: Response)
   // Fetching tasks with pagination applied
   const tasks = await Task.find(queryConditions)
     .populate('user', '-password')
+    .populate('claimer', '-password')
     .populate('billUploader', '-password')
     .populate('bills')
     .sort('-createdAt')  // Add this line to sort by creation time in descending order

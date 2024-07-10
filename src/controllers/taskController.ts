@@ -171,6 +171,7 @@ export const getAllTasks = handleAsync(async (req: RequestCustom, res: Response)
   const tasks = await Task.find(queryConditions)
     .populate('user', '-password')
     .populate('claimer', '-password')
+    .populate('creator', '-password')
     .populate('billUploader', '-password')
     .populate('bills')
     .sort('-createdAt')  // Add this line to sort by creation time in descending order

@@ -254,18 +254,18 @@ export const exportBillsToExcel = handleAsync(async (req: Request, res: Response
   const countryMappingReverse = Object.fromEntries(Object.entries(countryMapping).map(([key, value]) => [value, key]));
 
   const billsPlainObjects = bills.map((bill: IBill) => ({
-    '关联任务': (bill.task as ITask)?.code,
-    '客户': bill.customer && (bill.customer as IUser).name ? (bill.customer as IUser).name : '未知',
     '国家': countryMappingReverse[bill.country],
-    '操作员': bill.user && (bill.user as IUser).name ? (bill.user as IUser).name : '未知',
-    '订单号': bill.orderNumber,
-    '下单时间': bill.uploadTime,
+    '关联任务': (bill.task as ITask)?.code,
     '店铺名': bill.storeName,
+    '下单时间': bill.uploadTime,
+    '订单号': bill.orderNumber,
     '金额': bill.amount,
     '汇率': bill.exchangeRate,
     '服务费': bill.serviceFee,
     '支付金额': bill.paymentAmount,
+    '客户': bill.customer && (bill.customer as IUser).name ? (bill.customer as IUser).name : '未知',
     '买手号': bill.buyerId,
+    '操作员': bill.user && (bill.user as IUser).name ? (bill.user as IUser).name : '未知',
     '创建时间': bill.createdAt,
     '是否售后': bill.afterSales ? '是' : '',
     '备注': bill.billNote

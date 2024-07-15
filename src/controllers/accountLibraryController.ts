@@ -23,11 +23,12 @@ export const createAccount = handleAsync(async (req: RequestCustom, res: Respons
 });
 
 export const getAllAccounts = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10', country, platform, isAbnormal, loginAccount, accountNumber, createdAt, sorter } = req.query;
+  const { current = '1', pageSize = '10', country, remark, platform, isAbnormal, loginAccount, accountNumber, createdAt, sorter } = req.query;
 
   const queryConditions: any = {};
   if (country) queryConditions.country = country;
   if (platform) queryConditions.platform = platform;
+  if (remark) queryConditions.remark = new RegExp(String(remark), 'i');
 
   if (createdAt) {
     const date = new Date(createdAt as string); // Convert createdAt to a valid Date object

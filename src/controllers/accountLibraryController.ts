@@ -41,7 +41,12 @@ export const getAllAccounts = handleAsync(async (req: Request, res: Response) =>
     };
   }
   if (loginAccount) queryConditions.loginAccount = loginAccount;
-  if (accountNumber) queryConditions.accountNumber = new RegExp(String(accountNumber), 'i');
+  if (accountNumber) {
+    const accountNumbers = (accountNumber as string).split(/[\s,]+/);  // Split the string by spaces and commas
+    queryConditions.$or = accountNumbers.map(num => ({
+      accountNumber: new RegExp(num.trim(), 'i')  // Create a regex for each accountNumber for fuzzy matching
+    }));
+  }
   if (typeof isAbnormal === 'string' && isAbnormal !== '') {
     queryConditions.isAbnormal = isAbnormal === 'true';  // Convert 'true'/'false' string from query to boolean
   }

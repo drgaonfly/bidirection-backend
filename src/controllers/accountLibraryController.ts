@@ -41,7 +41,7 @@ export const getAllAccounts = handleAsync(async (req: Request, res: Response) =>
     };
   }
   if (loginAccount) queryConditions.loginAccount = loginAccount;
-  if (accountNumber) queryConditions.accountNumber = accountNumber;
+  if (accountNumber) queryConditions.accountNumber = new RegExp(String(accountNumber), 'i');
   if (typeof isAbnormal === 'string' && isAbnormal !== '') {
     queryConditions.isAbnormal = isAbnormal === 'true';  // Convert 'true'/'false' string from query to boolean
   }

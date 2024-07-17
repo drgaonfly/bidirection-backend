@@ -11,6 +11,7 @@ import Bill from '../models/bill';
 import User from '../models/user';
 import path from 'path';
 import ossClient from '../utils/oss';
+// import BillTransaction from '../models/billTransaction';
 // import { processExcelFile } from '../utils/processExcelFile';
 
 export const createTask = handleAsync(async (req: RequestCustom, res: Response) => {
@@ -308,36 +309,16 @@ export const downloadUpdatedTaskFile = handleAsync(async (req: Request, res: Res
 });
 
 export const getBillsData = handleAsync(async (req: RequestCustom, res: Response) => {
-  const taskId = req.body._id;
-  const task = await Task.findById(taskId).populate('bills')
-
-  if (!task) {
-    res.status(404);
-    throw new Error("Task not found")
-  }
-
-  // Save the received billFile to the task
-  task.billFile = req.body.billFile;
-  const oldBillFilePath = task.billFile;
-  const billDir = path.dirname(oldBillFilePath);
-
-  const billExt = path.extname(oldBillFilePath);
-
-  // 创建新的文件路径
-  const newBillFilePath = path.join(billDir, `${task.code}ZD${billExt}`);
-
-  // 复制对象到新的文件路径
-  await ossClient.copy(newBillFilePath, oldBillFilePath);
-
-  // 删除原来的对象
-  await ossClient.delete(oldBillFilePath);
-
-  // 更新 task.billFile
-  task.billFile = newBillFilePath;
-  await task.save();
+  // const billTransaction = new BillTransaction({
+  //   user: req.user._id,
+  //   file: req.body.billFile,
+  //   // 其他需要的字段可以在这里继续添加
+  // });
+  
+  // await billTransaction.save();
 
   // Read data from the stored Excel file (assumes `task.billFile` is a path to the file)
-  const billsData = await readExcelData(task.billFile);
+  const billsData = await readExcelData(req.body.billFile);
 
   res.status(200).json({ success: true, data: billsData });
 });

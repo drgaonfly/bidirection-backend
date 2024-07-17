@@ -48,7 +48,7 @@ const billSchema = new mongoose.Schema<IBill>({
   },
   task: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true,
+    required: false,
     ref: 'Task'  // Assuming a Task model exists
   },
   country: {

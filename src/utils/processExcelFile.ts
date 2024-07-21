@@ -5,7 +5,7 @@ import path from 'path';
 import ExcelJS from 'exceljs';
 import { IBill } from "../models/bill";
 import { IAccountLibrary } from "../models/accountLibrary";
-import { IPriceList, IUser } from "../models/user";
+import User, { IPriceList, IUser } from "../models/user";
 import { reversedCountryCodeMapping } from "../constants";
 
 export const processExcelFile = async (ossKey: string): Promise<string> => {
@@ -112,28 +112,27 @@ export async function readExcelData(ossKey: string): Promise<IBill[]> {
         //   return;
         // }
 
-        worksheet.on('row', (row: any) => {
+        worksheet.on('row', async (row: any) => {
           if (row.number > 1) {
             const country = row.getCell(1).value?.toString().trim();
             const taskSheet = row.getCell(2).value?.toString().trim();
             const storeName = row.getCell(3).value?.toString().trim();
             const date = row.getCell(4).value?.toString().trim();
+
             const remark = row.getCell(5).value?.toString().trim();
             const orderNumber = row.getCell(6).value?.toString().trim();
             const amount = typeof row.getCell(7).value === 'number' ? row.getCell(7).value : 0;
-            let buyerId = '';
-            const buyerIdCellValue = row.getCell(8).value;
-            if (typeof buyerIdCellValue === 'object' && buyerIdCellValue?.richText) {
-              buyerId = buyerIdCellValue.richText.map((item: any) => item.text).join('');
-            } else if (typeof buyerIdCellValue === 'string') {
-              buyerId = buyerIdCellValue.trim();
+            let buyerId = row.getCell(8).value;
+            if (typeof buyerId === 'object' && buyerId?.richText) {
+              buyerId = buyerId.richText.map((item: any) => item.text).join('');
+            } else if (typeof buyerId === 'string') {
+              buyerId = buyerId.trim();
             }
-            let customerCode = '';
-            const customerCodeCellValue = row.getCell(9).value;
-            if (typeof customerCodeCellValue === 'object' && customerCodeCellValue?.richText) {
-              customerCode = customerCodeCellValue.richText.map((item: any) => item.text).join('');
-            } else if (typeof customerCodeCellValue === 'string') {
-              customerCode = customerCodeCellValue.trim();
+            let customerCode = row.getCell(9).value;
+            if (typeof customerCode === 'object' && customerCode?.richText) {
+              customerCode = customerCode.richText.map((item: any) => item.text).join('');
+            } else if (typeof customerCode === 'string') {
+              customerCode = customerCode.trim();
             }
 
             console.dir(buyerId)
@@ -142,8 +141,26 @@ export async function readExcelData(ossKey: string): Promise<IBill[]> {
             console.log('orderNumber:', orderNumber);
             console.log('amount:', amount);
 
-            if (!country || !taskSheet || !storeName || !date || !orderNumber || amount === 0 || !buyerId || !customerCode) {
-              return;
+            if (!country) {
+              reject(`Country is missing at row ${row.number}`);
+            }
+            if (!storeName) {
+              reject(`Store name is missing at row ${row.number}`);
+            }
+            if (!date) {
+              reject(`Date is missing at row ${row.number}`);
+            }
+            if (!orderNumber) {
+              reject(`Order number is missing at row ${row.number}`);
+            }
+            if (!amount) {
+              reject(`Amount is missing at row ${row.number}`);
+            }
+            if (!buyerId) {
+              reject(`Buyer ID is missing at row ${row.number}`);
+            }
+            if (!customerCode) {
+              reject(`Customer code is missing at row ${row.number}`);
             }
 
             const bill: IBill = {

@@ -319,7 +319,6 @@ export const getBillsData = handleAsync(async (req: RequestCustom, res: Response
 
   // Read data from the stored Excel file (assumes `task.billFile` is a path to the file)
   const billsData = await readExcelData(req.body.billFile);
-
   res.status(200).json({ success: true, data: billsData });
 });
 
@@ -351,11 +350,12 @@ export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Respon
       const exchangeRate = priceTableEntry?.exchangeRate || 0;
       const serviceFee = priceTableEntry?.serviceFee || 0;
       const paymentAmount = billData.amount * exchangeRate + serviceFee;
+      const date = `${new Date().getFullYear()}-${billData.date}`;
       const bill = new Bill({
         ...billData,
         task: task._id,
         country: task.country,
-        uploadTime: task.uploadTime,
+        uploadTime: date,
         user: req.user._id,
         customer: task.user,
         exchangeRate,

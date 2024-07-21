@@ -103,14 +103,14 @@ export async function readExcelData(ossKey: string): Promise<IBill[]> {
     };
     const workbookReader = new ExcelJS.stream.xlsx.WorkbookReader(stream, options);
     const bills: IBill[] = [];
-    let worksheetCounter = 0;
+    // let worksheetCounter = 0;
 
     return new Promise((resolve, reject) => {
       workbookReader.on('worksheet', (worksheet: any) => {
-        worksheetCounter++;
-        if (worksheetCounter !== 2) {
-          return;
-        }
+        // worksheetCounter++;
+        // if (worksheetCounter !== 2) {
+        //   return;
+        // }
 
         worksheet.on('row', (row: any) => {
           if (row.number > 1) {
@@ -128,7 +128,13 @@ export async function readExcelData(ossKey: string): Promise<IBill[]> {
             } else if (typeof buyerIdCellValue === 'string') {
               buyerId = buyerIdCellValue.trim();
             }
-            const customerCode = row.getCell(9).value?.toString().trim();
+            let customerCode = '';
+            const customerCodeCellValue = row.getCell(9).value;
+            if (typeof customerCodeCellValue === 'object' && customerCodeCellValue?.richText) {
+              customerCode = customerCodeCellValue.richText.map((item: any) => item.text).join('');
+            } else if (typeof customerCodeCellValue === 'string') {
+              customerCode = customerCodeCellValue.trim();
+            }
 
             console.dir(buyerId)
 
@@ -161,6 +167,7 @@ export async function readExcelData(ossKey: string): Promise<IBill[]> {
       });
 
       workbookReader.on('error', (err: any) => {
+        console.log("error", err)
         reject(err);
       });
 

@@ -11,6 +11,7 @@ import Bill from '../models/bill';
 import User from '../models/user';
 import path from 'path';
 import ossClient from '../utils/oss';
+import { mapCountry } from '../utils/mapCountryAndPlatform';
 // import BillTransaction from '../models/billTransaction';
 // import { processExcelFile } from '../utils/processExcelFile';
 
@@ -323,45 +324,40 @@ export const getBillsData = handleAsync(async (req: RequestCustom, res: Response
 });
 
 export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Response) => {
-  const taskId = req.body._id;
   const billsData = req.body.billsData;
-  const task = await Task.findById(taskId).populate('bills')
 
-  if (!task) {
-    res.status(404);
-    throw new Error("Task not found")
+  for (const bill of billsData) {
+    if (!/^\d{2}-\d{2}$/.test(bill.date)) {
+      throw new Error(`Date format is incorrect for customer code ${bill.customerCode}: ${bill.date}`);
+    }
+  
+    const user = await User.findOne({ name: bill.customerCode }).exec();
+    if (!user) {
+      throw new Error(`User not found for customer code: ${bill.customerCode}`);
+    }
   }
-
-  const user = await User.findById(task.user);
-
-  const priceTableEntry = user.priceList.find(entry => entry.country === task.country);
-
-  // Delete the existing bills from the database
-  for (const billId of task.bills) {
-    await Bill.findByIdAndDelete(billId);
-  }
-
-  // Clear the existing bills
-  task.bills = [];
 
   // Save each bill to the database and collect their IDs
   const savedBills = await Promise.all(
     billsData.map(async (billData: any) => {
+      const user = await User.findOne({ name: billData.customerCode });
+      const { country } = mapCountry(billData)
+      const priceTableEntry = user.priceList.find(entry => entry.country === country);
       const exchangeRate = priceTableEntry?.exchangeRate || 0;
       const serviceFee = priceTableEntry?.serviceFee || 0;
       const paymentAmount = billData.amount * exchangeRate + serviceFee;
       const date = `${new Date().getFullYear()}-${billData.date}`;
+      const remark = billData.remark;
       const bill = new Bill({
         ...billData,
-        task: task._id,
-        country: task.country,
+        country,
         uploadTime: date,
         user: req.user._id,
-        customer: task.user,
+        customer: user._id,
         exchangeRate,
         serviceFee,
         paymentAmount,
-        billNote: task.orderNote
+        billNote: remark
       });
 
       bill.operations.push({
@@ -373,25 +369,11 @@ export const uploadBillFile = handleAsync(async (req: RequestCustom, res: Respon
       return bill.save();
     })
   );
-  const billIds = savedBills.map(bill => bill._id);
-
-  // Add the saved bill's IDs to the task's bills array
-  task.bills.push(...billIds);
-
-  // Set the lastBillUploadTime to the current time
-  task.lastBillUploadTime = new Date();
-
-  // Set the billUploader to the current user
-  task.billUploader = req.user._id;
-
-  task.status = 'Completed';
-
-  await task.save();
 
   res.json({
     success: true,
     message: 'Bills saved successfully',
-    data: task
+    savedBills
   });
 });
 

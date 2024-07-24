@@ -5,7 +5,7 @@ import path from 'path';
 import ExcelJS from 'exceljs';
 import { IBill } from "../models/bill";
 import { IAccountLibrary } from "../models/accountLibrary";
-import User, { IPriceList, IUser } from "../models/user";
+import { IPriceList, IUser } from "../models/user";
 import { reversedCountryCodeMapping } from "../constants";
 
 export const processExcelFile = async (ossKey: string): Promise<string> => {

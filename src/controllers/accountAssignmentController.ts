@@ -152,3 +152,54 @@ export const findAvailableAccounts = handleAsync(async (req: Request, res: Respo
     data: availableAccounts
   });
 });
+
+
+export const findAvailableAccountsTest = handleAsync(async (req: RequestCustom, res: Response) => {
+  const { country, numberOfAccounts, platform, storeAccount, assignedTime } = req.body;
+
+
+  const parsedDateTime = moment((assignedTime as string).replace(/"/g, ''));
+  // 将日期对象转换为北京时间并格式化为年月日格式
+  const assignedDate = parsedDateTime.tz("Asia/Shanghai").format('YYYY-MM-DD');
+
+  // 从 AccountAssignmentRecord 表中取出已分配的 accountLibrary
+  const assignedRecords = await AccountAssignmentRecord.find({
+    $or: [
+      { storeAccount },
+      { assignedTime: assignedDate }
+    ]
+  });
+  // 将取出的 accountLibrary 形成一个数组
+  const assignedAccountLibraries = assignedRecords.map(record => record.accountLibrary.toString());
+
+  // 使用 $nin 操作符直接在查询 AccountLibrary 时排除已经被分配的账户
+  const availableAccounts = await AccountLibrary.find({
+    _id: { $nin: assignedAccountLibraries },
+    country,
+    platform,
+    isAbnormal: false
+  }).limit(numberOfAccounts);
+
+  if (availableAccounts && availableAccounts.length > 0) {
+    for (const accountLibraryId of availableAccounts) {
+      const accountLibrary = await AccountLibrary.findById(accountLibraryId);
+      if (accountLibrary) {
+        const record = new AccountAssignmentRecord({
+          country: accountLibrary.country,
+          platform: accountLibrary.platform,
+          storeAccount: req.body.storeAccount,
+          assignedTime: req.body.assignedTime.split(" ")[0],
+          accountLibrary: accountLibrary._id,
+          user: req.body.user || req.user._id,
+        });
+        await record.save();
+      }
+    }
+  }
+
+  // 返回查找到的账号
+  res.status(200).json({
+    success: true,
+    data: availableAccounts
+  });
+});

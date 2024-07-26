@@ -6,7 +6,8 @@ import {
   updateAssignment,
   deleteAssignment,
   deleteMultipleAssignments,
-  findAvailableAccounts
+  findAvailableAccounts,
+  findAvailableAccountsTest
 } from '../controllers/accountAssignmentController'; // Adjust the import path as necessary
 import { protect, allow } from '../middlewares/authMiddleware';
 import { ROLES } from '../constants';
@@ -21,5 +22,6 @@ router.put('/:id', protect, allow([ROLES.Admin]), updateAssignment);
 router.delete('/:id', protect, allow([ROLES.Admin]), deleteAssignment);
 router.delete('/', protect, allow([ROLES.Admin]), deleteMultipleAssignments);
 router.post('/available', protect, allow([ROLES.OrderPlacer, ROLES.Admin, ROLES.CustomerService]), findAvailableAccounts);
+router.post('/available-test', protect, allow([ROLES.OrderPlacer, ROLES.Admin, ROLES.CustomerService]), findAvailableAccountsTest);
 
 export default router;

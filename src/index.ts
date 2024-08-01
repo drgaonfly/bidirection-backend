@@ -8,17 +8,10 @@ import path from 'path'
 
 import userRoutes from './routes/userRoutes';
 import authRoutes from './routes/authRoutes';
-import taskRoutes from './routes/taskRoutes';
-import billRoutes from './routes/billRoutes';
-import emptyPackageRoutes from './routes/emptyPackageRoutes';
-import accountLibraryRoutes from './routes/accountLibraryRoutes';
-import accountAssignmentRoutes from './routes/accountAssignmentRoutes';
 
 import setupDB from "./utils/db";
 import uploadRoutes from './routes/uploadRoutes';
-import accountAssignmentRecordRoutes from './routes/accountAssignmentRecordRoutes';
-import afterSalesOrderRoutes from './routes/afterSalesOrderRoutes';
-import courseRoutes from './routes/courseRoutes';
+
 
 dotenv.config();
 
@@ -40,15 +33,7 @@ app.get('/', (req: Request, res: Response) => {
 
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/tasks', taskRoutes);
-app.use('/api/bills', billRoutes);
-app.use('/api/empty-packages', emptyPackageRoutes);
 app.use('/api/upload', uploadRoutes);
-app.use('/api/accounts', accountLibraryRoutes);
-app.use('/api/assignments', accountAssignmentRoutes);
-app.use('/api/assignment-records', accountAssignmentRecordRoutes);
-app.use('/api/after-sales-orders', afterSalesOrderRoutes);
-app.use('/api/courses', courseRoutes);
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 

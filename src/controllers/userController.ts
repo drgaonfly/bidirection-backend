@@ -1,6 +1,6 @@
 // controllers/userController.ts
 import { Request, Response } from 'express';
-import User, { IPriceList, IUser } from '../models/user';
+import User from '../models/user';
 import handleAsync from '../utils/handleAsync';
 import bcrypt from "bcrypt";
 import { exclude } from '../utils/handleData';
@@ -8,8 +8,8 @@ import { ROLES } from '../constants';
 import { RequestCustom } from 'user';
 
 const getUsers = handleAsync(async (req: Request, res: Response) => {
-  // 假设这些值来自于请求参数
-  const { email, name, role, live, current = '1', pageSize = '10' } = req.query;
+
+  const { email, name, live, current = '1', pageSize = '10' } = req.query;
 
   const query: any = {};
 
@@ -17,22 +17,18 @@ const getUsers = handleAsync(async (req: Request, res: Response) => {
     query.email = email;
   }
 
-  if (role) {
-    query.role = role;
-  }
 
   if (name) {
-    query.name = { $regex: name, $options: 'i' }; // 使用正则表达式进行大小写不敏感的搜索
+    query.name = { $regex: name, $options: 'i' }; 
   }
 
   if (live) {
-    query.live = live === 'true'; // 将字符串 "true" 转换为布尔值 true
+    query.live = live === 'true'; 
   }
 
   // 执行查询
   const users = await User.find({
     ...query,
-    role: { $ne: ROLES.SuperAdmin }  // Exclude users with the role of SuperAdmin
   })
     .sort('-createdAt')  // Sort by creation time in descending order
     .skip((+current - 1) * +pageSize)
@@ -41,7 +37,6 @@ const getUsers = handleAsync(async (req: Request, res: Response) => {
 
   const total = await User.countDocuments({
     ...query,
-    role: { $ne: ROLES.SuperAdmin }  // Exclude users with the role of SuperAdmin
   }).exec();
 
   res.json({
@@ -54,17 +49,7 @@ const getUsers = handleAsync(async (req: Request, res: Response) => {
 });
 
 const addUser = handleAsync(async (req: RequestCustom, res: Response) => {
-  const { name, email, password, role, priceList } = req.body;
-
-  if (role === ROLES.SuperAdmin && req.user.role !== ROLES.SuperAdmin) {
-    res.status(403);
-    throw new Error('Only superadmin can create other superadmins');
-  }
-
-  if (role !== ROLES.Customer && req.user.role === ROLES.CustomerService) {
-    res.status(403);
-    throw new Error('Customer service can only create customers');
-  }
+  const { name, email, password, roles } = req.body;
 
   const userExists = await User.findOne({ email });
 
@@ -79,9 +64,8 @@ const addUser = handleAsync(async (req: RequestCustom, res: Response) => {
   const newUser = new User({
     name,
     email,
-    role,
+    roles,
     password: hashPassword,
-    priceList
   });
 
   const savedUser = await newUser.save();
@@ -108,9 +92,8 @@ const getUserById = handleAsync(async (req: Request, res: Response) => {
 
 const updateUser = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { password, name, email, live, role, priceList } = req.body;
+  const { password, name, email, live, roles, priceList } = req.body;
 
-  // 寻找用户是否存在
   const user = await User.findById(id);
 
   if (!user) {
@@ -120,18 +103,16 @@ const updateUser = handleAsync(async (req: Request, res: Response) => {
 
   let hashPassword = user.password;
 
-  // 如果提供了新密码，对其加密
   if (password) {
     const salt = await bcrypt.genSalt(10);
     hashPassword = await bcrypt.hash(password, salt);
   }
 
-  const newRole = role ? role : user.role;
+  const newRoles = roles ? roles : user.roles;
 
-  // 更新用户信息
   const updatedUser = await User.findByIdAndUpdate(
     id,
-    { name, email, password: hashPassword, live, role: newRole, priceList },
+    { name, email, password: hashPassword, live, roles: newRoles, priceList },
     { new: true }
   );
 
@@ -140,6 +121,7 @@ const updateUser = handleAsync(async (req: Request, res: Response) => {
     data: updatedUser,
   });
 });
+
 
 const deleteUser = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;

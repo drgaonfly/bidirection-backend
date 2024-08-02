@@ -1,48 +1,31 @@
 import mongoose, { Document } from 'mongoose';
-import { ROLES } from '../constants'; // Adjust the import path as necessary
+import {IRole} from './role'
 
-type ROLE = typeof ROLES[keyof typeof ROLES];
-export interface IPriceList {
-  exchangeRate: number;
-  serviceFee: number;
-  country: string;
-  emptyPackageFee: number;
-}
 export interface IUser extends Document {
+  roles: any;
   email: string;
   password: string;
   phone: string;
   name: string;
-  role: ROLE;
   live: boolean;
   createdAt?: Date; // Time of document creation
   updatedAt?: Date; // Time the document was last updated
-  priceList: IPriceList[];
-}
 
-const priceListSchema = new mongoose.Schema({
-  // isLocalCurrency: { type: Boolean, required: true },
-  exchangeRate: { type: Number, required: true },
-  serviceFee: { type: Number, required: true },
-  country: { type: String, required: true },
-  emptyPackageFee: { type: Number, required: true },
-});
+}
 
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   phone: { type: String, required: false },
   name: { type: String, required: true, unique: true }, // Add unique index to name
-  role: {
-    type: String,
-    default: ROLES.Customer,
-    enum: Object.values(ROLES),
-  },
   live: {
     type: Boolean,
     default: true,
   },
-  priceList: [priceListSchema],
+  roles: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Role' // Reference the Role model
+  }],
 }, { timestamps: true });
 
 const User = mongoose.model<IUser>('User', userSchema);

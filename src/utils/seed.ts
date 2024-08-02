@@ -1,4 +1,5 @@
 import User from '../models/user';
+import Role from '../models/role';
 import setupDB from "./db";
 import bcrypt from "bcrypt";
 import mongoose from 'mongoose';
@@ -13,6 +14,16 @@ const seedUsers = [
   { email: 'admin@2024fc.xyz', password: 'password123', role: ROLES.Admin, name: 'Admin' },
   { email: 'newuser@2024fc.xyz', password: 'newuser2024', name: 'New User' },
 ];
+
+const seedRoles = [
+  { name: ROLES.SuperAdmin},
+  { name: ROLES.Admin},
+  { name: ROLES.Customer },
+  { name: ROLES.OrderPlacer},
+  { name: ROLES.Reviewer},
+  { name: ROLES.CustomerService},
+];
+
 
 const createUsers = async (): Promise<void> => {
   try {
@@ -33,4 +44,22 @@ const createUsers = async (): Promise<void> => {
   }
 };
 
+const createRoles = async (): Promise<void> => {
+  try {
+    setupDB();
+
+    for (const role of seedRoles) {
+      await Role.create(role);
+    }
+
+    console.log('All roles have been created successfully!');
+  } catch (err) {
+    console.error('Error creating roles:', err);
+  } finally {
+    await mongoose.disconnect();
+    console.log('MongoDB Disconnected');
+  }
+};
+
 createUsers();
+createRoles();

@@ -7,20 +7,20 @@ import {
   deleteMultipleUsers,
   addUser,
 } from '../controllers/userController';
-import { protect, allow } from '../middlewares/authMiddleware';
-import {ROLES} from "../constants";
+import { protect } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
 router
   .route('/')
-  .get(protect, allow([ROLES.SuperAdmin, ROLES.Admin, ROLES.CustomerService]), getUsers)
-  .delete(protect, allow([ROLES.SuperAdmin, ROLES.Admin]), deleteMultipleUsers)
-  .post(protect, allow([ROLES.SuperAdmin, ROLES.Admin, ROLES.CustomerService]), addUser);
+  .get(protect, getUsers)
+  .delete(protect, deleteMultipleUsers)
+  .post(protect, addUser);
 
 router
   .route('/:id')
-  .delete(protect, allow(ROLES.SuperAdmin), deleteUser)
-  .get(getUserById)
-  .put(protect, allow(ROLES.SuperAdmin), updateUser);
+  .delete(protect, deleteUser)
+  .get(protect, getUserById)
+  .put(protect, updateUser);
+
 export default router;

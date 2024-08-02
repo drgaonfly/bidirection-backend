@@ -7,6 +7,7 @@ import cors from 'cors';
 import path from 'path'
 
 import userRoutes from './routes/userRoutes';
+import roleRoutes from './routes/roleRoutes';
 import authRoutes from './routes/authRoutes';
 
 import setupDB from "./utils/db";
@@ -32,8 +33,10 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.use('/api/users', userRoutes);
+app.use('/api/roles', roleRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
+
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 

@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import Menu from '../models/menu';
 import handleAsync from '../utils/handleAsync';
-import { exclude } from '../utils/handleData';
 
 const getMenus = handleAsync(async (req: Request, res: Response) => {
   const { name, path, parent, current = '1', pageSize = '10' } = req.query;

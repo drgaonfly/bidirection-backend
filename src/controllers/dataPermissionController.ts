@@ -1,6 +1,6 @@
 // dataPermissionController.ts
 import { Request, Response } from 'express';
-import DataPermission, { IDataPermission } from '../models/dataPermission';
+import DataPermission from '../models/dataPermission';
 import handleAsync from '../utils/handleAsync';
 
 // 获取所有数据权限

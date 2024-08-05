@@ -1,5 +1,4 @@
 import mongoose, { Document } from 'mongoose';
-import {IRole} from './role'
 
 export interface IUser extends Document {
   roles: any;

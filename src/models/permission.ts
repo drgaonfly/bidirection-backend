@@ -15,7 +15,7 @@ const permissionSchema = new mongoose.Schema({
   name: { type: String, required: true },
   path: { type: String, required: true },
   action: { type: String, required: true },
-  permissionGroup: { type: mongoose.Schema.Types.ObjectId, ref: 'PermissionGroup', required: true },
+  permissionGroup: { type: mongoose.Schema.Types.ObjectId, ref: 'PermissionGroup' },
 }, { timestamps: true });
 
 const Permission = mongoose.model<IPermission>('Permission', permissionSchema);

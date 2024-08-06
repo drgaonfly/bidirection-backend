@@ -1,6 +1,7 @@
 import express, { Router } from 'express';
 import {
   getPermissionGroups,
+  getPermissionGroupsList,
   getPermissionGroupById,
   addPermissionGroup,
   updatePermissionGroup,
@@ -14,8 +15,13 @@ const router: Router = express.Router();
 router
   .route('/')
   .get(protect, getPermissionGroups)
+
   .post(protect, addPermissionGroup)
   .delete(protect, deleteMultiplePermissionGroups);
+
+router
+  .route('/list')
+  .get(protect, getPermissionGroupsList)
 
 router
   .route('/:id')

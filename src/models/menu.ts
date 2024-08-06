@@ -5,6 +5,7 @@ export interface IMenu extends Document {
   name: string;
   path: string;
   parent: IMenu;
+  children:IMenu[];
   permission: IPermission;
   createdAt?: Date;
   updatedAt?: Date;
@@ -14,6 +15,7 @@ const menuSchema = new mongoose.Schema({
   name: { type: String, required: true },
   path: { type: String, required: true },
   parent: { type: mongoose.Schema.Types.ObjectId, ref: 'Menu' },
+  children: { type: mongoose.Schema.Types.ObjectId, ref: 'Menu' },
   permission: { type: mongoose.Schema.Types.ObjectId, ref: 'Permission', required: true },
 }, { timestamps: true });
 

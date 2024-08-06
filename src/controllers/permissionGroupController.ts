@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import PermissionGroup from '../models/permissionGroup';
 import handleAsync from '../utils/handleAsync';
-import { exclude } from '../utils/handleData';
+import Permission from '../models/permission';
 
+// 获取权限组列表
 // 获取权限组列表
 const getPermissionGroups = handleAsync(async (req: Request, res: Response) => {
   const { name, parent, current = '1', pageSize = '10' } = req.query;
-
   const query: any = {};
 
   if (name) {
@@ -15,11 +15,14 @@ const getPermissionGroups = handleAsync(async (req: Request, res: Response) => {
 
   if (parent) {
     query.parent = parent;
+  } else {
+    // 如果没有提供 parent 参数，则查询所有根节点
+    query.parent = null;
   }
 
   // 执行查询
   const permissionGroups = await PermissionGroup.find(query)
-    .populate("parent")       // Assuming you want to populate parent
+    .populate("parent")      // Assuming you want to populate parent
     .sort('-createdAt')      // Sort by creation time in descending order
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -27,14 +30,95 @@ const getPermissionGroups = handleAsync(async (req: Request, res: Response) => {
 
   const total = await PermissionGroup.countDocuments(query).exec();
 
+  // 递归函数来获取子权限组
+  const getChildren = async (parentId: string | null) => {
+    const children = await PermissionGroup.find({ parent: parentId }).populate('parent').exec();
+    return Promise.all(children.map(async (child) => {
+      const childWithChildren = child.toObject();
+      childWithChildren.children = await getChildren(child._id);
+      return childWithChildren;
+    }));
+  };
+
+  // 获取所有权限组及其子权限组
+  const permissionGroupsWithChildren = await Promise.all(permissionGroups.map(async (permissionGroup) => {
+    const groupWithChildren = permissionGroup.toObject();
+    groupWithChildren.children = await getChildren(permissionGroup._id);
+    return groupWithChildren;
+  }));
+
   res.json({
     success: true,
-    data: permissionGroups.map(permissionGroup => exclude(permissionGroup.toObject())),
+    data: permissionGroupsWithChildren,
     total,
     current: +current,
     pageSize: +pageSize,
   });
 });
+
+const addChildrenKeyToPermissionGroup = async (array: string | any[]) => {
+  for (let i = 0; i < array.length; i++) {
+    const permissions = await Permission.find({permissionGroup: array[i]._id}).exec();
+    if (permissions?.length > 0) {
+      if (array[i].children === undefined || array[i].children?.length === 0) {
+        array[i].children = permissions;
+      }
+    }
+
+    if (array[i].children && array[i].children.length > 0) {
+      addChildrenKeyToPermissionGroup(array[i].children);
+    }
+  }
+  return array
+}
+
+
+const getPermissionGroupsList = handleAsync(async (req: Request, res: Response) => {
+
+  // 获取所有根权限组
+  const rootGroups = await PermissionGroup.find({ parent: null })
+    .sort('-createdAt')      // 按创建时间降序排序
+    .exec();
+
+  const total = await PermissionGroup.countDocuments({ parent: null }).exec();
+
+  // 递归函数来获取子权限组
+  const getChildren = async (parentId: string | null) => {
+    const children = await PermissionGroup.find({ parent: parentId }).exec();
+    return Promise.all(children.map(async (child) => {
+      const childWithChildren = child.toObject();
+      
+      const permissions = await Permission.find({ PermissionGroup: child._id }).exec();
+      console.log("permissions", permissions)
+      if (permissions.length > 0) {
+        childWithChildren.children = permissions;
+      } else {
+        childWithChildren.children = await getChildren(child._id);
+      }
+
+      return childWithChildren;
+    }));
+  };
+
+  // 获取所有根权限组及其子权限组或权限
+  const permissionGroupsWithChildrenOrPermissions = await Promise.all(rootGroups.map(async (rootGroup) => {
+    const groupWithChildren = rootGroup.toObject();
+ 
+    groupWithChildren.children = await getChildren(rootGroup._id);
+
+    return groupWithChildren;
+  }));
+
+  res.json({
+    success: true,
+    data: permissionGroupsWithChildrenOrPermissions,
+    total
+  });
+});
+
+
+
+
 
 // 添加权限组
 const addPermissionGroup = handleAsync(async (req: Request, res: Response) => {
@@ -124,4 +208,4 @@ const deleteMultiplePermissionGroups = handleAsync(async (req: Request, res: Res
   });
 });
 
-export { deleteMultiplePermissionGroups, updatePermissionGroup, deletePermissionGroup, getPermissionGroups, addPermissionGroup, getPermissionGroupById };
+export { deleteMultiplePermissionGroups, updatePermissionGroup, deletePermissionGroup, getPermissionGroups, addPermissionGroup, getPermissionGroupById, getPermissionGroupsList };

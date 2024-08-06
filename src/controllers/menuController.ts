@@ -1,6 +1,18 @@
 import { Request, Response } from 'express';
-import Menu from '../models/menu';
+import Menu, { IMenu } from '../models/menu';
 import handleAsync from '../utils/handleAsync';
+
+const getChildren = async (parentId: string | null): Promise<IMenu[]> => {
+  const children = await Menu.find({ parent: parentId })
+    .populate('permission')
+    .populate('parent')  // 填充 parent 字段
+    .exec();
+  return Promise.all(children.map(async (child) => {
+    const childWithChildren = child.toObject();
+    childWithChildren.children = await getChildren(child._id);
+    return childWithChildren;
+  }));
+};
 
 const getMenus = handleAsync(async (req: Request, res: Response) => {
   const { name, path, parent, current = '1', pageSize = '10' } = req.query;
@@ -17,10 +29,9 @@ const getMenus = handleAsync(async (req: Request, res: Response) => {
 
   if (parent) {
     query.parent = parent;
-    console.log('hi')
-    console.log(parent)
-  }else{
-    console.log('parent is not exist')
+  } else {
+    // 如果没有提供 parent 参数，则查询所有根菜单
+    query.parent = null;
   }
 
   // 执行查询
@@ -34,14 +45,22 @@ const getMenus = handleAsync(async (req: Request, res: Response) => {
 
   const total = await Menu.countDocuments(query).exec();
 
+  // 获取所有菜单及其子菜单
+  const menusWithChildren = await Promise.all(menus.map(async (menu) => {
+    const menuWithChildren = menu.toObject();
+    menuWithChildren.children = await getChildren(menu._id);
+    return menuWithChildren;
+  }));
+
   res.json({
     success: true,
-    data: menus,
+    data: menusWithChildren,
     total,
     current: +current,
     pageSize: +pageSize,
   });
 });
+
 
 const addMenu = handleAsync(async (req: Request, res: Response) => {
   const { name, path, parent, permission } = req.body;

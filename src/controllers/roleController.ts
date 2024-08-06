@@ -4,7 +4,7 @@ import handleAsync from '../utils/handleAsync';
 
 // 获取所有角色
 const getRoles = handleAsync(async (req: Request, res: Response) => {
-  const roles = await Role.find().exec();
+  const roles = await Role.find().populate('permissions').exec();
   
   res.json({
     success: true,
@@ -29,17 +29,12 @@ const getRoleById = handleAsync(async (req: Request, res: Response) => {
 
 // 添加新角色
 const addRole = handleAsync(async (req: Request, res: Response) => {
-  const { name } = req.body;
+  const { name,permissions } = req.body;
 
-  const roleExists = await Role.findOne({ name }).exec();
-
-  if (roleExists) {
-    res.status(400);
-    throw new Error('Role already exists');
-  }
 
   const newRole = new Role({
     name,
+    permissions
   });
 
   const savedRole = await newRole.save();

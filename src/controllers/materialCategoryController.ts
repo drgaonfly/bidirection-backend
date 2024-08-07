@@ -4,10 +4,7 @@ import MaterialCategory, {
   IMaterialCategory,
 } from '../models/materialCategory';
 import handleAsync from '../utils/handleAsync';
-import {
-  transformDocumentImage,
-  transformDocumentImages,
-} from '../utils/transformUtils';
+import { transformDocumentImage } from '../utils/transformUtils';
 
 const getMaterialCategories = handleAsync(
   async (req: Request, res: Response) => {

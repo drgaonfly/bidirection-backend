@@ -1,11 +1,12 @@
 import { Request, Response } from 'express';
 import Role from '../models/role';
 import handleAsync from '../utils/handleAsync';
+import Permission from '../models/permission';
 
 // 获取所有角色
 const getRoles = handleAsync(async (req: Request, res: Response) => {
   const roles = await Role.find().populate('permissions').exec();
-  
+
   res.json({
     success: true,
     data: roles,
@@ -29,12 +30,15 @@ const getRoleById = handleAsync(async (req: Request, res: Response) => {
 
 // 添加新角色
 const addRole = handleAsync(async (req: Request, res: Response) => {
-  const { name,permissions } = req.body;
+  const { name, permissions } = req.body;
 
+  const validPermissions = await Permission.find({
+    _id: { $in: permissions },
+  }).exec();
 
   const newRole = new Role({
     name,
-    permissions
+    permissions: validPermissions.map((permission) => permission._id),
   });
 
   const savedRole = await newRole.save();
@@ -53,7 +57,7 @@ const updateRole = handleAsync(async (req: Request, res: Response) => {
   const updatedRole = await Role.findByIdAndUpdate(
     id,
     { name, permissions, dataPermissions },
-    { new: true }
+    { new: true },
   ).exec();
 
   if (!updatedRole) {
@@ -98,4 +102,11 @@ const deleteMultipleRoles = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-export { getRoles, getRoleById, addRole, updateRole, deleteRole, deleteMultipleRoles };
+export {
+  getRoles,
+  getRoleById,
+  addRole,
+  updateRole,
+  deleteRole,
+  deleteMultipleRoles,
+};

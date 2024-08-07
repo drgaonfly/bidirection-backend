@@ -2,7 +2,6 @@
 import { Request, Response } from 'express';
 import MaterialCategory, { IMaterialCategory } from '../models/materialCategory';
 import handleAsync from '../utils/handleAsync';
-import { transformDocumentImages } from '../utils/transformUtils'; // 确保路径是正确的
 
 const getChildren = async (parentId: string | null): Promise<IMaterialCategory[]> => {
   const children = await MaterialCategory.find({ parent: parentId })

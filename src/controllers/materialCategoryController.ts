@@ -6,22 +6,27 @@ import MaterialCategory, {
 import handleAsync from '../utils/handleAsync';
 import { transformDocumentImage } from '../utils/transformUtils';
 
+const buildQuery = (queryParams: any): any => {
+  const query: any = {};
+
+  if (queryParams.name) {
+    query.name = { $regex: queryParams.name, $options: 'i' };
+  }
+
+  if (queryParams.parent) {
+    query.parent = queryParams.parent;
+  } else {
+    query.parent = null;
+  }
+
+  return query;
+};
+
 const getMaterialCategories = handleAsync(
   async (req: Request, res: Response) => {
-    const { name, parent, current = '1', pageSize = '10' } = req.query;
+    const { current = '1', pageSize = '10' } = req.query;
 
-    const query: any = {};
-
-    if (name) {
-      query.name = { $regex: name, $options: 'i' };
-    }
-
-    if (parent) {
-      query.parent = parent;
-    } else {
-      // 如果没有提供 parent 参数，则查询所有根分类
-      query.parent = null;
-    }
+    const query = buildQuery(req.query);
 
     // 执行查询
     const categories = await MaterialCategory.find(query)

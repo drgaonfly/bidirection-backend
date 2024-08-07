@@ -74,11 +74,8 @@ const getMaterialCategories = handleAsync(
 );
 
 const addMaterialCategory = handleAsync(async (req: Request, res: Response) => {
-  const { name, parent } = req.body;
-
   const newCategory = new MaterialCategory({
-    name,
-    parent,
+    ...req.body,
   });
 
   const savedCategory = await newCategory.save();
@@ -108,11 +105,10 @@ const getMaterialCategoryById = handleAsync(
 const updateMaterialCategory = handleAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { name, parent } = req.body;
 
     const updatedCategory = await MaterialCategory.findByIdAndUpdate(
       id,
-      { name, parent },
+      { ...req.body },
       { new: true },
     ).populate('children');
 

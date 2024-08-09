@@ -3,21 +3,25 @@ import PermissionGroup from '../models/permissionGroup';
 import handleAsync from '../utils/handleAsync';
 import Permission from '../models/permission';
 
-// 获取权限组列表
-const getPermissionGroups = handleAsync(async (req: Request, res: Response) => {
-  const { name, parent, current = '1', pageSize = '10' } = req.query;
+const buildQuery = (queryParams: any): any => {
   const query: any = {};
 
-  if (name) {
-    query.name = { $regex: name, $options: 'i' };
+  if (queryParams.name) {
+    query.name = { $regex: queryParams.name, $options: 'i' };
   }
 
-  if (parent) {
-    query.parent = parent;
-  } else {
-    // 如果没有提供 parent 参数，则查询所有根节点
-    query.parent = null;
+  if (queryParams.action) {
+    query.action = queryParams.action;
   }
+
+  return query;
+};
+
+// 获取权限组列表
+const getPermissionGroups = handleAsync(async (req: Request, res: Response) => {
+  const { current = '1', pageSize = '10' } = req.query;
+
+  const query = buildQuery(req.query);
 
   // 执行查询
   const permissionGroups = await PermissionGroup.find(query)
@@ -71,7 +75,48 @@ const getPermissionGroupsList = handleAsync(
       .sort('-createdAt') // 按创建时间降序排序
       .exec();
 
-    const total = await PermissionGroup.countDocuments({ parent: null }).exec();
+const getPermissionGroupsList = handleAsync(async (req: Request, res: Response) => {
+
+  // 获取所有根权限组
+  const rootGroups = await PermissionGroup.find({ parent: null })
+    .sort('-createdAt')      // 按创建时间降序排序
+    .exec();
+
+  const total = await PermissionGroup.countDocuments({ parent: null }).exec();
+
+  // 递归函数来获取子权限组
+  const getChildren = async (parentId: string | null) => {
+    const children = await PermissionGroup.find({ parent: parentId }).exec();
+    return Promise.all(children.map(async (child) => {
+      const childWithChildren = child.toObject();
+
+      const permissions = await Permission.find({ PermissionGroup: child._id }).exec();
+      console.log("permissions", permissions)
+      if (permissions.length > 0) {
+        childWithChildren.children = permissions;
+      } else {
+        childWithChildren.children = await getChildren(child._id);
+      }
+
+      return childWithChildren;
+    }));
+  };
+
+  // 获取所有根权限组及其子权限组或权限
+  const permissionGroupsWithChildrenOrPermissions = await Promise.all(rootGroups.map(async (rootGroup) => {
+    const groupWithChildren = rootGroup.toObject();
+
+    groupWithChildren.children = await getChildren(rootGroup._id);
+
+    return groupWithChildren;
+  }));
+
+  res.json({
+    success: true,
+    data: permissionGroupsWithChildrenOrPermissions,
+    total
+  });
+});
 
     const getChildren = async (parentId: string | null): Promise<any[]> => {
       const children = await PermissionGroup.find({ parent: parentId })
@@ -114,24 +159,10 @@ const getPermissionGroupsList = handleAsync(
       );
     };
 
-    const permissionGroupsWithChildren =
-      await getPermissionGroupsWithChildren(permissionGroups);
-
-    res.json({
-      success: true,
-      data: permissionGroupsWithChildren,
-      total,
-    });
-  },
-);
-
 // 添加权限组
 const addPermissionGroup = handleAsync(async (req: Request, res: Response) => {
-  const { name, parent } = req.body;
-
   const newPermissionGroup = new PermissionGroup({
-    name,
-    parent,
+    ...req.body,
   });
 
   const savedPermissionGroup = await newPermissionGroup.save();
@@ -162,16 +193,14 @@ const getPermissionGroupById = handleAsync(
 );
 
 // 更新权限组
-const updatePermissionGroup = handleAsync(
-  async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const { name, parent } = req.body;
+const updatePermissionGroup = handleAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
 
-    const updatedPermissionGroup = await PermissionGroup.findByIdAndUpdate(
-      id,
-      { name, parent },
-      { new: true },
-    ).populate('parent');
+  const updatedPermissionGroup = await PermissionGroup.findByIdAndUpdate(
+    id,
+    { ...req.body },
+    { new: true }
+  ).populate("parent");
 
     if (!updatedPermissionGroup) {
       res.status(404);

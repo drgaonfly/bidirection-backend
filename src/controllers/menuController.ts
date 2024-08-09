@@ -2,7 +2,9 @@ import { Request, Response } from 'express';
 import Menu, { IMenu } from '../models/menu';
 import handleAsync from '../utils/handleAsync';
 
+
 const getChildren = async (parentId: string | null): Promise<IMenu[]> => {
+  console.log('getChildren called with parentId:', parentId);
   const children = await Menu.find({ parent: parentId })
     .populate('permission')
     .populate('parent')  // 填充 parent 字段
@@ -14,25 +16,36 @@ const getChildren = async (parentId: string | null): Promise<IMenu[]> => {
   }));
 };
 
-const getMenus = handleAsync(async (req: Request, res: Response) => {
-  const { name, path, parent, current = '1', pageSize = '10' } = req.query;
 
+const buildQuery = (queryParams: any): any => {
   const query: any = {};
 
-  if (name) {
-    query.name = { $regex: name, $options: 'i' };
+  if (queryParams.name) {
+    query.name = { $regex: queryParams.name, $options: 'i' };
   }
 
-  if (path) {
-    query.path = path;
-  }
-
-  if (parent) {
-    query.parent = parent;
+  if (queryParams.parent) {
+    query.parent = queryParams.parent;
   } else {
-    // 如果没有提供 parent 参数，则查询所有根菜单
     query.parent = null;
   }
+
+   // Add recursive children query
+   if (queryParams.children) {
+    query.children = [
+      { 'children.name': { $regex: queryParams.children, $options: 'i' } },
+      // Add conditions for other child properties if needed
+    ];
+  }
+
+  return query;
+};
+
+const getMenus = handleAsync(async (req: Request, res: Response) => {
+  console.log('getMenus called with query:', req.query);
+  const { current = '1', pageSize = '10' } = req.query;
+
+  const query = buildQuery(req.query);
 
   // 执行查询
   const menus = await Menu.find(query)
@@ -63,13 +76,8 @@ const getMenus = handleAsync(async (req: Request, res: Response) => {
 
 
 const addMenu = handleAsync(async (req: Request, res: Response) => {
-  const { name, path, parent, permission } = req.body;
-
   const newMenu = new Menu({
-    name,
-    path,
-    parent,
-    permission,
+    ...req.body,
   });
 
   const savedMenu = await newMenu.save();
@@ -96,11 +104,10 @@ const getMenuById = handleAsync(async (req: Request, res: Response) => {
 
 const updateMenu = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { name, path, parent, permission } = req.body;
 
   const updatedMenu = await Menu.findByIdAndUpdate(
     id,
-    { name, path, parent, permission },
+    { ...req.body },
     { new: true }
   ).populate("permission").populate("parent");
 

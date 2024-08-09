@@ -6,6 +6,23 @@ import MaterialCategory, {
 import handleAsync from '../utils/handleAsync';
 import { transformDocumentImage } from '../utils/transformUtils';
 
+const getChildren = async (
+  parentId: string | null,
+): Promise<IMaterialCategory[]> => {
+  const children = await MaterialCategory.find({ parent: parentId })
+    .populate('parent')
+    .exec();
+
+  return Promise.all(
+    children.map(async (child) => {
+      const childWithChildren = child.toObject();
+      childWithChildren.children = await getChildren(child._id);
+      return await transformDocumentImage(childWithChildren, 'image');
+    }),
+  );
+};
+
+
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
 
@@ -19,6 +36,10 @@ const buildQuery = (queryParams: any): any => {
     query.parent = null;
   }
 
+  if (queryParams.image) {
+    query.image = queryParams.image;
+  }
+
   return query;
 };
 
@@ -30,29 +51,17 @@ const getMaterialCategories = handleAsync(
 
     // 执行查询
     const categories = await MaterialCategory.find(query)
-      .populate('parent') // 填充 children 字段
+      .populate('parent') // 填充 parent 字段
       .sort('-createdAt') // Sort by creation time in descending order
       .skip((+current - 1) * +pageSize)
       .limit(+pageSize)
       .exec();
 
+const getMaterialCategories = handleAsync(
+  async (req: Request, res: Response) => {
+    const { current = '1', pageSize = '10' } = req.query;
+
     const total = await MaterialCategory.countDocuments(query).exec();
-
-    const getChildren = async (
-      parentId: string | null,
-    ): Promise<IMaterialCategory[]> => {
-      const children = await MaterialCategory.find({ parent: parentId })
-        .populate('parent')
-        .exec();
-
-      return Promise.all(
-        children.map(async (child) => {
-          const childWithChildren = child.toObject();
-          childWithChildren.children = await getChildren(child._id);
-          return await transformDocumentImage(childWithChildren, 'image');
-        }),
-      );
-    };
 
     // 获取所有分类及其子分类，并处理 image 字段
     const categoriesWithChildren = await Promise.all(
@@ -62,6 +71,7 @@ const getMaterialCategories = handleAsync(
         return await transformDocumentImage(categoryWithChildren, 'image');
       }),
     );
+
 
     res.json({
       success: true,
@@ -73,18 +83,27 @@ const getMaterialCategories = handleAsync(
   },
 );
 
-const addMaterialCategory = handleAsync(async (req: Request, res: Response) => {
-  const newCategory = new MaterialCategory({
-    ...req.body,
-  });
+const addMaterialCategory = handleAsync(
+  async (req: Request, res: Response) => {
+    const { image, ...rest } = req.body;
 
-  const savedCategory = await newCategory.save();
+    const newCategory = new MaterialCategory({
+      ...rest,
+      image, // 使用 image 字段初始化 image 属性
+    });
 
-  res.json({
-    success: true,
-    data: savedCategory,
-  });
-});
+    console.log('newCategory', newCategory);
+
+    const savedCategory = await newCategory.save();
+
+    console.log('savedCategory', savedCategory);
+
+    res.json({
+      success: true,
+      data: savedCategory,
+    });
+  }
+);
 
 const getMaterialCategoryById = handleAsync(
   async (req: Request, res: Response) => {
@@ -106,11 +125,15 @@ const updateMaterialCategory = handleAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
 
+    const updateData = req.body; // 从请求体中获取更新的数据
+
+    console.log('Update data:', updateData);
+
     const updatedCategory = await MaterialCategory.findByIdAndUpdate(
       id,
-      { ...req.body },
-      { new: true },
-    ).populate('children');
+      updateData, // 更新字段和新值
+      { new: true } // 选项：返回更新后的文档
+    );
 
     if (!updatedCategory) {
       res.status(404);
@@ -121,8 +144,9 @@ const updateMaterialCategory = handleAsync(
       success: true,
       data: updatedCategory,
     });
-  },
+  }
 );
+
 
 const deleteMaterialCategory = handleAsync(
   async (req: Request, res: Response) => {

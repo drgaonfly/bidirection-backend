@@ -30,15 +30,8 @@ const getRoleById = handleAsync(async (req: Request, res: Response) => {
 
 // 添加新角色
 const addRole = handleAsync(async (req: Request, res: Response) => {
-  const { name, permissions } = req.body;
-
-  const validPermissions = await Permission.find({
-    _id: { $in: permissions },
-  }).exec();
-
   const newRole = new Role({
-    name,
-    permissions: validPermissions.map((permission) => permission._id),
+    ...req.body,
   });
 
   const savedRole = await newRole.save();
@@ -52,12 +45,11 @@ const addRole = handleAsync(async (req: Request, res: Response) => {
 // 更新角色
 const updateRole = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { name, permissions, dataPermissions } = req.body;
 
   const updatedRole = await Role.findByIdAndUpdate(
     id,
-    { name, permissions, dataPermissions },
-    { new: true },
+    { ...req.body },
+    { new: true }
   ).exec();
 
   if (!updatedRole) {

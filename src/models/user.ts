@@ -1,7 +1,8 @@
 import mongoose, { Document } from 'mongoose';
 
+
 export interface IUser extends Document {
-  [x: string]: any;
+  isAdmin: any;
   roles: any;
   email: string;
   password: string;
@@ -10,7 +11,6 @@ export interface IUser extends Document {
   live: boolean;
   createdAt?: Date; // Time of document creation
   updatedAt?: Date; // Time the document was last updated
-
 }
 
 const userSchema = new mongoose.Schema({

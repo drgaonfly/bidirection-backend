@@ -3,20 +3,26 @@ import { Request, Response } from 'express';
 import DataPermission from '../models/dataPermission';
 import handleAsync from '../utils/handleAsync';
 
-// 获取所有数据权限
-const getDataPermissions = handleAsync(async (req: Request, res: Response) => {
-  const { name, path, current = '1', pageSize = '10' } = req.query;
 
+const buildQuery = (queryParams: any): any => {
   const query: any = {};
 
-  if (name) {
-    query.name = { $regex: name, $options: 'i' };
+  if (queryParams.name) {
+    query.name = { $regex: queryParams.name, $options: 'i' };
   }
 
-  if (path) {
-    query.path = path;
+  if (queryParams.path) {
+    query.path = queryParams.path;
   }
 
+  return query;
+};
+
+// 获取所有数据权限
+const getDataPermissions = handleAsync(async (req: Request, res: Response) => {
+  const { current = '1', pageSize = '10' } = req.query;
+
+  const query = buildQuery(req.query);
   // 执行查询
   const dataPermissions = await DataPermission.find(query)
     .sort('-createdAt')  // Sort by creation time in descending order
@@ -37,12 +43,10 @@ const getDataPermissions = handleAsync(async (req: Request, res: Response) => {
 
 // 添加数据权限
 const addDataPermission = handleAsync(async (req: Request, res: Response) => {
-  const { name, path } = req.body;
-
   const newDataPermission = new DataPermission({
-    name,
-    path,
+    ...req.body,
   });
+
 
   const savedDataPermission = await newDataPermission.save();
 
@@ -70,11 +74,10 @@ const getDataPermissionById = handleAsync(async (req: Request, res: Response) =>
 // 更新数据权限
 const updateDataPermission = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { name, path } = req.body;
 
   const updatedDataPermission = await DataPermission.findByIdAndUpdate(
     id,
-    { name, path },
+    { ...req.body },
     { new: true }
   );
 
@@ -122,11 +125,11 @@ const deleteMultipleDataPermissions = handleAsync(async (req: Request, res: Resp
   });
 });
 
-export { 
-  getDataPermissions, 
-  addDataPermission, 
-  getDataPermissionById, 
-  updateDataPermission, 
-  deleteDataPermission, 
-  deleteMultipleDataPermissions 
+export {
+  getDataPermissions,
+  addDataPermission,
+  getDataPermissionById,
+  updateDataPermission,
+  deleteDataPermission,
+  deleteMultipleDataPermissions
 };

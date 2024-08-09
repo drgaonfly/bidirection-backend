@@ -6,24 +6,28 @@ import bcrypt from "bcrypt";
 import { exclude } from '../utils/handleData';
 import { RequestCustom } from 'user';
 
-const getUsers = handleAsync(async (req: Request, res: Response) => {
-
-  const { email, name, live, current = '1', pageSize = '10' } = req.query;
-
+const buildQuery = (queryParams: any): any => {
   const query: any = {};
 
-  if (email) {
-    query.email = email;
+  if (queryParams.email) {
+    query.email = { $regex: queryParams.email, $options: 'i' };
   }
 
-
-  if (name) {
-    query.name = { $regex: name, $options: 'i' };
+  if (queryParams.name) {
+    query.name = { $regex: queryParams.name, $options: 'i' };
   }
 
-  if (live) {
-    query.live = live === 'true';
+  if (queryParams.live) {
+    query.live = queryParams.live === 'true';
   }
+
+  return query;
+};
+
+const getUsers = handleAsync(async (req: Request, res: Response) => {
+
+  const { current = '1', pageSize = '10' } = req.query;
+ const query = buildQuery(req.query);
 
   // 执行查询
   const users = await User.find({
@@ -92,7 +96,7 @@ const getUserById = handleAsync(async (req: Request, res: Response) => {
 
 const updateUser = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { password, name, email, live, roles, priceList } = req.body;
+  // const { password, name, email, live, roles, priceList } = req.body;
 
   const user = await User.findById(id);
 
@@ -103,16 +107,14 @@ const updateUser = handleAsync(async (req: Request, res: Response) => {
 
   let hashPassword = user.password;
 
-  if (password) {
+  if (req.body.password) {
     const salt = await bcrypt.genSalt(10);
-    hashPassword = await bcrypt.hash(password, salt);
+    hashPassword = await bcrypt.hash(req.body.password, salt);
   }
-
-  const newRoles = roles ? roles : user.roles;
 
   const updatedUser = await User.findByIdAndUpdate(
     id,
-    { name, email, password: hashPassword, live, roles: newRoles, priceList },
+    { ...req.body },
     { new: true }
   );
 

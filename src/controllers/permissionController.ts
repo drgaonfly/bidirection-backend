@@ -2,22 +2,29 @@ import { Request, Response } from 'express';
 import Permission from '../models/permission';
 import handleAsync from '../utils/handleAsync';
 
-const getPermissions = handleAsync(async (req: Request, res: Response) => {
-  const { name, path, action, current = '1', pageSize = '10' } = req.query;
 
+const buildQuery = (queryParams: any): any => {
   const query: any = {};
 
-  if (name) {
-    query.name = { $regex: name, $options: 'i' };
+  if (queryParams.name) {
+    query.name = { $regex: queryParams.name, $options: 'i' };
   }
 
-  if (path) {
-    query.path = path;
+  if (queryParams.path) {
+    query.path = queryParams.path;
   }
 
-  if (action) {
-    query.action = action;
+  if (queryParams.action) {
+    query.action = queryParams.action;
   }
+
+  return query;
+};
+
+const getPermissions = handleAsync(async (req: Request, res: Response) => {
+  const { current = '1', pageSize = '10' } = req.query;
+
+  const query = buildQuery(req.query);
 
   // 执行查询
   const permissions = await Permission.find(query)
@@ -39,14 +46,10 @@ const getPermissions = handleAsync(async (req: Request, res: Response) => {
 });
 
 const addPermission = handleAsync(async (req: Request, res: Response) => {
-  const { name, path, action, permissionGroup } = req.body;
-
   const newPermission = new Permission({
-    name,
-    path,
-    action,
-    permissionGroup,
+    ...req.body,
   });
+
 
   const savedPermission = await newPermission.save();
 
@@ -72,11 +75,9 @@ const getPermissionById = handleAsync(async (req: Request, res: Response) => {
 
 const updatePermission = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { name, path, action, permissionGroup } = req.body;
-
   const updatedPermission = await Permission.findByIdAndUpdate(
     id,
-    { name, path, action, permissionGroup },
+    { ...req.body },
     { new: true }
   ).populate("permissionGroup");
 

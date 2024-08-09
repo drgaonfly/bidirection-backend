@@ -2,22 +2,29 @@ import { Request, Response } from 'express';
 import Menu, { IMenu } from '../models/menu';
 import handleAsync from '../utils/handleAsync';
 
-// Function to get children menus by parentId
 const getChildren = async (parentId: string | null): Promise<IMenu[]> => {
-  console.log('getChildren called with parentId:', parentId);
   const children = await Menu.find({ parent: parentId })
     .populate('permission')
-    .populate('parent') // Populate parent field
+    .populate('parent') // 填充 parent 字段
     .exec();
-  return children.map((child) => child.toObject());
+  return Promise.all(
+    children.map(async (child) => {
+      const childWithChildren = child.toObject();
+      childWithChildren.children = await getChildren(child._id);
+      return childWithChildren;
+    }),
+  );
 };
 
-// Build query based on query parameters
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
 
   if (queryParams.name) {
     query.name = { $regex: queryParams.name, $options: 'i' };
+  }
+
+  if (queryParams.path) {
+    query.path = { $regex: queryParams.path, $options: 'i' };
   }
 
   if (queryParams.parent) {
@@ -26,21 +33,27 @@ const buildQuery = (queryParams: any): any => {
     query.parent = null;
   }
 
-  // No need to handle children queries
+  // Add recursive children query
+  if (queryParams.children) {
+    query.children = [
+      { 'children.name': { $regex: queryParams.children, $options: 'i' } },
+      // Add conditions for other child properties if needed
+    ];
+  }
 
   return query;
 };
 
-// Get menus with pagination and their children
 const getMenus = handleAsync(async (req: Request, res: Response) => {
+  console.log('getMenus called with query:', req.query);
   const { current = '1', pageSize = '10' } = req.query;
 
   const query = buildQuery(req.query);
 
-  // Execute the query
+  // 执行查询
   const menus = await Menu.find(query)
     .populate('permission')
-    .populate('parent') // Populate parent field
+    .populate('parent') // 填充 parent 字段
     .sort('-createdAt') // Sort by creation time in descending order
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -48,15 +61,12 @@ const getMenus = handleAsync(async (req: Request, res: Response) => {
 
   const total = await Menu.countDocuments(query).exec();
 
-  // Get menus with their children
+  // 获取所有菜单及其子菜单
   const menusWithChildren = await Promise.all(
     menus.map(async (menu) => {
       const menuWithChildren = menu.toObject();
-      const children = await getChildren(menu._id);
-      return {
-        ...menuWithChildren,
-        children,
-      };
+      menuWithChildren.children = await getChildren(menu._id);
+      return menuWithChildren;
     }),
   );
 
@@ -69,10 +79,9 @@ const getMenus = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-// Add a new menu
 const addMenu = handleAsync(async (req: Request, res: Response) => {
   const newMenu = new Menu({
-    ...req.body, // Ensure the request body includes parent and other fields
+    ...req.body,
   });
 
   const savedMenu = await newMenu.save();
@@ -83,7 +92,6 @@ const addMenu = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-// Get menu by ID
 const getMenuById = handleAsync(async (req: Request, res: Response) => {
   const menu = await Menu.findById(req.params.id)
     .populate('permission')
@@ -92,21 +100,14 @@ const getMenuById = handleAsync(async (req: Request, res: Response) => {
   if (!menu) {
     res.status(404);
     throw new Error('Menu not found');
+  } else {
+    res.json({
+      success: true,
+      data: menu,
+    });
   }
-
-  // Get children of the menu
-  const children = await getChildren(req.params.id);
-
-  res.json({
-    success: true,
-    data: {
-      menu: menu.toObject(),
-      children,
-    },
-  });
 });
 
-// Update an existing menu
 const updateMenu = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -129,11 +130,10 @@ const updateMenu = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-// Delete a menu by ID
 const deleteMenu = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
-  // Delete the menu
+  // 删除菜单
   const menu = await Menu.findByIdAndDelete(id);
 
   if (!menu) {
@@ -147,11 +147,10 @@ const deleteMenu = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-// Delete multiple menus by IDs
 const deleteMultipleMenus = handleAsync(async (req: Request, res: Response) => {
   const { ids } = req.body;
 
-  // Use Mongoose's deleteMany method for batch deletion
+  // 使用 Mongoose 的 deleteMany 方法进行批量删除
   await Menu.deleteMany({
     _id: { $in: ids },
   });

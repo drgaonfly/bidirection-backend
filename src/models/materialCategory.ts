@@ -7,6 +7,7 @@ export interface IMaterialCategory extends Document {
   isEnalbe: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+  children: IMaterialCategory[];
 }
 
 const materialCategorySchema = new mongoose.Schema(

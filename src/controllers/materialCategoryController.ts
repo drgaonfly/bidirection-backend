@@ -16,12 +16,8 @@ const getChildren = async (
   return Promise.all(
     children.map(async (child) => {
       const childWithChildren = child.toObject();
-      // 递归获取子分类
-      const childChildren = await getChildren(child._id);
-      return {
-        ...(await transformDocumentImage(childWithChildren, 'image')),
-        children: childChildren, // 动态添加 children 字段
-      };
+      childWithChildren.children = await getChildren(child._id);
+      return await transformDocumentImage(childWithChildren, 'image');
     }),
   );
 };
@@ -39,6 +35,10 @@ const buildQuery = (queryParams: any): any => {
     query.parent = null;
   }
 
+  if (queryParams.image) {
+    query.image = queryParams.image;
+  }
+
   return query;
 };
 
@@ -51,7 +51,7 @@ const getMaterialCategories = handleAsync(
     // 执行查询
     const categories = await MaterialCategory.find(query)
       .populate('parent') // 填充 parent 字段
-      .sort('-createdAt') // 按创建时间倒序排序
+      .sort('-createdAt') // Sort by creation time in descending order
       .skip((+current - 1) * +pageSize)
       .limit(+pageSize)
       .exec();

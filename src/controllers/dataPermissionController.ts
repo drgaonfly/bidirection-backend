@@ -3,7 +3,6 @@ import { Request, Response } from 'express';
 import DataPermission from '../models/dataPermission';
 import handleAsync from '../utils/handleAsync';
 
-
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
 
@@ -12,7 +11,7 @@ const buildQuery = (queryParams: any): any => {
   }
 
   if (queryParams.path) {
-    query.path = queryParams.path;
+    query.path = { $regex: queryParams.path, $options: 'i' };
   }
 
   return query;
@@ -25,7 +24,7 @@ const getDataPermissions = handleAsync(async (req: Request, res: Response) => {
   const query = buildQuery(req.query);
   // 执行查询
   const dataPermissions = await DataPermission.find(query)
-    .sort('-createdAt')  // Sort by creation time in descending order
+    .sort('-createdAt') // Sort by creation time in descending order
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .exec();
@@ -47,7 +46,6 @@ const addDataPermission = handleAsync(async (req: Request, res: Response) => {
     ...req.body,
   });
 
-
   const savedDataPermission = await newDataPermission.save();
 
   res.json({
@@ -57,73 +55,81 @@ const addDataPermission = handleAsync(async (req: Request, res: Response) => {
 });
 
 // 根据ID获取数据权限
-const getDataPermissionById = handleAsync(async (req: Request, res: Response) => {
-  const dataPermission = await DataPermission.findById(req.params.id);
+const getDataPermissionById = handleAsync(
+  async (req: Request, res: Response) => {
+    const dataPermission = await DataPermission.findById(req.params.id);
 
-  if (!dataPermission) {
-    res.status(404);
-    throw new Error('Data permission not found');
-  } else {
-    res.json({
-      success: true,
-      data: dataPermission,
-    });
-  }
-});
+    if (!dataPermission) {
+      res.status(404);
+      throw new Error('Data permission not found');
+    } else {
+      res.json({
+        success: true,
+        data: dataPermission,
+      });
+    }
+  },
+);
 
 // 更新数据权限
-const updateDataPermission = handleAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
+const updateDataPermission = handleAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
 
-  const updatedDataPermission = await DataPermission.findByIdAndUpdate(
-    id,
-    { ...req.body },
-    { new: true }
-  );
+    const updatedDataPermission = await DataPermission.findByIdAndUpdate(
+      id,
+      { ...req.body },
+      { new: true },
+    );
 
-  if (!updatedDataPermission) {
-    res.status(404);
-    throw new Error('Data permission not found');
-  }
+    if (!updatedDataPermission) {
+      res.status(404);
+      throw new Error('Data permission not found');
+    }
 
-  res.json({
-    success: true,
-    data: updatedDataPermission,
-  });
-});
+    res.json({
+      success: true,
+      data: updatedDataPermission,
+    });
+  },
+);
 
 // 删除数据权限
-const deleteDataPermission = handleAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
+const deleteDataPermission = handleAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
 
-  // 删除数据权限
-  const dataPermission = await DataPermission.findByIdAndDelete(id);
+    // 删除数据权限
+    const dataPermission = await DataPermission.findByIdAndDelete(id);
 
-  if (!dataPermission) {
-    res.status(404);
-    throw new Error('Data permission not found');
-  }
+    if (!dataPermission) {
+      res.status(404);
+      throw new Error('Data permission not found');
+    }
 
-  res.json({
-    success: true,
-    data: { message: 'Data permission deleted successfully' },
-  });
-});
+    res.json({
+      success: true,
+      data: { message: 'Data permission deleted successfully' },
+    });
+  },
+);
 
 // 批量删除数据权限
-const deleteMultipleDataPermissions = handleAsync(async (req: Request, res: Response) => {
-  const { ids } = req.body;
+const deleteMultipleDataPermissions = handleAsync(
+  async (req: Request, res: Response) => {
+    const { ids } = req.body;
 
-  // 使用 Mongoose 的 deleteMany 方法进行批量删除
-  await DataPermission.deleteMany({
-    _id: { $in: ids },
-  });
+    // 使用 Mongoose 的 deleteMany 方法进行批量删除
+    await DataPermission.deleteMany({
+      _id: { $in: ids },
+    });
 
-  res.json({
-    success: true,
-    message: `${ids.length} data permissions deleted successfully`,
-  });
-});
+    res.json({
+      success: true,
+      message: `${ids.length} data permissions deleted successfully`,
+    });
+  },
+);
 
 export {
   getDataPermissions,
@@ -131,5 +137,5 @@ export {
   getDataPermissionById,
   updateDataPermission,
   deleteDataPermission,
-  deleteMultipleDataPermissions
+  deleteMultipleDataPermissions,
 };

@@ -8,6 +8,7 @@ export interface IMenu extends Document {
   permission: IPermission;
   createdAt?: Date;
   updatedAt?: Date;
+  children: IMenu[];
 }
 
 const menuSchema = new mongoose.Schema(

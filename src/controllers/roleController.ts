@@ -1,11 +1,30 @@
 import { Request, Response } from 'express';
 import Role from '../models/role';
 import handleAsync from '../utils/handleAsync';
-import Permission from '../models/permission';
+
+// Build query based on query parameters
+const buildQuery = (queryParams: any): any => {
+  const query: any = {};
+
+  if (queryParams.name) {
+    query.name = { $regex: queryParams.name, $options: 'i' };
+  }
+
+  return query;
+};
 
 // 获取所有角色
 const getRoles = handleAsync(async (req: Request, res: Response) => {
-  const roles = await Role.find().populate('permissions').exec();
+  const { current = '1', pageSize = '10' } = req.query;
+
+  const query = buildQuery(req.query);
+
+  const roles = await Role.find(query)
+    .populate('permissions')
+    .sort('-createdAt') // Sort by creation time in descending order
+    .skip((+current - 1) * +pageSize)
+    .limit(+pageSize)
+    .exec();
 
   res.json({
     success: true,
@@ -49,7 +68,7 @@ const updateRole = handleAsync(async (req: Request, res: Response) => {
   const updatedRole = await Role.findByIdAndUpdate(
     id,
     { ...req.body },
-    { new: true }
+    { new: true },
   ).exec();
 
   if (!updatedRole) {

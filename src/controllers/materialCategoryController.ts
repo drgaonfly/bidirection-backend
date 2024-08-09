@@ -35,10 +35,6 @@ const buildQuery = (queryParams: any): any => {
     query.parent = null;
   }
 
-  if (queryParams.image) {
-    query.image = queryParams.image;
-  }
-
   return query;
 };
 

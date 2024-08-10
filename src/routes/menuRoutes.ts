@@ -6,21 +6,24 @@ import {
   updateMenu,
   deleteMenu,
   deleteMultipleMenus,
+  fetchMenus,
 } from '../controllers/menuController';
-import { protect } from '../middlewares/authMiddleware';
+import { protect, checkPermission } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
 router
   .route('/')
-  .get(protect, getMenus)
-  .post(protect, addMenu)
-  .delete(protect, deleteMultipleMenus);
+  .get(protect, checkPermission, getMenus)
+  .post(protect, checkPermission, addMenu)
+  .delete(protect, checkPermission, deleteMultipleMenus);
+
+router.get('/fetch', protect, fetchMenus);
 
 router
   .route('/:id')
-  .get(protect, getMenuById)
-  .put(protect, updateMenu)
-  .delete(protect, deleteMenu);
+  .get(protect, checkPermission, getMenuById)
+  .put(protect, checkPermission, updateMenu)
+  .delete(protect, checkPermission, deleteMenu);
 
 export default router;

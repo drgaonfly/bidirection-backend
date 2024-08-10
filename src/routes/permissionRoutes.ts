@@ -7,20 +7,20 @@ import {
   deletePermission,
   deleteMultiplePermissions,
 } from '../controllers/permissionController';
-import { protect } from '../middlewares/authMiddleware';
+import { protect, checkPermission } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
 router
   .route('/')
-  .get(protect, getPermissions)
-  .post(protect, addPermission)
-  .delete(protect, deleteMultiplePermissions);
+  .get(protect, checkPermission, getPermissions, checkPermission)
+  .post(protect, checkPermission, addPermission)
+  .delete(protect, checkPermission, deleteMultiplePermissions);
 
 router
   .route('/:id')
-  .get(protect, getPermissionById)
-  .put(protect, updatePermission)
-  .delete(protect, deletePermission);
+  .get(protect, checkPermission, getPermissionById)
+  .put(protect, checkPermission, updatePermission)
+  .delete(protect, checkPermission, deletePermission);
 
 export default router;

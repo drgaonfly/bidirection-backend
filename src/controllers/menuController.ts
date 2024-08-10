@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import Menu, { IMenu } from '../models/menu';
+import checkMenu from '../utils/checkMenu';
 import handleAsync from '../utils/handleAsync';
+import { RequestCustom } from 'user';
 
 const getChildren = async (parentId: string | null): Promise<IMenu[]> => {
   const children = await Menu.find({ parent: parentId })
@@ -15,6 +17,30 @@ const getChildren = async (parentId: string | null): Promise<IMenu[]> => {
     }),
   );
 };
+
+// @desc Get permission menus
+// @route GET /api/menus/fetch
+// @access Private
+const fetchMenus = handleAsync(async (req: RequestCustom, res: Response) => {
+  const query = buildQuery(req.query);
+
+  const menus = await Menu.find(query)
+    .populate('permission')
+    .populate('parent');
+
+  const menusWithChildren = await Promise.all(
+    menus.map(async (menu) => {
+      const menuWithChildren = menu.toObject();
+      menuWithChildren.children = await getChildren(menu._id);
+      return menuWithChildren;
+    }),
+  );
+
+  res.json({
+    success: true,
+    data: checkMenu(menusWithChildren, req.user),
+  });
+});
 
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
@@ -45,7 +71,6 @@ const buildQuery = (queryParams: any): any => {
 };
 
 const getMenus = handleAsync(async (req: Request, res: Response) => {
-  console.log('getMenus called with query:', req.query);
   const { current = '1', pageSize = '10' } = req.query;
 
   const query = buildQuery(req.query);
@@ -168,4 +193,5 @@ export {
   getMenus,
   addMenu,
   getMenuById,
+  fetchMenus,
 };

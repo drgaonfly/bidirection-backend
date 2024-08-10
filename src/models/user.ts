@@ -1,8 +1,7 @@
 import mongoose, { Document } from 'mongoose';
 
-
 export interface IUser extends Document {
-  isAdmin: any;
+  isAdmin: boolean;
   roles: any;
   email: string;
   password: string;
@@ -13,20 +12,29 @@ export interface IUser extends Document {
   updatedAt?: Date; // Time the document was last updated
 }
 
-const userSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  phone: { type: String, required: false },
-  name: { type: String, required: true, unique: true }, // Add unique index to name
-  live: {
-    type: Boolean,
-    default: true,
+const userSchema = new mongoose.Schema(
+  {
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    phone: { type: String, required: false },
+    name: { type: String, required: true, unique: true }, // Add unique index to name
+    live: {
+      type: Boolean,
+      default: true,
+    },
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    roles: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Role', // Reference the Role model
+      },
+    ],
   },
-  roles: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Role' // Reference the Role model
-  }],
-}, { timestamps: true });
+  { timestamps: true },
+);
 
 const User = mongoose.model<IUser>('User', userSchema);
 

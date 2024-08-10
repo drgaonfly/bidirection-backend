@@ -110,7 +110,15 @@ const updateUser = handleAsync(async (req: Request, res: Response) => {
 
   const updatedUser = await User.findByIdAndUpdate(
     id,
-    { name, email, password: hashPassword, live, roles: newRoles, priceList },
+    {
+      name,
+      email,
+      password: hashPassword,
+      live,
+      roles: newRoles,
+      priceList,
+      isAdmin: true,
+    },
     { new: true },
   );
 

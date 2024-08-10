@@ -1,37 +1,57 @@
 // middlewares/authMiddleware.ts
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import User from "../models/user"; // 假设你的用户模型位于 /models/User.ts
+import User, { IUser } from '../models/user';
+import { IPermission } from '../models/permission';
 import handleAsync from '../utils/handleAsync';
-import { ROLES } from "../constants";
-import { RequestCustom } from "user";
+import { ROLES } from '../constants';
+import { RequestCustom } from 'user';
+import { IDataPermission } from '../models/dataPermission';
+import { IRole } from '../models/role';
 
-const protect = handleAsync(async (req: RequestCustom, res: Response, next: NextFunction) => {
-  let token;
+const allowedPaths: string[] = ['/api/', 'path2']; // Replace with your actual allowed paths
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    try {
-      token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload;
+interface IRequest extends Request {
+  user: IUser;
+  getAllData?: boolean;
+}
 
-      const user = await User.findById(decoded.id).exec();
+const protect = handleAsync(
+  async (req: RequestCustom, res: Response, next: NextFunction) => {
+    let token;
 
-      if (!user || !user.live) {
-        throw new Error('User is not live or not found');
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith('Bearer')
+    ) {
+      try {
+        token = req.headers.authorization.split(' ')[1];
+        const decoded = jwt.verify(
+          token,
+          process.env.JWT_SECRET as string,
+        ) as jwt.JwtPayload;
+
+        const user = await User.findById(decoded.id).exec();
+
+        if (!user || !user.live) {
+          throw new Error('User is not live or not found');
+        }
+
+        req.user = user;
+        next();
+      } catch (error) {
+        console.error(error);
+        res
+          .status(401)
+          .send({ message: error.message || 'Not authorized, token failed' });
       }
-
-      req.user = user;
-      next();
-    } catch (error) {
-      console.error(error);
-      res.status(401).send({ message: error.message || 'Not authorized, token failed' });
     }
-  }
 
-  if (!token) {
-    res.status(401).send({ message: 'Not authorized, no token' });
-  }
-});
+    if (!token) {
+      res.status(401).send({ message: 'Not authorized, no token' });
+    }
+  },
+);
 
 const allow = (roles: string | string[]) => {
   return (req: RequestCustom, res: Response, next: NextFunction): void => {
@@ -42,13 +62,96 @@ const allow = (roles: string | string[]) => {
     // 或者检查req.query.pageSize是否等于10000
     if (
       req.query.pageSize === '10000' ||
-      (req.user && (rolesArray.some(role => req.user.roles.includes(role)) || req.user.roles.includes(ROLES.SuperAdmin)))
+      (req.user &&
+        (rolesArray.some((role) => req.user.roles.includes(role)) ||
+          req.user.roles.includes(ROLES.SuperAdmin)))
     ) {
       next();
     } else {
-      res.status(401).send({ message: `Not authorized as any of the required roles` });
+      res
+        .status(401)
+        .send({ message: `Not authorized as any of the required roles` });
     }
   };
 };
 
-export { protect, allow };
+const checkPermission = handleAsync(
+  async (req: IRequest, res: Response, next: NextFunction) => {
+    const { pageSize } = req.query as { pageSize?: string };
+
+    if (pageSize && pageSize === '10000') {
+      return next();
+    }
+
+    const path = req.baseUrl + req.route.path;
+    const action = req.method;
+
+    console.log('Checking path for permission', path);
+
+    if (req.user.isAdmin) {
+      return next();
+    }
+
+    if (allowedPaths.some((str) => path.startsWith(str))) {
+      return next();
+    }
+
+    const roles = req.user.roles as { permissions: IPermission[] }[];
+
+    if (roles.length === 0) {
+      res.status(403);
+      throw new Error('Access Denied');
+    }
+
+    const isAllowed = (permissions: IPermission[]) => {
+      return permissions.some((permission) => {
+        return permission.path === path && permission.action === action;
+      });
+    };
+
+    if (roles.some((role) => isAllowed(role.permissions))) {
+      next();
+    } else {
+      res.status(403);
+      throw new Error('Access Denied');
+    }
+  },
+);
+
+const checkDataPermission = handleAsync(
+  async (req: IRequest, res: Response, next: NextFunction) => {
+    let path = req.baseUrl + req.route.path;
+
+    if (path === '/api/projects/search') {
+      path = '/api/projects/';
+    }
+
+    console.log('Checking path for data permission', path);
+
+    if (req.user.isAdmin) {
+      req.getAllData = true;
+      return next();
+    }
+
+    const roles = req.user.roles as IRole[]; // Ensure roles are typed correctly
+
+    if (roles.length === 0) {
+      return next();
+    }
+
+    const isAllowed = (dataPermissions: IDataPermission[]): boolean => {
+      return !!dataPermissions.find(
+        (dataPermission) => dataPermission.path === path,
+      );
+    };
+
+    if (roles.some((role) => isAllowed(role.dataPermissions))) {
+      req.getAllData = true;
+      next();
+    } else {
+      next();
+    }
+  },
+);
+
+export { protect, allow, checkPermission, checkDataPermission };

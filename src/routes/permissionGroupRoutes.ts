@@ -8,25 +8,23 @@ import {
   deletePermissionGroup,
   deleteMultiplePermissionGroups,
 } from '../controllers/permissionGroupController';
-import { protect } from '../middlewares/authMiddleware';
+import { protect, checkPermission } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
 router
   .route('/')
-  .get(protect, getPermissionGroups)
+  .get(protect, checkPermission, getPermissionGroups)
 
-  .post(protect, addPermissionGroup)
-  .delete(protect, deleteMultiplePermissionGroups);
+  .post(protect, checkPermission, addPermissionGroup)
+  .delete(protect, checkPermission, deleteMultiplePermissionGroups);
 
-router
-  .route('/list')
-  .get(protect, getPermissionGroupsList)
+router.route('/list').get(protect, getPermissionGroupsList);
 
 router
   .route('/:id')
-  .get(protect, getPermissionGroupById)
-  .put(protect, updatePermissionGroup)
-  .delete(protect, deletePermissionGroup);
+  .get(protect, checkPermission, getPermissionGroupById)
+  .put(protect, checkPermission, updatePermissionGroup)
+  .delete(protect, checkPermission, deletePermissionGroup);
 
 export default router;

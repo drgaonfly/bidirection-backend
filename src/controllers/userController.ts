@@ -90,7 +90,7 @@ const getUserById = handleAsync(async (req: Request, res: Response) => {
 
 const updateUser = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { password, name, email, live, roles, priceList } = req.body;
+  const { password, name, email, live, roles } = req.body;
 
   const user = await User.findById(id);
 
@@ -116,7 +116,6 @@ const updateUser = handleAsync(async (req: Request, res: Response) => {
       password: hashPassword,
       live,
       roles: newRoles,
-      priceList,
       isAdmin: true,
     },
     { new: true },

@@ -11,7 +11,7 @@ const seedUsers = [
     password: 'superadmin2024',
     role: ROLES.SuperAdmin,
     name: 'Super Admin',
-    isAdmin: false,
+    isAdmin: true,
   },
   {
     email: 'customer@2024fc.xyz',

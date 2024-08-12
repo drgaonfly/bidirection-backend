@@ -4,7 +4,9 @@ import { IRole } from '../models/role';
 
 const checkMenu = (menus: IMenu[], user: IUser): IMenu[] => {
   return menus.filter((menu) => {
-    // 不再检查和递归处理 children 字段
+    if (menu.children) {
+      menu.children = checkMenu(menu.children, user);
+    }
 
     if (user.isAdmin) {
       return true;
@@ -16,13 +18,22 @@ const checkMenu = (menus: IMenu[], user: IUser): IMenu[] => {
       return false;
     }
 
-    return roles.some(
-      (role: IRole) =>
-        role.permissions &&
-        role.permissions.some(
-          (permission) => permission.id === menu.permission,
-        ),
-    );
+    if (
+      roles.some(
+        (role: IRole) =>
+          role.permissions &&
+          role.permissions.some((permission) => {
+            console.log(permission._id.toString());
+            console.log(menu.permission.toString());
+            console.log('\n');
+            return permission._id === menu.permission;
+          }),
+      )
+    ) {
+      return true;
+    } else {
+      return false;
+    }
   });
 };
 

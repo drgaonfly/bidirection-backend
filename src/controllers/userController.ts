@@ -116,7 +116,6 @@ const updateUser = handleAsync(async (req: Request, res: Response) => {
       password: hashPassword,
       live,
       roles: newRoles,
-      isAdmin: true,
     },
     { new: true },
   );

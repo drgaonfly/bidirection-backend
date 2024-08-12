@@ -31,7 +31,15 @@ const protect = handleAsync(
           process.env.JWT_SECRET as string,
         ) as jwt.JwtPayload;
 
-        const user = await User.findById(decoded.id).exec();
+        const user: IUser | null = await User.findById(decoded.id)
+          .populate({
+            path: 'roles',
+            populate: {
+              path: 'permissions',
+              model: 'Permission',
+            },
+          })
+          .exec();
 
         if (!user || !user.live) {
           throw new Error('User is not live or not found');

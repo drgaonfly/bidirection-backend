@@ -5,9 +5,10 @@ import User, { IUser } from '../models/user';
 import { IPermission } from '../models/permission';
 import handleAsync from '../utils/handleAsync';
 import { ROLES } from '../constants';
-import { RequestCustom } from 'user';
+import { RequestCustom } from '/user';
 import { IDataPermission } from '../models/dataPermission';
 import { IRole } from '../models/role';
+import crypto from 'crypto';
 
 const allowedPaths: string[] = ['/api/', 'path2']; // Replace with your actual allowed paths
 
@@ -17,7 +18,11 @@ interface IRequest extends Request {
 }
 
 const protect = handleAsync(
-  async (req: RequestCustom, res: Response, next: NextFunction) => {
+  async (
+    req: RequestCustom,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     let token;
 
     if (
@@ -62,7 +67,9 @@ const protect = handleAsync(
   },
 );
 
-const allow = (roles: string | string[]) => {
+const allow = (
+  roles: string | string[],
+): ((req: RequestCustom, res: Response, next: NextFunction) => void) => {
   return (req: RequestCustom, res: Response, next: NextFunction): void => {
     // 将单个角色字符串转换为数组形式，以统一处理逻辑
     const rolesArray = Array.isArray(roles) ? roles : [roles];
@@ -85,7 +92,7 @@ const allow = (roles: string | string[]) => {
 };
 
 const checkPermission = handleAsync(
-  async (req: IRequest, res: Response, next: NextFunction) => {
+  async (req: IRequest, res: Response, next: NextFunction): Promise<void> => {
     const { pageSize } = req.query as { pageSize?: string };
 
     if (pageSize && pageSize === '10000') {
@@ -112,7 +119,7 @@ const checkPermission = handleAsync(
       throw new Error('Access Denied');
     }
 
-    const isAllowed = (permissions: IPermission[]) => {
+    const isAllowed = (permissions: IPermission[]): boolean => {
       return permissions.some((permission) => {
         return permission.path === path && permission.action === action;
       });
@@ -128,7 +135,7 @@ const checkPermission = handleAsync(
 );
 
 const checkDataPermission = handleAsync(
-  async (req: IRequest, res: Response, next: NextFunction) => {
+  async (req: IRequest, res: Response, next: NextFunction): Promise<void> => {
     let path = req.baseUrl + req.route.path;
 
     if (path === '/api/projects/search') {
@@ -167,36 +174,44 @@ const appDatabase = {
   pvMgE78ym6: 'KP7aBBj2j62Jupw1YbWgh4woXRkgkWPp',
 };
 // 验证 access_token 的中间件
-const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
+const authenticateToken = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
   const appId = req.headers['x-app-id'] as string;
   const timestamp = req.headers['x-timestamp'] as string;
   const accessToken = req.headers['authorization']?.split(' ')[1];
   if (!appId || !timestamp || !accessToken) {
-    return res.status(400).json({ error: 'Missing authentication parameters' });
+    res.status(400).json({ error: 'Missing authentication parameters' });
+    return;
   }
-  // 假设appDatabase是一个全局变量，或者是一个在其他地方定义的变量
-  // 如果appDatabase未定义，则需要在这里定义它，或者确保它在这个文件的作用域内可访问
-  // 以下代码假设appDatabase是一个对象，用于存储应用程序的密钥
+  // Assuming appDatabase is a global variable or defined elsewhere
+  // If appDatabase is not defined, it needs to be defined here or ensure it is accessible in this file's scope
+  // The following code assumes appDatabase is an object used to store application keys
   const appSecret = appDatabase[appId as keyof typeof appDatabase];
   if (!appSecret) {
-    return res.status(401).json({ error: 'Invalid app_id' });
+    res.status(401).json({ error: 'Invalid app_id' });
+    return;
   }
   // 生成后端的 token
   const data = `${appId}:${timestamp}`;
-  const serverAccessToken = require('crypto')
+  const serverAccessToken = crypto
     .createHmac('sha256', appSecret)
     .update(data)
     .digest('hex');
   // 验证 access_token 是否匹配
   if (accessToken !== serverAccessToken) {
-    return res.status(401).json({ error: 'Invalid access_token' });
+    res.status(401).json({ error: 'Invalid access_token' });
+    return;
   }
   // 可选：检查时间戳，确保请求未过期
   const requestTime = parseInt(timestamp);
   const currentTime = Math.floor(Date.now() / 1000);
   if (currentTime - requestTime > 300) {
     // 例如 5 分钟
-    return res.status(401).json({ error: 'Token expired' });
+    res.status(401).json({ error: 'Token expired' });
+    return;
   }
   next();
 };

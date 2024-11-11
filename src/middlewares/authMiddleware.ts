@@ -163,4 +163,48 @@ const checkDataPermission = handleAsync(
   },
 );
 
-export { protect, allow, checkPermission, checkDataPermission };
+const appDatabase = {
+  pvMgE78ym6: 'KP7aBBj2j62Jupw1YbWgh4woXRkgkWPp',
+};
+// 验证 access_token 的中间件
+const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
+  const appId = req.headers['x-app-id'] as string;
+  const timestamp = req.headers['x-timestamp'] as string;
+  const accessToken = req.headers['authorization']?.split(' ')[1];
+  if (!appId || !timestamp || !accessToken) {
+    return res.status(400).json({ error: 'Missing authentication parameters' });
+  }
+  // 假设appDatabase是一个全局变量，或者是一个在其他地方定义的变量
+  // 如果appDatabase未定义，则需要在这里定义它，或者确保它在这个文件的作用域内可访问
+  // 以下代码假设appDatabase是一个对象，用于存储应用程序的密钥
+  const appSecret = appDatabase[appId as keyof typeof appDatabase];
+  if (!appSecret) {
+    return res.status(401).json({ error: 'Invalid app_id' });
+  }
+  // 生成后端的 token
+  const data = `${appId}:${timestamp}`;
+  const serverAccessToken = require('crypto')
+    .createHmac('sha256', appSecret)
+    .update(data)
+    .digest('hex');
+  // 验证 access_token 是否匹配
+  if (accessToken !== serverAccessToken) {
+    return res.status(401).json({ error: 'Invalid access_token' });
+  }
+  // 可选：检查时间戳，确保请求未过期
+  const requestTime = parseInt(timestamp);
+  const currentTime = Math.floor(Date.now() / 1000);
+  if (currentTime - requestTime > 300) {
+    // 例如 5 分钟
+    return res.status(401).json({ error: 'Token expired' });
+  }
+  next();
+};
+
+export {
+  protect,
+  allow,
+  checkPermission,
+  checkDataPermission,
+  authenticateToken,
+};

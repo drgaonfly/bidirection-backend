@@ -12,7 +12,7 @@ const getChildren = async (parentId: string | null): Promise<IMenu[]> => {
   return Promise.all(
     children.map(async (child) => {
       const childWithChildren = child.toObject();
-      childWithChildren.children = await getChildren(child._id);
+      childWithChildren.children = await getChildren(child._id.toString());
       return childWithChildren;
     }),
   );
@@ -31,7 +31,7 @@ const fetchMenus = handleAsync(async (req: RequestCustom, res: Response) => {
   const menusWithChildren = await Promise.all(
     menus.map(async (menu) => {
       const menuWithChildren = menu.toObject();
-      menuWithChildren.children = await getChildren(menu._id);
+      menuWithChildren.children = await getChildren(menu._id.toString());
       return menuWithChildren;
     }),
   );
@@ -90,7 +90,7 @@ const getMenus = handleAsync(async (req: Request, res: Response) => {
   const menusWithChildren = await Promise.all(
     menus.map(async (menu) => {
       const menuWithChildren = menu.toObject();
-      menuWithChildren.children = await getChildren(menu._id);
+      menuWithChildren.children = await getChildren(menu._id.toString());
       return menuWithChildren;
     }),
   );

@@ -42,7 +42,7 @@ const getPermissionGroups = handleAsync(async (req: Request, res: Response) => {
     return Promise.all(
       children.map(async (child) => ({
         ...child.toObject(),
-        children: await getChildren(child._id),
+        children: await getChildren(child._id.toString()),
       })),
     );
   };
@@ -94,7 +94,7 @@ const getPermissionGroupsList = handleAsync(
             children:
               permissions.length > 0
                 ? permissions
-                : await getChildren(child._id),
+                : await getChildren(child._id.toString()),
           };
         }),
       );
@@ -114,7 +114,7 @@ const getPermissionGroupsList = handleAsync(
             children:
               permissions.length > 0
                 ? permissions
-                : await getChildren(permissionGroup._id),
+                : await getChildren(permissionGroup._id.toString()),
           };
         }),
       );

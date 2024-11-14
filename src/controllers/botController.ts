@@ -6,12 +6,36 @@ import handleAsync from '../utils/handleAsync';
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
 
-  if (queryParams.botName) {
-    query.botName = { $regex: queryParams.botName, $options: 'i' };
+  // 遍历所有可能的查询字段
+  if (queryParams.botId) {
+    query.botId = { $regex: queryParams.botId, $options: 'i' };
+  }
+
+  if (queryParams.botToken) {
+    query.botToken = { $regex: queryParams.botToken, $options: 'i' };
   }
 
   if (queryParams.botUsername) {
     query.botUsername = { $regex: queryParams.botUsername, $options: 'i' };
+  }
+
+  if (queryParams.botName) {
+    query.botName = { $regex: queryParams.botName, $options: 'i' };
+  }
+
+  if (queryParams.telegramId) {
+    query.telegramId = { $regex: queryParams.telegramId, $options: 'i' };
+  }
+
+  if (queryParams.telegramUsername) {
+    query.telegramUsername = {
+      $regex: queryParams.telegramUsername,
+      $options: 'i',
+    };
+  }
+
+  if (queryParams.description) {
+    query.description = { $regex: queryParams.description, $options: 'i' };
   }
 
   return query;

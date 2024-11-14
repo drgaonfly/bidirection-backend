@@ -1,0 +1,16 @@
+name: remote ssh command
+on: [push]
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 82.180.137.15
+          username: root
+          password: ${{ secrets.PASSWORD }}
+          port: 22
+          script: cd /www/wwwroot/botbackend1.swqztechbot.top/bot-backend-roles-bill && git pull --rebase origin main && /www/server/nodejs/v20.16.0/bin/pnpm install && git checkout -f . && npm run build && pm2 restart dist/index.js

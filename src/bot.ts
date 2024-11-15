@@ -1,6 +1,7 @@
 import { Bot } from 'grammy';
 import dotenv from 'dotenv';
 import { SocksProxyAgent } from 'socks-proxy-agent';
+import createDebug from 'debug';
 
 dotenv.config();
 
@@ -15,7 +16,7 @@ if (!BOT_TOKEN) {
 }
 
 // 定义 bot 变量
-let bot;
+let bot: Bot;
 
 if (SOCKS_PROXY_URL) {
   // 创建 SOCKS 代理代理
@@ -41,4 +42,18 @@ if (SOCKS_PROXY_URL) {
 // 回复任何消息 "Hi there!"。
 bot.on('message', (ctx) => ctx.reply('Hi there!'));
 
-bot.start();
+const debug = createDebug('bot:dev');
+
+const development = async (bot: Bot) => {
+  const botInfo = await bot.api.getMe();
+  debug('Bot Info:', botInfo);
+
+  debug('Bot runs in development mode');
+  debug(`${botInfo.username} deleting webhook`);
+  await bot.api.deleteWebhook();
+  debug(`${botInfo.username} starting polling`);
+
+  await bot.start();
+};
+
+development(bot);

@@ -5,6 +5,7 @@ import createDebug from 'debug';
 import logger from './middlewares/logger';
 import adminComposer from './commands/admin';
 import userComposer from './commands/user';
+import errorHandler from './middlewares/errorHandler';
 
 dotenv.config();
 
@@ -41,6 +42,8 @@ if (SOCKS_PROXY_URL) {
   bot = new Bot(BOT_TOKEN);
   console.log('Bot 未使用代理。');
 }
+
+bot.use(errorHandler);
 
 bot.use(logger);
 

@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
 import Customer from '../models/customer';
 import handleAsync from '../utils/handleAsync';
+import Bot from '../models/bot';
 
 // Build query based on query parameters
-const buildQuery = (queryParams: any): any => {
+const buildQuery = async (queryParams: any): Promise<any> => {
   const query: any = {};
 
   if (queryParams.userId) {
@@ -29,6 +30,25 @@ const buildQuery = (queryParams: any): any => {
   if (queryParams.bot) {
     query.bot = queryParams.bot; // 精确匹配机器人ID
   }
+  // if (platform) {
+  //   const platformData = await Order.find({ name: platform });
+  //   if (platformData && platformData.length > 0) {
+  //     queryConditions.platform = {
+  //       $in: platformData.map((platform) => platform._id),
+  //     };
+  //   } else {
+  //     res.status(200).json({ success: true, data: [], total: 0 });
+  //   }
+  if (queryParams.bot) {
+    const botData = await Bot.find({ botName: queryParams.bot });
+    if (botData && botData.length > 0) {
+      query.bot = {
+        $in: botData.map((bot) => bot._id),
+      };
+    } else {
+      throw new Error('Bot not found');
+    }
+  }
 
   return query;
 };
@@ -37,7 +57,7 @@ const buildQuery = (queryParams: any): any => {
 const getCustomers = handleAsync(async (req: Request, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
-  const query = buildQuery(req.query);
+  const query = await buildQuery(req.query);
 
   const customers = await Customer.find(query)
     .populate('bot') // 关联查询机器人信息

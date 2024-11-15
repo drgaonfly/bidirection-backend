@@ -2,9 +2,9 @@ import { Bot } from 'grammy';
 import dotenv from 'dotenv';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import createDebug from 'debug';
-import startCommand from './bot/commands/user/start';
-import logger from './bot/middlewares/logger';
-import helpCommand from './bot/commands/user/help';
+import logger from './middlewares/logger';
+import adminComposer from './commands/admin';
+import userComposer from './commands/user';
 
 dotenv.config();
 
@@ -44,8 +44,8 @@ if (SOCKS_PROXY_URL) {
 
 bot.use(logger);
 
-bot.use(startCommand.middleware());
-bot.use(helpCommand.middleware());
+bot.use(userComposer.middleware());
+bot.use(adminComposer.middleware());
 
 // bot.command("start", (ctx) => ctx.reply("Welcome! Up and running."));
 

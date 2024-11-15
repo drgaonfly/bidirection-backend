@@ -2,6 +2,7 @@ import { Bot } from 'grammy';
 import dotenv from 'dotenv';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import createDebug from 'debug';
+import startCommand from './bot/commands/user/start';
 
 dotenv.config();
 
@@ -38,6 +39,10 @@ if (SOCKS_PROXY_URL) {
   bot = new Bot(BOT_TOKEN);
   console.log('Bot 未使用代理。');
 }
+
+bot.use(startCommand);
+
+// bot.command("start", (ctx) => ctx.reply("Welcome! Up and running."));
 
 // 回复任何消息 "Hi there!"。
 bot.on('message', (ctx) => ctx.reply('Hi there!'));

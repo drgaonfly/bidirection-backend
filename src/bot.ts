@@ -1,6 +1,5 @@
 import { Bot } from 'grammy';
 import dotenv from 'dotenv';
-import fetch from 'node-fetch';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 
 dotenv.config();
@@ -20,17 +19,15 @@ let bot;
 
 if (SOCKS_PROXY_URL) {
   // 创建 SOCKS 代理代理
-  const agent = new SocksProxyAgent(SOCKS_PROXY_URL);
+  const socksAgent = new SocksProxyAgent(process.env.SOCKS_PROXY_URL);
 
-  // 自定义 fetch 函数，使用代理
-  const customFetch = (url: string, options: any) => {
-    return fetch(url, { agent, ...options });
-  };
-
-  // 使用自定义的 fetch 函数初始化 Bot
+  // 使用代理初始化 Bot
   bot = new Bot(BOT_TOKEN, {
     client: {
-      fetch: customFetch,
+      baseFetchConfig: {
+        agent: socksAgent,
+        compress: true,
+      },
     },
   });
 

@@ -13,4 +13,4 @@ jobs:
           username: root
           password: ${{ secrets.PASSWORD }}
           port: 22
-          script: cd /www/wwwroot/botbackend1.swqztechbot.top/bot-backend-roles-bill && git pull --rebase origin main && /www/server/nodejs/v20.16.0/bin/pnpm install && git checkout -f . && npm run build && pm2 restart dist/index.js
+          script: cd /www/wwwroot/edubackend.swqztechbot.top/backend-roles-education && git pull --rebase origin main && /www/server/nodejs/v20.16.0/bin/pnpm install && git checkout -f . && npm run build && pm2 restart dist/index.js

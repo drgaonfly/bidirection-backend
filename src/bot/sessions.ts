@@ -1,5 +1,5 @@
 // src/sessions.ts
-import { session, SessionFlavor } from 'grammy';
+import { session } from 'grammy';
 import { MyContext } from './types';
 
 // 定义会话数据结构

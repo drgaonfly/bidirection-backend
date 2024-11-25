@@ -12,16 +12,10 @@ import authRoutes from './routes/authRoutes';
 import menuRoutes from './routes/menuRoutes';
 import permissionRoutes from './routes/permissionRoutes';
 import permissionGroupRoutes from './routes/permissionGroupRoutes';
-import customerRoutes from './routes/customerRoutes';
-import chatRoutes from './routes/chatRoutes';
-import messageRoutes from './routes/messageRoutes';
-import logRoutes from './routes/logRoutes';
 
 import setupDB from './utils/db';
 import uploadRoutes from './routes/uploadRoutes';
 import dataPermissionRoutes from './routes/dataPermissionRoutes';
-import billRoutes from './routes/billRoutes';
-import botRoutes from './routes/botRoutes';
 
 dotenv.config();
 
@@ -47,12 +41,6 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/permissions', permissionRoutes);
 app.use('/api/permission-groups', permissionGroupRoutes);
 app.use('/api/data-permissions', dataPermissionRoutes);
-app.use('/api/bills', billRoutes);
-app.use('/api/bots', botRoutes);
-app.use('/api/customers', customerRoutes);
-app.use('/api/chats', chatRoutes);
-app.use('/api/messages', messageRoutes);
-app.use('/api/logs', logRoutes);
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Customer from '../models/customer';
+import Teacher from '../models/teacher';
 import handleAsync from '../utils/handleAsync';
 
 // 构建查询条件
@@ -21,66 +21,104 @@ const buildQuery = (queryParams: any): any => {
   if (queryParams.status) {
     query.status = queryParams.status;
   }
-  if (queryParams.isTeacher) {
-    query.isTeacher = queryParams.isTeacher;
+
+  // 教师特有的查询条件
+  if (queryParams.subject) {
+    query.subject = {
+      $in: Array.isArray(queryParams.subject)
+        ? queryParams.subject
+        : [queryParams.subject],
+    };
+  }
+
+  if (queryParams.education) {
+    query.education = queryParams.education;
+  }
+
+  if (queryParams.title) {
+    query.title = queryParams.title;
+  }
+
+  if (queryParams.teachingAge) {
+    query.teachingAge = queryParams.teachingAge;
   }
 
   return query;
 };
 
-// 获取客户列表
-const getCustomers = handleAsync(async (req: Request, res: Response) => {
+// 获取教师列表
+const getTeachers = handleAsync(async (req: Request, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
   const query = buildQuery(req.query);
 
-  const customers = await Customer.find(query)
+  const teachers = await Teacher.find(query)
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .exec();
 
-  const total = await Customer.countDocuments(query).exec();
+  const total = await Teacher.countDocuments(query).exec();
 
   res.json({
     success: true,
-    data: customers,
+    data: teachers,
     total,
     current: +current,
     pageSize: +pageSize,
   });
 });
 
-// 创建新客户
-const addCustomer = handleAsync(async (req: Request, res: Response) => {
-  const { username, email, phone, address, status } = req.body;
+// 创建新教师
+const addTeacher = handleAsync(async (req: Request, res: Response) => {
+  const {
+    username,
+    email,
+    phone,
+    address,
+    status,
+    subject,
+    education,
+    teachingAge,
+    title,
+    speciality,
+  } = req.body;
 
   try {
     // 检查邮箱是否已存在
-    const customerExists = await Customer.findOne({ email });
-    if (customerExists) {
+    const teacherExists = await Teacher.findOne({ email });
+    if (teacherExists) {
       res.status(400);
       throw new Error('该邮箱已被注册，请使用其他邮箱');
     }
 
     // 检查用户名是否已存在
-    const usernameExists = await Customer.findOne({ username });
+    const usernameExists = await Teacher.findOne({ username });
     if (usernameExists) {
-      // res.status(400);
+      res.status(400);
       throw new Error('该用户名已被使用，请选择其他用户名');
     }
 
-    const customer = await Customer.create({
+    const teacher = await Teacher.create({
       username,
       email: email.toLowerCase(),
       phone,
       address,
       status: status || 'active',
+      subject,
+      education,
+      teachingAge,
+      title,
+      speciality,
+      availability: {
+        weekday: new Array(7).fill(false),
+        timeSlots: [],
+      },
     });
 
     res.status(201).json({
       success: true,
-      data: customer,
+      data: teacher,
     });
   } catch (error: any) {
     if (error.code === 11000) {
@@ -100,36 +138,36 @@ const addCustomer = handleAsync(async (req: Request, res: Response) => {
   }
 });
 
-// 获取单个客户
-const getCustomerById = handleAsync(async (req: Request, res: Response) => {
-  const customer = await Customer.findById(req.params.id);
+// 获取单个教师
+const getTeacherById = handleAsync(async (req: Request, res: Response) => {
+  const teacher = await Teacher.findById(req.params.id);
 
-  if (!customer) {
+  if (!teacher) {
     res.status(404);
-    throw new Error('客户不存在');
+    throw new Error('教师不存在');
   }
 
   res.json({
     success: true,
-    data: customer,
+    data: teacher,
   });
 });
 
-// 更新客户
-const updateCustomer = handleAsync(async (req: Request, res: Response) => {
+// 更新教师
+const updateTeacher = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { email, username } = req.body;
 
   try {
-    const customer = await Customer.findById(id);
-    if (!customer) {
+    const teacher = await Teacher.findById(id);
+    if (!teacher) {
       res.status(404);
-      throw new Error('客户不存在');
+      throw new Error('教师不存在');
     }
 
     // 检查邮箱唯一性
-    if (email && email !== customer.email) {
-      const emailExists = await Customer.findOne({ email, _id: { $ne: id } });
+    if (email && email !== teacher.email) {
+      const emailExists = await Teacher.findOne({ email, _id: { $ne: id } });
       if (emailExists) {
         res.status(400);
         throw new Error('该邮箱已被其他用户使用');
@@ -137,8 +175,8 @@ const updateCustomer = handleAsync(async (req: Request, res: Response) => {
     }
 
     // 检查用户名唯一性
-    if (username && username !== customer.username) {
-      const usernameExists = await Customer.findOne({
+    if (username && username !== teacher.username) {
+      const usernameExists = await Teacher.findOne({
         username,
         _id: { $ne: id },
       });
@@ -148,7 +186,7 @@ const updateCustomer = handleAsync(async (req: Request, res: Response) => {
       }
     }
 
-    const updatedCustomer = await Customer.findByIdAndUpdate(
+    const updatedTeacher = await Teacher.findByIdAndUpdate(
       id,
       {
         ...req.body,
@@ -159,7 +197,7 @@ const updateCustomer = handleAsync(async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: updatedCustomer,
+      data: updatedTeacher,
     });
   } catch (error: any) {
     if (error.code === 11000) {
@@ -179,44 +217,44 @@ const updateCustomer = handleAsync(async (req: Request, res: Response) => {
   }
 });
 
-// 删除客户
-const deleteCustomer = handleAsync(async (req: Request, res: Response) => {
+// 删除教师
+const deleteTeacher = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
-  const customer = await Customer.findByIdAndDelete(id);
+  const teacher = await Teacher.findByIdAndDelete(id);
 
-  if (!customer) {
+  if (!teacher) {
     res.status(404);
-    throw new Error('客户不存在');
+    throw new Error('教师不存在');
   }
 
   res.json({
     success: true,
-    data: { message: '客户删除成功' },
+    data: { message: '教师删除成功' },
   });
 });
 
-// 批量删除客户
-const deleteMultipleCustomers = handleAsync(
+// 批量删除教师
+const deleteMultipleTeachers = handleAsync(
   async (req: Request, res: Response) => {
     const { ids } = req.body;
 
-    await Customer.deleteMany({
+    await Teacher.deleteMany({
       _id: { $in: ids },
     });
 
     res.json({
       success: true,
-      message: `成功删除 ${ids.length} 个客户`,
+      message: `成功删除 ${ids.length} 个教师`,
     });
   },
 );
 
 export {
-  getCustomers,
-  addCustomer,
-  getCustomerById,
-  updateCustomer,
-  deleteCustomer,
-  deleteMultipleCustomers,
+  getTeachers,
+  addTeacher,
+  getTeacherById,
+  updateTeacher,
+  deleteTeacher,
+  deleteMultipleTeachers,
 };

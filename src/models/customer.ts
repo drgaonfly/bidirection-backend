@@ -7,6 +7,7 @@ export interface ICustomer extends Document {
   phone?: string;
   address?: string;
   status: 'active' | 'inactive';
+  isTeacher: 'yes' | 'no';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,6 +43,11 @@ const customerSchema = new mongoose.Schema(
       type: String,
       enum: ['active', 'inactive'],
       default: 'active',
+    },
+    isTeacher: {
+      type: String,
+      enum: ['yes', 'no'],
+      default: 'no',
     },
   },
   {

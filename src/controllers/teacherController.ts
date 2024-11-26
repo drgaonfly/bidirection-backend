@@ -43,6 +43,27 @@ const buildQuery = (queryParams: any): any => {
     query.teachingAge = queryParams.teachingAge;
   }
 
+  // 新增查询条件
+  if (queryParams.lessonCategory) {
+    query.lessonCategory = {
+      $in: Array.isArray(queryParams.lessonCategory)
+        ? queryParams.lessonCategory
+        : [queryParams.lessonCategory],
+    };
+  }
+
+  if (queryParams.speaks) {
+    query.speaks = {
+      $in: Array.isArray(queryParams.speaks)
+        ? queryParams.speaks
+        : [queryParams.speaks],
+    };
+  }
+
+  if (queryParams.teacherType) {
+    query.teacherType = queryParams.teacherType;
+  }
+
   return query;
 };
 
@@ -77,40 +98,50 @@ const addTeacher = handleAsync(async (req: Request, res: Response) => {
     phone,
     address,
     status,
-    subject,
+    avatar,
+    image,
+    lessonCategory,
+    speaks,
+    teacherType,
     education,
     teachingAge,
     title,
     speciality,
+    certificates,
+    availability,
   } = req.body;
-
   try {
     // 检查邮箱是否已存在
     const teacherExists = await Teacher.findOne({ email });
     if (teacherExists) {
       res.status(400);
-      throw new Error('该邮箱已被注册，请使用其他邮箱');
+      throw new Error('Email already registered');
     }
 
     // 检查用户名是否已存在
     const usernameExists = await Teacher.findOne({ username });
     if (usernameExists) {
       res.status(400);
-      throw new Error('该用户名已被使用，请选择其他用户名');
+      throw new Error('Username already taken');
     }
 
     const teacher = await Teacher.create({
       username,
-      email: email.toLowerCase(),
+      email: email?.toLowerCase(),
       phone,
       address,
       status: status || 'active',
-      subject,
+      avatar,
+      image,
+      lessonCategory,
+      speaks,
+      teacherType,
       education,
       teachingAge,
       title,
       speciality,
-      availability: {
+      certificates,
+      availability: availability || {
         weekday: new Array(7).fill(false),
         timeSlots: [],
       },
@@ -125,8 +156,8 @@ const addTeacher = handleAsync(async (req: Request, res: Response) => {
       const field = Object.keys(error.keyPattern)[0];
       const message =
         field === 'email'
-          ? '该邮箱已被注册，请使用其他邮箱'
-          : '该用户名已被使用，请选择其他用户名';
+          ? 'Email already registered'
+          : 'Username already taken';
 
       res.status(400).json({
         success: false,

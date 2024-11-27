@@ -14,6 +14,7 @@ import permissionRoutes from './routes/permissionRoutes';
 import permissionGroupRoutes from './routes/permissionGroupRoutes';
 import customerRoutes from './routes/customerRoutes';
 import teacherRoutes from './routes/teacherRoutes';
+import lessonRoutes from './routes/lessonsRoutes';
 
 import setupDB from './utils/db';
 import uploadRoutes from './routes/uploadRoutes';
@@ -45,6 +46,7 @@ app.use('/api/permission-groups', permissionGroupRoutes);
 app.use('/api/data-permissions', dataPermissionRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/teachers', teacherRoutes);
+app.use('/api/lessons', lessonRoutes);
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 

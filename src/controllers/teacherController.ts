@@ -255,9 +255,15 @@ const updateTeacher = handleAsync(async (req: Request, res: Response) => {
       { new: true, runValidators: true },
     );
 
+    // 处理图片路径
+    const processedTeacher = await transformDocumentImage(updatedTeacher, [
+      'avatar',
+      'image',
+    ]);
+
     res.json({
       success: true,
-      data: updatedTeacher,
+      data: processedTeacher,
     });
   } catch (error: any) {
     if (error.code === 11000) {

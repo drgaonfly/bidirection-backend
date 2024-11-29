@@ -28,6 +28,10 @@ export interface ITeacher extends Document {
   };
   createdAt: Date;
   updatedAt: Date;
+  level: 'Basic' | 'Intermediate' | 'Advanced'; //语言级别
+  employmentType: 'Full-time' | 'Part-time'; // 全职或兼职
+  hoursPerWeek?: number; // 每周投入时间
+  introduction?: string; // 添加自我介绍字段
 }
 
 const teacherSchema = new mongoose.Schema(
@@ -145,6 +149,30 @@ const teacherSchema = new mongoose.Schema(
           type: String,
         },
       ],
+    },
+    level: {
+      type: String,
+      required: true,
+      enum: ['Basic', 'Intermediate', 'Advanced'],
+      default: 'Intermediate',
+    },
+    employmentType: {
+      type: String,
+      required: true,
+      enum: ['Full-time', 'Part-time'], // 全职或兼职
+      default: 'Part-time',
+    },
+    hoursPerWeek: {
+      type: Number,
+      min: 0,
+      max: 168, // 每周最多168小时
+      default: 0,
+    },
+    introduction: {
+      type: String,
+      trim: true,
+      maxlength: 1500, // 限制最大长度为 2000 字符
+      default: '', // 默认为空字符串
     },
   },
   {

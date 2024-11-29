@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import Teacher from '../models/teacher';
 import handleAsync from '../utils/handleAsync';
+import {
+  transformDocumentImages,
+  transformDocumentImage,
+} from '../utils/transformUtils';
 
 // 构建查询条件
 const buildQuery = (queryParams: any): any => {
@@ -64,6 +68,15 @@ const buildQuery = (queryParams: any): any => {
     query.teacherType = queryParams.teacherType;
   }
 
+  // 添加新的查询条件
+  if (queryParams.employmentType) {
+    query.employmentType = queryParams.employmentType;
+  }
+
+  if (queryParams.hoursPerWeek) {
+    query.hoursPerWeek = queryParams.hoursPerWeek;
+  }
+
   return query;
 };
 
@@ -79,11 +92,17 @@ const getTeachers = handleAsync(async (req: Request, res: Response) => {
     .limit(+pageSize)
     .exec();
 
+  // 处理图片路径
+  const processedTeachers = await transformDocumentImages(teachers, [
+    'avatar',
+    'image',
+  ]);
+
   const total = await Teacher.countDocuments(query).exec();
 
   res.json({
     success: true,
-    data: teachers,
+    data: processedTeachers,
     total,
     current: +current,
     pageSize: +pageSize,
@@ -106,9 +125,11 @@ const addTeacher = handleAsync(async (req: Request, res: Response) => {
     education,
     teachingAge,
     title,
-    speciality,
     certificates,
     availability,
+    employmentType,
+    hoursPerWeek,
+    introduction,
   } = req.body;
   try {
     // 检查邮箱是否已存在
@@ -139,12 +160,14 @@ const addTeacher = handleAsync(async (req: Request, res: Response) => {
       education,
       teachingAge,
       title,
-      speciality,
       certificates,
       availability: availability || {
         weekday: new Array(7).fill(false),
         timeSlots: [],
       },
+      employmentType: employmentType || 'Part-time',
+      hoursPerWeek: hoursPerWeek || 0,
+      introduction: introduction || '',
     });
 
     res.status(201).json({
@@ -178,9 +201,15 @@ const getTeacherById = handleAsync(async (req: Request, res: Response) => {
     throw new Error('教师不存在');
   }
 
+  // 处理图片路径
+  const processedTeacher = await transformDocumentImage(teacher, [
+    'avatar',
+    'image',
+  ]);
+
   res.json({
     success: true,
-    data: teacher,
+    data: processedTeacher,
   });
 });
 

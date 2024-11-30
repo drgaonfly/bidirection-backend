@@ -22,6 +22,7 @@ import resumeRoutes from './routes/resumeRoutes';
 import setupDB from './utils/db';
 import uploadRoutes from './routes/uploadRoutes';
 import dataPermissionRoutes from './routes/dataPermissionRoutes';
+import withdrawalRoutes from './routes/withdrawalRoutes';
 
 dotenv.config();
 
@@ -53,6 +54,7 @@ app.use('/api/lessons', lessonRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/vip-members', vipMemberRoutes);
 app.use('/api/resumes', resumeRoutes);
+app.use('/api/withdrawals', withdrawalRoutes);
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 

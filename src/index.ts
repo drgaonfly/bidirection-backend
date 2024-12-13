@@ -13,16 +13,10 @@ import menuRoutes from './routes/menuRoutes';
 import permissionRoutes from './routes/permissionRoutes';
 import permissionGroupRoutes from './routes/permissionGroupRoutes';
 import customerRoutes from './routes/customerRoutes';
-import teacherRoutes from './routes/teacherRoutes';
-import lessonRoutes from './routes/lessonsRoutes';
-import commentRoutes from './routes/commentRoutes';
-import vipMemberRoutes from './routes/vipMemberRoutes';
-import resumeRoutes from './routes/resumeRoutes';
 
 import setupDB from './utils/db';
 import uploadRoutes from './routes/uploadRoutes';
 import dataPermissionRoutes from './routes/dataPermissionRoutes';
-import withdrawalRoutes from './routes/withdrawalRoutes';
 
 dotenv.config();
 
@@ -49,12 +43,6 @@ app.use('/api/permissions', permissionRoutes);
 app.use('/api/permission-groups', permissionGroupRoutes);
 app.use('/api/data-permissions', dataPermissionRoutes);
 app.use('/api/customers', customerRoutes);
-app.use('/api/teachers', teacherRoutes);
-app.use('/api/lessons', lessonRoutes);
-app.use('/api/comments', commentRoutes);
-app.use('/api/vip-members', vipMemberRoutes);
-app.use('/api/resumes', resumeRoutes);
-app.use('/api/withdrawals', withdrawalRoutes);
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 

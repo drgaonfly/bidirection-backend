@@ -7,6 +7,6 @@ const router = express.Router();
 // Telegram 认证相关路由
 router.post('/send-code', sendAuthCode);
 router.post('/sign-in', signIn);
-router.post('/auth/two-factor-login', login);
+router.post('/two-factor-login', login);
 
 export default router;

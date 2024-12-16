@@ -72,3 +72,38 @@ export const signIn = handleAsync(async (req: Request, res: Response) => {
     },
   });
 });
+
+export const login = handleAsync(async (req: Request, res: Response) => {
+  const { phoneNumber, password, phoneCode } = req.body;
+
+  const session = new StringSession('');
+  const client = new TelegramClient(session, parseInt(API_ID), API_HASH, {
+    connectionRetries: 5,
+  });
+
+  // 使用 start 方法进行登录
+  await client.start({
+    phoneNumber: async () => phoneNumber,
+    password: async () => password || '',
+    phoneCode: async () => phoneCode || '',
+    onError: (err) => {
+      throw new Error(err.message);
+    },
+  });
+
+  // 获取会话字符串
+  const sessionString = client.session.save();
+
+  // 发送测试消息到自己
+  await client.sendMessage('me', { message: 'Login successful!' });
+
+  await client.disconnect();
+
+  res.json({
+    success: true,
+    data: {
+      session: sessionString,
+      message: 'Login successful',
+    },
+  });
+});

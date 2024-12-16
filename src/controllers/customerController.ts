@@ -35,6 +35,7 @@ const getCustomers = handleAsync(async (req: Request, res: Response) => {
   const query = buildQuery(req.query);
 
   const customers = await Customer.find(query)
+    .populate('proxys')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -54,6 +55,10 @@ const getCustomers = handleAsync(async (req: Request, res: Response) => {
 // 创建新客户
 const addCustomer = handleAsync(async (req: Request, res: Response) => {
   const {
+    proxys,
+    cookies,
+    ip,
+    certification,
     username,
     email,
     phone,
@@ -80,6 +85,10 @@ const addCustomer = handleAsync(async (req: Request, res: Response) => {
     }
 
     const customer = await Customer.create({
+      proxys,
+      cookies,
+      ip,
+      certification,
       username,
       email: email.toLowerCase(),
       phone,

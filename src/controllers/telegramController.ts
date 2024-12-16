@@ -18,7 +18,7 @@ export const sendAuthCode = handleAsync(async (req: Request, res: Response) => {
   const result = await client.invoke(
     new Api.auth.SendCode({
       phoneNumber: phoneNumber,
-      apiId: parseInt(process.env.TELEGRAM_API_ID || '94575'),
+      apiId: parseInt(process.env.API_ID || '94575'),
       apiHash: process.env.API_HASH || 'a3406de8d171bb422bb6ddf3bbd800e2',
       settings: new Api.CodeSettings({
         allowFlashcall: true,

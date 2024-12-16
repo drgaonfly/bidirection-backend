@@ -17,6 +17,7 @@ import customerRoutes from './routes/customerRoutes';
 import setupDB from './utils/db';
 import uploadRoutes from './routes/uploadRoutes';
 import dataPermissionRoutes from './routes/dataPermissionRoutes';
+import telegramRoutes from './routes/telegramRoutes';
 import proxyRoutes from './routes/proxysRoutes';
 
 dotenv.config();
@@ -44,7 +45,9 @@ app.use('/api/permissions', permissionRoutes);
 app.use('/api/permission-groups', permissionGroupRoutes);
 app.use('/api/data-permissions', dataPermissionRoutes);
 app.use('/api/customers', customerRoutes);
+app.use('/api/telegrams', telegramRoutes);
 app.use('/api/proxys', proxyRoutes);
+
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 

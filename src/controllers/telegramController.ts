@@ -36,13 +36,10 @@ export const sendAuthCode = handleAsync(async (req: Request, res: Response) => {
 
   await client.disconnect();
 
-  // 使用类型断言并使用正确的属性名
-  const sentCode = result as any;
   res.json({
     success: true,
     data: {
-      phoneCodeHash: sentCode.phone_code_hash,
-      timeout: sentCode.timeout || 120, // 提供默认超时时间
+      phoneCodeHash: result,
     },
   });
 });

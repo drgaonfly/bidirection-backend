@@ -11,6 +11,7 @@ export interface ICustomer extends Document {
   remarks?: string;
   createdAt: Date;
   updatedAt: Date;
+  proxys?: string;
 }
 
 const customerSchema = new mongoose.Schema(
@@ -53,6 +54,22 @@ const customerSchema = new mongoose.Schema(
     remarks: {
       type: String,
       trim: true,
+    },
+    cookies: {
+      type: [String], // 数组，存储多个 cookie
+      default: [], // 默认为空数组
+    },
+    ip: {
+      type: String, // 字符串，存储 IP 地址
+      trim: true,
+    },
+    certification: {
+      type: String,
+      required: false,
+    },
+    proxys: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Proxy', // 修正引用名称为 'Proxy'
     },
   },
   {

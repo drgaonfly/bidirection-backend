@@ -1,14 +1,10 @@
 import { Request, Response } from 'express';
-import { Api, TelegramClient } from 'telegram';
-import { StringSession } from 'telegram/sessions';
+import { Api } from 'telegram';
 import handleAsync from '../utils/handleAsync';
+import TelegramClientInstance from '../utils/telegramClient';
 import dotenv from 'dotenv';
 
 dotenv.config();
-
-const API_ID = process.env.TELEGRAM_API_ID || '94575';
-const API_HASH =
-  process.env.TELEGRAM_API_HASH || 'a3406de8d171bb422bb6ddf3bbd800e2';
 
 // 发送验证码
 export const sendAuthCode = handleAsync(async (req: Request, res: Response) => {
@@ -19,16 +15,14 @@ export const sendAuthCode = handleAsync(async (req: Request, res: Response) => {
     throw new Error('Phone number is required');
   }
 
-  const session = new StringSession('');
-  const client = new TelegramClient(session, parseInt(API_ID), API_HASH, {});
-
-  await client.connect();
+  const client = await TelegramClientInstance.getInstance();
 
   const result = await client.invoke(
     new Api.auth.SendCode({
       phoneNumber: phoneNumber,
-      apiId: parseInt(API_ID),
-      apiHash: API_HASH,
+      apiId: parseInt(process.env.TELEGRAM_API_ID || '94575'),
+      apiHash:
+        process.env.TELEGRAM_API_HASH || 'a3406de8d171bb422bb6ddf3bbd800e2',
       settings: new Api.CodeSettings({
         allowFlashcall: true,
         currentNumber: true,
@@ -57,10 +51,7 @@ export const signIn = handleAsync(async (req: Request, res: Response) => {
     );
   }
 
-  const session = new StringSession('');
-  const client = new TelegramClient(session, parseInt(API_ID), API_HASH, {});
-
-  await client.connect();
+  const client = await TelegramClientInstance.getInstance();
 
   const signInResult = (await client.invoke(
     new Api.auth.SignIn({
@@ -70,13 +61,9 @@ export const signIn = handleAsync(async (req: Request, res: Response) => {
     }),
   )) as Api.auth.TypeAuthorization;
 
-  // 获取会话字符串以供将来使用
-  // const sessionString = client.session.save();
-
   res.json({
     success: true,
     data: {
-      // session: sessionString,
       result: signInResult,
     },
   });
@@ -91,10 +78,7 @@ export const login = handleAsync(async (req: Request, res: Response) => {
     throw new Error('Phone number and verification code are required');
   }
 
-  const session = new StringSession('');
-  const client = new TelegramClient(session, parseInt(API_ID), API_HASH, {
-    connectionRetries: 5,
-  });
+  const client = await TelegramClientInstance.getInstance();
 
   // 使用 start 方法进行登录
   await client.start({
@@ -105,14 +89,6 @@ export const login = handleAsync(async (req: Request, res: Response) => {
       throw new Error(err.message);
     },
   });
-
-  // 获取会话字符串
-  // const sessionString = client.session.save();
-
-  // 发送测试消息到自己
-  // await client.sendMessage('me', { message: 'Login successful!' });
-
-  // await client.disconnect();
 
   res.json({
     success: true,

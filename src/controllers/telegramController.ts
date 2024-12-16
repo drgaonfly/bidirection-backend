@@ -38,9 +38,7 @@ export const sendAuthCode = handleAsync(async (req: Request, res: Response) => {
 
   res.json({
     success: true,
-    data: {
-      phoneCodeHash: result,
-    },
+    data: result,
   });
 });
 
@@ -70,7 +68,7 @@ export const signIn = handleAsync(async (req: Request, res: Response) => {
     success: true,
     data: {
       session: sessionString,
-      user: signInResult,
+      result: signInResult,
     },
   });
 });

@@ -83,9 +83,15 @@ export const login = handleAsync(async (req: Request, res: Response) => {
     },
   });
 
+  console.log("You should now be connected.");
+  const session = client.session.save();
+  console.log(client.session.save()); // Save this string to avoid logging in again
+  await client.sendMessage("me", { message: "Hello!" });
+
   res.json({
     success: true,
     data: {
+      session,
       message: 'Login successful',
     },
   });

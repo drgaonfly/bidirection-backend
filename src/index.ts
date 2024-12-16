@@ -15,6 +15,7 @@ import permissionGroupRoutes from './routes/permissionGroupRoutes';
 import customerRoutes from './routes/customerRoutes';
 
 import setupDB from './utils/db';
+import telegramClient from './utils/telegramClient';
 import uploadRoutes from './routes/uploadRoutes';
 import dataPermissionRoutes from './routes/dataPermissionRoutes';
 import telegramRoutes from './routes/telegramRoutes';
@@ -55,6 +56,7 @@ app.use(errorHandler);
 
 const PORT: string | number = process.env.PORT || 5000;
 setupDB();
+telegramClient();
 
 app.listen(PORT, () =>
   console.log(`

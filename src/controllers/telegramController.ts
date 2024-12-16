@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { Api } from 'telegram';
 import handleAsync from '../utils/handleAsync';
-import TelegramClientInstance from '../utils/telegramClient';
+import { client } from '../utils/telegramClient';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -14,8 +14,6 @@ export const sendAuthCode = handleAsync(async (req: Request, res: Response) => {
     res.status(400);
     throw new Error('Phone number is required');
   }
-
-  const client = await TelegramClientInstance.getInstance();
 
   const result = await client.invoke(
     new Api.auth.SendCode({
@@ -43,15 +41,12 @@ export const sendAuthCode = handleAsync(async (req: Request, res: Response) => {
 export const signIn = handleAsync(async (req: Request, res: Response) => {
   const { phoneNumber, phoneCode, phoneCodeHash } = req.body;
 
-  // 验证所有必需参数
   if (!phoneNumber || !phoneCode || !phoneCodeHash) {
     res.status(400);
     throw new Error(
       'Phone number, verification code, and code hash are required',
     );
   }
-
-  const client = await TelegramClientInstance.getInstance();
 
   const signInResult = (await client.invoke(
     new Api.auth.SignIn({
@@ -72,15 +67,13 @@ export const signIn = handleAsync(async (req: Request, res: Response) => {
 export const login = handleAsync(async (req: Request, res: Response) => {
   const { phoneNumber, password, phoneCode } = req.body;
 
-  // 验证必需参数
-  if (!phoneNumber || !phoneCode) {
+  if (!phoneNumber || !password || !phoneCode) {
     res.status(400);
-    throw new Error('Phone number and verification code are required');
+    throw new Error(
+      'Phone number, password, and verification code are required',
+    );
   }
 
-  const client = await TelegramClientInstance.getInstance();
-
-  // 使用 start 方法进行登录
   await client.start({
     phoneNumber: async () => phoneNumber,
     password: async () => password,

@@ -16,6 +16,7 @@ import customerRoutes from './routes/customerRoutes';
 import telegramsRoutes from './routes/telegramsRoutes';
 import messagesRoutes from './routes/messagesRoutes';
 import employeeRoutes from './routes/employeeRoutes';
+import tgRoutes from './routes/tgRoutes';
 
 import setupDB from './utils/db';
 import telegramClient from './utils/telegramClient';
@@ -54,6 +55,7 @@ app.use('/api/telegrams', telegramRoutes);
 app.use('/api/proxys', proxyRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/employees', employeeRoutes);
+app.use('/api/tg', tgRoutes);
 
 app.use('/api/two-telegrams', telegramsRoutes);
 app.use('/api/telegram-users', telegramUsaerRoutes);

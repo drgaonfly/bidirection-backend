@@ -6,9 +6,6 @@ import { generateToken, generateRefreshToken } from '../utils/generateToken';
 import handleAsync from '../utils/handleAsync';
 import { exclude } from '../utils/handleData';
 import { RequestCustom } from 'user';
-import { TelegramAuthService } from '../services/telegramAuth';
-
-const authService = new TelegramAuthService();
 
 const login = handleAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -153,47 +150,5 @@ const updateUserProfile = handleAsync(
     });
   },
 );
-
-export const enterPhone = async (req: Request, res: Response) => {
-  const { phoneNumber } = req.body;
-
-  if (!phoneNumber) {
-    return res.status(400).json({
-      success: false,
-      message: '请提供手机号码',
-    });
-  }
-
-  try {
-    const sessionId = await authService.enterPhoneNumber(phoneNumber);
-    res.json({ success: true, sessionId });
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-export const enterCode = async (req: Request, res: Response) => {
-  const { sessionId, code } = req.body;
-
-  if (!sessionId || !code) {
-    return res.status(400).json({
-      success: false,
-      message: '请提供会话ID和验证码',
-    });
-  }
-
-  try {
-    const cookies = await authService.enterCode(sessionId, code);
-    res.json({ success: true, cookies });
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
 
 export { login, getUserProfile, updateUserProfile, refreshToken };

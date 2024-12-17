@@ -6,8 +6,8 @@ import handleAsync from '../utils/handleAsync';
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
 
-  if (queryParams.proxys) {
-    query.proxys = queryParams.proxys;
+  if (queryParams.user) {
+    query.user = queryParams.user;
   }
 
   if (queryParams.phone) {
@@ -31,7 +31,7 @@ const getCustomers = handleAsync(async (req: Request, res: Response) => {
   const query = buildQuery(req.query);
 
   const customers = await Customer.find(query)
-    .populate('proxys')
+    .populate('users')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -51,7 +51,7 @@ const getCustomers = handleAsync(async (req: Request, res: Response) => {
 // 创建新客户
 const addCustomer = handleAsync(async (req: Request, res: Response) => {
   const {
-    proxys,
+    users,
     cookies,
     ip,
     certification,
@@ -65,14 +65,14 @@ const addCustomer = handleAsync(async (req: Request, res: Response) => {
 
   try {
     // 检查proxys是否已存在
-    const proxyExists = await Customer.findOne({ proxys });
+    const proxyExists = await Customer.findOne({ users });
     if (proxyExists) {
       res.status(400);
       throw new Error('该代理已被使用，请使用其他代理');
     }
 
     const customer = await Customer.create({
-      proxys,
+      users,
       cookies,
       ip,
       certification,
@@ -118,7 +118,7 @@ const getCustomerById = handleAsync(async (req: Request, res: Response) => {
 // 更新客户
 const updateCustomer = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { proxys } = req.body;
+  const { users } = req.body;
 
   try {
     const customer = await Customer.findById(id);
@@ -128,8 +128,8 @@ const updateCustomer = handleAsync(async (req: Request, res: Response) => {
     }
 
     // 检查proxys唯一性
-    if (proxys && proxys !== customer.proxys) {
-      const proxyExists = await Customer.findOne({ proxys, _id: { $ne: id } });
+    if (users && users !== customer.users) {
+      const proxyExists = await Customer.findOne({ users, _id: { $ne: id } });
       if (proxyExists) {
         res.status(400);
         throw new Error('该代理已被其他用户使用');

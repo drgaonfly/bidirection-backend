@@ -1,6 +1,6 @@
 // controllers/userController.ts
 import { Request, Response } from 'express';
-import Proxy from '../models/proxy';
+import Proxy from '../models/user';
 import handleAsync from '../utils/handleAsync';
 import bcrypt from 'bcrypt';
 import { exclude } from '../utils/handleData';

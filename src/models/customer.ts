@@ -11,7 +11,7 @@ export interface ICustomer extends Document {
   remarks?: string;
   createdAt: Date;
   updatedAt: Date;
-  proxys?: string;
+  users?: string;
 }
 
 const customerSchema = new mongoose.Schema(
@@ -20,19 +20,6 @@ const customerSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       auto: true,
     },
-    // username: {
-    //   type: String,
-    //   required: true,
-    //   unique: true,
-    //   trim: true,
-    // },
-    // email: {
-    //   type: String,
-    //   required: true,
-    //   unique: true,
-    //   trim: true,
-    //   lowercase: true,
-    // },
     phoneNumber: {
       type: String,
       required: true,
@@ -42,11 +29,11 @@ const customerSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    phoneCode: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+    // phoneCode: {
+    //   type: String,
+    //   required: true,
+    //   trim: true,
+    // },
     session: {
       type: String,
       trim: true,
@@ -67,9 +54,9 @@ const customerSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
-    proxys: {
+    users: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Proxy', // 修正引用名称为 'Proxy'
+      ref: 'User', // 修正引用名称为 'Proxy'
     },
   },
   {

@@ -84,6 +84,7 @@
     "socks-proxy-agent": "^8.0.4",
     "telegram": "^2.26.8",
     "tslib": "~2.6",
+    "uuid": "^11.0.3",
     "xlsx": "^0.18.5"
   },
   "lint-staged": {

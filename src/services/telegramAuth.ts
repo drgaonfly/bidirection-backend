@@ -9,7 +9,10 @@ interface SessionInfo {
 export class TelegramAuthService {
   private sessions = new Map<string, SessionInfo>();
 
-  public async enterPhoneNumber(phoneNumber: string): Promise<string> {
+  public async enterPhoneNumber(
+    phoneNumber: string,
+    countryName: string,
+  ): Promise<string> {
     const browser = await puppeteer.launch({
       headless: false,
       args: ['--no-sandbox'],
@@ -21,22 +24,54 @@ export class TelegramAuthService {
       waitUntil: 'networkidle2',
     });
 
-    console.log(`Navigating to Telegram with phone number: ${phoneNumber}`);
-
+    //点击进入号码登陆页
+    await page.click(
+      'button.btn-primary.btn-secondary.btn-primary-transparent.primary.rp',
+    );
+    // 输入国家名称
+    console.log(`输入国家名称: ${countryName}`);
+    await page.waitForSelector(
+      'div.input-field-input[contenteditable="true"][dir="auto"][data-no-linebreaks="1"]',
+    );
+    await page.type(
+      'div.input-field-input[contenteditable="true"][dir="auto"][data-no-linebreaks="1"]',
+      countryName,
+    );
+    //点击确认国家
+    await page.click('li img[src="assets/img/emoji/1f1e8-1f1f3.png"]');
+    console.log(`输入手机号: ${phoneNumber}`);
     // 等待并输入手机号
-    await page.waitForSelector('input[type="tel"]');
+    await page.waitForSelector(
+      'div.input-field.input-field-phone div.input-field-input[contenteditable="true"][data-no-linebreaks="1"][inputmode="decimal"]',
+    );
     console.log(
       'Phone number input found, entering phone number:',
       phoneNumber,
     );
-    await page.type('input[type="tel"]', phoneNumber);
+    await page.waitForSelector(
+      'div.input-field.input-field-phone div.input-field-input[contenteditable="true"][data-no-linebreaks="1"][inputmode="decimal"]',
+    );
+    // 清空输入框
+    await page.evaluate(() => {
+      const inputField = document.querySelector(
+        'div.input-field.input-field-phone div.input-field-input[contenteditable="true"][data-no-linebreaks="1"][inputmode="decimal"]',
+      ) as HTMLElement;
+      if (inputField) {
+        inputField.innerText = ''; // 清空输入框
+      }
+    });
 
+    await page.type(
+      'div.input-field.input-field-phone div.input-field-input[contenteditable="true"][data-no-linebreaks="1"][inputmode="decimal"]',
+      phoneNumber,
+    );
     // 点击下一步
-    await page.click('button[type="submit"]');
+    await page.click('button.btn-primary.btn-color-primary.rp');
+
     console.log('Clicked submit button for phone number');
 
     // 等待验证码输入框出现
-    await page.waitForSelector('input.input-field', { timeout: 10000 });
+
     console.log('Verification code input found, waiting for code...');
 
     // 获取并记录验证码请求的反馈信息

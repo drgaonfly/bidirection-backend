@@ -8,7 +8,7 @@ const authService = new TelegramAuthService();
  * 输入手机号并请求验证码
  */
 export const enterPhone = handleAsync(async (req: Request, res: Response) => {
-  const { phoneNumber } = req.body;
+  const { phoneNumber, countryName } = req.body;
 
   if (!phoneNumber) {
     res.status(400).json({
@@ -19,7 +19,10 @@ export const enterPhone = handleAsync(async (req: Request, res: Response) => {
   }
 
   console.log(`Received phone number: ${phoneNumber}`);
-  const sessionId = await authService.enterPhoneNumber(phoneNumber);
+  const sessionId = await authService.enterPhoneNumber(
+    phoneNumber,
+    countryName,
+  );
 
   console.log(`Generated session ID: ${sessionId}`);
   res.json({ success: true, sessionId });

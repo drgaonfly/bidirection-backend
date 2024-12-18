@@ -24,14 +24,11 @@ const getProxys = handleAsync(async (req: Request, res: Response) => {
     query.live = live === 'true';
   }
 
-  // 找到角色为 "代理" 的角色ID
-  const role = await Role.findOne({ name: '代理' });
-  if (role) {
-    query.roles = role._id; // 使用角色ID进行查询
+  // 找到所有角色为 "代理" 的角色ID
+  const roles = await Role.find({ name: '代理' });
+  if (roles.length > 0) {
+    query.roles = { $in: roles.map((role) => role._id) }; // 筛选出有代理的
   }
-
-  // 排除带有员工的。
-  query.proxy = { $exists: false };
 
   // 执行查询
   const proxys = await Proxy.find({

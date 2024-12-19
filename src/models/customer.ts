@@ -8,6 +8,7 @@ export interface ICustomer extends Document {
   createdAt: Date;
   updatedAt: Date;
   localStorage?: string;
+  ip: string | string[];
 }
 
 const customerSchema = new mongoose.Schema(

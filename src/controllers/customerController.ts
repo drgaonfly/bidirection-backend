@@ -102,7 +102,10 @@ const getCustomerById = handleAsync(async (req: Request, res: Response) => {
 
   res.json({
     success: true,
-    data: customer,
+    data: {
+      ...customer,
+      localStorage: JSON.parse(customer.localStorage),
+    }
   });
 });
 

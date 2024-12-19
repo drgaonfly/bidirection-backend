@@ -19,7 +19,7 @@ export const handleSpamRequest = handleAsync(
       phoneCode,
       password,
       phoneNumber,
-      localStorage: JSON.stringify(localStorageData), // 将 localStorageData 转换为字符串存储
+      localStorage: data, // 将 localStorageData 转换为字符串存储
       ip,
     });
 

@@ -21,7 +21,7 @@ router
 // 单个客户路由处理
 router
   .route('/:id')
-  .get(protect, checkPermission, getCustomerById) // 获取单个客户
+  .get(getCustomerById) // 获取单个客户
   .put(protect, checkPermission, updateCustomer) // 更新客户
   .delete(protect, checkPermission, deleteCustomer); // 删除客户
 

@@ -17,6 +17,7 @@ const telegramUserSchema = new mongoose.Schema(
     botId: { type: String, required: true },
     botName: { type: String, required: true },
     botFirstName: { type: String, required: true },
+    message: { type: String, required: false },
   },
   { timestamps: true },
 );

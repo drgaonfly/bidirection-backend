@@ -9,6 +9,18 @@ const buildQuery = (queryParams: any): any => {
   if (queryParams.userName) {
     query.userName = { $regex: queryParams.userName, $options: 'i' };
   }
+  if (queryParams.botName) {
+    query.botName = { $regex: queryParams.botName, $options: 'i' };
+  }
+  if (queryParams.botFirstName) {
+    query.botFirstName = { $regex: queryParams.botFirstName, $options: 'i' };
+  }
+  if (queryParams.botId) {
+    query.botId = queryParams.botId;
+  }
+  if (queryParams.message) {
+    query.message = { $regex: queryParams.message, $options: 'i' };
+  }
 
   if (queryParams.id) {
     query.id = queryParams.id;
@@ -24,6 +36,7 @@ const getTelegramUsers = handleAsync(async (req: Request, res: Response) => {
   const query = buildQuery(req.query);
 
   const telegramUsers = await TelegramUser.find(query)
+    .populate('bot')
     .sort('-createdAt') // Sort by creation time in descending order
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)

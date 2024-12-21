@@ -94,8 +94,7 @@ const getTelegrams = handleAsync(async (req: Request, res: Response) => {
 
 // 创建新Telegram机器人
 const addTelegram = handleAsync(async (req: Request, res: Response) => {
-  const { botToken, url, botName, isActive, remarks, message, name, user } =
-    req.body;
+  const { botToken } = req.body;
 
   const telegramExists = await Telegram.findOne({ botToken });
   if (telegramExists) {
@@ -103,16 +102,7 @@ const addTelegram = handleAsync(async (req: Request, res: Response) => {
     throw new Error('该Bot Token已被使用，请使用其他Token');
   }
 
-  const telegram = await Telegram.create({
-    name,
-    user,
-    botToken,
-    url,
-    botName,
-    isActive,
-    remarks,
-    message,
-  });
+  const telegram = await Telegram.create(req.body);
 
   res.status(201).json({
     success: true,

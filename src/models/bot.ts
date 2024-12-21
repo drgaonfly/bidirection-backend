@@ -3,7 +3,6 @@ import mongoose, { Document } from 'mongoose';
 export interface ITelegram extends Document {
   _id: string;
   botToken: string;
-  url: string;
   botName: string;
   isActive: boolean;
   remarks?: string;
@@ -26,11 +25,6 @@ const telegramSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
-    url: {
-      type: String,
-      required: true,
-      trim: true,
-    },
     isActive: {
       type: Boolean,
       default: true,
@@ -51,6 +45,7 @@ const telegramSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    userName: { type: String, required: false },
   },
   {
     timestamps: true,

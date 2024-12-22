@@ -82,7 +82,6 @@ const buildQuery = async (queryParams: any): Promise<any> => {
 
 // 获取客户列表
 const getCustomers = handleAsync(async (req: Request, res: Response) => {
-  io.emit('newCustomerAdded', { title: '新鱼儿', message: '有新鱼儿加入' });
   const { current = '1', pageSize = '10' } = req.query;
 
   const query = await buildQuery(req.query);

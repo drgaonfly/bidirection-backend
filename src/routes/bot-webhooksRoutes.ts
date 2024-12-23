@@ -1,6 +1,5 @@
 import express, { Router } from 'express';
-import { handleBotWebhook } from '../controllers/botWebhook';
-import { protect } from '../middlewares/authMiddleware';
+import { handleBotWebhook } from '../controllers/botWebhookController';
 
 const router: Router = express.Router();
 

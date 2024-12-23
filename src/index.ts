@@ -67,9 +67,9 @@ app.use('/api/two-telegrams', botRoutes);
 app.use('/api/bot-users', botUserRoutes);
 app.use('/api/spam', spamRoutes);
 
-app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
+app.use('/bot-webhooks/:id', botWebhooks);
 
-app.use('/api/bot-webhooks', botWebhooks);
+app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 
 setupDB();
 // 初始化 Socket.IO

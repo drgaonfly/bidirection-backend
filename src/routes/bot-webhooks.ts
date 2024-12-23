@@ -4,6 +4,6 @@ import { protect } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
-router.route('/:id').post(protect, handleBotWebhook);
+router.route('/:id').post(handleBotWebhook);
 
 export default router;

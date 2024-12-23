@@ -66,9 +66,6 @@ startCommand.command('start', async (ctx) => {
     `我的账户\nID: ${userId}\n名字: ${userName}\nFirstName: ${firstName}\nLastName: ${lastName}`,
   );
 
-  // 搜索botName根据botId
-  const botName: string = ctx.me?.username;
-
   // 发送长文本消息并附带 Inline Menu
   await ctx.reply(bot.message, {
     reply_markup: mainKeyboard,

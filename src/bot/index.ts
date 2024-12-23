@@ -1,4 +1,4 @@
-import { Bot } from 'grammy';
+import { Bot, webhookCallback } from 'grammy';
 import dotenv from 'dotenv';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import createDebug from 'debug';
@@ -7,6 +7,7 @@ import adminComposer from './commands/admin';
 import userComposer from './commands/user';
 import errorHandler from './middlewares/errorHandler';
 import { commandsList } from './commandsList';
+import express from 'express';
 
 dotenv.config();
 
@@ -72,7 +73,7 @@ bot.api
 
 const debug = createDebug('bot:dev');
 
-export const development = async (bot: Bot) => {
+const development = async (bot: Bot) => {
   console.log('Bot 正在运行于开发模式');
   const botInfo = await bot.api.getMe();
   debug('Bot Info:', botInfo);
@@ -85,6 +86,23 @@ export const development = async (bot: Bot) => {
   await bot.start();
 };
 
-development(bot);
+const WEBHOOK_URL = process.env.WEBHOOK_URL;
+
+export const production = async (bot: Bot, app?: express.Express) => {
+  console.log('Bot 正在运行于生产模式');
+
+  app.use(webhookCallback(bot, 'express'));
+
+  (async () => {
+    await bot.api.setWebhook(WEBHOOK_URL);
+    console.log(`Webhook 已设置为 ${WEBHOOK_URL}`);
+  })();
+};
+
+export const startBot = async (bot: Bot, app?: express.Express) => {
+  process.env.NODE_ENV === 'development'
+    ? development(bot)
+    : production(bot, app);
+};
 
 export default bot;

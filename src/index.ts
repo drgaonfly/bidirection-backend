@@ -29,7 +29,7 @@ import spamRoutes from './routes/spamRoutes';
 
 import http from 'http';
 import { setupSocket } from './services/socket'; // 引入 socket 服务
-import bot, { development } from './bot';
+import bot, { startBot } from './bot';
 dotenv.config();
 
 const app: Express = express();
@@ -78,7 +78,7 @@ app.use(errorHandler);
 setupDB();
 // telegramClient();
 
-process.env.NODE_ENV === 'development' && development(bot);
+startBot(bot, app);
 
 const PORT: string | number = process.env.PORT || 5000;
 server.listen(PORT, () =>

@@ -19,7 +19,7 @@ export const handleBotWebhook = handleAsync(
 
     const bot = setupBot(botManager.token);
 
-    await bot.start();
+    // await bot.start();
 
     await bot.handleUpdate(req.body);
   },

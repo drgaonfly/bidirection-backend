@@ -1,44 +1,49 @@
-import { Bot, webhookCallback } from 'grammy';
+import { webhookCallback } from 'grammy';
 import dotenv from 'dotenv';
 import createDebug from 'debug';
 import express from 'express';
 import { setupBot } from './botSetup';
+import { default as BotManager } from '../models/bot';
 
 dotenv.config();
 
-const bot = setupBot();
+const development = async () => {
+  const activeBots = await BotManager.find({ isActive: true });
 
-const development = async (bot: Bot) => {
-  const debug = createDebug('bot:dev');
-  console.log('Bot 正在运行于开发模式');
-  const botInfo = await bot.api.getMe();
-  debug('Bot Info:', botInfo);
+  for (const activeBot of activeBots) {
+    const bot = setupBot(activeBot.token);
+    const debug = createDebug('bot:dev');
+    console.log('Bot 正在运行于开发模式');
+    const botInfo = await bot.api.getMe();
+    debug('Bot Info:', botInfo);
 
-  debug('Bot runs in development mode');
-  debug(`${botInfo.username} deleting webhook`);
-  await bot.api.deleteWebhook();
-  debug(`${botInfo.username} starting polling`);
+    debug('Bot runs in development mode');
+    debug(`${botInfo.username} deleting webhook`);
+    await bot.api.deleteWebhook();
+    debug(`${botInfo.username} starting polling`);
 
-  await bot.start();
+    await bot.start();
+  }
 };
 
-export const production = async (bot: Bot, app?: express.Express) => {
-  const WEBHOOK_URL = process.env.WEBHOOK_URL;
+export const production = async (app?: express.Express) => {
+  const activeBots = await BotManager.find({ isActive: true });
 
-  console.log('Bot 正在运行于生产模式');
+  for (const activeBot of activeBots) {
+    const bot = setupBot(activeBot.token);
+    const WEBHOOK_URL = process.env.WEBHOOK_URL;
 
-  app.use('/webhook', webhookCallback(bot, 'express'));
+    console.log('Bot 正在运行于生产模式');
 
-  (async () => {
-    await bot.api.setWebhook(WEBHOOK_URL);
-    console.log(`Webhook 已设置为 ${WEBHOOK_URL}`);
-  })();
+    app.use(`/webhook-${activeBot.token}`, webhookCallback(bot, 'express'));
+
+    await bot.api.setWebhook(`${WEBHOOK_URL}/webhook-${activeBot.token}`);
+    console.log(
+      `Webhook ${activeBot.token} 已设置为 ${WEBHOOK_URL}/webhook-${activeBot.token}`,
+    );
+  }
 };
 
-export const startBot = async (bot: Bot, app?: express.Express) => {
-  process.env.NODE_ENV === 'development'
-    ? development(bot)
-    : production(bot, app);
+export const startBot = async (app?: express.Express) => {
+  process.env.NODE_ENV === 'development' ? development() : production(app);
 };
-
-export default bot;

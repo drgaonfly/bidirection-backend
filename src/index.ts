@@ -29,7 +29,7 @@ import spamRoutes from './routes/spamRoutes';
 
 import http from 'http';
 import { setupSocket } from './services/socket'; // 引入 socket 服务
-import bot, { startBot } from './bot';
+import { startBot } from './bot';
 dotenv.config();
 
 const app: Express = express();
@@ -73,7 +73,7 @@ setupDB();
 setupSocket(server);
 console.log('Socket.IO server initialized');
 
-startBot(bot, app);
+startBot(app);
 
 app.use(notFound);
 app.use(errorHandler);

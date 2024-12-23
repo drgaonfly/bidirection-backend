@@ -29,7 +29,7 @@ import spamRoutes from './routes/spamRoutes';
 
 import http from 'http';
 import { setupSocket } from './services/socket'; // 引入 socket 服务
-import bot, { startBot } from './bot';
+import bot, { startBot } from './bot/index';
 dotenv.config();
 
 const app: Express = express();

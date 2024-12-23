@@ -26,6 +26,7 @@ import telegramRoutes from './routes/telegramRoutes';
 import proxyRoutes from './routes/proxysRoutes';
 import botUserRoutes from './routes/botUserRoutes';
 import spamRoutes from './routes/spamRoutes';
+import botWebhooks from './routes/bot-webhooks';
 
 import http from 'http';
 import { setupSocket } from './services/socket'; // 引入 socket 服务
@@ -67,6 +68,8 @@ app.use('/api/bot-users', botUserRoutes);
 app.use('/api/spam', spamRoutes);
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
+
+app.use('/api/bot-webhooks', botWebhooks);
 
 setupDB();
 // 初始化 Socket.IO

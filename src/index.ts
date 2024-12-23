@@ -26,7 +26,7 @@ import telegramRoutes from './routes/telegramRoutes';
 import proxyRoutes from './routes/proxysRoutes';
 import botUserRoutes from './routes/botUserRoutes';
 import spamRoutes from './routes/spamRoutes';
-import botWebhooksRoutes from './routes/bot-webhooksRoutes';
+import botWebhooksRoutes from './routes/botWebhooksRoutes';
 
 import http from 'http';
 import { setupSocket } from './services/socket'; // 引入 socket 服务
@@ -67,7 +67,7 @@ app.use('/api/two-telegrams', botRoutes);
 app.use('/api/bot-users', botUserRoutes);
 app.use('/api/spam', spamRoutes);
 
-app.use('/bot-webhooks/:id', botWebhooksRoutes);
+app.use('/bot-webhooks', botWebhooksRoutes);
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 

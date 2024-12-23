@@ -30,6 +30,7 @@ import botWebhooksRoutes from './routes/botWebhooksRoutes';
 
 import http from 'http';
 import { setupSocket } from './services/socket'; // 引入 socket 服务
+import { startWebHookBot } from './bot';
 // import { startWebHookBot } from './bot';
 dotenv.config();
 
@@ -76,7 +77,7 @@ setupDB();
 setupSocket(server);
 console.log('Socket.IO server initialized');
 
-// process.env.NODE_ENV === 'production' && startWebHookBot(app);
+process.env.NODE_ENV === 'production' && startWebHookBot();
 
 app.use(notFound);
 app.use(errorHandler);

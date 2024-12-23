@@ -71,9 +71,8 @@ bot.api
     console.error('设置命令时发生错误:', error);
   });
 
-const debug = createDebug('bot:dev');
-
 const development = async (bot: Bot) => {
+  const debug = createDebug('bot:dev');
   console.log('Bot 正在运行于开发模式');
   const botInfo = await bot.api.getMe();
   debug('Bot Info:', botInfo);

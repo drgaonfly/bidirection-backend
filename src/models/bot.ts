@@ -11,6 +11,7 @@ export interface ITelegram extends Document {
   updatedAt: Date;
   message: string;
   name: string;
+  userName: string;
   priceList: {
     menuName: string;
     url: string;

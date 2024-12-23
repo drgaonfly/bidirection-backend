@@ -1,5 +1,4 @@
 import dotenv from 'dotenv';
-import express from 'express';
 import { setupBot } from './botSetup';
 import { default as BotManager } from '../models/bot';
 

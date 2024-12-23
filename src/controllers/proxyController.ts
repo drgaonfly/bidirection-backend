@@ -179,6 +179,25 @@ const deleteMultipleProxies = handleAsync(
   },
 );
 
+const getEmployeesByProxy = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    // 提取当前代理的 ID
+    const proxyId = req.params.proxyId;
+    // console.log('Received request to get employees for proxyId:', proxyId); // 添加日志
+
+    const employees = await Proxy.find({ proxy: proxyId }) // 查询与当前代理相关的员工
+      .populate('roles') // 如果需要角色信息，可以使用 populate
+      .exec();
+
+    res.json({
+      success: true,
+      data: employees.map((employee) =>
+        exclude(employee.toObject(), 'password'),
+      ), // 排除密码字段
+    });
+  },
+);
+
 export {
   deleteMultipleProxies,
   updateProxy,
@@ -186,4 +205,5 @@ export {
   getProxys,
   addProxy,
   getProxyById,
+  getEmployeesByProxy,
 };

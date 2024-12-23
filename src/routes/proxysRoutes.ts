@@ -6,6 +6,7 @@ import {
   getProxys,
   addProxy,
   getProxyById,
+  getEmployeesByProxy,
 } from '../controllers/proxyController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
@@ -22,5 +23,7 @@ router
   .delete(protect, checkPermission, deleteProxy)
   .get(protect, checkPermission, getProxyById)
   .put(protect, checkPermission, updateProxy);
+
+router.route('/employees/:proxyId').get(getEmployeesByProxy);
 
 export default router;

@@ -5,6 +5,7 @@ import handleAsync from '../utils/handleAsync';
 import bcrypt from 'bcrypt';
 import { exclude } from '../utils/handleData';
 import { RequestCustom } from 'user';
+import Role from '../models/role';
 // import { Request } from '../types/express';
 
 const getEmployees = handleAsync(async (req: RequestCustom, res: Response) => {
@@ -24,8 +25,15 @@ const getEmployees = handleAsync(async (req: RequestCustom, res: Response) => {
     query.live = live === 'true';
   }
 
-  // 只显示当前代理的员工
-  query.proxy = req.user._id;
+  // 只显示当前代理的员工或者超级管理看得到全部
+  if (req.user.roles.some((role: any) => role.name === '代理')) {
+    query.proxy = req.user._id;
+  } else {
+    const roles = await Role.find({ name: '员工' });
+    if (roles.length > 0) {
+      query.roles = { $in: roles.map((role: any) => role._id) }; // 如果不是代理，筛选出所有员工的
+    }
+  }
 
   // 执行查询
   const users = await Employee.find({

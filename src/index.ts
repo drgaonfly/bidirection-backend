@@ -29,6 +29,8 @@ import spamRoutes from './routes/spamRoutes';
 
 import http from 'http';
 import { setupSocket } from './services/socket'; // 引入 socket 服务
+import { Bot, webhookCallback } from 'grammy';
+import bot, { development } from './bot';
 dotenv.config();
 
 const app: Express = express();
@@ -77,6 +79,8 @@ app.use(errorHandler);
 const PORT: string | number = process.env.PORT || 5000;
 setupDB();
 // telegramClient();
+
+development(bot);
 
 server.listen(PORT, () =>
   console.log(`Server is running at http://localhost:${PORT}`),

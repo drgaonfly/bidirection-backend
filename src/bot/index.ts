@@ -73,7 +73,8 @@ bot.api
 
 const debug = createDebug('bot:dev');
 
-const development = async (bot: Bot) => {
+export const development = async (bot: Bot) => {
+  console.log('Bot 正在运行于开发模式');
   const botInfo = await bot.api.getMe();
   debug('Bot Info:', botInfo);
 
@@ -85,6 +86,6 @@ const development = async (bot: Bot) => {
   await bot.start();
 };
 
-setupDB();
-
 development(bot);
+
+export default bot;

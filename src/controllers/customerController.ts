@@ -3,7 +3,6 @@ import Customer from '../models/customer';
 import handleAsync from '../utils/handleAsync';
 import User from '../models/user';
 import Telegram from '../models/bot';
-import { io } from '../services/socket';
 
 // 构建查询条件
 const buildQuery = async (queryParams: any): Promise<any> => {

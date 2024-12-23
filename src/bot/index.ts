@@ -7,7 +7,6 @@ import adminComposer from './commands/admin';
 import userComposer from './commands/user';
 import errorHandler from './middlewares/errorHandler';
 import { commandsList } from './commandsList';
-import setupDB from '../utils/db';
 
 dotenv.config();
 

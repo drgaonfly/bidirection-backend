@@ -4,7 +4,7 @@ import createDebug from 'debug';
 import setupDB from '../utils/db';
 
 const development = async () => {
-  const activeBots = await BotManager.find({ isActive: true });
+  const activeBots = await BotManager.find({ token: process.env.BOT_TOKEN });
 
   for (const activeBot of activeBots) {
     const bot = setupBot(activeBot.token);

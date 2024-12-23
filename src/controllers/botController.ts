@@ -31,6 +31,9 @@ const buildQuery = async (queryParams: any): Promise<any> => {
   if (queryParams.isActive !== undefined) {
     query.isActive = queryParams.isActive;
   }
+  if (queryParams.isOnline !== undefined) {
+    query.isOnline = queryParams.isOnline;
+  }
 
   if (queryParams.user) {
     let searchText;

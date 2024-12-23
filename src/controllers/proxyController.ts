@@ -191,9 +191,7 @@ const getEmployeesByProxy = handleAsync(
 
     res.json({
       success: true,
-      data: employees.map((employee) =>
-        exclude(employee.toObject(), 'password'),
-      ), // 排除密码字段
+      data: employees,
     });
   },
 );

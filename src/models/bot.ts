@@ -1,7 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 
 export interface ITelegram extends Document {
-  _id: string;
   token: string;
   botName: string;
   isActive: boolean;
@@ -15,6 +14,7 @@ export interface ITelegram extends Document {
     menuName: string;
     url: string;
   }[];
+  isOnline: boolean;
 }
 
 const priceListSchema = new mongoose.Schema({
@@ -51,6 +51,10 @@ const botSchema = new mongoose.Schema(
       trim: true,
     },
     userName: { type: String, required: false },
+    isOnline: {
+      type: Boolean,
+      default: false,
+    },
     priceList: [priceListSchema],
   },
   {

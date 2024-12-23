@@ -26,10 +26,11 @@ import telegramRoutes from './routes/telegramRoutes';
 import proxyRoutes from './routes/proxysRoutes';
 import botUserRoutes from './routes/botUserRoutes';
 import spamRoutes from './routes/spamRoutes';
+import botWebhooksRoutes from './routes/bot-webhooksRoutes';
 
 import http from 'http';
 import { setupSocket } from './services/socket'; // 引入 socket 服务
-import bot, { startBot } from './bot/index';
+import { startWebHookBot } from './bot';
 dotenv.config();
 
 const app: Express = express();
@@ -66,6 +67,8 @@ app.use('/api/two-telegrams', botRoutes);
 app.use('/api/bot-users', botUserRoutes);
 app.use('/api/spam', spamRoutes);
 
+app.use('/bot-webhooks/:id', botWebhooksRoutes);
+
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 
 setupDB();
@@ -73,7 +76,7 @@ setupDB();
 setupSocket(server);
 console.log('Socket.IO server initialized');
 
-startBot(bot, app);
+process.env.NODE_ENV === 'production' && startWebHookBot(app);
 
 app.use(notFound);
 app.use(errorHandler);

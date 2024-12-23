@@ -7,16 +7,8 @@ import { commandsList } from './commandsList';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { Context } from 'grammy'; // 确保导入 Context
 
-export const setupBot = () => {
-  // 从环境变量中获取 BOT_TOKEN 和 SOCKS_PROXY_URL
-  const BOT_TOKEN = process.env.BOT_TOKEN; // 你的机器人令牌
+export const setupBot = (token: string) => {
   const SOCKS_PROXY_URL = process.env.SOCKS_PROXY_URL; // SOCKS 代理 URL，例如 'socks5://username:password@host:port'
-
-  // 检查 BOT_TOKEN 是否存在
-  if (!BOT_TOKEN) {
-    console.error('错误：未在环境变量中设置 BOT_TOKEN。');
-    process.exit(1);
-  }
 
   // 定义 bot 变量
   let bot: Bot;
@@ -26,7 +18,7 @@ export const setupBot = () => {
     const socksAgent = new SocksProxyAgent(process.env.SOCKS_PROXY_URL);
 
     // 使用代理初始化 Bot
-    bot = new Bot(BOT_TOKEN, {
+    bot = new Bot(token, {
       client: {
         baseFetchConfig: {
           agent: socksAgent,

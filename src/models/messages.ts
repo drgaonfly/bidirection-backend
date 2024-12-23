@@ -1,7 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 
 export interface IMessage extends Document {
-  _id: string;
   messageId: string;
   botName: string;
   chatGroup: string;
@@ -14,10 +13,6 @@ export interface IMessage extends Document {
 
 const messageSchema = new mongoose.Schema(
   {
-    _id: {
-      type: mongoose.Schema.Types.ObjectId,
-      auto: true,
-    },
     messageId: {
       type: String,
       required: true,

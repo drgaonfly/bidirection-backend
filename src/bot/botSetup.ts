@@ -30,7 +30,7 @@ export const setupBot = (token: string) => {
     console.log('Bot 正在使用 SOCKS 代理：', SOCKS_PROXY_URL);
   } else {
     // 未设置代理，正常初始化 Bot
-    bot = new Bot<Context>(BOT_TOKEN);
+    bot = new Bot<Context>(token);
     console.log('Bot 未使用代理。');
   }
 

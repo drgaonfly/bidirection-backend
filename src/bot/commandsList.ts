@@ -1,5 +1,3 @@
-import changeMessageCommand from './commands/user/changeMessage';
-
 // src/commandsList.ts
 export const commandsList = [
   { command: 'start', description: '启动机器人' },

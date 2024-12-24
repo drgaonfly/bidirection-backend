@@ -12,25 +12,14 @@ import authRoutes from './routes/authRoutes';
 import menuRoutes from './routes/menuRoutes';
 import permissionRoutes from './routes/permissionRoutes';
 import permissionGroupRoutes from './routes/permissionGroupRoutes';
-import customerRoutes from './routes/customerRoutes';
-import botRoutes from './routes/botRoutes';
-import messagesRoutes from './routes/messagesRoutes';
-import employeeRoutes from './routes/employeeRoutes';
-import tgRoutes from './routes/tgRoutes';
-// import localstorageRoutes from './routes/localstorageRoutes';
 import setupDB from './utils/db';
 // import telegramClient from './utils/telegramClient';
 import uploadRoutes from './routes/uploadRoutes';
 import dataPermissionRoutes from './routes/dataPermissionRoutes';
-import telegramRoutes from './routes/telegramRoutes';
-import proxyRoutes from './routes/proxysRoutes';
-import botUserRoutes from './routes/botUserRoutes';
-import spamRoutes from './routes/spamRoutes';
-import botWebhooksRoutes from './routes/botWebhooksRoutes';
 
 import http from 'http';
 import { setupSocket } from './services/socket'; // 引入 socket 服务
-import { startWebHookBot } from './bot';
+
 // import { startWebHookBot } from './bot';
 dotenv.config();
 
@@ -57,18 +46,6 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/permissions', permissionRoutes);
 app.use('/api/permission-groups', permissionGroupRoutes);
 app.use('/api/data-permissions', dataPermissionRoutes);
-app.use('/api/customers', customerRoutes);
-app.use('/api/telegrams', telegramRoutes);
-app.use('/api/proxys', proxyRoutes);
-app.use('/api/messages', messagesRoutes);
-app.use('/api/employees', employeeRoutes);
-app.use('/api/tg', tgRoutes);
-
-app.use('/api/bots', botRoutes);
-app.use('/api/bot-users', botUserRoutes);
-app.use('/api/spam', spamRoutes);
-
-app.use('/bot-webhooks', botWebhooksRoutes);
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 
@@ -77,7 +54,7 @@ setupDB();
 setupSocket(server);
 console.log('Socket.IO server initialized');
 
-process.env.NODE_ENV === 'production' && startWebHookBot();
+process.env.NODE_ENV === 'production';
 
 app.use(notFound);
 app.use(errorHandler);

@@ -9,6 +9,7 @@ const development = async () => {
   for (const activeBot of activeBots) {
     const bot = setupBot(activeBot.token);
     const debug = createDebug('bot:dev');
+
     console.log('Bot 正在运行于开发模式');
     const botInfo = await bot.api.getMe();
     debug('Bot Info:', botInfo);

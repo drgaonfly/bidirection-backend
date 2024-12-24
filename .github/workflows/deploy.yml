@@ -13,13 +13,13 @@ jobs:
           username: root
           password: ${{ secrets.PASSWORD }}
           port: 22
-          script: cd /www/wwwroot/spambackend.2024fc.xyz/spam-bot-backend && git pull --rebase origin main && /www/server/nodejs/v20.16.0/bin/pnpm install && git checkout -f . && npm run build && pm2 restart spambackend
+          script: cd /www/wwwroot/annotation-backend.2025fc.xyz/annotation-backend && git pull --rebase origin main && /www/server/nodejs/v20.16.0/bin/pnpm install && git checkout -f . && npm run build && pm2 restart spambackend
 
-      - name: executing remote ssh commands using password
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: 45.132.241.110
-          username: root
-          password: ${{ secrets.CLIENT_PASSWORD }}
-          port: 22
-          script: cd /www/wwwroot/admin.tikmall33.com/spam-bot-admin && git pull --rebase origin main && /www/server/nodejs/v20.16.0/bin/pnpm install && git checkout -f . && npm run build && pm2 restart spambackend
+      # - name: executing remote ssh commands using password
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: 45.132.241.110
+      #     username: root
+      #     password: ${{ secrets.CLIENT_PASSWORD }}
+      #     port: 22
+      #     script: cd /www/wwwroot/annotation-backend.2025fc.xyz/annotation-backend && git pull --rebase origin main && /www/server/nodejs/v20.16.0/bin/pnpm install && git checkout -f . && npm run build && pm2 restart spambackend

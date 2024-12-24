@@ -64,7 +64,7 @@ app.use('/api/messages', messagesRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/tg', tgRoutes);
 
-app.use('/api/two-telegrams', botRoutes);
+app.use('/api/bots', botRoutes);
 app.use('/api/bot-users', botUserRoutes);
 app.use('/api/spam', spamRoutes);
 

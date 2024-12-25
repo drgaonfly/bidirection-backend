@@ -1,21 +1,40 @@
 import { Request, Response } from 'express';
 import Topic from '../models/topic';
 import handleAsync from '../utils/handleAsync';
-import { exclude } from '../utils/handleData';
 
-export const getTopics = handleAsync(async (req: Request, res: Response) => {
+const buildQuery = (queryParams: any): any => {
+  const query: any = {};
+
+  if (queryParams.video1) {
+    query.video1 = { $regex: queryParams.video1, $options: 'i' };
+  }
+
+  if (queryParams.video2) {
+    query.video2 = { $regex: queryParams.video2, $options: 'i' };
+  }
+
+  if (queryParams.issue) {
+    query.issue = { $regex: queryParams.issue, $options: 'i' };
+  }
+
+  return query;
+};
+
+// 获取所有topic
+const getTopics = handleAsync(async (req: Request, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
-  const queryConditions: any = {};
+  const query = buildQuery(req.query);
 
-  let topics = await Topic.find(queryConditions)
-    .populate('answers')
-    .sort('-createdAt')
+  // 执行查询并使用 populate 填充 answers 数据
+  const topics = await Topic.find(query)
+    .populate('answers') // 填充关联的 answers 数据
+    .sort('-createdAt') // 按创建时间倒序排序
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .exec();
 
-  const total = await Topic.countDocuments(queryConditions);
+  const total = await Topic.countDocuments(query).exec();
 
   res.json({
     success: true,
@@ -26,52 +45,96 @@ export const getTopics = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const addTopic = handleAsync(async (req: Request, res: Response) => {
-  const { video1, video2, issue, answers } = req.body;
-  const newTopic = new Topic({ video1, video2, issue, answers });
+// 添加topic
+const addTopic = handleAsync(async (req: Request, res: Response) => {
+  const newTopic = new Topic({
+    ...req.body,
+  });
+
   const savedTopic = await newTopic.save();
+
   res.json({
     success: true,
     data: savedTopic,
   });
 });
 
-export const getTopicById = handleAsync(async (req: Request, res: Response) => {
+// 根据ID获取topic
+const getTopicById = handleAsync(async (req: Request, res: Response) => {
   const topic = await Topic.findById(req.params.id).populate('answers');
+
   if (!topic) {
     res.status(404);
     throw new Error('Topic not found');
+  } else {
+    res.json({
+      success: true,
+      data: topic,
+    });
   }
-  res.json({
-    success: true,
-    data: topic,
-  });
 });
 
-export const updateTopic = handleAsync(async (req: Request, res: Response) => {
+// 更新topic
+const updateTopic = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const updatedTopic = await Topic.findByIdAndUpdate(id, req.body, {
-    new: true,
-  });
+
+  const updatedTopic = await Topic.findByIdAndUpdate(
+    id,
+    { ...req.body },
+    { new: true },
+  );
+
   if (!updatedTopic) {
     res.status(404);
     throw new Error('Topic not found');
   }
+
   res.json({
     success: true,
     data: updatedTopic,
   });
 });
 
-export const deleteTopic = handleAsync(async (req: Request, res: Response) => {
+// 删除topic
+const deleteTopic = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+
+  // 删除topic
   const topic = await Topic.findByIdAndDelete(id);
+
   if (!topic) {
     res.status(404);
     throw new Error('Topic not found');
   }
+
   res.json({
     success: true,
     data: { message: 'Topic deleted successfully' },
   });
 });
+
+// 批量删除topic
+const deleteMultipleTopics = handleAsync(
+  async (req: Request, res: Response) => {
+    const { ids } = req.body;
+
+    // 使用 Mongoose 的 deleteMany 方法进行批量删除
+    await Topic.deleteMany({
+      _id: { $in: ids },
+    });
+
+    res.json({
+      success: true,
+      message: `${ids.length} topics deleted successfully`,
+    });
+  },
+);
+
+export {
+  getTopics,
+  addTopic,
+  getTopicById,
+  updateTopic,
+  deleteTopic,
+  deleteMultipleTopics,
+};

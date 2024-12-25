@@ -5,6 +5,7 @@ import {
   getAnswerById,
   updateAnswer,
   deleteAnswer,
+  deleteMultipleAnswers,
 } from '../controllers/answerController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
@@ -13,7 +14,8 @@ const router: Router = express.Router();
 router
   .route('/')
   .get(protect, checkPermission, getAnswers)
-  .post(protect, checkPermission, addAnswer);
+  .post(protect, checkPermission, addAnswer)
+  .delete(protect, checkPermission, deleteMultipleAnswers);
 
 router
   .route('/:id')

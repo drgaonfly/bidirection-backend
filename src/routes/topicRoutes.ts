@@ -5,6 +5,7 @@ import {
   getTopicById,
   updateTopic,
   deleteTopic,
+  deleteMultipleTopics,
 } from '../controllers/topicController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
@@ -20,5 +21,9 @@ router
   .get(protect, checkPermission, getTopicById)
   .put(protect, checkPermission, updateTopic)
   .delete(protect, checkPermission, deleteTopic);
+
+router
+  .route('/deleteMultiple')
+  .post(protect, checkPermission, deleteMultipleTopics);
 
 export default router;

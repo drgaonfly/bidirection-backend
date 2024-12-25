@@ -56,6 +56,8 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/permissions', permissionRoutes);
 app.use('/api/permission-groups', permissionGroupRoutes);
 app.use('/api/data-permissions', dataPermissionRoutes);
+app.use('/api/answers', answerRoutes);
+app.use('/api/topics', topicRoutes);
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 

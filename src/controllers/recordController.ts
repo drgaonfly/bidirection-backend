@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import Record from '../models/record';
 import handleAsync from '../utils/handleAsync';
-import { exclude } from '../utils/handleData';
 
 export const getRecords = handleAsync(async (req: Request, res: Response) => {
   const { current = '1', pageSize = '10', user, topic } = req.query;
@@ -15,7 +14,7 @@ export const getRecords = handleAsync(async (req: Request, res: Response) => {
   }
 
   // 查询记录
-  let records = await Record.find(queryConditions)
+  const records = await Record.find(queryConditions)
     .populate('user topic')
     .sort('-createdAt') // 按创建时间降序排序
     .skip((+current - 1) * +pageSize) // 跳过前面的记录

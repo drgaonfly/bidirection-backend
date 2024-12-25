@@ -1,77 +1,172 @@
 import { Request, Response } from 'express';
 import Answer from '../models/answer';
 import handleAsync from '../utils/handleAsync';
+import { CustomRequest } from './uploadController';
+import {
+  transformDocumentImage,
+  transformDocumentImages,
+} from '../utils/transformUtils';
 
-export const getAnswers = handleAsync(async (req: Request, res: Response) => {
+// dataPermissionController.ts
+const buildQuery = (queryParams: any): any => {
+  const query: any = {};
+
+  if (queryParams.brandName) {
+    query.brandName = { $regex: queryParams.brandName, $options: 'i' };
+  }
+
+  if (queryParams.packageImageUrl) {
+    query.packageImageUrl = {
+      $regex: queryParams.packageImageUrl,
+      $options: 'i',
+    };
+  }
+
+  if (queryParams.skuName) {
+    query.skuName = { $regex: queryParams.skuName, $options: 'i' };
+  }
+
+  if (queryParams.sn) {
+    query.sn = { $regex: queryParams.sn, $options: 'i' };
+  }
+
+  if (queryParams.spec) {
+    query.spec = { $regex: queryParams.spec, $options: 'i' };
+  }
+
+  return query;
+};
+
+// 获取所有答案
+const getAnswers = handleAsync(async (req: Request, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
-  const queryConditions: any = {};
+  const query = buildQuery(req.query);
 
-  let answers = await Answer.find(queryConditions)
+  const answers = await Answer.find(query)
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .exec();
 
-  const total = await Answer.countDocuments(queryConditions);
+  // 处理图片路径
+  const processedAnswers = await transformDocumentImages(answers, [
+    'packageImageUrl',
+  ]);
+
+  const total = await Answer.countDocuments(query).exec();
 
   res.json({
     success: true,
-    data: answers,
+    data: processedAnswers,
     total,
     current: +current,
     pageSize: +pageSize,
   });
 });
 
-export const addAnswer = handleAsync(async (req: Request, res: Response) => {
-  const { name, image } = req.body;
-  const newAnswer = new Answer({ name, image });
+// 添加答案
+const addAnswer = handleAsync(async (req: CustomRequest, res: Response) => {
+  const newAnswer = new Answer({
+    ...req.body,
+  });
+
   const savedAnswer = await newAnswer.save();
+
   res.json({
     success: true,
     data: savedAnswer,
   });
 });
 
-export const getAnswerById = handleAsync(
-  async (req: Request, res: Response) => {
-    const answer = await Answer.findById(req.params.id);
-    if (!answer) {
-      res.status(404);
-      throw new Error('Answer not found');
-    }
-    res.json({
-      success: true,
-      data: answer,
-    });
-  },
-);
+// 根据ID获取答案
+const getAnswerById = handleAsync(async (req: Request, res: Response) => {
+  const answer = await Answer.findById(req.params.id);
 
-export const updateAnswer = handleAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const updatedAnswer = await Answer.findByIdAndUpdate(id, req.body, {
-    new: true,
+  if (!answer) {
+    res.status(404);
+    throw new Error('答案不存在');
+  }
+
+  // 处理图片路径
+  const processedAnswer = await transformDocumentImage(
+    answer,
+    'packageImageUrl',
+  );
+
+  res.json({
+    success: true,
+    data: processedAnswer,
   });
+});
+
+// 更新答案
+const updateAnswer = handleAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const updatedAnswer = await Answer.findByIdAndUpdate(
+    id,
+    { ...req.body },
+    { new: true },
+  );
+
   if (!updatedAnswer) {
     res.status(404);
     throw new Error('Answer not found');
   }
+
+  // Transform document image
+  const processedAnswer = await transformDocumentImage(
+    updatedAnswer,
+    'packageImageUrl',
+  );
+
   res.json({
     success: true,
-    data: updatedAnswer,
+    data: processedAnswer,
   });
 });
 
-export const deleteAnswer = handleAsync(async (req: Request, res: Response) => {
+// 删除答案
+const deleteAnswer = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+
+  // 删除答案
   const answer = await Answer.findByIdAndDelete(id);
+
   if (!answer) {
     res.status(404);
     throw new Error('Answer not found');
   }
+
   res.json({
     success: true,
     data: { message: 'Answer deleted successfully' },
   });
 });
+
+// 批量删除答案
+const deleteMultipleAnswers = handleAsync(
+  async (req: Request, res: Response) => {
+    const { ids } = req.body;
+
+    // 使用 Mongoose 的 deleteMany 方法进行批量删除
+    await Answer.deleteMany({
+      _id: { $in: ids },
+    });
+
+    res.json({
+      success: true,
+      message: `${ids.length} answers deleted successfully`,
+    });
+  },
+);
+
+export {
+  getAnswers,
+  addAnswer,
+  getAnswerById,
+  updateAnswer,
+  deleteAnswer,
+  deleteMultipleAnswers,
+};

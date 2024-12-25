@@ -1,14 +1,22 @@
 import mongoose, { Document } from 'mongoose';
 
 export interface IAnswer extends Document {
-  name: string;
-  image: string;
+  brandName: string;
+  packageImageUrl: string;
+  skuName: string;
+  sn: string;
+  spec: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const answerSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    image: { type: String, required: true },
+    brandName: { type: String, required: true },
+    packageImageUrl: { type: String, required: true },
+    skuName: { type: String, required: true },
+    sn: { type: String, required: true },
+    spec: { type: String, required: true },
   },
   { timestamps: true },
 );

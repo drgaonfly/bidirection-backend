@@ -1,21 +1,28 @@
 import mongoose, { Document } from 'mongoose';
-import { ITopic } from './topic';
 
 export interface IRecord extends Document {
-  user: mongoose.Schema.Types.ObjectId; // 关联用户
-  topic: ITopic; // 关联到 Topic
-  answer: string; // 答案
+  users: mongoose.Types.ObjectId; // 关联用户
+  topics: mongoose.Types.ObjectId; // 关联到 Topic
+  answers: mongoose.Types.ObjectId; // 关联到 Answer
 }
 
 const recordSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    topic: {
+    users: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    topics: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Topic',
       required: true,
     },
-    answer: { type: String, required: true },
+    answers: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Answer',
+      required: true,
+    },
   },
   { timestamps: true },
 );

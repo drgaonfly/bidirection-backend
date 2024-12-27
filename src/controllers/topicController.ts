@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import Topic from '../models/topic';
 import handleAsync from '../utils/handleAsync';
+import {
+  transformDocumentImages,
+  transformDocumentImage,
+} from '../utils/transformUtils';
 
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
@@ -34,11 +38,14 @@ const getTopics = handleAsync(async (req: Request, res: Response) => {
     .limit(+pageSize)
     .exec();
 
+  // 处理视频路径
+  const processedTopics = await transformDocumentImages(topics, ['videoUrl']);
+
   const total = await Topic.countDocuments(query).exec();
 
   res.json({
     success: true,
-    data: topics,
+    data: processedTopics,
     total,
     current: +current,
     pageSize: +pageSize,
@@ -53,9 +60,12 @@ const addTopic = handleAsync(async (req: Request, res: Response) => {
 
   const savedTopic = await newTopic.save();
 
+  // 处理视频路径
+  const processedTopic = await transformDocumentImage(savedTopic, ['videoUrl']);
+
   res.json({
     success: true,
-    data: savedTopic,
+    data: processedTopic,
   });
 });
 
@@ -74,24 +84,36 @@ const getTopicById = handleAsync(async (req: Request, res: Response) => {
   }
 });
 
-// 更新topic
+// 更新客户
 const updateTopic = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const { videoUrl, ...otherFields } = req.body;
 
-  const updatedTopic = await Topic.findByIdAndUpdate(
-    id,
-    { ...req.body },
-    { new: true },
-  );
-
-  if (!updatedTopic) {
+  const topic = await Topic.findById(id);
+  if (!topic) {
     res.status(404);
     throw new Error('Topic not found');
   }
 
+  // 更新字段
+  const updates = {
+    ...(videoUrl && !videoUrl.startsWith('http') && { videoUrl }),
+    ...otherFields,
+  };
+
+  const updatedTopic = await Topic.findByIdAndUpdate(id, updates, {
+    new: true,
+    runValidators: true,
+  });
+
+  // 处理视频路径
+  const processedTopic = await transformDocumentImage(updatedTopic, [
+    'videoUrl',
+  ]);
+
   res.json({
     success: true,
-    data: updatedTopic,
+    data: processedTopic,
   });
 });
 

@@ -1,17 +1,15 @@
 import mongoose, { Document } from 'mongoose';
-import { IAnswer } from './answer';
+// import { IAnswer } from './answer';
 
 export interface ITopic extends Document {
-  video1: string;
-  video2: string;
+  videoUrl: string;
   issue: string;
-  answers: IAnswer;
+  answers: mongoose.Types.ObjectId;
 }
 
 const topicSchema = new mongoose.Schema(
   {
-    video1: { type: String, required: true },
-    video2: { type: String, required: true },
+    videoUrl: { type: String, trim: true },
     issue: {
       type: String,
       required: true,

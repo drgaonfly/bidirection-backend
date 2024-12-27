@@ -3,7 +3,6 @@ import mongoose, { Document } from 'mongoose';
 export interface IAnswer extends Document {
   Name: string;
   packageImageUrl: string;
-
   createdAt?: Date;
   updatedAt?: Date;
 }

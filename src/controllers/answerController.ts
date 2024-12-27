@@ -91,23 +91,30 @@ const getAnswerById = handleAsync(async (req: Request, res: Response) => {
 // 更新答案
 const updateAnswer = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const { packageImageUrl, ...otherFields } = req.body;
 
-  const updatedAnswer = await Answer.findByIdAndUpdate(
-    id,
-    { ...req.body },
-    { new: true },
-  );
-
-  if (!updatedAnswer) {
+  const answer = await Answer.findById(id);
+  if (!answer) {
     res.status(404);
-    throw new Error('Answer not found');
+    throw new Error('答案不存在');
   }
 
-  // Transform document image
-  const processedAnswer = await transformDocumentImage(
-    updatedAnswer,
+  // 更新字段
+  const updates = {
+    ...(packageImageUrl &&
+      !packageImageUrl.startsWith('http') && { packageImageUrl }),
+    ...otherFields,
+  };
+
+  const updatedAnswer = await Answer.findByIdAndUpdate(id, updates, {
+    new: true,
+    runValidators: true,
+  });
+
+  // 处理图片路径
+  const processedAnswer = await transformDocumentImage(updatedAnswer, [
     'packageImageUrl',
-  );
+  ]);
 
   res.json({
     success: true,

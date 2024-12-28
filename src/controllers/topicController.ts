@@ -39,7 +39,10 @@ const getTopics = handleAsync(async (req: Request, res: Response) => {
     .exec();
 
   // 处理视频路径
-  const processedTopics = await transformDocumentImages(topics, ['videoUrl']);
+  const processedTopics = await transformDocumentImages(topics, [
+    'video1',
+    'video2',
+  ]);
 
   const total = await Topic.countDocuments(query).exec();
 
@@ -61,7 +64,10 @@ const addTopic = handleAsync(async (req: Request, res: Response) => {
   const savedTopic = await newTopic.save();
 
   // 处理视频路径
-  const processedTopic = await transformDocumentImage(savedTopic, ['videoUrl']);
+  const processedTopic = await transformDocumentImage(savedTopic, [
+    'video1',
+    'video2',
+  ]);
 
   res.json({
     success: true,
@@ -87,7 +93,7 @@ const getTopicById = handleAsync(async (req: Request, res: Response) => {
 // 更新客户
 const updateTopic = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { videoUrl, ...otherFields } = req.body;
+  const { video1, video2, ...otherFields } = req.body;
 
   const topic = await Topic.findById(id);
   if (!topic) {
@@ -97,7 +103,8 @@ const updateTopic = handleAsync(async (req: Request, res: Response) => {
 
   // 更新字段
   const updates = {
-    ...(videoUrl && !videoUrl.startsWith('http') && { videoUrl }),
+    ...(video1 && !video1.startsWith('http') && { video1 }),
+    ...(video2 && !video2.startsWith('http') && { video2 }),
     ...otherFields,
   };
 
@@ -108,7 +115,8 @@ const updateTopic = handleAsync(async (req: Request, res: Response) => {
 
   // 处理视频路径
   const processedTopic = await transformDocumentImage(updatedTopic, [
-    'videoUrl',
+    'video1',
+    'video2',
   ]);
 
   res.json({

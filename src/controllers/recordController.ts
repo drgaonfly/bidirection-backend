@@ -35,8 +35,7 @@ export const getRecords = handleAsync(async (req: Request, res: Response) => {
 });
 
 export const addRecord = handleAsync(async (req: Request, res: Response) => {
-  const newRecord = new Record(req.body);
-  const savedRecord = await newRecord.save();
+  const savedRecord = await Record.create(req.body);
   res.json({
     success: true,
     data: savedRecord,

@@ -58,12 +58,13 @@ const getTopics = handleAsync(async (req: Request, res: Response) => {
 // 添加topic
 const addTopic = handleAsync(async (req: Request, res: Response) => {
   const now = new Date();
-  //生成题目编号
+  // 生成题目编号
   const uniqueNum = `${now.getFullYear()}${(now.getMonth() + 1)
     .toString()
-    .padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}${Math.floor(
-    Math.random() * 100000,
-  ).toString()}`; // 生成一个包含日期的唯一数字
+    .padStart(2, '0')}${now
+    .getDate()
+    .toString()
+    .padStart(2, '0')}${await generateUniqueNumber(5)}`; // 生成一个包含日期的唯一数字
   const newTopic = new Topic({
     ...req.body,
     number: uniqueNum, // 在新建时设置 number 字段
@@ -167,6 +168,17 @@ const deleteMultipleTopics = handleAsync(
     });
   },
 );
+
+// 新增生成唯一数字的编号
+const generateUniqueNumber = async (length: number): Promise<string> => {
+  let uniqueNumber;
+  do {
+    uniqueNumber = Math.floor(Math.random() * Math.pow(10, length))
+      .toString()
+      .padStart(length, '0'); // 生成指定长度的随机数字
+  } while (await Topic.findOne({ number: uniqueNumber })); // 确保唯一性
+  return uniqueNumber;
+};
 
 export {
   getTopics,

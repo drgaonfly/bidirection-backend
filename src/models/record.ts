@@ -5,7 +5,7 @@ export interface IRecord extends Document {
   topic: mongoose.Types.ObjectId; // 关联到 Topic
   answer: mongoose.Types.ObjectId; // 关联到 Answer
   issue: string[];
-  status: string;
+  status: string[];
   answerCount: number;
 }
 
@@ -31,8 +31,7 @@ const recordSchema = new mongoose.Schema(
       required: true,
     },
     status: {
-      type: String,
-      enum: ['正在', '答对', '答错'],
+      type: [String],
       required: true,
     },
     answerCount: {

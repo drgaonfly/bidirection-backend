@@ -15,9 +15,9 @@ export const getRecords = handleAsync(async (req: Request, res: Response) => {
 
   // 查询记录
   const records = await Record.find(queryConditions)
-    .populate('users')
-    .populate('topics')
-    .populate('answers')
+    .populate('user')
+    .populate('topic')
+    .populate('answer')
     .sort('-createdAt') // 按创建时间降序排序
     .skip((+current - 1) * +pageSize) // 跳过前面的记录
     .limit(+pageSize) // 限制返回的记录数

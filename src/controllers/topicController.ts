@@ -32,7 +32,7 @@ const getTopics = handleAsync(async (req: Request, res: Response) => {
 
   // 执行查询并使用 populate 填充 answers 数据
   const topics = await Topic.find(query)
-    .populate('answers') // 填充关联的 answers 数据
+    .populate('answer') // 填充关联的 answers 数据
     .sort('-createdAt') // 按创建时间倒序排序
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)

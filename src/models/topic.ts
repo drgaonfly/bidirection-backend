@@ -4,7 +4,7 @@ import mongoose, { Document } from 'mongoose';
 export interface ITopic extends Document {
   videoUrl: string;
   issue: string;
-  answers: mongoose.Types.ObjectId;
+  answer: mongoose.Types.ObjectId;
 }
 
 const topicSchema = new mongoose.Schema(
@@ -15,7 +15,7 @@ const topicSchema = new mongoose.Schema(
       required: true,
       enum: ['normal', 'unfriendly', 'recogError', 'videoError'],
     },
-    answers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Answer' }],
+    answer: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Answer' }],
   },
   { timestamps: true },
 );

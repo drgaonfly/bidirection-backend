@@ -1,24 +1,24 @@
 import mongoose, { Document } from 'mongoose';
 
 export interface IRecord extends Document {
-  users: mongoose.Types.ObjectId; // 关联用户
-  topics: mongoose.Types.ObjectId; // 关联到 Topic
-  answers: mongoose.Types.ObjectId; // 关联到 Answer
+  user: mongoose.Types.ObjectId; // 关联用户
+  topic: mongoose.Types.ObjectId; // 关联到 Topic
+  answer: mongoose.Types.ObjectId; // 关联到 Answer
 }
 
 const recordSchema = new mongoose.Schema(
   {
-    users: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
-    topics: {
+    topic: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Topic',
       required: true,
     },
-    answers: {
+    answer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Answer',
       required: true,

@@ -5,6 +5,7 @@ import {
   getRecordById,
   updateRecord,
   deleteRecord,
+  deleteMultipleRecords,
 } from '../controllers/recordController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
@@ -13,7 +14,8 @@ const router: Router = express.Router();
 router
   .route('/')
   .get(protect, checkPermission, getRecords)
-  .post(protect, checkPermission, addRecord);
+  .post(protect, checkPermission, addRecord)
+  .delete(protect, checkPermission, deleteMultipleRecords);
 
 router
   .route('/:id')

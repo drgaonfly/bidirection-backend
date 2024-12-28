@@ -57,14 +57,7 @@ const getTopics = handleAsync(async (req: Request, res: Response) => {
 
 // 添加topic
 const addTopic = handleAsync(async (req: Request, res: Response) => {
-  const now = new Date();
-  // 生成题目编号
-  const uniqueNum = `${now.getFullYear()}${(now.getMonth() + 1)
-    .toString()
-    .padStart(2, '0')}${now
-    .getDate()
-    .toString()
-    .padStart(2, '0')}${await generateUniqueNumber(5)}`; // 生成一个包含日期的唯一数字
+  const uniqueNum = await generateUniqueNumber(); // 直接调用 generateUniqueNumber
   const newTopic = new Topic({
     ...req.body,
     number: uniqueNum, // 在新建时设置 number 字段
@@ -170,14 +163,18 @@ const deleteMultipleTopics = handleAsync(
 );
 
 // 新增生成唯一数字的编号
-const generateUniqueNumber = async (length: number): Promise<string> => {
+const generateUniqueNumber = async (): Promise<string> => {
+  const now = new Date();
+  const prefix = `${now.getFullYear()}${(now.getMonth() + 1)
+    .toString()
+    .padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}`;
   let uniqueNumber;
   do {
-    uniqueNumber = Math.floor(Math.random() * Math.pow(10, length))
+    uniqueNumber = Math.floor(Math.random() * Math.pow(10, 5)) // 假设长度为5
       .toString()
-      .padStart(length, '0'); // 生成指定长度的随机数字
-  } while (await Topic.findOne({ number: uniqueNumber })); // 确保唯一性
-  return uniqueNumber;
+      .padStart(5, '0'); // 生成指定长度的随机数字
+  } while (await Topic.findOne({ number: `${prefix}${uniqueNumber}` })); // 确保唯一性
+  return `${prefix}${uniqueNumber}`; // 返回带前缀的唯一数字
 };
 
 export {

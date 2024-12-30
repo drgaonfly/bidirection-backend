@@ -63,7 +63,10 @@ export const submitNewbieTraining = handleAsync(
 export const getNewbieTraining = handleAsync(
   async (req: RequestCustom, res: Response) => {
     if (!req.user.topics || req.user.topics?.length === 0) {
-      const allTopics = await Topic.find().sort({ createdAt: -1 }).limit(30);
+      const allTopics = await Topic.aggregate([
+        { $sample: { size: await Topic.countDocuments().exec() } },
+      ]);
+
       req.user.topics = allTopics.map((topic) => ({
         topic: topic._id,
         status: 'pending',

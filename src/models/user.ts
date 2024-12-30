@@ -1,4 +1,5 @@
 import mongoose, { Document } from 'mongoose';
+import { ITopic } from './topic';
 
 export interface IUser extends Document {
   isAdmin: boolean;
@@ -8,8 +9,12 @@ export interface IUser extends Document {
   name: string;
   createdAt?: Date; // Time of document creation
   updatedAt?: Date; // Time the document was last updated
-  topic: mongoose.Types.ObjectId;
+  topic: mongoose.Types.ObjectId | ITopic;
   live: boolean;
+  topics: Array<{
+    topic: mongoose.Types.ObjectId | ITopic;
+    status: 'pending' | 'success' | 'fail';
+  }>;
 }
 
 const userSchema = new mongoose.Schema(
@@ -31,6 +36,10 @@ const userSchema = new mongoose.Schema(
         ref: 'Role', // Reference the Role model
       },
     ],
+    topic: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Topic',
+    },
     topics: [
       {
         topic: {

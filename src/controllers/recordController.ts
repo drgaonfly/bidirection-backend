@@ -72,11 +72,6 @@ export const getNewbieTraining = handleAsync(
       await req.user.save();
     }
 
-    // 查询记录以获取状态
-    const records = await Record.find({ user: req.user._id }); // 假设您要根据用户 ID 查询记录
-
-    // 继续获取题目数据
-    const topics = await Topic.find(); // 获取所有题目数据
     res.json({
       success: true,
       data: {

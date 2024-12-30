@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import Record from '../models/record';
 import handleAsync from '../utils/handleAsync';
+import Topic from '../models/topic';
 
+//获取记录管理列表
 export const getRecords = handleAsync(async (req: Request, res: Response) => {
   const { current = '1', pageSize = '10', user, topic } = req.query;
 
@@ -33,6 +35,37 @@ export const getRecords = handleAsync(async (req: Request, res: Response) => {
     pageSize: +pageSize,
   });
 });
+
+// 提交新手训练记录
+export const submitNewbieTraining = handleAsync(
+  async (req: Request, res: Response) => {
+    const { userId, topicId, content } = req.body; // 假设提交的内容包含 userId、topicId 和内容
+
+    // 创建新的记录
+    const newRecord = await Record.create({
+      user: userId,
+      topic: topicId,
+      content,
+    });
+
+    res.json({
+      success: true,
+      data: newRecord,
+    });
+  },
+);
+
+// 获取题目数据
+export const getNewbieTraining = handleAsync(
+  async (req: Request, res: Response) => {
+    const topics = await Topic.find(); // 获取所有题目数据
+
+    res.json({
+      success: true,
+      data: topics,
+    });
+  },
+);
 
 export const addRecord = handleAsync(async (req: Request, res: Response) => {
   const savedRecord = await Record.create(req.body);

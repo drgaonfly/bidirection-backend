@@ -4,8 +4,8 @@ export interface IRecord extends Document {
   user: mongoose.Types.ObjectId; // 关联用户
   topic: mongoose.Types.ObjectId; // 关联到 Topic
   answer: mongoose.Types.ObjectId; // 关联到 Answer
-  issue: string[];
-  status: string[];
+  issue: string;
+  status: string;
   answerCount: number;
 }
 
@@ -27,16 +27,17 @@ const recordSchema = new mongoose.Schema(
       required: true,
     },
     issue: {
-      type: [String],
+      type: String,
       required: true,
     },
     status: {
-      type: [String],
+      type: String,
       required: true,
     },
     answerCount: {
       type: Number,
       required: true,
+      default: 1,
     },
   },
   { timestamps: true },

@@ -1,21 +1,29 @@
 import mongoose, { Document } from 'mongoose';
-// import { IAnswer } from './answer';
+import { IAnswer } from './answer';
 
 export interface ITopic extends Document {
   video1: string;
-  video2: string;
-  answer: mongoose.Types.ObjectId;
-  number: number; // 编号
-  answerCount: number; // 数量
+  video2?: string;
+  topicNumber: number;
+  answers: Array<mongoose.Types.ObjectId | IAnswer>;
+  correctAnswer: Array<{
+    answer: mongoose.Types.ObjectId | IAnswer;
+    count: number;
+  }>;
 }
 
 const topicSchema = new mongoose.Schema(
   {
-    video1: { type: String, trim: true },
-    video2: { type: String, trim: true },
-    number: { type: Number, required: true },
-    answer: { type: mongoose.Schema.Types.ObjectId, ref: 'Answer' },
-    answerCount: { type: Number, required: true, default: 1 }, // 添加数量字段，默认为 1
+    video1: { type: String, trim: true, required: true },
+    video2: { type: String, trim: true, required: false },
+    topicNumber: { type: Number, required: true, unique: true },
+    answers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Answer' }],
+    correctAnswer: [
+      {
+        answer: { type: mongoose.Schema.Types.ObjectId, ref: 'Answer' },
+        count: { type: Number, default: 1 },
+      },
+    ],
   },
   { timestamps: true },
 );

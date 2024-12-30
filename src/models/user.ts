@@ -31,10 +31,17 @@ const userSchema = new mongoose.Schema(
         ref: 'Role', // Reference the Role model
       },
     ],
-    topic: [
+    topics: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Topic',
+        topic: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Topic',
+        },
+        status: {
+          type: String,
+          enum: ['pending', 'success', 'fail'],
+          default: 'pending',
+        },
       },
     ],
   },

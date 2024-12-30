@@ -21,11 +21,18 @@ const recordSchema = new mongoose.Schema(
       ref: 'Topic',
       required: true,
     },
-    answer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Answer',
-      required: true,
-    },
+    answers: [
+      {
+        answer: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Answer',
+        },
+        count: {
+          type: Number,
+          default: 1,
+        },
+      },
+    ],
     issue: {
       type: String,
       required: true,
@@ -33,11 +40,8 @@ const recordSchema = new mongoose.Schema(
     status: {
       type: String,
       required: true,
-    },
-    answerCount: {
-      type: Number,
-      required: true,
-      default: 1,
+      default: 'pending',
+      enum: ['pending', 'success', 'fail'],
     },
   },
   { timestamps: true },

@@ -225,6 +225,10 @@ export const scrapeData = handleAsync(async (req: Request, res: Response) => {
     (item: { sn: string }) => item.sn,
   );
 
+  const rows = topicDetails.itemInfoList.map(
+    (item: { row: number }) => item.row,
+  );
+
   const answer = await getAnswersBySns(token, snList);
 
   const newAnswers = new Answer({

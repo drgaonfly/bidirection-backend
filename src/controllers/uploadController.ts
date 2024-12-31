@@ -9,6 +9,7 @@ import {
   generateSignedUrlForOSS,
   generateSignedUrlForS3,
 } from '../utils/generateSignedUrl';
+import axios from 'axios';
 
 export interface MulterFile extends Express.Multer.File {}
 
@@ -97,6 +98,37 @@ export const uploadFileToOSS = handleAsync(
 
     // Optionally, delete the file from /tmp directory after uploading
     fs.unlinkSync(filePath);
+
+    // Generate a signed URL with read permission (valid for 1 hour)
+    const signedURL = await generateSignedUrlForOSS(ossPath);
+
+    res.json({
+      success: true,
+      data: { signedURL, file: ossPath },
+    });
+  },
+);
+
+export const uploadFileToOSSByUrl = handleAsync(
+  async (req: Request, res: Response) => {
+    const { url } = req.body;
+
+    if (!url) {
+      res.status(400);
+      throw new Error('No URL provided');
+    }
+
+    const ossPath = `taskOssUploads/${url.split('/').pop()}`;
+
+    // Download the file from URL
+    const response = await axios({
+      url,
+      method: 'GET',
+      responseType: 'stream',
+    });
+
+    // Upload the file content to OSS
+    await ossClient.put(ossPath, response.data);
 
     // Generate a signed URL with read permission (valid for 1 hour)
     const signedURL = await generateSignedUrlForOSS(ossPath);

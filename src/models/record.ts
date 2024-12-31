@@ -4,7 +4,7 @@ export interface IRecord extends Document {
   user: mongoose.Types.ObjectId; // 关联用户
   topic: mongoose.Types.ObjectId; // 关联到 Topic
   issue: string;
-  status: string;
+  status: 'pending' | 'success' | 'fail';
   answers: Array<{
     answer: mongoose.Types.ObjectId;
     count: number;

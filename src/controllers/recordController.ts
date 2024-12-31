@@ -4,8 +4,7 @@ import handleAsync from '../utils/handleAsync';
 import Topic from '../models/topic';
 import { RequestCustom } from '../types/user';
 import { exclude } from '../utils/handleData';
-import Answer from '../models/answer';
-import mongoose from 'mongoose';
+import User from '../models/user';
 
 //获取记录管理列表
 export const getRecords = handleAsync(async (req: Request, res: Response) => {
@@ -45,12 +44,23 @@ export const submitNewbieTraining = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const topicId = req.params.id; // 从路由参数中获取 topicId
     const { answers, issue } = req.body; // 提交的内容包含 answers
-    const userId = req.user._id; // 从 req.user 中获取用户 ID
+    const currentUser = await User.findById(req.user._id);
 
-    if (!topicId) {
-      res.status(400);
-      throw new Error('Invalid request');
+    const topic = await Topic.findById(topicId)
+      .populate({
+        path: 'answers',
+        model: 'Answer',
+      })
+      .populate({
+        path: 'correctAnswers.answer',
+        model: 'Answer',
+      });
+
+    if (!topic) {
+      res.status(404);
+      throw new Error('Topic not found');
     }
+
     // 如果 issue 是无异常才是要 answers
     let answersToSave = [];
 
@@ -60,15 +70,53 @@ export const submitNewbieTraining = handleAsync(
 
     // 创建新的记录
     const newRecord = await Record.create({
-      user: userId,
+      user: currentUser._id,
       topic: topicId,
       answers: answersToSave,
       issue,
     });
 
+    let status: 'pending' | 'success' | 'fail' = 'pending';
+
+    if (topic.correctAnswers === answers) {
+      status = 'success';
+    } else {
+      status = 'fail';
+    }
+
+    newRecord.status = status;
+
+    await newRecord.save();
+
+    currentUser.topics = currentUser.topics.map((topic) => {
+      if (topic.topic.toString() === topicId) {
+        return {
+          topic: topic.topic,
+          status: status,
+        };
+      }
+      return topic;
+    });
+
+    const nextTopic = currentUser.topics.find(
+      (topic) =>
+        topic.topic.toString() !== topicId && topic.status === 'pending',
+    );
+
+    if (nextTopic) {
+      currentUser.currentTopic = nextTopic.topic;
+    } else {
+      currentUser.currentTopic = null;
+    }
+
+    await currentUser.save();
+
     res.json({
       success: true,
-      data: newRecord,
+      data: {
+        record: newRecord,
+        user: exclude(currentUser.toObject(), 'password'),
+      },
     });
   },
 );

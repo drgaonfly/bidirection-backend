@@ -6,7 +6,7 @@ export interface ITopic extends Document {
   video2?: string;
   topicNumber: number;
   answers: Array<mongoose.Types.ObjectId | IAnswer>;
-  correctAnswer: Array<{
+  correctAnswers: Array<{
     answer: mongoose.Types.ObjectId | IAnswer;
     count: number;
   }>;
@@ -18,7 +18,7 @@ const topicSchema = new mongoose.Schema(
     video2: { type: String, trim: true, required: false },
     topicNumber: { type: Number, required: true, unique: true },
     answers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Answer' }],
-    correctAnswer: [
+    correctAnswers: [
       {
         answer: { type: mongoose.Schema.Types.ObjectId, ref: 'Answer' },
         count: { type: Number, default: 1 },

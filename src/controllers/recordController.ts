@@ -41,10 +41,14 @@ export const getRecords = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
+const url = 'https://api.cabinet-rgshb.hetuntech.cn/graphql';
+const token =
+  'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsic291cmNlIjoiQ09OU09MRSIsImFkbWluSWQiOiI1NTg3NTE4ZS03OGQzLTRhNjAtODc1OS0wN2UzMzQzMWZhZWYiLCJzZXNzaW9uSWQiOiJiMDNiNGU2OC01NmMwLTQwMDAtYmY0Ny1mYmNhMGFmNDljNGMifSwiaWF0IjoxNzM1MDMxMDAyfQ.GbV2uiqkC2qOxV3SKwSSQmSitcimOwceSyfunqlVyrI';
+
 // 第一个请求
-const getFirstData = async () => {
+const getIddata = async (token: string) => {
   const response = await axios.post(
-    'https://api.cabinet-rgshb.hetuntech.cn/graphql',
+    url,
     {
       operationName: null,
       variables: {
@@ -73,18 +77,17 @@ const getFirstData = async () => {
     },
     {
       headers: {
-        Authorization:
-          'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsic291cmNlIjoiQ09OU09MRSIsImFkbWluSWQiOiI1NTg3NTE4ZS03OGQzLTRhNjAtODc1OS0wN2UzMzQzMWZhZWYiLCJzZXNzaW9uSWQiOiJiMDNiNGU2OC01NmMwLTQwMDAtYmY0Ny1mYmNhMGFmNDljNGMifSwiaWF0IjoxNzM1MDMxMDAyfQ.GbV2uiqkC2qOxV3SKwSSQmSitcimOwceSyfunqlVyrI',
+        Authorization: token,
       },
     },
   );
   return response.data.data.result.nodes;
 };
 
-// 第二个请求
-const getSecondData = async () => {
+//
+const getNumber = async (token: string) => {
   const response = await axios.post(
-    'https://api.cabinet-rgshb.hetuntech.cn/graphql',
+    url,
     {
       operationName: null,
       variables: {
@@ -118,42 +121,17 @@ const getSecondData = async () => {
     },
     {
       headers: {
-        Authorization:
-          'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsic291cmNlIjoiQ09OU09MRSIsImFkbWluSWQiOiI1NTg3NTE4ZS03OGQzLTRhNjAtODc1OS0wN2UzMzQzMWZhZWYiLCJzZXNzaW9uSWQiOiJiMDNiNGU2OC01NmMwLTQwMDAtYmY0Ny1mYmNhMGFmNDljNGMifSwiaWF0IjoxNzM1MDMxMDAyfQ.GbV2uiqkC2qOxV3SKwSSQmSitcimOwceSyfunqlVyrI',
+        Authorization: token,
       },
     },
   );
   return response.data.data.result.nodes;
 };
 
-// 第三个请求
-const getThirdData = async () => {
+// 获取answer
+const getanswer = async (token: string) => {
   const response = await axios.post(
-    'https://api.cabinet-rgshb.hetuntech.cn/graphql',
-    {
-      operationName: null,
-      variables: {},
-      query: `{
-        result: generateRandomOrderLibrary {
-          idList
-          __typename
-        }
-      }`,
-    },
-    {
-      headers: {
-        Authorization:
-          'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsic291cmNlIjoiQ09OU09MRSIsImFkbWluSWQiOiI1NTg3NTE4ZS03OGQzLTRhNjAtODc1OS0wN2UzMzQzMWZhZWYiLCJzZXNzaW9uSWQiOiI2M2Q1YzRhOS1hYmRmLTQ1NDMtOWYyZS05MzZjMDE2NGFiNDAifSwiaWF0IjoxNzM1MjkxMDQwfQ.w3atZfK0rexlkHAyXKawTmm-wivKwpZnj9SJEarmd0Y',
-      },
-    },
-  );
-  return response.data.data.result;
-};
-
-// 第四个请求
-const getFourthData = async () => {
-  const response = await axios.post(
-    'https://api.cabinet-rgshb.hetuntech.cn/graphql',
+    url,
     {
       operationName: null,
       variables: {
@@ -180,8 +158,7 @@ const getFourthData = async () => {
     },
     {
       headers: {
-        Authorization:
-          'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsic291cmNlIjoiQ09OU09MRSIsImFkbWluSWQiOiI1NTg3NTE4ZS03OGQzLTRhNjAtODc1OS0wN2UzMzQzMWZhZWYiLCJzZXNzaW9uSWQiOiI2M2Q1YzRhOS1hYmRmLTQ1NDMtOWYyZS05MzZjMDE2NGFiNDAifSwiaWF0IjoxNzM1MjkxMDQwfQ.w3atZfK0rexlkHAyXKawTmm-wivKwpZnj9SJEarmd0Y',
+        Authorization: token,
       },
     },
   );
@@ -191,11 +168,10 @@ const getFourthData = async () => {
 // 爬取数据的主接口
 export const scrapeData = handleAsync(async (req: Request, res: Response) => {
   // 并行执行所有请求
-  const [firstData, secondData, thirdData, fourthResponse] = await Promise.all([
-    getFirstData(),
-    getSecondData(),
-    getThirdData(),
-    getFourthData(),
+  const [firstData, secondData, fourthResponse] = await Promise.all([
+    getIddata(token),
+    getNumber(token),
+    getanswer(token),
   ]);
 
   const answers = await Answer.find({});
@@ -232,7 +208,6 @@ export const scrapeData = handleAsync(async (req: Request, res: Response) => {
     data: {
       firstData,
       secondData,
-      thirdData,
       fourthData,
     },
   });

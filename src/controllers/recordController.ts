@@ -42,7 +42,8 @@ export const getRecords = handleAsync(async (req: Request, res: Response) => {
 
 // 爬取数据的接口
 export const scrapeData = handleAsync(async (req: Request, res: Response) => {
-  const { data } = await axios.post(
+  // 第一个请求
+  const { data: firstData } = await axios.post(
     'https://api.cabinet-rgshb.hetuntech.cn/graphql',
     {
       operationName: null,
@@ -77,9 +78,113 @@ export const scrapeData = handleAsync(async (req: Request, res: Response) => {
       },
     },
   );
+
+  // 第二个请求
+  const { data: secondData } = await axios.post(
+    'https://api.cabinet-rgshb.hetuntech.cn/graphql',
+    {
+      operationName: null,
+      variables: {
+        id: '20241108646988844281110528',
+        limit: 1,
+        privilege: 'STAFF',
+      },
+      query: `query ($limit: Int, $offset: Int, $privilege: OrderLibraryPrivilegeEnum, $id: String) {
+        result: orderLibraryConnection(
+          limit: $limit
+          offset: $offset
+          privilege: $privilege
+          id: $id
+        ) {
+          nodes {
+            id
+            createdAt
+            updatedAt
+            trade
+            type
+            videoList
+            itemInfoList
+            chooseItemList
+            preselectedItem
+            __typename
+          }
+          totalCount
+          __typename
+        }
+      }`,
+    },
+    {
+      headers: {
+        Authorization:
+          'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsic291cmNlIjoiQ09OU09MRSIsImFkbWluSWQiOiI1NTg3NTE4ZS03OGQzLTRhNjAtODc1OS0wN2UzMzQzMWZhZWYiLCJzZXNzaW9uSWQiOiJiMDNiNGU2OC01NmMwLTQwMDAtYmY0Ny1mYmNhMGFmNDljNGMifSwiaWF0IjoxNzM1MDMxMDAyfQ.GbV2uiqkC2qOxV3SKwSSQmSitcimOwceSyfunqlVyrI',
+      },
+    },
+  );
+
+  // 第三个请求
+  const { data: thirdData } = await axios.post(
+    'https://api.cabinet-rgshb.hetuntech.cn/graphql',
+    {
+      operationName: null,
+      variables: {},
+      query: `{
+        result: generateRandomOrderLibrary {
+          idList
+          __typename
+        }
+      }`,
+    },
+    {
+      headers: {
+        Authorization:
+          'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsic291cmNlIjoiQ09OU09MRSIsImFkbWluSWQiOiI1NTg3NTE4ZS03OGQzLTRhNjAtODc1OS0wN2UzMzQzMWZhZWYiLCJzZXNzaW9uSWQiOiI2M2Q1YzRhOS1hYmRmLTQ1NDMtOWYyZS05MzZjMDE2NGFiNDAifSwiaWF0IjoxNzM1MjkxMDQwfQ.w3atZfK0rexlkHAyXKawTmm-wivKwpZnj9SJEarmd0Y',
+      },
+    },
+  );
+
+  // 第四个请求
+  const { data: fourthData } = await axios.post(
+    'https://api.cabinet-rgshb.hetuntech.cn/graphql',
+    {
+      operationName: null,
+      variables: {
+        storeId: '',
+        snList: ['09974444221'],
+        privilege: 'ADMIN',
+      },
+      query: `query ($snList: [String!]!, $storeId: String!) {
+        result: optionalItemList(snList: $snList, storeId: $storeId) {
+          totalCount
+          list {
+            id: sysSkuId
+            brandName
+            createdTime
+            sn: productCode
+            skuName
+            spec
+            packageImageUrl
+            __typename
+          }
+          __typename
+        }
+      }`,
+    },
+    {
+      headers: {
+        Authorization:
+          'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsic291cmNlIjoiQ09OU09MRSIsImFkbWluSWQiOiI1NTg3NTE4ZS03OGQzLTRhNjAtODc1OS0wN2UzMzQzMWZhZWYiLCJzZXNzaW9uSWQiOiI2M2Q1YzRhOS1hYmRmLTQ1NDMtOWYyZS05MzZjMDE2NGFiNDAifSwiaWF0IjoxNzM1MjkxMDQwfQ.w3atZfK0rexlkHAyXKawTmm-wivKwpZnj9SJEarmd0Y',
+      },
+    },
+  );
+
   res.json({
     success: true,
-    data: data.data.result.nodes,
+    data: {
+      firstData: firstData.data.result.nodes,
+      secondData: secondData.data.result.nodes,
+      thirdData: thirdData.data.result,
+      fourthData: fourthData.data.result,
+    },
   });
 });
 

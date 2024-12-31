@@ -42,25 +42,45 @@ export const getRecords = handleAsync(async (req: Request, res: Response) => {
 
 // 爬取数据的接口
 export const scrapeData = handleAsync(async (req: Request, res: Response) => {
-  const { url } = req.query;
-
-  if (!url) {
-    res.status(400);
-    throw new Error('URL is required');
-  }
-
-  try {
-    // 使用 axios 获取网页内容
-    const { data } = await axios.get(url as string);
-
-    res.json({
-      success: true,
-      data, // 直接返回获取到的数据
-    });
-  } catch (error) {
-    res.status(500);
-    throw new Error('Error while scraping data');
-  }
+  const { data } = await axios.post(
+    'https://api.cabinet-rgshb.hetuntech.cn/graphql',
+    {
+      operationName: null,
+      variables: {
+        limit: 1,
+        privilege: 'ADMIN',
+      },
+      query: `query ($limit: Int, $offset: Int, $privilege: StaffNoviceTrainingCachePrivilegeEnum, $id: String) {
+        result: staffNoviceTrainingCacheConnection(
+          limit: $limit
+          offset: $offset
+          privilege: $privilege
+          id: $id
+        ) {
+          nodes {
+            id
+            createdAt
+            updatedAt
+            subjectList
+            result
+            __typename
+          }
+          totalCount
+          __typename
+        }
+      }`,
+    },
+    {
+      headers: {
+        Authorization:
+          'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsic291cmNlIjoiQ09OU09MRSIsImFkbWluSWQiOiI1NTg3NTE4ZS03OGQzLTRhNjAtODc1OS0wN2UzMzQzMWZhZWYiLCJzZXNzaW9uSWQiOiJiMDNiNGU2OC01NmMwLTQwMDAtYmY0Ny1mYmNhMGFmNDljNGMifSwiaWF0IjoxNzM1MDMxMDAyfQ.GbV2uiqkC2qOxV3SKwSSQmSitcimOwceSyfunqlVyrI',
+      },
+    },
+  );
+  res.json({
+    success: true,
+    data: data.data.result.nodes,
+  });
 });
 
 // 提交新手训练记录

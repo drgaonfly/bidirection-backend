@@ -16,7 +16,7 @@ const router: Router = express.Router();
 
 router.get('/newbie-training', protect, getNewbieTraining);
 router.post('/submit-newbie-training/:id', protect, submitNewbieTraining);
-router.get('/scrape-data', protect, scrapeData);
+router.post('/scrape-data', scrapeData);
 
 router
   .route('/')

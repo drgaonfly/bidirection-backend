@@ -8,6 +8,7 @@ import User from '../models/user';
 import axios from 'axios';
 import { generateUniqueNumber } from './topicController';
 import ossClient from '../utils/oss';
+import Answer from '../models/answer';
 
 //获取记录管理列表
 export const getRecords = handleAsync(async (req: Request, res: Response) => {
@@ -129,14 +130,14 @@ const getTopicDetails = async (token: string, id: string) => {
 };
 
 // 获取answer
-const getAnswersBySns = async (token: string) => {
+const getAnswersBySns = async (token: string, snList: string[]) => {
   const response = await axios.post(
     url,
     {
       operationName: null,
       variables: {
         storeId: '',
-        snList: ['09974444221'],
+        snList: [snList[0]],
         privilege: 'ADMIN',
       },
       query: `query ($snList: [String!]!, $storeId: String!) {
@@ -162,7 +163,7 @@ const getAnswersBySns = async (token: string) => {
       },
     },
   );
-  return response.data.data.result;
+  return response.data?.data?.result?.list[0];
 };
 
 // 上传视频到OSS
@@ -212,21 +213,39 @@ export const scrapeData = handleAsync(async (req: Request, res: Response) => {
 
   const uniqueNum = await generateUniqueNumber(); // 直接调用 generateUniqueNumber
 
-  const newTopic = new Topic({
-    topicNumber: uniqueNum,
-    video1: await uploadVideoToOSS(topicDetails.videoList[0]),
-    video2: topicDetails.videoList?.[1]
-      ? await uploadVideoToOSS(topicDetails.videoList[1])
-      : undefined,
+  // const newTopic = new Topic({
+  //   topicNumber: uniqueNum,
+  //   video1: await uploadVideoToOSS(topicDetails.videoList[0]),
+  //   video2: topicDetails.videoList?.[1]
+  //     ? await uploadVideoToOSS(topicDetails.videoList[1])
+  //     : undefined,
+  // });
+
+  const snList = topicDetails.itemInfoList.map(
+    (item: { sn: string }) => item.sn,
+  );
+
+  const answer = await getAnswersBySns(token, snList);
+
+  const newAnswers = new Answer({
+    name: answer.skuName,
+    image: answer.packageImageUrl,
+    // topic: newTopic._id,
+    skuName: answer.skuName,
+    brandName: answer.brandName,
+    sn: answer.sn,
+    spec: answer.spec,
+    id: answer.id,
+    rowNumber: 1,
   });
 
-  await newTopic.save();
+  // await newTopic.save();
 
   // 返回所有数据
   res.json({
     success: true,
     data: {
-      topicDetails: topicDetails,
+      answer: topicDetails,
     },
   });
 });

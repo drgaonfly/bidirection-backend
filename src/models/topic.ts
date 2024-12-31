@@ -17,6 +17,7 @@ const topicSchema = new mongoose.Schema(
     video1: { type: String, trim: true, required: true },
     video2: { type: String, trim: true, required: false },
     topicNumber: { type: Number, required: true, unique: true },
+    id: { type: String, required: false },
     answers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Answer' }],
     correctAnswers: [
       {

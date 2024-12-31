@@ -5,6 +5,13 @@ import Topic from '../models/topic';
 import { RequestCustom } from '../types/user';
 import { exclude } from '../utils/handleData';
 import User from '../models/user';
+import axios from 'axios';
+import cheerio from 'cheerio';
+
+interface ScrapeResult {
+  title: string;
+  description: string;
+}
 
 //获取记录管理列表
 export const getRecords = handleAsync(async (req: Request, res: Response) => {
@@ -37,6 +44,39 @@ export const getRecords = handleAsync(async (req: Request, res: Response) => {
     current: +current,
     pageSize: +pageSize,
   });
+});
+
+// 爬取数据的接口
+export const scrapeData = handleAsync(async (req: Request, res: Response) => {
+  const { url } = req.query;
+
+  if (!url) {
+    res.status(400);
+    throw new Error('URL is required');
+  }
+
+  try {
+    // 使用 axios 获取网页内容
+    const { data } = await axios.get(url as string);
+    const $ = cheerio.load(data);
+
+    // 假设我们要爬取标题和描述
+    const results: ScrapeResult[] = [];
+    $('h1, h2, h3').each((index, element) => {
+      results.push({
+        title: $(element).text(),
+        description: $(element).next('p').text(), // 假设描述在标题后面
+      });
+    });
+
+    res.json({
+      success: true,
+      data: results,
+    });
+  } catch (error) {
+    res.status(500);
+    throw new Error('Error while scraping data');
+  }
 });
 
 // 提交新手训练记录

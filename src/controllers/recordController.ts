@@ -46,7 +46,7 @@ const token =
   'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsic291cmNlIjoiQ09OU09MRSIsImFkbWluSWQiOiI1NTg3NTE4ZS03OGQzLTRhNjAtODc1OS0wN2UzMzQzMWZhZWYiLCJzZXNzaW9uSWQiOiJiMDNiNGU2OC01NmMwLTQwMDAtYmY0Ny1mYmNhMGFmNDljNGMifSwiaWF0IjoxNzM1MDMxMDAyfQ.GbV2uiqkC2qOxV3SKwSSQmSitcimOwceSyfunqlVyrI';
 
 // 第一个请求
-const getIddata = async (token: string) => {
+const getAllTopics = async (token: string) => {
   const response = await axios.post(
     url,
     {
@@ -85,7 +85,7 @@ const getIddata = async (token: string) => {
 };
 
 //
-const getNumber = async (token: string) => {
+const getTopicDetails = async (token: string) => {
   const response = await axios.post(
     url,
     {
@@ -129,7 +129,7 @@ const getNumber = async (token: string) => {
 };
 
 // 获取answer
-const getanswer = async (token: string) => {
+const getAnswersBySns = async (token: string) => {
   const response = await axios.post(
     url,
     {
@@ -169,9 +169,9 @@ const getanswer = async (token: string) => {
 export const scrapeData = handleAsync(async (req: Request, res: Response) => {
   // 并行执行所有请求
   const [firstData, secondData, fourthResponse] = await Promise.all([
-    getIddata(token),
-    getNumber(token),
-    getanswer(token),
+    getAllTopics(token),
+    getTopicDetails(token),
+    getAnswersBySns(token),
   ]);
 
   const answers = await Answer.find({});

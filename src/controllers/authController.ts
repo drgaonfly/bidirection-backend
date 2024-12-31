@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import User, { IUser } from '../models/user'; // 假设你的用户模型位于 /models/User.ts
+import User from '../models/user'; // 假设你的用户模型位于 /models/User.ts
 import { generateToken, generateRefreshToken } from '../utils/generateToken';
 import handleAsync from '../utils/handleAsync';
 import { exclude } from '../utils/handleData';

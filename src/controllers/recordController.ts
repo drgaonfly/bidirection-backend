@@ -6,12 +6,6 @@ import { RequestCustom } from '../types/user';
 import { exclude } from '../utils/handleData';
 import User from '../models/user';
 import axios from 'axios';
-import cheerio from 'cheerio';
-
-interface ScrapeResult {
-  title: string;
-  description: string;
-}
 
 //获取记录管理列表
 export const getRecords = handleAsync(async (req: Request, res: Response) => {
@@ -58,20 +52,10 @@ export const scrapeData = handleAsync(async (req: Request, res: Response) => {
   try {
     // 使用 axios 获取网页内容
     const { data } = await axios.get(url as string);
-    const $ = cheerio.load(data);
-
-    // 假设我们要爬取标题和描述
-    const results: ScrapeResult[] = [];
-    $('h1, h2, h3').each((index, element) => {
-      results.push({
-        title: $(element).text(),
-        description: $(element).next('p').text(), // 假设描述在标题后面
-      });
-    });
 
     res.json({
       success: true,
-      data: results,
+      data, // 直接返回获取到的数据
     });
   } catch (error) {
     res.status(500);

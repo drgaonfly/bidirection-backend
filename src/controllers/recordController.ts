@@ -6,6 +6,7 @@ import { RequestCustom } from '../types/user';
 import { exclude } from '../utils/handleData';
 import User from '../models/user';
 import axios from 'axios';
+import Answer from '../models/answer';
 
 //获取记录管理列表
 export const getRecords = handleAsync(async (req: Request, res: Response) => {
@@ -40,10 +41,9 @@ export const getRecords = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-// 爬取数据的接口
-export const scrapeData = handleAsync(async (req: Request, res: Response) => {
-  // 第一个请求
-  const { data: firstData } = await axios.post(
+// 第一个请求
+const getFirstData = async () => {
+  const response = await axios.post(
     'https://api.cabinet-rgshb.hetuntech.cn/graphql',
     {
       operationName: null,
@@ -78,9 +78,12 @@ export const scrapeData = handleAsync(async (req: Request, res: Response) => {
       },
     },
   );
+  return response.data.data.result.nodes;
+};
 
-  // 第二个请求
-  const { data: secondData } = await axios.post(
+// 第二个请求
+const getSecondData = async () => {
+  const response = await axios.post(
     'https://api.cabinet-rgshb.hetuntech.cn/graphql',
     {
       operationName: null,
@@ -120,9 +123,12 @@ export const scrapeData = handleAsync(async (req: Request, res: Response) => {
       },
     },
   );
+  return response.data.data.result.nodes;
+};
 
-  // 第三个请求
-  const { data: thirdData } = await axios.post(
+// 第三个请求
+const getThirdData = async () => {
+  const response = await axios.post(
     'https://api.cabinet-rgshb.hetuntech.cn/graphql',
     {
       operationName: null,
@@ -141,9 +147,12 @@ export const scrapeData = handleAsync(async (req: Request, res: Response) => {
       },
     },
   );
+  return response.data.data.result;
+};
 
-  // 第四个请求
-  const { data: fourthData } = await axios.post(
+// 第四个请求
+const getFourthData = async () => {
+  const response = await axios.post(
     'https://api.cabinet-rgshb.hetuntech.cn/graphql',
     {
       operationName: null,
@@ -176,16 +185,62 @@ export const scrapeData = handleAsync(async (req: Request, res: Response) => {
       },
     },
   );
+  return response.data.data.result;
+};
 
-  res.json({
-    success: true,
-    data: {
-      firstData: firstData.data.result.nodes,
-      secondData: secondData.data.result.nodes,
-      thirdData: thirdData.data.result,
-      fourthData: fourthData.data.result,
-    },
-  });
+// 爬取数据的主接口
+export const scrapeData = handleAsync(async (req: Request, res: Response) => {
+  try {
+    // 并行执行所有请求
+    const [firstData, secondData, thirdData, fourthResponse] =
+      await Promise.all([
+        getFirstData(),
+        getSecondData(),
+        getThirdData(),
+        getFourthData(),
+      ]);
+
+    const answers = await Answer.find({});
+
+    console.log(answers);
+
+    // 提取 fourthData
+    const fourthData = {
+      id: fourthResponse.list[0].id,
+      brandName: fourthResponse.list[0].brandName,
+      sn: fourthResponse.list[0].sn,
+      skuName: fourthResponse.list[0].skuName,
+      spec: fourthResponse.list[0].spec,
+      packageImageUrl: fourthResponse.list[0].packageImageUrl,
+    };
+
+    // 创建新的 Answer 实例
+    const newAnswer = new Answer({
+      name: 'Default Name', // 你可以根据需要设置默认值
+      image: fourthData.packageImageUrl, // 使用 packageImageUrl 作为图像
+      topic: null, // 根据需要设置
+      skuName: fourthData.skuName,
+      sn: fourthData.sn,
+      spec: fourthData.spec,
+      id: fourthData.id,
+    });
+
+    // 保存到数据库
+    await newAnswer.save();
+
+    // 返回所有数据
+    res.json({
+      success: true,
+      data: {
+        firstData,
+        secondData,
+        thirdData,
+        fourthData,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 // 提交新手训练记录

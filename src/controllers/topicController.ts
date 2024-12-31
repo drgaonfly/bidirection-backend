@@ -171,9 +171,9 @@ const generateUniqueNumber = async (): Promise<string> => {
     .padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}`;
   let uniqueNumber;
   do {
-    uniqueNumber = Math.floor(Math.random() * Math.pow(10, 5)) // 假设长度为5
+    uniqueNumber = Math.floor(Math.random() * Math.pow(10, 10)) // 假设长度为5
       .toString()
-      .padStart(5, '0'); // 生成指定长度的随机数字
+      .padStart(10, '0'); // 生成指定长度的随机数字
   } while (await Topic.findOne({ topicNumber: `${prefix}${uniqueNumber}` })); // 确保唯一性
   return `${prefix}${uniqueNumber}`; // 返回带前缀的唯一数字
 };

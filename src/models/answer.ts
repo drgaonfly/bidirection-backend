@@ -2,7 +2,6 @@ import mongoose, { Document } from 'mongoose';
 import { ITopic } from './topic';
 
 export interface IAnswer extends Document {
-  name: string;
   image: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -16,7 +15,6 @@ export interface IAnswer extends Document {
 
 const answerSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
     image: { type: String, required: false },
     topic: { type: mongoose.Schema.Types.ObjectId, ref: 'Topic' },
     id: { type: String, required: false },

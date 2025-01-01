@@ -8,7 +8,6 @@ import {
   deleteMultipleRecords,
   getNewbieTraining,
   submitNewbieTraining,
-  scrapeData,
 } from '../controllers/recordController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
@@ -16,7 +15,6 @@ const router: Router = express.Router();
 
 router.get('/newbie-training', protect, getNewbieTraining);
 router.post('/submit-newbie-training/:id', protect, submitNewbieTraining);
-router.post('/scrape-data', scrapeData);
 
 router
   .route('/')

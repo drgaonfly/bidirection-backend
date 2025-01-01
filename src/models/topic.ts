@@ -5,6 +5,7 @@ export interface ITopic extends Document {
   video1: string;
   video2?: string;
   topicNumber: number;
+  id: string;
   answers: Array<mongoose.Types.ObjectId | IAnswer>;
   correctAnswers: Array<{
     answer: mongoose.Types.ObjectId | IAnswer;

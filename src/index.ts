@@ -61,7 +61,7 @@ app.use('/api/topics', topicRoutes);
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 
 setupDB();
-setupRedis();
+// setupRedis();
 // 初始化 Socket.IO
 setupSocket(server);
 console.log('Socket.IO server initialized');

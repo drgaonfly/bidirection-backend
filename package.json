@@ -23,6 +23,7 @@
     "@types/xlsx": "^0.0.36",
     "@typescript-eslint/eslint-plugin": "~6.15",
     "@typescript-eslint/parser": "~6.15",
+    "@types/uuid": "^10.0.0",
     "cross-env": "^7.0.3",
     "debug": "^4.3.7",
     "eslint": "~8.56",
@@ -66,7 +67,6 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@types/uuid": "^10.0.0",
     "ali-oss": "^6.20.0",
     "aws-sdk": "^2.1579.0",
     "axios": "^1.6.7",

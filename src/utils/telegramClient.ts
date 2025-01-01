@@ -11,18 +11,24 @@ const PROXY_PORT = process.env.MONGODB_PROXYPORT || '7897';
 // Create a new session
 const session = new StringSession('');
 
+interface ProxyConfig {
+  connectionRetries: number;
+  useWSS?: boolean;
+  proxy?: any;
+}
+
 // Configure proxy settings based on environment
-const getClientConfig = () => {
-  const config: any = {
+const getClientConfig = (): ProxyConfig => {
+  const config: ProxyConfig = {
     connectionRetries: 5,
   };
 
   if (process.env.MONGODB_PROXYPORT) {
     config.useWSS = false;
     config.proxy = {
-      ip: "127.0.0.1",
+      ip: '127.0.0.1',
       port: parseInt(PROXY_PORT),
-      secret: "00000000000000000000000000000000",
+      secret: '00000000000000000000000000000000',
       socksType: 5,
       timeout: 2,
     };
@@ -36,7 +42,7 @@ export const client = new TelegramClient(
   session,
   parseInt(API_ID),
   API_HASH,
-  getClientConfig()
+  getClientConfig(),
 );
 
 const telegramClient = async (): Promise<void> => {

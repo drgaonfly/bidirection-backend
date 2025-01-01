@@ -66,13 +66,11 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@types/cheerio": "^0.22.35",
     "@types/uuid": "^10.0.0",
     "ali-oss": "^6.20.0",
     "aws-sdk": "^2.1579.0",
     "axios": "^1.6.7",
     "bcrypt": "^5.1.1",
-    "cheerio": "^1.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "exceljs": "^4.4.0",

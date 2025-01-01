@@ -24,7 +24,6 @@ import answerRoutes from './routes/answerRoutes';
 
 import http from 'http';
 import { setupSocket } from './services/socket'; // 引入 socket 服务
-import { setupRedis } from './utils/redis';
 
 // import { startWebHookBot } from './bot';
 dotenv.config();

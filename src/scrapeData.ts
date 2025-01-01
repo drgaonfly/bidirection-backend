@@ -146,6 +146,30 @@ const uploadFileToOSS = async (url: string) => {
   return ossPath;
 };
 
+// const uploadFileToS3 = async (url: string) => {
+//   const filename = url.split('/').pop() ?? '';
+//   const key = `s3Uploads/${filename}`;
+
+//   // Download the file from URL
+//   const response = await axios({
+//     url,
+//     method: 'GET',
+//     responseType: 'stream',
+//   });
+
+//   // Upload the file content to S3
+//   const params = {
+//     Bucket: process.env.AWS_BUCKET_NAME,
+//     Key: key,
+//     Body: response.data,
+//     ContentType: response.headers['content-type'],
+//   };
+
+//   await s3.upload(params).promise();
+
+//   return key;
+// };
+
 const scrapeData = async () => {
   console.log('开始连接数据库');
   await setupDB();

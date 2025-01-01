@@ -3,7 +3,7 @@ import http from 'http';
 
 let io: Server;
 
-export async function setupSocket(server: http.Server) {
+export const setupSocket = async (server: http.Server): Promise<Server> => {
   io = new Server(server);
 
   io.on('connection', async (socket: any) => {
@@ -15,6 +15,6 @@ export async function setupSocket(server: http.Server) {
   });
 
   return io;
-}
+};
 
 export { io };

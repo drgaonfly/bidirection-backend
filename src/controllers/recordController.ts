@@ -106,8 +106,11 @@ export const submitNewbieTraining = handleAsync(
 
     do {
       currentIndex = currentIndex + 1;
+      if (currentIndex >= currentUser.topics.length) {
+        break;
+      }
       nextTopic = currentUser.topics[currentIndex];
-    } while (nextTopic.status === 'pending');
+    } while (nextTopic?.status === 'pending');
 
     if (!nextTopic) {
       res.status(400);
@@ -146,10 +149,11 @@ export const getNewbieTraining = handleAsync(
 
     if (emptyRecordFlag === 'true') {
       req.user.topics = [];
+      req.user.currentTopic = null;
       await req.user.save();
     }
 
-    if (!req.user.topics || req.user.topics?.length === 0) {
+    if (true) {
       const allTopics = await Topic.aggregate([
         { $sample: { size: await Topic.countDocuments().exec() } },
       ]);

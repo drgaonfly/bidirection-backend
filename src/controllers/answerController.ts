@@ -11,8 +11,16 @@ import {
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
 
-  if (queryParams.name) {
-    query.Name = { $regex: queryParams.Name, $options: 'i' };
+  if (queryParams.brandName) {
+    query.brandName = queryParams.brandName;
+  }
+
+  if (queryParams.skuName) {
+    query.skuName = { $regex: new RegExp(queryParams.skuName, 'i') };
+  }
+
+  if (queryParams.sn) {
+    query.sn = queryParams.sn;
   }
 
   return query;

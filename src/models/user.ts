@@ -53,6 +53,11 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
+    proxy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
+    },
   },
   { timestamps: true },
 );

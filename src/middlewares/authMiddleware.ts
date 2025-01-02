@@ -66,6 +66,18 @@ const protect = handleAsync(
   },
 );
 
+export const isProxy = (user: IUser): boolean => {
+  return (
+    user.roles && user.roles.length === 1 && user.roles[0]?.name === '代理'
+  );
+};
+
+export const isEmployee = (user: IUser): boolean => {
+  return (
+    user.roles && user.roles.length === 1 && user.roles[0]?.name === '员工'
+  );
+};
+
 const allow = (
   roles: string | string[],
 ): ((req: RequestCustom, res: Response, next: NextFunction) => void) => {

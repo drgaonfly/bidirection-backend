@@ -157,7 +157,7 @@ export const getNewbieTraining = handleAsync(
       await req.user.save();
     }
 
-    if (true) {
+    if (!req.user.topics || req.user.topics?.length === 0) {
       const allTopics = await Topic.aggregate([
         { $sample: { size: await Topic.countDocuments().exec() } },
       ]);

@@ -9,16 +9,12 @@ import {
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
 
-  if (queryParams.video1) {
-    query.video1 = { $regex: queryParams.video1, $options: 'i' };
+  if (queryParams.id) {
+    query.id = queryParams.id;
   }
 
-  if (queryParams.video2) {
-    query.video2 = { $regex: queryParams.video2, $options: 'i' };
-  }
-
-  if (queryParams.issue) {
-    query.issue = { $regex: queryParams.issue, $options: 'i' };
+  if (queryParams.topicNumber) {
+    query.topicNumber = queryParams.topicNumber;
   }
 
   return query;
@@ -32,7 +28,6 @@ const getTopics = handleAsync(async (req: Request, res: Response) => {
 
   // 执行查询并使用 populate 填充 answers 数据
   const topics = await Topic.find(query)
-    .populate('answers')
     .populate('correctAnswers.answer')
     .sort('-createdAt') // 按创建时间倒序排序
     .skip((+current - 1) * +pageSize)

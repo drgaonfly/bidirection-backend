@@ -10,7 +10,7 @@ const token =
   'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsic291cmNlIjoiQ09OU09MRSIsImFkbWluSWQiOiI1NTg3NTE4ZS03OGQzLTRhNjAtODc1OS0wN2UzMzQzMWZhZWYiLCJzZXNzaW9uSWQiOiJiMDNiNGU2OC01NmMwLTQwMDAtYmY0Ny1mYmNhMGFmNDljNGMifSwiaWF0IjoxNzM1MDMxMDAyfQ.GbV2uiqkC2qOxV3SKwSSQmSitcimOwceSyfunqlVyrI';
 
 // 第一个请求
-const getAllTopics = async (token: string) => {
+const getAllTopics = async (token: string): Promise<any[]> => {
   const response = await axios.post(
     url,
     {
@@ -49,7 +49,7 @@ const getAllTopics = async (token: string) => {
 };
 
 //
-const getTopicDetails = async (token: string, id: string) => {
+const getTopicDetails = async (token: string, id: string): Promise<any> => {
   const response = await axios.post(
     url,
     {
@@ -93,7 +93,10 @@ const getTopicDetails = async (token: string, id: string) => {
 };
 
 // 获取answer
-const getAnswersBySns = async (token: string, snList: string[]) => {
+const getAnswersBySns = async (
+  token: string,
+  snList: string[],
+): Promise<any[]> => {
   const response = await axios.post(
     url,
     {
@@ -129,7 +132,7 @@ const getAnswersBySns = async (token: string, snList: string[]) => {
   return response.data?.data?.result?.list;
 };
 
-const uploadFileToOSS = async (url: string) => {
+const uploadFileToOSS = async (url: string): Promise<string> => {
   const filename = url.split('/').pop() ?? '';
   const ossPath = `taskOssUploads/${filename}`;
 
@@ -182,8 +185,10 @@ const scrapeData = async () => {
   }
 
   for (const topic of topics) {
+    // 查找所有的题目
     const topicDetails = await getTopicDetails(token, topic.id);
 
+    console.log('获取 topicDetails', topic.id);
     console.log(topicDetails);
 
     if (!topicDetails) {
@@ -218,12 +223,14 @@ const scrapeData = async () => {
 
     const correctAnswers = topicDetails.chooseItemList;
 
+    // 获取答案
     const answers = await getAnswersBySns(token, snList);
 
     if (!answers || answers.length === 0) {
       console.log(`${topic.id} answers not found`);
     }
 
+    // 创建答案
     for (const answer of answers) {
       const newAnswer = new Answer({
         image: await uploadFileToOSS(answer.packageImageUrl),
@@ -242,10 +249,9 @@ const scrapeData = async () => {
 
       console.log('创建答案: ' + newAnswer.skuName + ' 完成');
       console.log(newAnswer.toObject());
-
-      newTopic.answers.push(newAnswer._id as mongoose.Types.ObjectId);
     }
 
+    // 创建正确答案
     for (const correctAnswer of correctAnswers) {
       const answer = await Answer.findOne({
         sn: correctAnswer.sn,

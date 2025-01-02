@@ -126,15 +126,12 @@ export const submitNewbieTraining = handleAsync(
 
     await currentUser.save();
 
-    const currentTopic = await Topic.findById(currentUser.currentTopic)
-      .populate({
-        path: 'answers',
-        model: 'Answer',
-      })
-      .populate({
-        path: 'correctAnswers.answer',
-        model: 'Answer',
-      });
+    const currentTopic = await Topic.findById(
+      currentUser.currentTopic,
+    ).populate({
+      path: 'correctAnswers.answer',
+      model: 'Answer',
+    });
 
     res.json({
       success: true,
@@ -177,15 +174,12 @@ export const getNewbieTraining = handleAsync(
         populate: { path: 'topic', model: 'Topic' },
       });
 
-    const currentTopic = await Topic.findById(currentUser.currentTopic)
-      .populate({
-        path: 'answers',
-        model: 'Answer',
-      })
-      .populate({
-        path: 'correctAnswers.answer',
-        model: 'Answer',
-      });
+    const currentTopic = await Topic.findById(
+      currentUser.currentTopic,
+    ).populate({
+      path: 'correctAnswers.answer',
+      model: 'Answer',
+    });
 
     res.json({
       success: true,

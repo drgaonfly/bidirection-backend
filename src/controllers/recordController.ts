@@ -159,6 +159,8 @@ export const getNewbieTraining = handleAsync(
         status: 'pending',
       }));
 
+      req.user.currentTopic = req.user.topics[0].topic;
+
       await req.user.save();
     }
 

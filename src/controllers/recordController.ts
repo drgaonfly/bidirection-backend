@@ -54,15 +54,10 @@ export const submitNewbieTraining = handleAsync(
       throw new Error('topicId is not in your topics');
     }
 
-    const topic = await Topic.findById(topicId)
-      .populate({
-        path: 'answers',
-        model: 'Answer',
-      })
-      .populate({
-        path: 'correctAnswers.answer',
-        model: 'Answer',
-      });
+    const topic = await Topic.findById(topicId).populate('answers').populate({
+      path: 'correctAnswers.answer',
+      model: 'Answer',
+    });
 
     if (!topic) {
       res.status(404);
@@ -126,12 +121,12 @@ export const submitNewbieTraining = handleAsync(
 
     await currentUser.save();
 
-    const currentTopic = await Topic.findById(
-      currentUser.currentTopic,
-    ).populate({
-      path: 'correctAnswers.answer',
-      model: 'Answer',
-    });
+    const currentTopic = await Topic.findById(currentUser.currentTopic)
+      .populate('answers')
+      .populate({
+        path: 'correctAnswers.answer',
+        model: 'Answer',
+      });
 
     res.json({
       success: true,
@@ -174,12 +169,12 @@ export const getNewbieTraining = handleAsync(
         populate: { path: 'topic', model: 'Topic' },
       });
 
-    const currentTopic = await Topic.findById(
-      currentUser.currentTopic,
-    ).populate({
-      path: 'correctAnswers.answer',
-      model: 'Answer',
-    });
+    const currentTopic = await Topic.findById(currentUser.currentTopic)
+      .populate('answers')
+      .populate({
+        path: 'correctAnswers.answer',
+        model: 'Answer',
+      });
 
     res.json({
       success: true,

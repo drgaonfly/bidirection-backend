@@ -25,8 +25,19 @@ const topicSchema = new mongoose.Schema(
       },
     ],
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
 );
+
+topicSchema.virtual('answers', {
+  ref: 'Answer',
+  localField: '_id',
+  foreignField: 'topic',
+  justOne: false,
+});
 
 const Topic = mongoose.model<ITopic>('Topic', topicSchema);
 

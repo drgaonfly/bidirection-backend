@@ -5,6 +5,10 @@ import Topic from '../models/topic';
 import { RequestCustom } from '../types/user';
 import { exclude } from '../utils/handleData';
 import User from '../models/user';
+import {
+  transformDocumentImage,
+  transformDocumentImages,
+} from '../utils/transformUtils';
 
 //获取记录管理列表
 export const getRecords = handleAsync(async (req: Request, res: Response) => {
@@ -106,8 +110,11 @@ export const submitNewbieTraining = handleAsync(
 
     do {
       currentIndex = currentIndex + 1;
+      if (currentIndex >= currentUser.topics.length) {
+        break;
+      }
       nextTopic = currentUser.topics[currentIndex];
-    } while (nextTopic.status === 'pending');
+    } while (nextTopic?.status === 'pending');
 
     if (!nextTopic) {
       res.status(400);
@@ -146,6 +153,7 @@ export const getNewbieTraining = handleAsync(
 
     if (emptyRecordFlag === 'true') {
       req.user.topics = [];
+      req.user.currentTopic = null;
       await req.user.save();
     }
 
@@ -158,6 +166,8 @@ export const getNewbieTraining = handleAsync(
         topic: topic._id,
         status: 'pending',
       }));
+
+      req.user.currentTopic = req.user.topics[0].topic;
 
       await req.user.save();
     }
@@ -176,11 +186,22 @@ export const getNewbieTraining = handleAsync(
         model: 'Answer',
       });
 
+    const processedCurrentTopic = await transformDocumentImage(currentTopic, [
+      'video1',
+      'video2',
+    ]);
+
+    const processedAnswers = await transformDocumentImages(
+      currentTopic.answers,
+      ['image'],
+    );
+
     res.json({
       success: true,
       data: {
         currentUser: { ...exclude(currentUser.toObject(), 'password') },
-        currentTopic,
+        currentTopic: processedCurrentTopic,
+        answers: processedAnswers,
         topics: currentUser.topics,
         isHasTopics: req.user.topics?.length > 0,
       },

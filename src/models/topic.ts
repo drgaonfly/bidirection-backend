@@ -5,6 +5,9 @@ export interface ITopic extends Document {
   video2?: string;
   topicNumber: number;
   correctAnswers: IMenu[];
+  id: string;
+  answers: Array<IAnswer>;
+
 }
 
 export interface IMenu {

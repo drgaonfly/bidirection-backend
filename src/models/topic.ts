@@ -1,16 +1,16 @@
 import mongoose, { Document } from 'mongoose';
+import { IAnswer } from './answer';
 
 export interface ITopic extends Document {
   video1: string;
   video2?: string;
   topicNumber: number;
-  correctAnswers: IMenu[];
+  correctAnswers: ICorrectAnswer[];
   id: string;
   answers: Array<IAnswer>;
-
 }
 
-export interface IMenu {
+export interface ICorrectAnswer {
   count: number;
   answer: mongoose.Types.ObjectId;
 }

@@ -92,7 +92,7 @@ const getTopicById = handleAsync(async (req: Request, res: Response) => {
 // 更新客户
 const updateTopic = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { video1, video2, ...otherFields } = req.body;
+  const { video1, video2 } = req.body;
 
   const topic = await Topic.findById(id);
   if (!topic) {
@@ -102,9 +102,9 @@ const updateTopic = handleAsync(async (req: Request, res: Response) => {
 
   // 更新字段
   const updates = {
-    ...(video1 && !video1.startsWith('http') && { video1 }),
-    ...(video2 && !video2.startsWith('http') && { video2 }),
-    ...otherFields,
+    ...req.body,
+    video1: video1 && !video1.startsWith('http') ? video1 : topic.video1,
+    video2: video2 && !video2.startsWith('http') ? video2 : topic.video2,
   };
 
   const updatedTopic = await Topic.findByIdAndUpdate(id, updates, {
@@ -112,15 +112,9 @@ const updateTopic = handleAsync(async (req: Request, res: Response) => {
     runValidators: true,
   });
 
-  // 处理视频路径
-  const processedTopic = await transformDocumentImage(updatedTopic, [
-    'video1',
-    'video2',
-  ]);
-
   res.json({
     success: true,
-    data: processedTopic,
+    data: updatedTopic,
   });
 });
 

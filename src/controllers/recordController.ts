@@ -48,37 +48,38 @@ export const getRecords = handleAsync(async (req: Request, res: Response) => {
 // 提交新手训练记录
 export const submitNewbieTraining = handleAsync(
   async (req: RequestCustom, res: Response) => {
-    const topicId = req.params.id; // 从路由参数中获取 topicId
-    const { answers, issue } = req.body; // 提交的内容包含 answers
+    // 1. 获取基础参数
+    const topicId = req.params.id;
+    const { answers, issue } = req.body;
     const currentUser = await User.findById(req.user._id);
 
+    // 2. 验证题目是否属于当前用户
     const topicInUser = currentUser.topics.find(
       (topic) => topic.topic.toString() === topicId,
     );
-
     if (!topicInUser) {
       res.status(400);
       throw new Error('topicId is not in your topics');
     }
 
+    // 3. 获取题目详情
     const topic = await Topic.findById(topicId).populate('answers').populate({
       path: 'correctAnswers.answer',
       model: 'Answer',
     });
-
     if (!topic) {
       res.status(404);
       throw new Error('Topic not found');
     }
 
-    // 如果 issue 是无异常才是要 answers
+    // 4. 处理答案
+    // FIXME: 这里的命名可能造成混淆，建议改为 submittedAnswers
     let answersToSave = [];
-
     if (issue === 'No Issue') {
       answersToSave = answers;
     }
 
-    // 创建新的记录
+    // 5. 创建记录
     const newRecord = await Record.create({
       user: currentUser._id,
       topic: topicId,
@@ -86,31 +87,32 @@ export const submitNewbieTraining = handleAsync(
       issue,
     });
 
+    // 6. 判断答案正确性
+    // FIXME: 这里的比较逻辑可能有问题
     let status: 'pending' | 'success' | 'fail' = 'pending';
-
     if (topic.correctAnswers === answers) {
+      // 直接比较对象是不正确的
       status = 'success';
     } else {
       status = 'fail';
     }
-
     newRecord.status = status;
 
+    // 7. 更新用户的题目状态
     currentUser.topics = currentUser.topics.map((topic) => {
       if (topic.topic.toString() === topicId) {
-        return {
-          topic: topic.topic,
-          status: status,
-        };
+        return { topic: topic.topic, status };
       }
       return topic;
     });
 
+    // 8. 查找下一个待做的题目
     let nextTopic;
     let currentIndex = currentUser.topics.findIndex(
       (topic) => topic.topic.toString() === topicId,
     );
 
+    // FIXME: 这个循环逻辑可以优化
     do {
       currentIndex = currentIndex + 1;
       if (currentIndex >= currentUser.topics.length) {
@@ -119,18 +121,20 @@ export const submitNewbieTraining = handleAsync(
       nextTopic = currentUser.topics[currentIndex];
     } while (nextTopic?.status === 'pending');
 
+    // 9. 处理所有题目完成的情况
     if (!nextTopic) {
       res.status(400);
       throw new Error('所有题目都已经完成了');
     }
-
     console.log('下一个对象：', nextTopic);
+
+    // 10. 更新当前用户的当前题目
     currentUser.currentTopic = nextTopic.topic;
 
-    await newRecord.save();
+    // 11. 保存所有更改
+    await Promise.all([newRecord.save(), currentUser.save()]);
 
-    await currentUser.save();
-
+    // 12. 获取下一个题目的详细信息
     const currentTopic = await Topic.findById(currentUser.currentTopic)
       .populate('answers')
       .populate({
@@ -138,6 +142,7 @@ export const submitNewbieTraining = handleAsync(
         model: 'Answer',
       });
 
+    // 13. 返回结果
     res.json({
       success: true,
       data: {

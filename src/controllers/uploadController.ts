@@ -152,7 +152,7 @@ export const getOssCredentials = handleAsync(
 
     const result = (await ossClient.calculatePostSignature(policy)) as any;
 
-    const host = `https://${process.env.OSS_BUCKET}.oss-cn-hongkong.aliyuncs.com`;
+    const host = `https://${process.env.OSS_BUCKET}.${process.env.OSS_REGION}.aliyuncs.com`;
 
     res.json({
       accessId: process.env.OSS_ACCESS_KEY_ID,

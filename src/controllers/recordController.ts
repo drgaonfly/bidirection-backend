@@ -88,44 +88,52 @@ export const submitNewbieTraining = handleAsync(
     });
 
     // 6. 判断答案正确性
-    let status: 'pending' | 'success' | 'fail' = 'pending';
+    let status: 'pending' | 'doing' | 'success' | 'fail' = 'pending';
 
     // 如果是异常情况，直接标记为 success
     if (issue !== 'No Issue') {
       status = 'success';
     } else {
-      // 只有在无异常的情况下才需要比较答案
-      console.log('正确答案：', JSON.stringify(topic.correctAnswers, null, 2));
-      console.log('提交的答案：', JSON.stringify(answers, null, 2));
-
-      // 将正确答案转换为相同的格式
-      const normalizedCorrectAnswers = topic.correctAnswers.map((item) => ({
-        id: item.answer.id,
-        quantity: item.count,
-      }));
-
-      // 将两个数组排序并转换为字符串进行比较
-      const sortedCorrectAnswers = JSON.stringify(
-        normalizedCorrectAnswers.sort((a: any, b: any) =>
-          a.id.toString().localeCompare(b.id.toString()),
-        ),
-      );
-      const sortedSubmittedAnswers = JSON.stringify(
-        answers.sort((a: any, b: any) =>
-          a.id.toString().localeCompare(b.id.toString()),
-        ),
-      );
-
-      console.log('格式化后的正确答案：', sortedCorrectAnswers);
-      console.log('格式化后的提交答案：', sortedSubmittedAnswers);
-
-      if (sortedCorrectAnswers === sortedSubmittedAnswers) {
-        status = 'success';
-      } else {
+      // 检查是否提交了空数组
+      if (answers.length === 0) {
         status = 'fail';
-      }
+      } else {
+        // 只有在无异常且有答案的情况下才需要比较答案
+        console.log(
+          '正确答案：',
+          JSON.stringify(topic.correctAnswers, null, 2),
+        );
+        console.log('提交的答案：', JSON.stringify(answers, null, 2));
 
-      console.log('比较结果：', status);
+        // 将正确答案转换为相同的格式
+        const normalizedCorrectAnswers = topic.correctAnswers.map((item) => ({
+          id: item.answer.id,
+          quantity: item.count,
+        }));
+
+        // 将两个数组排序并转换为字符串进行比较
+        const sortedCorrectAnswers = JSON.stringify(
+          normalizedCorrectAnswers.sort((a: any, b: any) =>
+            a.id.toString().localeCompare(b.id.toString()),
+          ),
+        );
+        const sortedSubmittedAnswers = JSON.stringify(
+          answers.sort((a: any, b: any) =>
+            a.id.toString().localeCompare(b.id.toString()),
+          ),
+        );
+
+        console.log('格式化后的正确答案：', sortedCorrectAnswers);
+        console.log('格式化后的提交答案：', sortedSubmittedAnswers);
+
+        if (sortedCorrectAnswers === sortedSubmittedAnswers) {
+          status = 'success';
+        } else {
+          status = 'fail';
+        }
+
+        console.log('比较结果：', status);
+      }
     }
 
     newRecord.status = status;
@@ -138,7 +146,7 @@ export const submitNewbieTraining = handleAsync(
       return topic;
     });
 
-    // 8. 查找下一个待做的题目
+    // 8. 将下一个题目标记为 doing
     let nextTopic;
     let currentIndex = currentUser.topics.findIndex(
       (topic) => topic.topic.toString() === topicId,
@@ -160,6 +168,8 @@ export const submitNewbieTraining = handleAsync(
         currentUser.topics[i].status === 'pending'
       ) {
         nextTopic = currentUser.topics[i];
+        // 将找到的下一题标记为 doing
+        currentUser.topics[i].status = 'doing';
         break;
       }
     }
@@ -172,6 +182,8 @@ export const submitNewbieTraining = handleAsync(
           currentUser.topics[i].status === 'pending'
         ) {
           nextTopic = currentUser.topics[i];
+          // 将找到的下一题标记为 doing
+          currentUser.topics[i].status = 'doing';
           break;
         }
       }
@@ -244,9 +256,23 @@ export const getNewbieTraining = handleAsync(
         status: 'pending',
       }));
 
+      // 设置第一个题目为 doing 状态
+      if (req.user.topics.length > 0) {
+        req.user.topics[0].status = 'doing';
+      }
+
       req.user.currentTopic = req.user.topics[0].topic;
 
       await req.user.save();
+    } else {
+      // 确保当前题目状态为 doing
+      const currentTopicIndex = req.user.topics.findIndex(
+        (topic) => topic.topic.toString() === req.user.currentTopic.toString(),
+      );
+      if (currentTopicIndex !== -1) {
+        req.user.topics[currentTopicIndex].status = 'doing';
+        await req.user.save();
+      }
     }
 
     const currentUser = await User.findById(req.user._id)
@@ -280,7 +306,7 @@ export const getNewbieTraining = handleAsync(
         currentTopic: processedCurrentTopic,
         answers: processedAnswers,
         topics: currentUser.topics,
-        isHasTopics: req.user.topics?.length > 0,
+        isHasTopics: currentUser.topics?.length > 0,
       },
     });
   },

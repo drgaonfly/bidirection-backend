@@ -6,7 +6,7 @@ export interface IRecord extends Document {
   user: mongoose.Types.ObjectId | IUser; // 关联用户
   topic: mongoose.Types.ObjectId | ITopic; // 关联到 Topic
   issue: string;
-  status: 'pending' | 'success' | 'fail';
+  status: 'pending' | 'doing' | 'success' | 'fail';
   answers: Array<{
     answer: mongoose.Types.ObjectId;
     count: number;
@@ -52,7 +52,7 @@ const recordSchema = new mongoose.Schema(
       type: String,
       required: true,
       default: 'pending',
-      enum: ['pending', 'success', 'fail'],
+      enum: ['pending', 'doing', 'success', 'fail'],
     },
   },
   { timestamps: true },

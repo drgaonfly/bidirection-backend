@@ -88,14 +88,46 @@ export const submitNewbieTraining = handleAsync(
     });
 
     // 6. 判断答案正确性
-    // FIXME: 这里的比较逻辑可能有问题
     let status: 'pending' | 'success' | 'fail' = 'pending';
-    if (topic.correctAnswers === answers) {
-      // 直接比较对象是不正确的
+
+    // 如果是异常情况，直接标记为 success
+    if (issue !== 'No Issue') {
       status = 'success';
     } else {
-      status = 'fail';
+      // 只有在无异常的情况下才需要比较答案
+      console.log('正确答案：', JSON.stringify(topic.correctAnswers, null, 2));
+      console.log('提交的答案：', JSON.stringify(answers, null, 2));
+
+      // 将正确答案转换为相同的格式
+      const normalizedCorrectAnswers = topic.correctAnswers.map((item) => ({
+        id: item.answer.id,
+        quantity: item.count,
+      }));
+
+      // 将两个数组排序并转换为字符串进行比较
+      const sortedCorrectAnswers = JSON.stringify(
+        normalizedCorrectAnswers.sort((a: any, b: any) =>
+          a.id.toString().localeCompare(b.id.toString()),
+        ),
+      );
+      const sortedSubmittedAnswers = JSON.stringify(
+        answers.sort((a: any, b: any) =>
+          a.id.toString().localeCompare(b.id.toString()),
+        ),
+      );
+
+      console.log('格式化后的正确答案：', sortedCorrectAnswers);
+      console.log('格式化后的提交答案：', sortedSubmittedAnswers);
+
+      if (sortedCorrectAnswers === sortedSubmittedAnswers) {
+        status = 'success';
+      } else {
+        status = 'fail';
+      }
+
+      console.log('比较结果：', status);
     }
+
     newRecord.status = status;
 
     // 7. 更新用户的题目状态
@@ -112,21 +144,58 @@ export const submitNewbieTraining = handleAsync(
       (topic) => topic.topic.toString() === topicId,
     );
 
-    // FIXME: 这个循环逻辑可以优化
-    do {
-      currentIndex = currentIndex + 1;
-      if (currentIndex >= currentUser.topics.length) {
+    console.log(
+      '当前用户的所有题目状态：',
+      currentUser.topics.map((t) => ({
+        topicId: t.topic.toString(),
+        status: t.status,
+      })),
+    );
+    console.log('当前题目索引：', currentIndex);
+
+    // 先从当前位置往后找
+    for (let i = currentIndex + 1; i < currentUser.topics.length; i++) {
+      if (
+        !currentUser.topics[i].status ||
+        currentUser.topics[i].status === 'pending'
+      ) {
+        nextTopic = currentUser.topics[i];
         break;
       }
-      nextTopic = currentUser.topics[currentIndex];
-    } while (nextTopic?.status === 'pending');
-
-    // 9. 处理所有题目完成的情况
-    if (!nextTopic) {
-      res.status(400);
-      throw new Error('所有题目都已经完成了');
     }
-    console.log('下一个对象：', nextTopic);
+
+    // 如果没找到，从头开始找
+    if (!nextTopic) {
+      for (let i = 0; i < currentIndex; i++) {
+        if (
+          !currentUser.topics[i].status ||
+          currentUser.topics[i].status === 'pending'
+        ) {
+          nextTopic = currentUser.topics[i];
+          break;
+        }
+      }
+    }
+
+    // 9. 只有真的没有待做题目时才抛出错误
+    if (!nextTopic) {
+      const pendingCount = currentUser.topics.filter(
+        (t) => !t.status || t.status === 'pending',
+      ).length;
+
+      if (pendingCount === 0) {
+        res.status(400);
+        throw new Error('所有题目都已经完成了');
+      } else {
+        res.status(500);
+        throw new Error('查找下一题时出现异常');
+      }
+    }
+
+    console.log('找到下一个题目：', {
+      topicId: nextTopic.topic.toString(),
+      status: nextTopic.status,
+    });
 
     // 10. 更新当前用户的当前题目
     currentUser.currentTopic = nextTopic.topic;

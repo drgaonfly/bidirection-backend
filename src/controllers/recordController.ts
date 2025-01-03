@@ -9,6 +9,7 @@ import {
   transformDocumentImage,
   transformDocumentImages,
 } from '../utils/transformUtils';
+import * as _ from 'lodash';
 
 //获取记录管理列表
 export const getRecords = handleAsync(async (req: Request, res: Response) => {
@@ -90,51 +91,36 @@ export const submitNewbieTraining = handleAsync(
     // 6. 判断答案正确性
     let status: 'pending' | 'doing' | 'success' | 'fail' = 'pending';
 
-    // 如果是异常情况，直接标记为 success
-    if (issue !== 'No Issue') {
+    // 格式化正确答案
+    const normalizedCorrectAnswers = topic.correctAnswers.map(
+      (correctAnswer) => ({
+        answer: correctAnswer.answer._id,
+        count: correctAnswer.count,
+      }),
+    );
+
+    // 格式化提交的答案
+    const normalizedSubmittedAnswers = answers.map((submittedAnswer: any) => ({
+      answer: submittedAnswer.id,
+      count: submittedAnswer.quantity,
+    }));
+
+    console.log('格式化后的正确答案：', normalizedCorrectAnswers);
+    console.log('格式化后的提交答案：', normalizedSubmittedAnswers);
+
+    // 使用 _.isEqual 进行深度比较
+    const isAnswersEqual = _.isEqual(
+      normalizedCorrectAnswers,
+      normalizedSubmittedAnswers,
+    );
+
+    if (isAnswersEqual) {
       status = 'success';
     } else {
-      // 检查是否提交了空数组
-      if (answers.length === 0) {
-        status = 'fail';
-      } else {
-        // 只有在无异常且有答案的情况下才需要比较答案
-        console.log(
-          '正确答案：',
-          JSON.stringify(topic.correctAnswers, null, 2),
-        );
-        console.log('提交的答案：', JSON.stringify(answers, null, 2));
-
-        // 将正确答案转换为相同的格式
-        const normalizedCorrectAnswers = topic.correctAnswers.map((item) => ({
-          id: item.answer.id,
-          quantity: item.count,
-        }));
-
-        // 将两个数组排序并转换为字符串进行比较
-        const sortedCorrectAnswers = JSON.stringify(
-          normalizedCorrectAnswers.sort((a: any, b: any) =>
-            a.id.toString().localeCompare(b.id.toString()),
-          ),
-        );
-        const sortedSubmittedAnswers = JSON.stringify(
-          answers.sort((a: any, b: any) =>
-            a.id.toString().localeCompare(b.id.toString()),
-          ),
-        );
-
-        console.log('格式化后的正确答案：', sortedCorrectAnswers);
-        console.log('格式化后的提交答案：', sortedSubmittedAnswers);
-
-        if (sortedCorrectAnswers === sortedSubmittedAnswers) {
-          status = 'success';
-        } else {
-          status = 'fail';
-        }
-
-        console.log('比较结果：', status);
-      }
+      status = 'fail';
     }
+
+    console.log('比较结果：', status);
 
     newRecord.status = status;
 
@@ -213,7 +199,8 @@ export const submitNewbieTraining = handleAsync(
     currentUser.currentTopic = nextTopic.topic;
 
     // 11. 保存所有更改
-    await Promise.all([newRecord.save(), currentUser.save()]);
+    await newRecord.save();
+    await currentUser.save();
 
     // 12. 获取下一个题目的详细信息
     const currentTopic = await Topic.findById(currentUser.currentTopic)

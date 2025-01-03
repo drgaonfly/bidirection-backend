@@ -56,7 +56,7 @@ const getInstructionById = handleAsync(async (req: Request, res: Response) => {
 
   if (!instruction) {
     res.status(404);
-    throw new Error('指令不存在');
+    throw new Error('操作说明不存在');
   }
 
   res.json({
@@ -94,12 +94,12 @@ const deleteInstruction = handleAsync(async (req: Request, res: Response) => {
 
   if (!instruction) {
     res.status(404);
-    throw new Error('指令不存在');
+    throw new Error('操作说明不存在');
   }
 
   res.json({
     success: true,
-    data: { message: '指令删除成功' },
+    data: { message: '操作说明删除成功' },
   });
 });
 
@@ -115,7 +115,7 @@ const deleteMultipleInstructions = handleAsync(
 
     res.json({
       success: true,
-      message: `${ids.length} 指令删除成功`,
+      message: `${ids.length} 操作说明删除成功`,
     });
   },
 );

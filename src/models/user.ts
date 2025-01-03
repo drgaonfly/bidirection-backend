@@ -16,6 +16,8 @@ export interface IUser extends Document {
     status: 'pending' | 'success' | 'fail';
   }>;
   inviteCode: string;
+  isOnline: boolean;
+  topicCount: number;
 }
 
 const userSchema = new mongoose.Schema(
@@ -61,6 +63,13 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: false,
+    },
+    isOnline: {
+      type: Boolean,
+    },
+    topicCount: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true },

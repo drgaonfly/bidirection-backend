@@ -1,7 +1,8 @@
 import mongoose, { Document } from 'mongoose';
+import { IUser } from './user';
 
 export interface IWithdraw extends Document {
-  user: mongoose.Types.ObjectId; // 关联用户
+  user: mongoose.Types.ObjectId | IUser; // 关联用户
   withdrawalNumber: number;
   Time: Date;
   withdrawalMethod: string;

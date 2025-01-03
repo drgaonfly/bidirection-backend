@@ -1,8 +1,10 @@
 import mongoose, { Document } from 'mongoose';
+import { IUser } from './user';
+import { ITopic } from './topic';
 
 export interface IRecord extends Document {
-  user: mongoose.Types.ObjectId; // 关联用户
-  topic: mongoose.Types.ObjectId; // 关联到 Topic
+  user: mongoose.Types.ObjectId | IUser; // 关联用户
+  topic: mongoose.Types.ObjectId | ITopic; // 关联到 Topic
   issue: string;
   status: 'pending' | 'success' | 'fail';
   answers: Array<{

@@ -41,6 +41,11 @@ const getTopics = handleAsync(async (req: Request, res: Response) => {
     'video2',
   ]);
 
+  // 处理 answers 中的image图片
+  for (const topic of processedTopics) {
+    await transformDocumentImages(topic.answers, ['image']);
+  }
+
   const total = await Topic.countDocuments(query).exec();
 
   res.json({

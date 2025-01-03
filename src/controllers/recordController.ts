@@ -132,9 +132,9 @@ export const submitNewbieTraining = handleAsync(
       return topic;
     });
 
-    // 8. 将下一个题目标记为 doing
+    // 8. 查找下一个待做的题目
     let nextTopic;
-    let currentIndex = currentUser.topics.findIndex(
+    const currentIndex = currentUser.topics.findIndex(
       (topic) => topic.topic.toString() === topicId,
     );
 
@@ -154,8 +154,7 @@ export const submitNewbieTraining = handleAsync(
         currentUser.topics[i].status === 'pending'
       ) {
         nextTopic = currentUser.topics[i];
-        // 将找到的下一题标记为 doing
-        currentUser.topics[i].status = 'doing';
+        currentUser.topics[i].status = 'doing' as const;
         break;
       }
     }

@@ -73,12 +73,8 @@ export const submitNewbieTraining = handleAsync(
       throw new Error('Topic not found');
     }
 
-    // 4. 处理答案
-    // FIXME: 这里的命名可能造成混淆，建议改为 submittedAnswers
-    let answersToSave = [];
-    if (issue === 'No Issue') {
-      answersToSave = answers;
-    }
+    // 4. 处理答案： 如果issue为'No Issue'，则保存提交的答案，否则保存空数组
+    const answersToSave = issue === 'No Issue' ? answers : [];
 
     // 5. 创建记录
     const newRecord = await Record.create({
@@ -97,14 +93,14 @@ export const submitNewbieTraining = handleAsync(
     // 格式化正确答案
     const normalizedCorrectAnswers = topic.correctAnswers.map(
       (correctAnswer) => ({
-        answer: correctAnswer.answer.id,
+        answer: correctAnswer.answer._id,
         count: correctAnswer.count,
       }),
     );
 
     // 格式化提交的答案 - 保持原样即可
     const normalizedSubmittedAnswers = answers.map((submittedAnswer: any) => ({
-      answer: submittedAnswer.id,
+      answer: submittedAnswer._id,
       count: submittedAnswer.count,
     }));
 
@@ -112,12 +108,8 @@ export const submitNewbieTraining = handleAsync(
     console.log('格式化后的提交答案：', normalizedSubmittedAnswers);
 
     const isAnswersEqual = _.isEqual(
-      normalizedCorrectAnswers.sort((a: any, b: any) =>
-        a.answer.localeCompare(b.answer),
-      ),
-      normalizedSubmittedAnswers.sort((a: any, b: any) =>
-        a.answer.localeCompare(b.answer),
-      ),
+      _.sortBy(normalizedCorrectAnswers, 'answer'),
+      _.sortBy(normalizedSubmittedAnswers, 'answer'),
     );
     status = isAnswersEqual ? 'success' : 'fail';
 
@@ -134,49 +126,22 @@ export const submitNewbieTraining = handleAsync(
     });
 
     // 8. 查找下一个待做的题目
-    let nextTopic;
-    const currentIndex = currentUser.topics.findIndex(
-      (topic) => topic.topic.toString() === topicId,
+    const nextPendingTopic = currentUser.topics.find(
+      (topic) => !topic.status || topic.status === 'pending',
     );
 
-    console.log(
-      '当前用户的所有题目状态：',
-      currentUser.topics.map((t) => ({
-        topicId: t.topic.toString(),
-        status: t.status,
-      })),
-    );
-    console.log('当前题目索引：', currentIndex);
-
-    // 先从当前位置往后找
-    for (let i = currentIndex + 1; i < currentUser.topics.length; i++) {
-      if (
-        !currentUser.topics[i].status ||
-        currentUser.topics[i].status === 'pending'
-      ) {
-        nextTopic = currentUser.topics[i];
-        currentUser.topics[i].status = 'doing' as const;
-        break;
-      }
-    }
-
-    // 如果没找到，从头开始找
-    if (!nextTopic) {
-      for (let i = 0; i < currentIndex; i++) {
-        if (
-          !currentUser.topics[i].status ||
-          currentUser.topics[i].status === 'pending'
-        ) {
-          nextTopic = currentUser.topics[i];
-          // 将找到的下一题标记为 doing
-          currentUser.topics[i].status = 'doing';
-          break;
+    if (nextPendingTopic) {
+      currentUser.topics = currentUser.topics.map((topic) => {
+        if (topic.topic.toString() === nextPendingTopic.topic.toString()) {
+          return { topic: topic.topic, status: 'doing' as const };
         }
-      }
-    }
+        return topic;
+      });
 
-    // 9. 只有真的没有待做题目时才抛出错误
-    if (!nextTopic) {
+      // 更新当前题目
+      currentUser.currentTopic = nextPendingTopic.topic;
+    } else {
+      // 9. 只有真的没有待做题目时才抛出错误
       const pendingCount = currentUser.topics.filter(
         (t) => !t.status || t.status === 'pending',
       ).length;
@@ -191,18 +156,15 @@ export const submitNewbieTraining = handleAsync(
     }
 
     console.log('找到下一个题目：', {
-      topicId: nextTopic.topic.toString(),
-      status: nextTopic.status,
+      topicId: nextPendingTopic.topic.toString(),
+      status: nextPendingTopic.status,
     });
 
-    // 10. 更新当前用户的当前题目
-    currentUser.currentTopic = nextTopic.topic;
-
-    // 11. 保存所有更改
+    // 10. 保存所有更改
     await newRecord.save();
     await currentUser.save();
 
-    // 12. 获取下一个题目的详细信息
+    // 11. 获取下一个题目的详细信息
     const currentTopic = await Topic.findById(currentUser.currentTopic)
       .populate('answers')
       .populate({
@@ -210,7 +172,7 @@ export const submitNewbieTraining = handleAsync(
         model: 'Answer',
       });
 
-    // 13. 返回结果
+    // 12. 返回结果
     res.json({
       success: true,
       data: {

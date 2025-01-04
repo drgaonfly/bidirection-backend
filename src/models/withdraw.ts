@@ -29,7 +29,7 @@ const withdrawSchema = new mongoose.Schema(
     reviewStatus: {
       type: String,
       required: true,
-      enum: ['reviewed', 'unreviewed'],
+      enum: ['reviewed', 'unreviewed', 'reviewing'],
       default: 'unreviewed',
     }, // 审核状态
     paymentStatus: {

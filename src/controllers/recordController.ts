@@ -11,20 +11,28 @@ import {
 } from '../utils/transformUtils';
 import * as _ from 'lodash';
 
+const buildQuery = (queryParams: any): any => {
+  const query: any = {};
+
+  if (queryParams.status) {
+    query.status = queryParams.status; // 直接将 status 参数添加到查询中
+  }
+
+  if (queryParams.issue) {
+    query.issue = queryParams.issue; // 直接将 status 参数添加到查询中
+  }
+
+  return query;
+};
+
 //获取记录管理列表
 export const getRecords = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10', user, topic } = req.query;
+  const { current = '1', pageSize = '10' } = req.query;
 
-  const queryConditions: any = {};
-  if (user) {
-    queryConditions.user = user;
-  }
-  if (topic) {
-    queryConditions.topic = topic;
-  }
+  const query = buildQuery(req.query);
 
   // 查询记录
-  const records = await Record.find(queryConditions)
+  const records = await Record.find(query)
     .populate('answers.answer', 'sn')
     .populate('user')
     .populate('topic')
@@ -35,7 +43,7 @@ export const getRecords = handleAsync(async (req: Request, res: Response) => {
 
   console.log(JSON.stringify(records, null, 2)); // 打印填充后的记录
 
-  const total = await Record.countDocuments(queryConditions); // 计算总记录数
+  const total = await Record.countDocuments(query); // 计算总记录数
 
   res.json({
     success: true,

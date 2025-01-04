@@ -91,34 +91,35 @@ export const submitNewbieTraining = handleAsync(
     // 6. 判断答案正确性
     let status: 'pending' | 'doing' | 'success' | 'fail' = 'pending';
 
+    console.log('原始正确答案：', topic.correctAnswers);
+    console.log('原始提交答案：', answers);
+
     // 格式化正确答案
     const normalizedCorrectAnswers = topic.correctAnswers.map(
       (correctAnswer) => ({
-        answer: correctAnswer.answer._id,
+        answer: correctAnswer.answer.id,
         count: correctAnswer.count,
       }),
     );
 
-    // 格式化提交的答案
+    // 格式化提交的答案 - 保持原样即可
     const normalizedSubmittedAnswers = answers.map((submittedAnswer: any) => ({
-      answer: submittedAnswer._id,
+      answer: submittedAnswer.id,
       count: submittedAnswer.count,
     }));
 
     console.log('格式化后的正确答案：', normalizedCorrectAnswers);
     console.log('格式化后的提交答案：', normalizedSubmittedAnswers);
 
-    // 使用 _.isEqual 进行深度比较
     const isAnswersEqual = _.isEqual(
-      normalizedCorrectAnswers,
-      normalizedSubmittedAnswers,
+      normalizedCorrectAnswers.sort((a: any, b: any) =>
+        a.answer.localeCompare(b.answer),
+      ),
+      normalizedSubmittedAnswers.sort((a: any, b: any) =>
+        a.answer.localeCompare(b.answer),
+      ),
     );
-
-    if (isAnswersEqual) {
-      status = 'success';
-    } else {
-      status = 'fail';
-    }
+    status = isAnswersEqual ? 'success' : 'fail';
 
     console.log('比较结果：', status);
 

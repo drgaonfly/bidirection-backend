@@ -5,13 +5,17 @@ import Topic from '../models/topic';
 import { RequestCustom } from '../types/user';
 import { exclude } from '../utils/handleData';
 import User from '../models/user';
+import { isProxy, isEmployee } from '../middlewares/authMiddleware';
 import {
   transformDocumentImage,
   transformDocumentImages,
 } from '../utils/transformUtils';
 import * as _ from 'lodash';
 
-const buildQuery = (queryParams: any): any => {
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
 
   if (queryParams.status) {
@@ -22,37 +26,49 @@ const buildQuery = (queryParams: any): any => {
     query.issue = queryParams.issue; // 直接将 status 参数添加到查询中
   }
 
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.user = { $in: [...employeeIds, req.user._id] };
+  }
+
+  if (isEmployee(req.user)) {
+    query.user = req.user._id;
+  }
+
   return query;
 };
 
 //获取记录管理列表
-export const getRecords = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10' } = req.query;
+export const getRecords = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { current = '1', pageSize = '10' } = req.query;
 
-  const query = buildQuery(req.query);
+    const query = await buildQuery(req.query, req);
 
-  // 查询记录
-  const records = await Record.find(query)
-    .populate('answers.answer', 'sn')
-    .populate('user')
-    .populate('topic')
-    .sort('-createdAt') // 按创建时间降序排序
-    .skip((+current - 1) * +pageSize) // 跳过前面的记录
-    .limit(+pageSize) // 限制返回的记录数
-    .exec();
+    // 查询记录
+    const records = await Record.find(query)
+      .populate('answers.answer', 'sn')
+      .populate('user')
+      .populate('topic')
+      .sort('-createdAt') // 按创建时间降序排序
+      .skip((+current - 1) * +pageSize) // 跳过前面的记录
+      .limit(+pageSize) // 限制返回的记录数
+      .exec();
 
-  console.log(JSON.stringify(records, null, 2)); // 打印填充后的记录
+    console.log(JSON.stringify(records, null, 2)); // 打印填充后的记录
 
-  const total = await Record.countDocuments(query); // 计算总记录数
+    const total = await Record.countDocuments(query); // 计算总记录数
 
-  res.json({
-    success: true,
-    data: records,
-    total,
-    current: +current,
-    pageSize: +pageSize,
-  });
-});
+    res.json({
+      success: true,
+      data: records,
+      total,
+      current: +current,
+      pageSize: +pageSize,
+    });
+  },
+);
 
 // 提交新手训练记录
 export const submitNewbieTraining = handleAsync(

@@ -28,6 +28,7 @@ export const getUsers = handleAsync(
       email,
       name,
       live,
+      isOnline,
       inviteCode,
       current = '1',
       pageSize = '10',
@@ -49,6 +50,10 @@ export const getUsers = handleAsync(
 
     if (live) {
       query.live = live === 'true';
+    }
+
+    if (isOnline) {
+      query.isOnline = isOnline;
     }
 
     if (
@@ -93,6 +98,7 @@ export const getUsers = handleAsync(
     });
   },
 );
+
 export const addUser = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const userExists = await User.findOne({ email: req.body.email });

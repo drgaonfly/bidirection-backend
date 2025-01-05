@@ -28,6 +28,7 @@ export const getUsers = handleAsync(
       email,
       name,
       live,
+      isOnline,
       inviteCode,
       current = '1',
       pageSize = '10',
@@ -49,6 +50,10 @@ export const getUsers = handleAsync(
 
     if (live) {
       query.live = live === 'true';
+    }
+
+    if (isOnline) {
+      query.isOnline = isOnline;
     }
 
     if (
@@ -96,9 +101,7 @@ export const getUsers = handleAsync(
 
 export const addUser = handleAsync(
   async (req: RequestCustom, res: Response) => {
-    const { name, email, password, roles } = req.body;
-
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email: req.body.email });
 
     if (userExists) {
       res.status(400);
@@ -106,7 +109,7 @@ export const addUser = handleAsync(
     }
 
     const salt = await bcrypt.genSalt(10);
-    const hashPassword = await bcrypt.hash(password, salt);
+    const hashPassword = await bcrypt.hash(req.body.password, salt);
 
     const inviteCode = await generateInviteCode();
 
@@ -117,9 +120,7 @@ export const addUser = handleAsync(
     }
 
     const newUser = new User({
-      name,
-      email,
-      roles,
+      ...req.body,
       password: hashPassword,
       inviteCode,
       proxy,
@@ -159,7 +160,7 @@ export const getUserById = handleAsync(async (req: Request, res: Response) => {
 
 export const updateUser = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { password, name, email, live, roles } = req.body;
+  const { ...body } = req.body;
 
   const user = await User.findById(id);
 
@@ -170,21 +171,22 @@ export const updateUser = handleAsync(async (req: Request, res: Response) => {
 
   let hashPassword = user.password;
 
-  if (password) {
+  if (body.password) {
     const salt = await bcrypt.genSalt(10);
-    hashPassword = await bcrypt.hash(password, salt);
+    hashPassword = await bcrypt.hash(body.password, salt);
   }
 
-  const newRoles = roles ? roles : user.roles;
+  const newRoles = body.roles ? body.roles : user.roles;
 
   const updatedUser = await User.findByIdAndUpdate(
     id,
     {
-      name,
-      email,
+      name: body.name,
+      email: body.email,
       password: hashPassword,
-      live,
+      live: body.live,
       roles: newRoles,
+      isOnline: body.isOnline,
     },
     { new: true },
   );

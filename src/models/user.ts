@@ -13,8 +13,11 @@ export interface IUser extends Document {
   live: boolean;
   topics: Array<{
     topic: mongoose.Types.ObjectId | ITopic;
-    status: 'pending' | 'success' | 'fail';
+    status: 'pending' | 'doing' | 'success' | 'fail';
   }>;
+  inviteCode: string;
+  isOnline: boolean;
+  topicCount: number;
 }
 
 const userSchema = new mongoose.Schema(
@@ -48,15 +51,25 @@ const userSchema = new mongoose.Schema(
         },
         status: {
           type: String,
-          enum: ['pending', 'success', 'fail'],
+          enum: ['pending', 'doing', 'success', 'fail'],
           default: 'pending',
         },
       },
     ],
+    inviteCode: {
+      type: String,
+    },
     proxy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: false,
+    },
+    isOnline: {
+      type: Boolean,
+    },
+    topicCount: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true },

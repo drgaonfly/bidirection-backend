@@ -5,73 +5,102 @@ import Topic from '../models/topic';
 import { RequestCustom } from '../types/user';
 import { exclude } from '../utils/handleData';
 import User from '../models/user';
+import { isProxy, isEmployee } from '../middlewares/authMiddleware';
+import {
+  transformDocumentImage,
+  transformDocumentImages,
+} from '../utils/transformUtils';
+import * as _ from 'lodash';
+
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
+  const query: any = {};
+
+  if (queryParams.status) {
+    query.status = queryParams.status; // 直接将 status 参数添加到查询中
+  }
+
+  if (queryParams.issue) {
+    query.issue = queryParams.issue; // 直接将 status 参数添加到查询中
+  }
+
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.user = { $in: [...employeeIds, req.user._id] };
+  }
+
+  if (isEmployee(req.user)) {
+    query.user = req.user._id;
+  }
+
+  return query;
+};
 
 //获取记录管理列表
-export const getRecords = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10', user, topic } = req.query;
+export const getRecords = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { current = '1', pageSize = '10' } = req.query;
 
-  const queryConditions: any = {};
-  if (user) {
-    queryConditions.user = user;
-  }
-  if (topic) {
-    queryConditions.topic = topic;
-  }
+    const query = await buildQuery(req.query, req);
 
-  // 查询记录
-  const records = await Record.find(queryConditions)
-    .populate('user')
-    .populate('topic')
-    .sort('-createdAt') // 按创建时间降序排序
-    .skip((+current - 1) * +pageSize) // 跳过前面的记录
-    .limit(+pageSize) // 限制返回的记录数
-    .exec();
+    // 查询记录
+    const records = await Record.find(query)
+      .populate('answers.answer', 'sn')
+      .populate('user')
+      .populate('topic')
+      .sort('-createdAt') // 按创建时间降序排序
+      .skip((+current - 1) * +pageSize) // 跳过前面的记录
+      .limit(+pageSize) // 限制返回的记录数
+      .exec();
 
-  const total = await Record.countDocuments(queryConditions); // 计算总记录数
+    console.log(JSON.stringify(records, null, 2)); // 打印填充后的记录
 
-  res.json({
-    success: true,
-    data: records,
-    total,
-    current: +current,
-    pageSize: +pageSize,
-  });
-});
+    const total = await Record.countDocuments(query); // 计算总记录数
+
+    res.json({
+      success: true,
+      data: records,
+      total,
+      current: +current,
+      pageSize: +pageSize,
+    });
+  },
+);
 
 // 提交新手训练记录
 export const submitNewbieTraining = handleAsync(
   async (req: RequestCustom, res: Response) => {
-    const topicId = req.params.id; // 从路由参数中获取 topicId
-    const { answers, issue } = req.body; // 提交的内容包含 answers
+    // 1. 获取基础参数
+    const topicId = req.params.id;
+    const { answers, issue } = req.body;
     const currentUser = await User.findById(req.user._id);
 
+    // 2. 验证题目是否属于当前用户
     const topicInUser = currentUser.topics.find(
       (topic) => topic.topic.toString() === topicId,
     );
-
     if (!topicInUser) {
       res.status(400);
       throw new Error('topicId is not in your topics');
     }
 
+    // 3. 获取题目详情
     const topic = await Topic.findById(topicId).populate('answers').populate({
       path: 'correctAnswers.answer',
       model: 'Answer',
     });
-
     if (!topic) {
       res.status(404);
       throw new Error('Topic not found');
     }
 
-    // 如果 issue 是无异常才是要 answers
-    let answersToSave = [];
+    // 4. 处理答案： 如果issue为'No Issue'，则保存提交的答案，否则保存空数组
+    const answersToSave = issue === 'No Issue' ? answers : [];
 
-    if (issue === 'No Issue') {
-      answersToSave = answers;
-    }
-
-    // 创建新的记录
+    // 5. 创建记录
     const newRecord = await Record.create({
       user: currentUser._id,
       topic: topicId,
@@ -79,48 +108,87 @@ export const submitNewbieTraining = handleAsync(
       issue,
     });
 
-    let status: 'pending' | 'success' | 'fail' = 'pending';
+    // 6. 判断答案正确性
+    let status: 'pending' | 'doing' | 'success' | 'fail' = 'pending';
 
-    if (topic.correctAnswers === answers) {
-      status = 'success';
-    } else {
-      status = 'fail';
-    }
+    console.log('原始正确答案：', topic.correctAnswers);
+    console.log('原始提交答案：', answers);
+
+    // 格式化正确答案
+    const normalizedCorrectAnswers = topic.correctAnswers.map(
+      (correctAnswer) => ({
+        answer: correctAnswer.answer._id,
+        count: correctAnswer.count,
+      }),
+    );
+
+    // 格式化提交的答案 - 保持原样即可
+    const normalizedSubmittedAnswers = answers.map((submittedAnswer: any) => ({
+      answer: submittedAnswer._id,
+      count: submittedAnswer.count,
+    }));
+
+    console.log('格式化后的正确答案：', normalizedCorrectAnswers);
+    console.log('格式化后的提交答案：', normalizedSubmittedAnswers);
+
+    const isAnswersEqual = _.isEqual(
+      _.sortBy(normalizedCorrectAnswers, 'answer'),
+      _.sortBy(normalizedSubmittedAnswers, 'answer'),
+    );
+    status = isAnswersEqual ? 'success' : 'fail';
+
+    console.log('比较结果：', status);
 
     newRecord.status = status;
 
+    // 7. 更新用户的题目状态
     currentUser.topics = currentUser.topics.map((topic) => {
       if (topic.topic.toString() === topicId) {
-        return {
-          topic: topic.topic,
-          status: status,
-        };
+        return { topic: topic.topic, status };
       }
       return topic;
     });
 
-    let nextTopic;
-    let currentIndex = currentUser.topics.findIndex(
-      (topic) => topic.topic.toString() === topicId,
+    // 8. 查找下一个待做的题目
+    const nextPendingTopic = currentUser.topics.find(
+      (topic) => !topic.status || topic.status === 'pending',
     );
 
-    do {
-      currentIndex = currentIndex + 1;
-      nextTopic = currentUser.topics[currentIndex];
-    } while (nextTopic.status === 'pending');
+    if (nextPendingTopic) {
+      currentUser.topics = currentUser.topics.map((topic) => {
+        if (topic.topic.toString() === nextPendingTopic.topic.toString()) {
+          return { topic: topic.topic, status: 'doing' as const };
+        }
+        return topic;
+      });
 
-    if (!nextTopic) {
-      res.status(400);
-      throw new Error('所有题目都已经完成了');
+      // 更新当前题目
+      currentUser.currentTopic = nextPendingTopic.topic;
+    } else {
+      // 9. 只有真的没有待做题目时才抛出错误
+      const pendingCount = currentUser.topics.filter(
+        (t) => !t.status || t.status === 'pending',
+      ).length;
+
+      if (pendingCount === 0) {
+        res.status(400);
+        throw new Error('所有题目都已经完成了');
+      } else {
+        res.status(500);
+        throw new Error('查找下一题时出现异常');
+      }
     }
 
-    console.log('下一个对象：', nextTopic);
-    currentUser.currentTopic = nextTopic.topic;
+    console.log('找到下一个题目：', {
+      topicId: nextPendingTopic.topic.toString(),
+      status: nextPendingTopic.status,
+    });
 
+    // 10. 保存所有更改
     await newRecord.save();
-
     await currentUser.save();
 
+    // 11. 获取下一个题目的详细信息
     const currentTopic = await Topic.findById(currentUser.currentTopic)
       .populate('answers')
       .populate({
@@ -128,6 +196,7 @@ export const submitNewbieTraining = handleAsync(
         model: 'Answer',
       });
 
+    // 12. 返回结果
     res.json({
       success: true,
       data: {
@@ -146,6 +215,7 @@ export const getNewbieTraining = handleAsync(
 
     if (emptyRecordFlag === 'true') {
       req.user.topics = [];
+      req.user.currentTopic = null;
       await req.user.save();
     }
 
@@ -159,9 +229,23 @@ export const getNewbieTraining = handleAsync(
         status: 'pending',
       }));
 
+      // 设置第一个题目为 doing 状态
+      if (req.user.topics.length > 0) {
+        req.user.topics[0].status = 'doing';
+      }
+
       req.user.currentTopic = req.user.topics[0].topic;
 
       await req.user.save();
+    } else {
+      // 确保当前题目状态为 doing
+      const currentTopicIndex = req.user.topics.findIndex(
+        (topic) => topic.topic.toString() === req.user.currentTopic.toString(),
+      );
+      if (currentTopicIndex !== -1) {
+        req.user.topics[currentTopicIndex].status = 'doing';
+        await req.user.save();
+      }
     }
 
     const currentUser = await User.findById(req.user._id)
@@ -178,13 +262,24 @@ export const getNewbieTraining = handleAsync(
         model: 'Answer',
       });
 
+    const processedCurrentTopic = await transformDocumentImage(currentTopic, [
+      'video1',
+      'video2',
+    ]);
+
+    const processedAnswers = await transformDocumentImages(
+      currentTopic.answers,
+      ['image'],
+    );
+
     res.json({
       success: true,
       data: {
         currentUser: { ...exclude(currentUser.toObject(), 'password') },
-        currentTopic,
+        currentTopic: processedCurrentTopic,
+        answers: processedAnswers,
         topics: currentUser.topics,
-        isHasTopics: req.user.topics?.length > 0,
+        isHasTopics: currentUser.topics?.length > 0,
       },
     });
   },

@@ -97,47 +97,42 @@ export const submitNewbieTraining = handleAsync(
       throw new Error('Topic not found');
     }
 
-    // 4. 处理答案： 如果issue为'No Issue'，则保存提交的答案，否则保存空数组
-    const answersToSave = issue === 'No Issue' ? answers : [];
-
     // 5. 创建记录
     const newRecord = await Record.create({
       user: currentUser._id,
       topic: topicId,
-      answers: answersToSave,
+      answers: answers,
       issue,
     });
 
     // 6. 判断答案正确性
     let status: 'pending' | 'doing' | 'success' | 'fail' = 'pending';
 
-    console.log('原始正确答案：', topic.correctAnswers);
-    console.log('原始提交答案：', answers);
+    if (issue === 'No Issue') {
+      // 格式化正确答案
+      const normalizedCorrectAnswers = topic.correctAnswers.map(
+        (correctAnswer) => ({
+          answer: correctAnswer.answer._id,
+          count: correctAnswer.count,
+        }),
+      );
 
-    // 格式化正确答案
-    const normalizedCorrectAnswers = topic.correctAnswers.map(
-      (correctAnswer) => ({
-        answer: correctAnswer.answer._id,
-        count: correctAnswer.count,
-      }),
-    );
+      // 格式化提交的答案
+      const normalizedSubmittedAnswers = answers.map(
+        (submittedAnswer: any) => ({
+          answer: submittedAnswer._id,
+          count: submittedAnswer.count,
+        }),
+      );
 
-    // 格式化提交的答案 - 保持原样即可
-    const normalizedSubmittedAnswers = answers.map((submittedAnswer: any) => ({
-      answer: submittedAnswer._id,
-      count: submittedAnswer.count,
-    }));
-
-    console.log('格式化后的正确答案：', normalizedCorrectAnswers);
-    console.log('格式化后的提交答案：', normalizedSubmittedAnswers);
-
-    const isAnswersEqual = _.isEqual(
-      _.sortBy(normalizedCorrectAnswers, 'answer'),
-      _.sortBy(normalizedSubmittedAnswers, 'answer'),
-    );
-    status = isAnswersEqual ? 'success' : 'fail';
-
-    console.log('比较结果：', status);
+      const isAnswersEqual = _.isEqual(
+        _.sortBy(normalizedCorrectAnswers, 'answer'),
+        _.sortBy(normalizedSubmittedAnswers, 'answer'),
+      );
+      status = isAnswersEqual ? 'success' : 'fail';
+    } else {
+      status = 'fail';
+    }
 
     newRecord.status = status;
 
@@ -164,37 +159,34 @@ export const submitNewbieTraining = handleAsync(
 
       // 更新当前题目
       currentUser.currentTopic = nextPendingTopic.topic;
+
+      console.log('找到下一个题目：', {
+        topicId: nextPendingTopic.topic.toString(),
+        status: nextPendingTopic.status,
+      });
     } else {
-      // 9. 只有真的没有待做题目时才抛出错误
-      const pendingCount = currentUser.topics.filter(
-        (t) => !t.status || t.status === 'pending',
-      ).length;
-
-      if (pendingCount === 0) {
-        res.status(400);
-        throw new Error('所有题目都已经完成了');
-      } else {
-        res.status(500);
-        throw new Error('查找下一题时出现异常');
-      }
+      // 如果没有下一题，清空当前题目
+      currentUser.currentTopic = null;
     }
-
-    console.log('找到下一个题目：', {
-      topicId: nextPendingTopic.topic.toString(),
-      status: nextPendingTopic.status,
-    });
 
     // 10. 保存所有更改
     await newRecord.save();
     await currentUser.save();
 
-    // 11. 获取下一个题目的详细信息
-    const currentTopic = await Topic.findById(currentUser.currentTopic)
-      .populate('answers')
-      .populate({
-        path: 'correctAnswers.answer',
-        model: 'Answer',
-      });
+    // 11. 获取下一个题目的详细信息（如果有的话）
+    const currentTopic = nextPendingTopic
+      ? await Topic.findById(currentUser.currentTopic)
+          .populate('answers')
+          .populate({
+            path: 'correctAnswers.answer',
+            model: 'Answer',
+          })
+      : null;
+
+    // 计算是否所有题目都已完成
+    const isAllCompleted = !currentUser.topics.some(
+      (topic) => !topic.status || topic.status === 'pending',
+    );
 
     // 12. 返回结果
     res.json({
@@ -203,6 +195,7 @@ export const submitNewbieTraining = handleAsync(
         record: newRecord,
         currentTopic,
         user: exclude(currentUser.toObject(), 'password'),
+        isAllCompleted,
       },
     });
   },

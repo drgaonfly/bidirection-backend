@@ -99,7 +99,7 @@ export const submitNewbieTraining = handleAsync(
 
     // 5. 创建记录
     const newRecord = await Record.create({
-      user: currentUser._id,
+      user: currentUser.id,
       topic: topicId,
       answers: answers,
       issue,
@@ -112,7 +112,7 @@ export const submitNewbieTraining = handleAsync(
       // 格式化正确答案
       const normalizedCorrectAnswers = topic.correctAnswers.map(
         (correctAnswer) => ({
-          answer: correctAnswer.answer._id,
+          answer: correctAnswer.answer.id,
           count: correctAnswer.count,
         }),
       );
@@ -120,7 +120,7 @@ export const submitNewbieTraining = handleAsync(
       // 格式化提交的答案
       const normalizedSubmittedAnswers = answers.map(
         (submittedAnswer: any) => ({
-          answer: submittedAnswer._id,
+          answer: submittedAnswer.id,
           count: submittedAnswer.count,
         }),
       );
@@ -129,6 +129,7 @@ export const submitNewbieTraining = handleAsync(
         _.sortBy(normalizedCorrectAnswers, 'answer'),
         _.sortBy(normalizedSubmittedAnswers, 'answer'),
       );
+
       status = isAnswersEqual ? 'success' : 'fail';
     } else {
       status = 'fail';
@@ -183,11 +184,6 @@ export const submitNewbieTraining = handleAsync(
           })
       : null;
 
-    // 计算是否所有题目都已完成
-    const isAllCompleted = !currentUser.topics.some(
-      (topic) => !topic.status || topic.status === 'pending',
-    );
-
     // 12. 返回结果
     res.json({
       success: true,
@@ -195,7 +191,6 @@ export const submitNewbieTraining = handleAsync(
         record: newRecord,
         currentTopic,
         user: exclude(currentUser.toObject(), 'password'),
-        isAllCompleted,
       },
     });
   },
@@ -225,12 +220,12 @@ export const getNewbieTraining = handleAsync(
       // 设置第一个题目为 doing 状态
       if (req.user.topics.length > 0) {
         req.user.topics[0].status = 'doing';
+        req.user.currentTopic = req.user.topics[0].topic;
       }
 
-      req.user.currentTopic = req.user.topics[0].topic;
-
       await req.user.save();
-    } else {
+    } else if (req.user.currentTopic) {
+      // 添加 null 检查
       // 确保当前题目状态为 doing
       const currentTopicIndex = req.user.topics.findIndex(
         (topic) => topic.topic.toString() === req.user.currentTopic.toString(),
@@ -248,22 +243,30 @@ export const getNewbieTraining = handleAsync(
         populate: { path: 'topic', model: 'Topic' },
       });
 
-    const currentTopic = await Topic.findById(currentUser.currentTopic)
-      .populate('answers')
-      .populate({
-        path: 'correctAnswers.answer',
-        model: 'Answer',
-      });
+    // 只在有 currentTopic 时获取题目详情
+    const currentTopic = currentUser.currentTopic
+      ? await Topic.findById(currentUser.currentTopic)
+          .populate('answers')
+          .populate({
+            path: 'correctAnswers.answer',
+            model: 'Answer',
+          })
+      : null;
 
-    const processedCurrentTopic = await transformDocumentImage(currentTopic, [
-      'video1',
-      'video2',
-    ]);
+    const processedCurrentTopic = currentTopic
+      ? await transformDocumentImage(currentTopic, ['video1', 'video2'])
+      : null;
 
-    const processedAnswers = await transformDocumentImages(
-      currentTopic.answers,
-      ['image'],
+    const processedAnswers = currentTopic
+      ? await transformDocumentImages(currentTopic.answers, ['image'])
+      : [];
+
+    // 计算是否所有题目都已完成
+    const isAllCompleted = !currentUser.topics.some(
+      (topic) => !topic.status || topic.status === 'pending',
     );
+
+    console.log('isAllCompleted', isAllCompleted);
 
     res.json({
       success: true,
@@ -272,6 +275,7 @@ export const getNewbieTraining = handleAsync(
         currentTopic: processedCurrentTopic,
         answers: processedAnswers,
         topics: currentUser.topics,
+        isAllCompleted,
         isHasTopics: currentUser.topics?.length > 0,
       },
     });

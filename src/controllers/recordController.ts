@@ -167,17 +167,19 @@ export const submitNewbieTraining = handleAsync(
       throw new Error('Topic not found');
     }
 
+    const transformedAnswers = answers.map(async (submittedAnswer: any) => {
+      const answer = await Answer.findOne({ id: submittedAnswer.id });
+      return {
+        answer: answer?._id,
+        count: submittedAnswer.count,
+      };
+    });
+
     // 5. 创建记录
     const newRecord = await Record.create({
       user: currentUser.id,
       topic: topicId,
-      answers: answers.map(async (submittedAnswer: any) => {
-        const answer = await Answer.findOne({ id: submittedAnswer.id });
-        return {
-          answer: answer?._id,
-          count: submittedAnswer.count,
-        };
-      }), // 使用转换后的 _id
+      answers: transformedAnswers, // 使用转换后的 _id
       issue,
     });
 

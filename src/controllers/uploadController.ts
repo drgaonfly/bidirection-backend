@@ -10,6 +10,7 @@ import {
   generateSignedUrlForS3,
 } from '../utils/generateSignedUrl';
 import axios from 'axios';
+import { S3 } from 'aws-sdk';
 
 export interface MulterFile extends Express.Multer.File {}
 
@@ -164,3 +165,32 @@ export const getOssCredentials = handleAsync(
     });
   },
 );
+
+export const getS3Credentials = async (req: Request, res: Response) => {
+  const s3 = new S3();
+  const bucketName = process.env.AWS_BUCKET_NAME; // Add your S3 bucket name here
+
+  // Set the expiration time for the pre-signed URL (e.g., 1 hour)
+  const expiration = 60 * 60; // 1 hour in seconds
+  const key = `user-dir/${Date.now()}-${req.body.fileName}`; // Generate a unique key for the file
+
+  try {
+    // Generate pre-signed URL for upload
+    const signedUrl = await s3.getSignedUrlPromise('putObject', {
+      Bucket: bucketName,
+      Key: key,
+      Expires: expiration,
+      ContentType: req.body.contentType, // Ensure the Content-Type is set to the file type
+    });
+
+    res.json({
+      url: signedUrl,
+      key,
+      host: `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com`, // S3 bucket URL
+      expire: Date.now() + expiration * 1000, // Expiration time in milliseconds
+    });
+  } catch (error) {
+    console.error('Error generating S3 credentials:', error);
+    res.status(500).json({ message: 'Failed to generate S3 credentials' });
+  }
+};

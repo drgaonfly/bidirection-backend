@@ -1,13 +1,23 @@
 import axios from 'axios';
-import ossClient from './utils/oss';
+// import ossClient from './utils/oss';
 import Answer from './models/answer';
 import mongoose from 'mongoose';
 import { generateUniqueNumber } from './controllers/topicController';
 import Topic from './models/topic';
 import setupDB from './utils/db';
+import s3 from './utils/s3';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 const url = 'https://api.cabinet-rgshb.hetuntech.cn/graphql';
-const token =
-  'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsic291cmNlIjoiQ09OU09MRSIsImFkbWluSWQiOiI1NTg3NTE4ZS03OGQzLTRhNjAtODc1OS0wN2UzMzQzMWZhZWYiLCJzZXNzaW9uSWQiOiJiMDNiNGU2OC01NmMwLTQwMDAtYmY0Ny1mYmNhMGFmNDljNGMifSwiaWF0IjoxNzM1MDMxMDAyfQ.GbV2uiqkC2qOxV3SKwSSQmSitcimOwceSyfunqlVyrI';
+const tokens = [
+  {
+    name: 'G002',
+    token:
+      'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsic291cmNlIjoiQ09OU09MRSIsImFkbWluSWQiOiI1NTg3NTE4ZS03OGQzLTRhNjAtODc1OS0wN2UzMzQzMWZhZWYiLCJzZXNzaW9uSWQiOiJiMDNiNGU2OC01NmMwLTQwMDAtYmY0Ny1mYmNhMGFmNDljNGMifSwiaWF0IjoxNzM1MDMxMDAyfQ.GbV2uiqkC2qOxV3SKwSSQmSitcimOwceSyfunqlVyrI',
+  },
+];
 
 // 第一个请求
 const getAllTopics = async (token: string): Promise<any[]> => {
@@ -132,26 +142,9 @@ const getAnswersBySns = async (
   return response.data?.data?.result?.list;
 };
 
-const uploadFileToOSS = async (url: string): Promise<string> => {
-  const filename = url.split('/').pop() ?? '';
-  const ossPath = `taskOssUploads/${filename}`;
-
-  // Download the file from URL
-  const response = await axios({
-    url,
-    method: 'GET',
-    responseType: 'stream',
-  });
-
-  // Upload the file content to OSS
-  await ossClient.put(ossPath, response.data);
-
-  return ossPath;
-};
-
-// const uploadFileToS3 = async (url: string) => {
+// const uploadFileToOSS = async (url: string): Promise<string> => {
 //   const filename = url.split('/').pop() ?? '';
-//   const key = `s3Uploads/${filename}`;
+//   const ossPath = `taskOssUploads/${filename}`;
 
 //   // Download the file from URL
 //   const response = await axios({
@@ -160,20 +153,37 @@ const uploadFileToOSS = async (url: string): Promise<string> => {
 //     responseType: 'stream',
 //   });
 
-//   // Upload the file content to S3
-//   const params = {
-//     Bucket: process.env.AWS_BUCKET_NAME,
-//     Key: key,
-//     Body: response.data,
-//     ContentType: response.headers['content-type'],
-//   };
+//   // Upload the file content to OSS
+//   await ossClient.put(ossPath, response.data);
 
-//   await s3.upload(params).promise();
-
-//   return key;
+//   return ossPath;
 // };
 
-const scrapeData = async () => {
+const uploadFileToS3 = async (url: string) => {
+  const filename = url.split('/').pop() ?? '';
+  const key = `s3Uploads/${filename}`;
+
+  // Download the file from URL
+  const response = await axios({
+    url,
+    method: 'GET',
+    responseType: 'stream',
+  });
+
+  // Upload the file content to S3
+  const params = {
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: key,
+    Body: response.data,
+    ContentType: response.headers['content-type'],
+  };
+
+  await s3.upload(params).promise();
+
+  return key;
+};
+
+const scrapeData = async (token: string) => {
   console.log('开始连接数据库');
   await setupDB();
 
@@ -184,7 +194,17 @@ const scrapeData = async () => {
     console.log('topics not found');
   }
 
-  for (const topic of topics) {
+  const existingTopicIds = await Topic.distinct('id');
+  const topicsToSave = topics.filter(
+    (topic) => !existingTopicIds.includes(topic.id),
+  );
+  console.log(
+    '需要保存的 topics',
+    topicsToSave.map((t) => t.id),
+  );
+  console.log('topicsToSave', topicsToSave.length);
+
+  for (const topic of topicsToSave) {
     // 查找所有的题目
     const topicDetails = await getTopicDetails(token, topic.id);
 
@@ -198,22 +218,22 @@ const scrapeData = async () => {
 
     console.log('正在处理 topic: ' + topic.id);
 
-    const topicExists = await Topic.findOne({
-      id: topic.id,
-    });
+    // const topicExists = await Topic.findOne({
+    //   id: topic.id,
+    // });
 
-    if (topicExists) {
-      console.log(`${topic.id} topic already exists`);
-      continue;
-    }
+    // if (topicExists) {
+    //   console.log(`${topic.id} topic already exists`);
+    //   continue;
+    // }
 
     const uniqueNum = await generateUniqueNumber(); // 直接调用 generateUniqueNumber
 
     const newTopic = new Topic({
       id: uniqueNum,
-      video1: await uploadFileToOSS(topicDetails.videoList[0]),
+      video1: await uploadFileToS3(topicDetails.videoList[0]),
       video2: topicDetails.videoList?.[1]
-        ? await uploadFileToOSS(topicDetails.videoList[1])
+        ? await uploadFileToS3(topicDetails.videoList[1])
         : undefined,
     });
 
@@ -232,8 +252,15 @@ const scrapeData = async () => {
 
     // 创建答案
     for (const answer of answers) {
+      const existingAnswer = await Answer.findOne({ id: answer.id });
+
+      if (existingAnswer) {
+        console.log(`${answer.id} answer already exists`);
+        continue;
+      }
+
       const newAnswer = new Answer({
-        image: await uploadFileToOSS(answer.packageImageUrl),
+        image: await uploadFileToS3(answer.packageImageUrl),
         topic: newTopic._id,
         skuName: answer.skuName,
         brandName: answer.brandName,
@@ -275,4 +302,6 @@ const scrapeData = async () => {
   }
 };
 
-scrapeData();
+for (const { token } of tokens) {
+  scrapeData(token);
+}

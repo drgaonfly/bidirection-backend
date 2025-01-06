@@ -31,3 +31,4 @@ build/
 dist/
 .env
 .vercel
+tmp/scrape.txt

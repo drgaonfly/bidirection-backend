@@ -1,10 +1,15 @@
 import axios from 'axios';
-import ossClient from './utils/oss';
+// import ossClient from './utils/oss';
 import Answer from './models/answer';
 import mongoose from 'mongoose';
 import { generateUniqueNumber } from './controllers/topicController';
 import Topic from './models/topic';
 import setupDB from './utils/db';
+import s3 from './utils/s3';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 const url = 'https://api.cabinet-rgshb.hetuntech.cn/graphql';
 const tokens = [
   {
@@ -137,26 +142,9 @@ const getAnswersBySns = async (
   return response.data?.data?.result?.list;
 };
 
-const uploadFileToOSS = async (url: string): Promise<string> => {
-  const filename = url.split('/').pop() ?? '';
-  const ossPath = `taskOssUploads/${filename}`;
-
-  // Download the file from URL
-  const response = await axios({
-    url,
-    method: 'GET',
-    responseType: 'stream',
-  });
-
-  // Upload the file content to OSS
-  await ossClient.put(ossPath, response.data);
-
-  return ossPath;
-};
-
-// const uploadFileToS3 = async (url: string) => {
+// const uploadFileToOSS = async (url: string): Promise<string> => {
 //   const filename = url.split('/').pop() ?? '';
-//   const key = `s3Uploads/${filename}`;
+//   const ossPath = `taskOssUploads/${filename}`;
 
 //   // Download the file from URL
 //   const response = await axios({
@@ -165,18 +153,35 @@ const uploadFileToOSS = async (url: string): Promise<string> => {
 //     responseType: 'stream',
 //   });
 
-//   // Upload the file content to S3
-//   const params = {
-//     Bucket: process.env.AWS_BUCKET_NAME,
-//     Key: key,
-//     Body: response.data,
-//     ContentType: response.headers['content-type'],
-//   };
+//   // Upload the file content to OSS
+//   await ossClient.put(ossPath, response.data);
 
-//   await s3.upload(params).promise();
-
-//   return key;
+//   return ossPath;
 // };
+
+const uploadFileToS3 = async (url: string) => {
+  const filename = url.split('/').pop() ?? '';
+  const key = `s3Uploads/${filename}`;
+
+  // Download the file from URL
+  const response = await axios({
+    url,
+    method: 'GET',
+    responseType: 'stream',
+  });
+
+  // Upload the file content to S3
+  const params = {
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: key,
+    Body: response.data,
+    ContentType: response.headers['content-type'],
+  };
+
+  await s3.upload(params).promise();
+
+  return key;
+};
 
 const scrapeData = async (token: string) => {
   console.log('开始连接数据库');
@@ -226,9 +231,9 @@ const scrapeData = async (token: string) => {
 
     const newTopic = new Topic({
       id: uniqueNum,
-      video1: await uploadFileToOSS(topicDetails.videoList[0]),
+      video1: await uploadFileToS3(topicDetails.videoList[0]),
       video2: topicDetails.videoList?.[1]
-        ? await uploadFileToOSS(topicDetails.videoList[1])
+        ? await uploadFileToS3(topicDetails.videoList[1])
         : undefined,
     });
 
@@ -255,7 +260,7 @@ const scrapeData = async (token: string) => {
       }
 
       const newAnswer = new Answer({
-        image: await uploadFileToOSS(answer.packageImageUrl),
+        image: await uploadFileToS3(answer.packageImageUrl),
         topic: newTopic._id,
         skuName: answer.skuName,
         brandName: answer.brandName,

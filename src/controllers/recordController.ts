@@ -201,11 +201,6 @@ export const getNewbieTraining = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const { emptyRecordFlag } = req.query;
 
-    if (!req.user.isOnline) {
-      res.json({ isOnline: false });
-      return;
-    }
-
     if (emptyRecordFlag === 'true') {
       req.user.topics = [];
       req.user.currentTopic = null;
@@ -348,16 +343,6 @@ export const submitExam = handleAsync(
       );
 
       status = isAnswersEqual ? 'success' : 'fail';
-
-      console.log('=== 商品名称比对 ===');
-      console.log(
-        '正确答案商品:',
-        topic.correctAnswers.map((a: any) => a.answer.skuName),
-      );
-      console.log(
-        '提交的商品:',
-        answers.map((a: any) => a.skuName),
-      );
     } else {
       status = 'fail';
     }

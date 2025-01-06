@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Record from '../models/record';
 import handleAsync from '../utils/handleAsync';
-import Topic from '../models/topic';
+import Topic, { ITopic } from '../models/topic';
 import { RequestCustom } from '../types/user';
 import { exclude } from '../utils/handleData';
 import User from '../models/user';
@@ -48,21 +48,38 @@ export const getRecords = handleAsync(
 
     // 查询记录
     const records = await Record.find(query)
-      .populate('correctAnswers.answer')
       .populate('user')
-      .populate('topic')
-      .sort('-createdAt') // 按创建时间降序排序
-      .skip((+current - 1) * +pageSize) // 跳过前面的记录
-      .limit(+pageSize) // 限制返回的记录数
+      .populate('topic') // 确保填充 topic
+      .sort('-createdAt')
+      .skip((+current - 1) * +pageSize)
+      .limit(+pageSize)
       .exec();
 
-    console.log(JSON.stringify(records, null, 2)); // 打印填充后的记录
+    const total = await Record.countDocuments(query);
 
-    const total = await Record.countDocuments(query); // 计算总记录数
+    // 处理记录数据，将 topic 中的视频信息添加到记录中
+    const processedRecords = await Promise.all(
+      records.map(async (record) => {
+        const recordObj = record.toObject();
+        if (recordObj.topic) {
+          const transformedRecord = {
+            ...recordObj,
+            video1: (recordObj.topic as ITopic).video1,
+            video2: (recordObj.topic as ITopic).video2,
+          };
+          // 转换图片 URL
+          return await transformDocumentImage(transformedRecord, [
+            'video1',
+            'video2',
+          ]);
+        }
+        return recordObj;
+      }),
+    );
 
     res.json({
       success: true,
-      data: records,
+      data: processedRecords,
       total,
       current: +current,
       pageSize: +pageSize,

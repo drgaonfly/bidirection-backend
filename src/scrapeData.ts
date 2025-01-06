@@ -184,7 +184,17 @@ const scrapeData = async () => {
     console.log('topics not found');
   }
 
-  for (const topic of topics) {
+  const existingTopicIds = await Topic.distinct('id');
+  const topicsToSave = topics.filter(
+    (topic) => !existingTopicIds.includes(topic.id),
+  );
+  console.log(
+    '需要保存的 topics',
+    topicsToSave.map((t) => t.id),
+  );
+  console.log('topicsToSave', topicsToSave.length);
+
+  for (const topic of topicsToSave) {
     // 查找所有的题目
     const topicDetails = await getTopicDetails(token, topic.id);
 
@@ -198,14 +208,14 @@ const scrapeData = async () => {
 
     console.log('正在处理 topic: ' + topic.id);
 
-    const topicExists = await Topic.findOne({
-      id: topic.id,
-    });
+    // const topicExists = await Topic.findOne({
+    //   id: topic.id,
+    // });
 
-    if (topicExists) {
-      console.log(`${topic.id} topic already exists`);
-      continue;
-    }
+    // if (topicExists) {
+    //   console.log(`${topic.id} topic already exists`);
+    //   continue;
+    // }
 
     const uniqueNum = await generateUniqueNumber(); // 直接调用 generateUniqueNumber
 

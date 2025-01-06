@@ -332,7 +332,7 @@ export const submitExam = handleAsync(
       user: currentUser.id,
       topic: topicId,
       answers: answers.map(async (submittedAnswer: any) => {
-        const answer = await Answer.findOne({ _id: submittedAnswer.id });
+        const answer = await Answer.findOne({ id: submittedAnswer.id });
         return {
           answer: answer?._id,
           count: submittedAnswer.count,

@@ -58,7 +58,7 @@
     "ts.check": "tsc --project tsconfig.json",
     "add-build": "git add dist",
     "seed": "npx ts-node src/utils/seed.ts",
-    "scrape": "npx ts-node src/scrapeData.ts",
+    "scrape": "npx ts-node src/scrapeData.ts | tee ./tmp/scrape.txt",
     "deploy": "npm run build && npx vercel --prod",
     "lint-staged": "lint-staged",
     "prettier": "prettier --config .prettierrc --write .",

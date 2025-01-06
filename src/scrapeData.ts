@@ -247,6 +247,13 @@ const scrapeData = async (token: string) => {
 
     // 创建答案
     for (const answer of answers) {
+      const existingAnswer = await Answer.findOne({ id: answer.id });
+
+      if (existingAnswer) {
+        console.log(`${answer.id} answer already exists`);
+        continue;
+      }
+
       const newAnswer = new Answer({
         image: await uploadFileToOSS(answer.packageImageUrl),
         topic: newTopic._id,

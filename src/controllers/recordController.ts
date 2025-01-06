@@ -212,6 +212,11 @@ export const getNewbieTraining = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const { emptyRecordFlag } = req.query;
 
+    if (!req.user.isOnline) {
+      res.json({ isOnline: false });
+      return;
+    }
+
     if (emptyRecordFlag === 'true') {
       req.user.topics = [];
       req.user.currentTopic = null;

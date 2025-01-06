@@ -6,8 +6,13 @@ import { generateUniqueNumber } from './controllers/topicController';
 import Topic from './models/topic';
 import setupDB from './utils/db';
 const url = 'https://api.cabinet-rgshb.hetuntech.cn/graphql';
-const token =
-  'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsic291cmNlIjoiQ09OU09MRSIsImFkbWluSWQiOiI1NTg3NTE4ZS03OGQzLTRhNjAtODc1OS0wN2UzMzQzMWZhZWYiLCJzZXNzaW9uSWQiOiJiMDNiNGU2OC01NmMwLTQwMDAtYmY0Ny1mYmNhMGFmNDljNGMifSwiaWF0IjoxNzM1MDMxMDAyfQ.GbV2uiqkC2qOxV3SKwSSQmSitcimOwceSyfunqlVyrI';
+const tokens = [
+  {
+    name: 'G002',
+    token:
+      'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsic291cmNlIjoiQ09OU09MRSIsImFkbWluSWQiOiI1NTg3NTE4ZS03OGQzLTRhNjAtODc1OS0wN2UzMzQzMWZhZWYiLCJzZXNzaW9uSWQiOiJiMDNiNGU2OC01NmMwLTQwMDAtYmY0Ny1mYmNhMGFmNDljNGMifSwiaWF0IjoxNzM1MDMxMDAyfQ.GbV2uiqkC2qOxV3SKwSSQmSitcimOwceSyfunqlVyrI',
+  },
+];
 
 // 第一个请求
 const getAllTopics = async (token: string): Promise<any[]> => {
@@ -173,7 +178,7 @@ const uploadFileToOSS = async (url: string): Promise<string> => {
 //   return key;
 // };
 
-const scrapeData = async () => {
+const scrapeData = async (token: string) => {
   console.log('开始连接数据库');
   await setupDB();
 
@@ -285,4 +290,6 @@ const scrapeData = async () => {
   }
 };
 
-scrapeData();
+for (const { token } of tokens) {
+  scrapeData(token);
+}

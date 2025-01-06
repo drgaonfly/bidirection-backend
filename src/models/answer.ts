@@ -17,7 +17,7 @@ const answerSchema = new mongoose.Schema(
   {
     image: { type: String, required: false },
     topic: { type: mongoose.Schema.Types.ObjectId, ref: 'Topic' },
-    id: { type: String, required: false },
+    id: { type: String, required: true, unique: true },
     skuName: { type: String, required: false },
     brandName: { type: String, required: false },
     sn: { type: String, required: false },

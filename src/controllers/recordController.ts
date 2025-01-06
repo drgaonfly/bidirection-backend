@@ -11,6 +11,7 @@ import {
   transformDocumentImages,
 } from '../utils/transformUtils';
 import * as _ from 'lodash';
+import Answer from '../models/answer';
 
 const buildQuery = async (
   queryParams: any,
@@ -97,11 +98,21 @@ export const submitNewbieTraining = handleAsync(
       throw new Error('Topic not found');
     }
 
-    // 5. 创建记录
+    // 5. 创建记录前，先根据 id 找到对应的 Answer 的 _id
+    const answerIds = await Promise.all(
+      answers.map(async (ans: any) => {
+        const answer = await Answer.findOne({ id: ans.answer });
+        return {
+          answer: answer._id, // 使用 MongoDB 的 _id
+          count: ans.count,
+        };
+      }),
+    );
+
     const newRecord = await Record.create({
       user: currentUser.id,
       topic: topicId,
-      answers: answers,
+      answers: answerIds, // 使用转换后的 _id
       issue,
     });
 
@@ -112,15 +123,15 @@ export const submitNewbieTraining = handleAsync(
       // 格式化正确答案
       const normalizedCorrectAnswers = topic.correctAnswers.map(
         (correctAnswer) => ({
-          answer: correctAnswer.answer.id,
+          answer: correctAnswer.answer._id,
           count: correctAnswer.count,
         }),
       );
 
       // 格式化提交的答案
-      const normalizedSubmittedAnswers = answers.map(
+      const normalizedSubmittedAnswers = answerIds.map(
         (submittedAnswer: any) => ({
-          answer: submittedAnswer.id,
+          answer: submittedAnswer.answer,
           count: submittedAnswer.count,
         }),
       );
@@ -309,11 +320,21 @@ export const submitExam = handleAsync(
       throw new Error('Topic not found');
     }
 
-    // 5. 创建记录
+    // 5. 创建记录前，先根据 id 找到对应的 Answer 的 _id
+    const answerIds = await Promise.all(
+      answers.map(async (ans: any) => {
+        const answer = await Answer.findOne({ id: ans.answer });
+        return {
+          answer: answer._id, // 使用 MongoDB 的 _id
+          count: ans.count,
+        };
+      }),
+    );
+
     const newRecord = await Record.create({
       user: currentUser.id,
       topic: topicId,
-      answers: answers,
+      answers: answerIds,
       issue,
     });
 
@@ -324,15 +345,15 @@ export const submitExam = handleAsync(
       // 格式化正确答案
       const normalizedCorrectAnswers = topic.correctAnswers.map(
         (correctAnswer) => ({
-          answer: correctAnswer.answer.id,
+          answer: correctAnswer.answer._id,
           count: correctAnswer.count,
         }),
       );
 
       // 格式化提交的答案
-      const normalizedSubmittedAnswers = answers.map(
+      const normalizedSubmittedAnswers = answerIds.map(
         (submittedAnswer: any) => ({
-          answer: submittedAnswer.id,
+          answer: submittedAnswer.answer,
           count: submittedAnswer.count,
         }),
       );

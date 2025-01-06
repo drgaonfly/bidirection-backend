@@ -171,7 +171,13 @@ export const submitNewbieTraining = handleAsync(
     const newRecord = await Record.create({
       user: currentUser.id,
       topic: topicId,
-      answers: answers, // 使用转换后的 _id
+      answers: answers.map(async (submittedAnswer: any) => {
+        const answer = await Answer.findOne({ id: submittedAnswer.id });
+        return {
+          answer: answer?._id,
+          count: submittedAnswer.count,
+        };
+      }), // 使用转换后的 _id
       issue,
     });
 

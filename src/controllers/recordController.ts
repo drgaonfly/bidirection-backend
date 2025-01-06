@@ -167,13 +167,17 @@ export const submitNewbieTraining = handleAsync(
       throw new Error('Topic not found');
     }
 
-    const transformedAnswers = answers.map(async (submittedAnswer: any) => {
-      const answer = await Answer.findOne({ id: submittedAnswer.id });
-      return {
-        answer: answer?._id,
-        count: submittedAnswer.count,
-      };
-    });
+    const transformedAnswers = await Promise.all(
+      answers.map(async (submittedAnswer: any) => {
+        const answer = await Answer.findOne({ id: submittedAnswer.id });
+        return {
+          answer: answer?._id,
+          count: submittedAnswer.count,
+        };
+      }),
+    );
+
+    console.log(transformedAnswers);
 
     // 5. 创建记录
     const newRecord = await Record.create({
@@ -387,17 +391,21 @@ export const submitExam = handleAsync(
       throw new Error('Topic not found');
     }
 
-    // 5. 创建记录
-    const newRecord = await Record.create({
-      user: currentUser.id,
-      topic: topicId,
-      answers: answers.map(async (submittedAnswer: any) => {
+    const transformedAnswers = await Promise.all(
+      answers.map(async (submittedAnswer: any) => {
         const answer = await Answer.findOne({ id: submittedAnswer.id });
         return {
           answer: answer?._id,
           count: submittedAnswer.count,
         };
       }),
+    );
+
+    // 5. 创建记录
+    const newRecord = await Record.create({
+      user: currentUser.id,
+      topic: topicId,
+      answers: transformedAnswers,
       issue,
     });
 

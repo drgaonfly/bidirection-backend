@@ -3,6 +3,7 @@ import Menu, { IMenu } from '../models/menu';
 import checkMenu from '../utils/checkMenu';
 import handleAsync from '../utils/handleAsync';
 import { RequestCustom } from 'user';
+import Permission from '../models/permission';
 
 const getChildren = async (parentId: string | null): Promise<IMenu[]> => {
   const children = await Menu.find({ parent: parentId })
@@ -105,8 +106,18 @@ const getMenus = handleAsync(async (req: Request, res: Response) => {
 });
 
 const addMenu = handleAsync(async (req: Request, res: Response) => {
+  const { permission, ...menuData } = req.body;
+
+  const existingPermission = await Permission.findById(permission);
+
+  if (!existingPermission) {
+    res.status(404);
+    throw new Error('Permission not found');
+  }
+
   const newMenu = new Menu({
-    ...req.body,
+    ...menuData,
+    permission,
   });
 
   const savedMenu = await newMenu.save();

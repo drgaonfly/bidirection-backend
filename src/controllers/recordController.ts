@@ -27,6 +27,47 @@ const buildQuery = async (
     query.issue = queryParams.issue; // 直接将 status 参数添加到查询中
   }
 
+  if (queryParams.user) {
+    let searchText;
+    try {
+      const userParam = JSON.parse(String(queryParams.user));
+      searchText = userParam.name;
+    } catch (e) {
+      searchText = String(queryParams.user).trim();
+    }
+    const userData = await User.find({
+      name: {
+        $regex: searchText,
+        $options: 'i',
+      },
+    });
+
+    if (userData && userData.length > 0) {
+      query.user = { $in: userData.map((user) => user._id) };
+    } else {
+      return null;
+    }
+  }
+
+  if (queryParams.topic) {
+    let searchId;
+    try {
+      const topicParam = JSON.parse(String(queryParams.topic));
+      searchId = topicParam.id;
+    } catch (e) {
+      searchId = String(queryParams.topic).trim();
+    }
+    const topicData = await Topic.find({
+      id: searchId,
+    });
+
+    if (topicData && topicData.length > 0) {
+      query.topic = { $in: topicData.map((topic) => topic._id) };
+    } else {
+      return null;
+    }
+  }
+
   if (isProxy(req.user)) {
     const employees = await User.find({ proxy: req.user._id });
     const employeeIds = employees.map((employee) => employee._id);
@@ -46,6 +87,17 @@ export const getRecords = handleAsync(
     const { current = '1', pageSize = '10' } = req.query;
 
     const query = await buildQuery(req.query, req);
+
+    if (query === null) {
+      res.json({
+        success: true,
+        data: [],
+        total: 0,
+        current: +current,
+        pageSize: +pageSize,
+      });
+      return;
+    }
 
     // 查询记录
     const records = await Record.find(query)

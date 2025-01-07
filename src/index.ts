@@ -23,6 +23,9 @@ import employeeRoutes from './routes/employeeRoutes';
 
 import http from 'http';
 import { setupSocket } from './services/socket'; // 引入 socket 服务
+import withdrawRoutes from './routes/withdrawRoutes';
+import instructionRoutes from './routes/instructionRoutes';
+import customerRoutes from './routes/customerRoutes';
 
 // import { startWebHookBot } from './bot';
 dotenv.config();
@@ -54,6 +57,9 @@ app.use('/api/permission-groups', permissionGroupRoutes);
 app.use('/api/data-permissions', dataPermissionRoutes);
 app.use('/api/proxies', proxyRoutes);
 app.use('/api/employees', employeeRoutes);
+app.use('/api/withdraws', withdrawRoutes);
+app.use('/api/instructions', instructionRoutes);
+app.use('/api/customers', customerRoutes);
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 

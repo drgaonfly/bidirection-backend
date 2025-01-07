@@ -18,6 +18,10 @@ import uploadRoutes from './routes/uploadRoutes';
 import dataPermissionRoutes from './routes/dataPermissionRoutes';
 import proxyRoutes from './routes/proxyRoutes';
 import employeeRoutes from './routes/employeeRoutes';
+import noticeRoutes from './routes/noticeRoutes'; // 新增
+import incomeRoutes from './routes/incomeRoutes'; // 新增
+import channelRoutes from './routes/channelRoutes'; // 新增
+import activityRoutes from './routes/activityRoutes'; // 新增
 
 // 新增的路由
 
@@ -64,6 +68,11 @@ app.use('/api/instructions', instructionRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/wallets', walletRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/notices', noticeRoutes); // 新增
+app.use('/api/incomes', incomeRoutes); // 新增
+app.use('/api/channels', channelRoutes); // 新增
+app.use('/api/activities', activityRoutes); // 新增
+
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 

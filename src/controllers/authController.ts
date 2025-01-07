@@ -17,11 +17,6 @@ const login = handleAsync(async (req: Request, res: Response) => {
     throw new Error('User not found');
   }
 
-  if (!user.live) {
-    res.status(401);
-    throw new Error('User is not live');
-  }
-
   if (await bcrypt.compare(password, user.password)) {
     const refreshToken = generateRefreshToken(user._id.toString());
 

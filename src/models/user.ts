@@ -1,5 +1,4 @@
 import mongoose, { Document } from 'mongoose';
-import { ITopic } from './topic';
 
 export interface IUser extends Document {
   isAdmin: boolean;
@@ -7,29 +6,16 @@ export interface IUser extends Document {
   email: string;
   password: string;
   name: string;
+  live: boolean;
   createdAt?: Date; // Time of document creation
   updatedAt?: Date; // Time the document was last updated
-  currentTopic: mongoose.Types.ObjectId | ITopic;
-  currentExamTopic: mongoose.Types.ObjectId | ITopic;
-  live: boolean;
-  topics: Array<{
-    topic: mongoose.Types.ObjectId | ITopic;
-    status: 'pending' | 'doing' | 'success' | 'fail';
-  }>;
-  examTopics: Array<{
-    topic: mongoose.Types.ObjectId | ITopic;
-    status: 'pending' | 'doing' | 'success' | 'fail';
-  }>;
-  inviteCode: string;
-  isOnline: boolean;
-  topicCount: number;
 }
 
 const userSchema = new mongoose.Schema(
   {
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    name: { type: String, required: false },
+    name: { type: String, required: true, unique: true }, // Add unique index to name
     live: {
       type: Boolean,
       default: true,
@@ -44,57 +30,6 @@ const userSchema = new mongoose.Schema(
         ref: 'Role', // Reference the Role model
       },
     ],
-    // 新手训练相关
-    currentTopic: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Topic',
-    },
-    topics: [
-      {
-        topic: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'Topic',
-        },
-        status: {
-          type: String,
-          enum: ['pending', 'doing', 'success', 'fail'],
-          default: 'pending',
-        },
-      },
-    ],
-    // 考场相关
-    currentExamTopic: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Topic',
-    },
-    examTopics: [
-      {
-        topic: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'Topic',
-        },
-        status: {
-          type: String,
-          enum: ['pending', 'doing', 'success', 'fail'],
-          default: 'pending',
-        },
-      },
-    ],
-    inviteCode: {
-      type: String,
-    },
-    proxy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: false,
-    },
-    isOnline: {
-      type: Boolean,
-    },
-    topicCount: {
-      type: Number,
-      default: 0,
-    },
   },
   { timestamps: true },
 );

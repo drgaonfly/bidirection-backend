@@ -5,188 +5,117 @@ import handleAsync from '../utils/handleAsync';
 import bcrypt from 'bcrypt';
 import { exclude } from '../utils/handleData';
 import { RequestCustom } from 'user';
-import crypto from 'crypto';
-import { isProxy } from '../middlewares/authMiddleware';
-import Role from '../models/role';
 
-//user
-async function generateInviteCode(length: number = 5): Promise<string> {
-  let inviteCode;
-  do {
-    inviteCode = crypto
-      .randomBytes(length)
-      .toString('base64')
-      .replace(/[+/=]/g, '') // 移除特殊字符
-      .slice(0, length); // 确保长度正确
-  } while (await User.findOne({ inviteCode }));
-  return inviteCode;
-}
+const getUsers = handleAsync(async (req: Request, res: Response) => {
+  const { email, name, live, current = '1', pageSize = '10' } = req.query;
 
-export const getUsers = handleAsync(
-  async (req: RequestCustom, res: Response) => {
-    const {
-      email,
-      name,
-      live,
-      isOnline,
-      inviteCode,
-      current = '1',
-      pageSize = '10',
-    } = req.query;
+  const query: any = {};
 
-    const query: any = {};
+  if (email) {
+    query.email = email;
+  }
 
-    if (email) {
-      query.email = email;
-    }
+  if (name) {
+    query.name = { $regex: name, $options: 'i' };
+  }
 
-    if (inviteCode) {
-      query.inviteCode = inviteCode;
-    }
+  if (live) {
+    query.live = live === 'true';
+  }
 
-    if (name) {
-      query.name = { $regex: name, $options: 'i' };
-    }
+  // 执行查询
+  const users = await User.find({
+    ...query,
+  })
+    .populate('roles')
+    .sort('-createdAt') // Sort by creation time in descending order
+    .skip((+current - 1) * +pageSize)
+    .limit(+pageSize)
+    .exec();
 
-    if (live) {
-      query.live = live === 'true';
-    }
+  const total = await User.countDocuments({
+    ...query,
+  }).exec();
 
-    if (isOnline) {
-      query.isOnline = isOnline;
-    }
+  res.json({
+    success: true,
+    data: users.map((user) => exclude(user.toObject(), 'password')),
+    total,
+    current: +current,
+    pageSize: +pageSize,
+  });
+});
 
-    if (
-      req.baseUrl + req.route.path === '/api/employees/' &&
-      isProxy(req.user) &&
-      !req.getAllData
-    ) {
-      query.proxy = req.user._id;
-    }
+const addUser = handleAsync(async (req: RequestCustom, res: Response) => {
+  const { name, email, password, roles } = req.body;
 
-    if (req.baseUrl + req.route.path === '/api/employees/') {
-      const employeeRole = await Role.findOne({ name: '员工' });
-      query.roles = [employeeRole?._id];
-    }
+  const userExists = await User.findOne({ email });
 
-    if (req.baseUrl + req.route.path === '/api/proxies/') {
-      const proxyRole = await Role.findOne({ name: '代理' });
-      query.roles = [proxyRole?._id];
-    }
+  if (userExists) {
+    res.status(400);
+    throw new Error('User already exists');
+  }
 
-    // 执行查询
-    const users = await User.find({
-      ...query,
-    })
-      .populate('roles')
-      .populate('proxy')
-      .sort('-createdAt') // Sort by creation time in descending order
-      .limit(+pageSize)
-      .skip((+current - 1) * +pageSize)
-      .exec();
+  const salt = await bcrypt.genSalt(10);
+  const hashPassword = await bcrypt.hash(password, salt);
 
-    const total = await User.countDocuments({
-      ...query,
-    }).exec();
+  const newUser = new User({
+    name,
+    email,
+    roles,
+    password: hashPassword,
+  });
 
-    res.json({
-      success: true,
-      data: users.map((user) => exclude(user.toObject(), 'password')),
-      total,
-      current: +current,
-      pageSize: +pageSize,
-    });
-  },
-);
+  const savedUser = await newUser.save();
 
-export const addUser = handleAsync(
-  async (req: RequestCustom, res: Response) => {
-    const userExists = await User.findOne({ email: req.body.email });
+  res.json({
+    success: true,
+    data: exclude(savedUser.toObject(), 'password'),
+  });
+});
 
-    if (userExists) {
-      res.status(400);
-      throw new Error('用户已存在');
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashPassword = await bcrypt.hash(req.body.password, salt);
-
-    const inviteCode = await generateInviteCode();
-
-    let proxy;
-
-    if (req.originalUrl === '/api/employees') {
-      proxy = req.user._id;
-    }
-
-    const newUser = new User({
-      ...req.body,
-      password: hashPassword,
-      inviteCode,
-      proxy,
-    });
-
-    const savedUser = await newUser.save();
-
-    res.json({
-      success: true,
-      data: exclude(savedUser.toObject(), 'password'),
-    });
-  },
-);
-
-export const getUserById = handleAsync(async (req: Request, res: Response) => {
-  const user = await User.findById(req.params.id)
-    .populate('proxy')
-    .populate('roles');
+const getUserById = handleAsync(async (req: Request, res: Response) => {
+  const user = await User.findById(req.params.id);
 
   if (!user) {
     res.status(404);
     throw new Error('User not found');
   } else {
-    const employees = await User.find({ proxy: user._id }).populate('roles');
-
     res.json({
       success: true,
-      data: {
-        ...exclude(user.toObject(), 'password'),
-        employees: employees.map((employee) =>
-          exclude(employee.toObject(), 'password'),
-        ),
-      },
+      data: exclude(user.toObject(), 'password'),
     });
   }
 });
 
-export const updateUser = handleAsync(async (req: Request, res: Response) => {
+const updateUser = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { ...body } = req.body;
+  const { password, name, email, live, roles } = req.body;
 
   const user = await User.findById(id);
 
   if (!user) {
     res.status(404);
-    throw new Error('用户未找到');
+    throw new Error('User not found');
   }
 
   let hashPassword = user.password;
 
-  if (body.password) {
+  if (password) {
     const salt = await bcrypt.genSalt(10);
-    hashPassword = await bcrypt.hash(body.password, salt);
+    hashPassword = await bcrypt.hash(password, salt);
   }
 
-  const newRoles = body.roles ? body.roles : user.roles;
+  const newRoles = roles ? roles : user.roles;
 
   const updatedUser = await User.findByIdAndUpdate(
     id,
     {
-      name: body.name,
-      email: body.email,
+      name,
+      email,
       password: hashPassword,
-      live: body.live,
+      live,
       roles: newRoles,
-      isOnline: body.isOnline,
     },
     { new: true },
   );
@@ -197,15 +126,15 @@ export const updateUser = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const deleteUser = handleAsync(async (req: Request, res: Response) => {
+const deleteUser = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
   // 删除用户
-  const proxy = await User.findByIdAndDelete(id);
+  const user = await User.findByIdAndDelete(id);
 
-  if (!proxy) {
+  if (!user) {
     res.status(404);
-    throw new Error('用户未找到');
+    throw new Error('User not found');
   }
 
   res.json({
@@ -214,18 +143,25 @@ export const deleteUser = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const deleteMultipleUsers = handleAsync(
-  async (req: Request, res: Response) => {
-    const { ids } = req.body;
+const deleteMultipleUsers = handleAsync(async (req: Request, res: Response) => {
+  const { ids } = req.body;
 
-    // 使用 Mongoose 的 deleteMany 方法进行批量删除
-    await User.deleteMany({
-      _id: { $in: ids },
-    });
+  // 使用 Mongoose 的 deleteMany 方法进行批量删除
+  await User.deleteMany({
+    _id: { $in: ids },
+  });
 
-    res.json({
-      success: true,
-      message: `${ids.length} proxies deleted successfully`,
-    });
-  },
-);
+  res.json({
+    success: true,
+    message: `${ids.length} users deleted successfully`,
+  });
+});
+
+export {
+  deleteMultipleUsers,
+  updateUser,
+  deleteUser,
+  getUsers,
+  addUser,
+  getUserById,
+};

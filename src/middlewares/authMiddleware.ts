@@ -29,7 +29,6 @@ const protect = handleAsync(
         ) as jwt.JwtPayload;
 
         const user: IUser | null = await User.findById(decoded.id)
-          .populate('proxy')
           .populate({
             path: 'roles',
             populate: [

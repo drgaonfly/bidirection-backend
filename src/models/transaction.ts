@@ -1,5 +1,5 @@
 import mongoose, { Document } from 'mongoose';
-import { IWallet } from './wallet';
+import Wallet, { IWallet } from './wallet';
 
 export interface ITransaction extends Document {
   wallet: mongoose.Schema.Types.ObjectId | IWallet;
@@ -50,6 +50,15 @@ const transactionSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+transactionSchema.pre('save', async function (next) {
+  const wallet = await Wallet.findById(this.wallet);
+  if (wallet) {
+    wallet.balance = wallet.balance + this.transactedBalance; // 根据需求调整逻辑
+    await wallet.save();
+  }
+  next();
+});
 
 const Transaction = mongoose.model<ITransaction>(
   'Transaction',

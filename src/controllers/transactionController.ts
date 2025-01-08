@@ -26,7 +26,10 @@ const getTransactions = handleAsync(async (req: Request, res: Response) => {
   const query = buildQuery(req.query);
 
   const transactions = await Transaction.find(query)
-    .populate('wallet')
+    .populate({
+      path: 'wallet',
+      populate: { path: 'user' }, // Populate wallet's user data
+    })
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)

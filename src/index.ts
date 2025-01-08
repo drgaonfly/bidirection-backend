@@ -32,6 +32,7 @@ import instructionRoutes from './routes/instructionRoutes';
 import customerRoutes from './routes/customerRoutes';
 import walletRoutes from './routes/walletRoutes';
 import transactionRoutes from './routes/transactionRoutes';
+import carouselRoutes from './routes/carouselRoutes';
 
 // import { startWebHookBot } from './bot';
 dotenv.config();
@@ -72,7 +73,7 @@ app.use('/api/notices', noticeRoutes); // 新增
 app.use('/api/incomes', incomeRoutes); // 新增
 app.use('/api/channels', channelRoutes); // 新增
 app.use('/api/activities', activityRoutes); // 新增
-
+app.use('/api/carousels', carouselRoutes); // 新增
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 

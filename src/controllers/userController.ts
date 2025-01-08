@@ -69,6 +69,11 @@ export const getUsers = handleAsync(
       query.roles = [proxyRole?._id];
     }
 
+    if (req.baseUrl + req.route.path === '/api/customers/') {
+      const customerRole = await Role.findOne({ name: '客户' });
+      query.roles = [customerRole?._id];
+    }
+
     // 执行查询
     const users = await User.find({
       ...query,
@@ -112,6 +117,10 @@ export const addUser = handleAsync(
 
     if (req.originalUrl === '/api/employees') {
       proxy = req.user._id;
+    }
+
+    if (req.originalUrl === '/api/customers') {
+      proxy = null;
     }
 
     const newUser = new User({

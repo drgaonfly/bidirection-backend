@@ -1,10 +1,10 @@
 import mongoose, { Document } from 'mongoose';
-import { ICustomer } from './customer';
+import { IUser } from './user';
 
 export interface Income extends Document {
   createdAt?: Date;
   updatedAt?: Date;
-  customer: mongoose.Schema.Types.ObjectId | ICustomer;
+  customer: mongoose.Schema.Types.ObjectId | IUser;
   coinName: string;
   walletAddress: string;
   usdtEarnings: number;
@@ -18,7 +18,7 @@ const IncomeSchema = new mongoose.Schema(
   {
     customer: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Customer',
+      ref: 'User',
       required: true,
     },
     coinName: { type: String },

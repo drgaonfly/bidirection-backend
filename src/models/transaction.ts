@@ -35,15 +35,15 @@ const transactionSchema = new mongoose.Schema(
     },
     transactedBalance: {
       type: Number,
-      required: true,
+      default: 0,
     },
     currentBalance: {
       type: Number,
-      required: true,
+      default: 0,
     },
     previousBalance: {
       type: Number,
-      required: true,
+      default: 0,
     },
   },
   {

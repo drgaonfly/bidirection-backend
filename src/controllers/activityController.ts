@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Activity from '../models/Activity';
+import Activity from '../models/activity';
 import handleAsync from '../utils/handleAsync';
 
 const buildQuery = (queryParams: any): any => {

@@ -1,8 +1,8 @@
 import mongoose, { Document } from 'mongoose';
-import { ICustomer } from './customer';
+import { IUser } from './user';
 
 export interface IChannel extends Document {
-  customer: mongoose.Schema.Types.ObjectId | ICustomer;
+  customer: mongoose.Schema.Types.ObjectId | IUser;
   channelCode: string;
   agentUser: string;
   walletAddress: string;
@@ -15,7 +15,7 @@ const channelSchema = new mongoose.Schema(
   {
     customer: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Customer',
+      ref: 'User',
       required: true,
     },
     channelCode: { type: String, required: true },

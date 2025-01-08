@@ -30,7 +30,7 @@ const getWallets = handleAsync(async (req: Request, res: Response) => {
   const query = buildQuery(req.query);
 
   const wallet = await Wallet.find(query)
-    .populate('customer')
+    .populate('user')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -53,6 +53,7 @@ const addWallet = handleAsync(async (req: Request, res: Response) => {
   });
 
   const savedWallet = await newWallet.save();
+
   res.json({
     success: true,
     data: savedWallet,
@@ -60,7 +61,7 @@ const addWallet = handleAsync(async (req: Request, res: Response) => {
 });
 
 const getWalletById = handleAsync(async (req: Request, res: Response) => {
-  const wallet = await Wallet.findById(req.params.id).populate('customer');
+  const wallet = await Wallet.findById(req.params.id).populate('user');
 
   res.json({
     success: true,

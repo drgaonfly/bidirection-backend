@@ -1,8 +1,8 @@
 import mongoose, { Document } from 'mongoose';
-import { ICustomer } from './customer';
+import { IUser } from './user';
 
 export interface IWallet extends Document {
-  customer: mongoose.Schema.Types.ObjectId | ICustomer;
+  user: mongoose.Schema.Types.ObjectId | IUser;
   network: 'TRX' | 'BSC' | 'ETH';
   type: 'USDT' | 'PledgeBalance';
   address: string;
@@ -11,9 +11,9 @@ export interface IWallet extends Document {
 
 const walletSchema = new mongoose.Schema(
   {
-    customer: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Customer',
+      ref: 'User',
       required: true,
     },
     network: {

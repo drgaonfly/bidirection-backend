@@ -1,8 +1,8 @@
 import mongoose, { Document } from 'mongoose';
-import { ICustomer } from './customer';
+import { IUser } from './user';
 
 export interface IActivity extends Document {
-  customer: mongoose.Schema.Types.ObjectId | ICustomer;
+  customer: mongoose.Schema.Types.ObjectId | IUser;
   activity: string;
   activityType: string;
   usdtAmount: number;
@@ -18,7 +18,7 @@ const activitySchema = new mongoose.Schema(
   {
     customer: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Customer',
+      ref: 'User',
       required: true,
     },
     activity: { type: String, required: true },

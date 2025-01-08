@@ -9,10 +9,6 @@ const buildQuery = (queryParams: any): any => {
     query.type = queryParams.type;
   }
 
-  if (queryParams.customer) {
-    query.customer = queryParams.customer;
-  }
-
   if (queryParams.wallet) {
     query.wallet = queryParams.wallet;
   }
@@ -30,7 +26,6 @@ const getTransactions = handleAsync(async (req: Request, res: Response) => {
   const query = buildQuery(req.query);
 
   const transactions = await Transaction.find(query)
-    .populate('customer')
     .populate('wallet')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
@@ -61,9 +56,9 @@ const addTransaction = handleAsync(async (req: Request, res: Response) => {
 });
 
 const getTransactionById = handleAsync(async (req: Request, res: Response) => {
-  const transaction = await Transaction.findById(req.params.id)
-    .populate('customer')
-    .populate('wallet');
+  const transaction = await Transaction.findById(req.params.id).populate(
+    'wallet',
+  );
 
   res.json({
     success: true,

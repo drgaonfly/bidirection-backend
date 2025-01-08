@@ -1,5 +1,5 @@
 import mongoose, { Document } from 'mongoose';
-import Wallet, { IWallet } from './wallet';
+import { IWallet } from './wallet';
 
 export interface ITransaction extends Document {
   wallet: mongoose.Schema.Types.ObjectId | IWallet;
@@ -18,8 +18,9 @@ export interface ITransaction extends Document {
 const transactionSchema = new mongoose.Schema(
   {
     wallet: {
-      type: String,
-      enum: ['USDT', 'PledgeBalance'],
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Wallet',
+      required: true,
     },
     type: {
       type: String,
@@ -50,15 +51,6 @@ const transactionSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
-
-transactionSchema.pre('save', async function (next) {
-  const wallet = await Wallet.findById(this.wallet);
-  if (wallet) {
-    wallet.balance = wallet.balance + this.transactedBalance; // 根据需求调整逻辑
-    await wallet.save();
-  }
-  next();
-});
 
 const Transaction = mongoose.model<ITransaction>(
   'Transaction',

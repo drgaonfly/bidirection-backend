@@ -28,7 +28,7 @@ const getTransactions = handleAsync(async (req: Request, res: Response) => {
   const transactions = await Transaction.find(query)
     .populate({
       path: 'wallet',
-      populate: { path: 'user' }, // Populate wallet's user data
+      populate: { path: 'user' }, // 只返回 user 的 name
     })
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)

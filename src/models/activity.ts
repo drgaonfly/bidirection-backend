@@ -1,8 +1,9 @@
 import mongoose, { Document } from 'mongoose';
+import { ICustomer } from './customer';
 
 export interface IActivity extends Document {
-  customerId: mongoose.Schema.Types.ObjectId;
-  activityId: string;
+  customer: mongoose.Schema.Types.ObjectId | ICustomer;
+  activity: string;
   activityType: string;
   usdtAmount: number;
   ethEarnings: number;
@@ -15,8 +16,12 @@ export interface IActivity extends Document {
 
 const activitySchema = new mongoose.Schema(
   {
-    customer: { ype: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
-    activityId: { type: String, required: true },
+    customer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Customer',
+      required: true,
+    },
+    activity: { type: String, required: true },
     activityType: { type: String, required: true },
     usdtAmount: { type: Number, required: true },
     ethEarnings: { type: Number, required: true },

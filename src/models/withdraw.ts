@@ -2,7 +2,7 @@ import mongoose, { Document } from 'mongoose';
 import { IUser } from './user';
 
 export interface IWithdraw extends Document {
-  user: mongoose.Types.ObjectId | IUser; // 关联用户
+  user: mongoose.Schema.Types.ObjectId | IUser; // 关联用户
   withdrawalNumber: number;
   time: Date;
   withdrawalMethod: string;

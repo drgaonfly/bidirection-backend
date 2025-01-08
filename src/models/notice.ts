@@ -1,7 +1,8 @@
 import mongoose, { Document } from 'mongoose';
+import { ICustomer } from './customer';
 
 export interface INotice extends Document {
-  customer: mongoose.Schema.Types.ObjectId;
+  customer: mongoose.Schema.Types.ObjectId | ICustomer;
   noticeTitle: string;
   noticeType: string;
   creator: string;
@@ -11,7 +12,7 @@ export interface INotice extends Document {
 
 const noticeSchema = new mongoose.Schema(
   {
-    customer: { ype: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
+    customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
     noticeTitle: { type: String, required: true },
     noticeType: { type: String, required: true },
     creator: { type: String, required: false },

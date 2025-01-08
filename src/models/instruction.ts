@@ -15,9 +15,6 @@ const instructionSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-const Instruction = mongoose.model<IInstruction>(
-  'Instruction',
-  instructionSchema,
-);
-
-export default Instruction;
+// 添加检查以防止模型重复定义
+export default mongoose.models.Instruction ||
+  mongoose.model<IInstruction>('Instruction', instructionSchema);

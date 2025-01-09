@@ -37,6 +37,7 @@ import transactionRoutes from './routes/transactionRoutes';
 import carouselRoutes from './routes/carouselRoutes';
 import lotteryRecordRoutes from './routes/lotteryRecordRoutes';
 import proxyCommissionRecordRoutes from './routes/proxyCommissionRecordRoutes';
+import walletDealRecordRoutes from './routes/walletDealRecordRoutes';
 
 // import { startWebHookBot } from './bot';
 dotenv.config();
@@ -82,6 +83,7 @@ app.use('/api/carousels', carouselRoutes); // 新增
 app.use('/api/stacking-configurations', stackingConfigurationRoutes);
 app.use('/api/lottery-records', lotteryRecordRoutes);
 app.use('/api/proxy-commission-records', proxyCommissionRecordRoutes);
+app.use('/api/wallet-deal-records', walletDealRecordRoutes);
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 

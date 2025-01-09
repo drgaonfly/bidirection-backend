@@ -10,9 +10,9 @@ export interface IStackingConfiguration extends Document {
 
 const stackingConfigurationSchema = new mongoose.Schema(
   {
-    investBalance: { type: Number, required: true },
-    rateOfReturn: { type: Number, required: true },
-    profit: { type: Number, required: true },
+    investBalance: { type: Number, required: true, dedualt: 0 },
+    rateOfReturn: { type: Number, required: true, default: 0 },
+    profit: { type: Number, required: true, default: 0 },
   },
   {
     timestamps: true,

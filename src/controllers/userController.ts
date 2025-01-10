@@ -153,7 +153,18 @@ export const addUser = handleAsync(
       proxy,
     });
 
+    // 保存新用户
     const savedUser = await newUser.save();
+
+    // 如果是会员，更新代理的 memberNum 字段
+    if (proxy) {
+      const agent = await User.findById(proxy);
+
+      if (agent) {
+        agent.memberNum += 1; // 增加代理的会员数量
+        await agent.save(); // 保存更新后的代理数据
+      }
+    }
 
     res.json({
       success: true,

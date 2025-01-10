@@ -7,6 +7,9 @@ export interface IWallet extends Document {
   type: 'USDT' | 'PledgeBalance';
   address: string;
   balance: number;
+  aggragedBalance: number;
+  stackedBalance: number;
+  withdrawalBalance: number;
 }
 
 const walletSchema = new mongoose.Schema(
@@ -33,6 +36,21 @@ const walletSchema = new mongoose.Schema(
     balance: {
       type: Number,
       required: true,
+    },
+    aggragedBalance: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
+    stackedBalance: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
+    withdrawalBalance: {
+      type: Number,
+      required: false,
+      default: 0,
     },
   },
   {

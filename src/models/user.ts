@@ -4,6 +4,7 @@ import { IWallet } from './wallet';
 export interface IUser extends Document {
   wallets: IWallet[];
   isAdmin: boolean;
+  isCustomService: boolean;
   roles: any;
   email: string;
   password: string;
@@ -12,6 +13,8 @@ export interface IUser extends Document {
   updatedAt?: Date; // Time the document was last updated
   live: boolean;
   inviteCode: string;
+  memberNum: number;
+  commissionRate: number;
 }
 
 const userSchema = new mongoose.Schema(
@@ -30,6 +33,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    isCustomService: {
+      type: Boolean,
+      default: false,
+    },
     isAdmin: {
       type: Boolean,
       default: false,
@@ -47,6 +54,14 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: false,
+    },
+    memberNum: {
+      type: Number,
+      default: 0,
+    },
+    commissionRate: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true },

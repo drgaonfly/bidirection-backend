@@ -28,6 +28,10 @@ const getWithdraws = handleAsync(async (req: Request, res: Response) => {
 
   const withdraws = await Withdraw.find(query)
     .populate('user')
+    .populate({
+      path: 'wallet',
+      populate: 'user',
+    })
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)

@@ -1,8 +1,10 @@
 import mongoose, { Document } from 'mongoose';
 import { IUser } from './user';
+import { IWallet } from './wallet';
 
 export interface IWithdraw extends Document {
   user: mongoose.Schema.Types.ObjectId | IUser; // 关联用户
+  wallet: mongoose.Schema.Types.ObjectId | IWallet; // 关联钱包
   withdrawalNumber: number;
   time: Date;
   withdrawalMethod: string;
@@ -16,6 +18,11 @@ const withdrawSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+      required: true,
+    },
+    wallet: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Wallet',
       required: true,
     },
     withdrawalNumber: { type: Number },

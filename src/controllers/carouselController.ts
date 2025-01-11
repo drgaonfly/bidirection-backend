@@ -2,10 +2,7 @@ import { Request, Response } from 'express';
 import Carousel from '../models/carousel';
 import handleAsync from '../utils/handleAsync';
 import { CustomRequest } from './uploadController';
-import {
-  transformDocumentImage,
-  transformDocumentImages,
-} from '../utils/transformUtils';
+import { transformDocumentImage } from '../utils/transformUtils';
 
 // dataPermissionController.ts
 const buildQuery = (queryParams: any): any => {

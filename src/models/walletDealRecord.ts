@@ -3,12 +3,12 @@ import { IWallet } from './wallet';
 
 export interface IWalletDealRecord extends Document {
   wallet: mongoose.Schema.Types.ObjectId | IWallet;
-  paymentAddress: String;
+  paymentAddress: string;
   balance: number;
-  hash: String;
+  hash: string;
   type: 'collection' | 'staking' | 'withdraw';
   status: 'pending' | 'success' | 'fail';
-  isOperativeOnAdmin: Boolean;
+  isOperativeOnAdmin: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }

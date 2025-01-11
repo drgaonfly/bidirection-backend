@@ -3,9 +3,9 @@ import { IWallet } from './wallet';
 
 export interface IProxyCommissionRecord extends Document {
   wallet: mongoose.Schema.Types.ObjectId | IWallet;
-  paymentAddress: String;
+  paymentAddress: string;
   balance: number;
-  hash: String;
+  hash: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

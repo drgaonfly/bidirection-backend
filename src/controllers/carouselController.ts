@@ -36,7 +36,7 @@ const getCarousels = handleAsync(async (req: Request, res: Response) => {
     .exec();
 
   // 处理图片路径
-  const processedCarousels = await transformDocumentImage(carousels, ['image']);
+  const processedCarousels = await transformDocumentImage(carousels, 'image');
 
   const total = await Carousel.countDocuments(query).exec();
 

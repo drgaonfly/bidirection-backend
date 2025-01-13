@@ -32,8 +32,61 @@ export const getUsers = handleAsync(
       inviteCode,
       current = '1',
       pageSize = '10',
+      stats, // 新增参数，用于控制是否返回统计数据
     } = req.query;
 
+    if (stats === 'true') {
+      // 执行统计逻辑
+      const { startDate, endDate } = req.query;
+
+      // 默认统计最近 7 天的数据
+      const start = startDate
+        ? new Date(startDate as string)
+        : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const end = endDate ? new Date(endDate as string) : new Date();
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid date range provided',
+        });
+        return;
+      }
+
+      const stats = await User.aggregate([
+        {
+          $match: {
+            createdAt: {
+              $gte: start,
+              $lte: end,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              $dateToString: { format: '%Y-%m-%d', date: '$createdAt' }, // 按日期分组
+            },
+            count: { $sum: 1 }, // 统计注册用户数量
+          },
+        },
+        {
+          $sort: { _id: 1 }, // 按日期排序
+        },
+      ]);
+
+      res.json({
+        success: true,
+        data: stats.map((item) => ({
+          date: item._id,
+          count: item.count,
+        })),
+      });
+
+      return;
+    }
+
+    // 默认用户查询逻辑
     const query: any = {};
 
     if (email) {
@@ -80,7 +133,6 @@ export const getUsers = handleAsync(
       query.roles = [memberRole?._id];
     }
 
-    // 查询用户
     const users = await User.find(query)
       .populate('roles')
       .populate('proxy') // 加载代理信息
@@ -89,10 +141,8 @@ export const getUsers = handleAsync(
       .skip((+current - 1) * +pageSize)
       .exec();
 
-    // 查询用户的 wallet 数据
     const usersWithWallets = await Promise.all(
       users.map(async (user) => {
-        // 查询与该用户关联的钱包
         const wallets = await Wallet.find({ user: user._id }).select(
           'network type address balance',
         );

@@ -5,7 +5,7 @@ export interface ILangue extends Document {
   code: string;
   name: string;
   title: string;
-  isDefault: boolean;
+  isDefault: 'yes' | 'no';
   isOnline: boolean;
 }
 
@@ -15,7 +15,7 @@ const langueSchema = new mongoose.Schema(
     code: { type: String, required: true },
     name: { type: String, required: true },
     title: { type: String, required: true },
-    isDefault: { type: Boolean, default: false },
+    isDefault: { type: String, enum: ['yes', 'no'], default: 'no' },
     isOnline: { type: Boolean, required: true },
   },
   { timestamps: true },

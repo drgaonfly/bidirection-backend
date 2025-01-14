@@ -40,6 +40,8 @@ import lotteryRecordRoutes from './routes/lotteryRecordRoutes';
 import proxyCommissionRecordRoutes from './routes/proxyCommissionRecordRoutes';
 import walletDealRecordRoutes from './routes/walletDealRecordRoutes';
 import langueRoutes from './routes/langueRoutes';
+import questionRoutes from './routes/questionRoutes';
+import releaseRecordRoutes from './routes/releaseRecordRoutes';
 
 // import { startWebHookBot } from './bot';
 dotenv.config();
@@ -87,6 +89,8 @@ app.use('/api/lottery-records', lotteryRecordRoutes);
 app.use('/api/proxy-commission-records', proxyCommissionRecordRoutes);
 app.use('/api/wallet-deal-records', walletDealRecordRoutes);
 app.use('/api/langues', langueRoutes);
+app.use('/api/questions', questionRoutes);
+app.use('/api/release-records', releaseRecordRoutes);
 app.use('/api/translates', translateRoutes);
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/tags', tagRoutes);

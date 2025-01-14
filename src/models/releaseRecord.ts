@@ -1,6 +1,5 @@
 import mongoose, { Document } from 'mongoose';
 import { IWallet } from './wallet';
-import { IUser } from './user';
 import { IActivity } from './activity';
 
 export interface IReleaseRecord extends Document {

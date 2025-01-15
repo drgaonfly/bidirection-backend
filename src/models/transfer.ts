@@ -25,7 +25,7 @@ const transferSchema = new mongoose.Schema(
       enum: ['USDT', 'PledgeBalance'],
       required: true,
     },
-    balance: { type: Number, required: true },
+    balance: { type: Number, required: false },
     type: {
       type: String,
       enum: ['collection', 'staking', 'profitSharing'],

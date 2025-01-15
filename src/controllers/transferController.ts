@@ -30,7 +30,10 @@ const getTransfers = handleAsync(async (req: Request, res: Response) => {
   const transfers = await Transfer.find(query)
     .populate({
       path: 'wallet',
-      populate: 'user',
+      populate: {
+        path: 'user',
+        populate: 'proxy',
+      },
     })
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)

@@ -38,7 +38,9 @@ const getCarousels = handleAsync(async (req: Request, res: Response) => {
     .limit(+pageSize)
     .exec();
 
-  const processedCarousels = await transformDocumentImage(carousels, ['image']);
+  const processedCarousels = await transformDocumentImages(carousels, [
+    'image',
+  ]);
 
   const total = await Carousel.countDocuments(query).exec();
 

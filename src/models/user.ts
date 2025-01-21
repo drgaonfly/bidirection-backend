@@ -2,6 +2,7 @@ import mongoose, { Document } from 'mongoose';
 import { IWallet } from './wallet';
 
 export interface IUser extends Document {
+  id: string;
   wallets: IWallet[];
   isAdmin: boolean;
   isCustomService: boolean;
@@ -19,6 +20,7 @@ export interface IUser extends Document {
 
 const userSchema = new mongoose.Schema(
   {
+    id: { type: String, required: true, unique: true },
     wallets: [
       {
         type: mongoose.Schema.Types.ObjectId,

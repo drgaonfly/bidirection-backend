@@ -2,6 +2,7 @@ import mongoose, { Document } from 'mongoose';
 import { IUser } from './user';
 
 export interface IActivity extends Document {
+  id: string;
   user: mongoose.Schema.Types.ObjectId | IUser;
   type: 'stacking' | 'rewards';
   status: 'pending' | 'joined' | 'finished' | 'expired';
@@ -17,6 +18,11 @@ export interface IActivity extends Document {
 
 const activitySchema = new mongoose.Schema(
   {
+    id: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

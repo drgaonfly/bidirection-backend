@@ -1,6 +1,7 @@
 import mongoose, { Document } from 'mongoose';
 
 export interface IQuestion extends Document {
+  id: string;
   lang: 'en' | 'zh';
   type: 'exchange' | 'serve';
   content: string;
@@ -11,6 +12,7 @@ export interface IQuestion extends Document {
 
 const questionSchema = new mongoose.Schema(
   {
+    id: { type: String, required: true, unique: true },
     lang: {
       type: String,
       enum: ['en', 'zh'],

@@ -42,12 +42,21 @@ const getChannels = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-// Add a new channel
 const addChannel = handleAsync(async (req: Request, res: Response) => {
+  // Find the last channel by sorting on the id in descending order
+  const lastChannel = await Channel.findOne().sort({ id: -1 });
+
+  // If there is an existing channel, parse the last id and increment it
+  const lastId = lastChannel ? parseInt(lastChannel.id, 10) : 0;
+  const newId = String(lastId + 1).padStart(3, '0'); // Increment and pad to 3 digits
+
+  // Create the new channel with the generated id
   const newChannel = new Channel({
     ...req.body,
+    id: newId, // Set the new unique id
   });
 
+  // Save the new channel
   const savedChannel = await newChannel.save();
 
   res.json({

@@ -46,11 +46,22 @@ const getActivities = handleAsync(async (req: Request, res: Response) => {
 });
 
 // Add a new activity
+// Add a new activity
 const addActivity = handleAsync(async (req: Request, res: Response) => {
+  // Find the last activity by sorting on the id in descending order
+  const lastActivity = await Activity.findOne().sort({ id: -1 });
+
+  // Determine the new id
+  const lastId = lastActivity ? parseInt(lastActivity.id, 10) : 0;
+  const newId = String(lastId + 1).padStart(3, '0'); // Increment and pad to 3 digits
+
+  // Create the new activity with the generated id
   const newActivity = new Activity({
     ...req.body,
+    id: newId, // Set the new unique id
   });
 
+  // Save the new activity
   const savedActivity = await newActivity.save();
 
   res.json({

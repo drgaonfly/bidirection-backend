@@ -2,6 +2,7 @@ import mongoose, { Document } from 'mongoose';
 import { IUser } from './user';
 
 export interface IChannel extends Document {
+  id: string;
   code: string;
   user: mongoose.Schema.Types.ObjectId | IUser;
   invitingAddress: string;
@@ -13,6 +14,7 @@ export interface IChannel extends Document {
 
 const channelSchema = new mongoose.Schema(
   {
+    id: { type: String, required: true, unique: true },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

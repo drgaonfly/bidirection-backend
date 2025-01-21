@@ -46,10 +46,20 @@ const getQuestions = handleAsync(async (req: Request, res: Response) => {
 
 // Add a question
 const addQuestion = handleAsync(async (req: Request, res: Response) => {
+  // Find the last question by sorting on the id in descending order
+  const lastQuestion = await Question.findOne().sort({ id: -1 });
+
+  // Determine the new id
+  const lastId = lastQuestion ? parseInt(lastQuestion.id, 10) : 0;
+  const newId = String(lastId + 1).padStart(3, '0'); // Increment and pad to 3 digits
+
+  // Create the new question with the generated id
   const newQuestion = new Question({
     ...req.body,
+    id: newId, // Set the new unique id
   });
 
+  // Save the new question
   const savedQuestion = await newQuestion.save();
 
   res.json({

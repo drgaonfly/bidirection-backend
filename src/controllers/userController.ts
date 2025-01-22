@@ -12,6 +12,7 @@ import Wallet from '../models/wallet';
 import { IdGen } from '../utils/idGen';
 import LoginHistory from '../models/loginHistory';
 
+
 //user
 async function generateInviteCode(length: number = 5): Promise<string> {
   let inviteCode;

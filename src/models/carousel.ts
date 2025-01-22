@@ -2,7 +2,11 @@ import mongoose, { Document } from 'mongoose';
 
 export interface ICarousel extends Document {
   image: string;
-  status: boolean;
+  alt: string;
+  path: string;
+  lan: 'en' | 'zh';
+  size: string;
+  type: 'jpg' | 'png' | 'jpeg';
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -10,7 +14,11 @@ export interface ICarousel extends Document {
 const carouselSchema = new mongoose.Schema(
   {
     image: { type: String, required: false },
-    status: { type: Boolean, required: false },
+    alt: { type: String, required: false },
+    path: { type: String, required: false },
+    lan: { type: String, required: false, enum: ['en', 'zh'] },
+    size: { type: String, required: false },
+    type: { type: String, required: false, enum: ['jpg', 'png', 'jpeg'] },
   },
   { timestamps: true },
 );

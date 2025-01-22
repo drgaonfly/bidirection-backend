@@ -4,6 +4,8 @@ import { IWallet } from './wallet';
 export interface IUser extends Document {
   id: string;
   wallets: IWallet[];
+  liquidRate: number;
+  stakeRate: number;
   isAdmin: boolean;
   status: boolean;
   roles: any;
@@ -19,7 +21,12 @@ export interface IUser extends Document {
   stackingChannel: 'platform' | 'broker';
   createAt: Date;
   updateAt: Date;
+  logedinAt: Date;
   lastLoginAt: Date;
+  createdIP: string;
+  LogedinIP: string;
+  isSpied: boolean;
+  isAuthorized: boolean;
 }
 
 const userSchema = new mongoose.Schema(
@@ -32,6 +39,14 @@ const userSchema = new mongoose.Schema(
         required: false,
       },
     ],
+    liquidRate: {
+      type: Number,
+      default: 0,
+    },
+    stakeRate: {
+      type: Number,
+      default: 0,
+    },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     name: { type: String, required: false },
@@ -72,10 +87,29 @@ const userSchema = new mongoose.Schema(
     stackingChannel: {
       type: String,
       enum: ['platform', 'broker'],
-      required: true,
     },
     lastLoginAt: {
       type: Date,
+    },
+    createdAt: {
+      type: Date,
+    },
+    logedinAt: {
+      type: Date,
+    },
+    createdIP: {
+      type: String,
+    },
+    LogedinIP: {
+      type: String,
+    },
+    isSpied: {
+      type: Boolean,
+      default: false,
+    },
+    isAuthorized: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true },

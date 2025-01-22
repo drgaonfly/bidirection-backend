@@ -12,7 +12,6 @@ import Wallet from '../models/wallet';
 import { IdGen } from '../utils/idGen';
 import LoginHistory from '../models/loginHistory';
 
-
 //user
 async function generateInviteCode(length: number = 5): Promise<string> {
   let inviteCode;
@@ -158,11 +157,23 @@ export const getUsers = handleAsync(
           loginAt: -1,
         });
 
+        const clientIP =
+          req.headers['x-forwarded-for']?.toString().split(',')[0].trim() || // 代理服务器传递的真实 IP
+          req.socket.remoteAddress || // 从 socket 获取的 IP 地址
+          'unknown';
+
+        const normalizedIP =
+          clientIP === '::1' || clientIP === ':::1' ? '127.0.0.1' : clientIP;
+
+        const logedinAt = new Date();
+
         return {
           ...exclude(user.toObject(), 'password'),
           hasWallet: wallets.length > 0, // 是否存在钱包
           wallets, // 具体钱包信息
           lastLoginAt: lastLogin ? lastLogin.loginAt : null, // 填充 lastLoginAt
+          LogedinIP: normalizedIP,
+          logedinAt: logedinAt,
         };
       }),
     );
@@ -211,12 +222,21 @@ export const addUser = handleAsync(
     // Generate unique 3-digit ID
     const newId = await IdGen.next(User, 'id', 6); // Generate a 6-digit unique ID
 
+    const clientIP =
+      req.headers['x-forwarded-for']?.toString().split(',')[0].trim() || // 代理服务器传递的真实 IP
+      req.socket.remoteAddress || // 从 socket 获取的 IP 地址
+      'unknown';
+
+    const normalizedIP =
+      clientIP === '::1' || clientIP === ':::1' ? '127.0.0.1' : clientIP;
+
     const newUser = new User({
       ...req.body,
       password: hashPassword,
       inviteCode,
       proxy,
       id: newId, // Set the new ID
+      createdIP: normalizedIP,
     });
 
     await newUser.save();
@@ -249,7 +269,7 @@ export const getUserById = handleAsync(async (req: Request, res: Response) => {
 
 export const updateUser = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { ...body } = req.body;
+  const { liquidRate, stakeRate, ...body } = req.body;
 
   const user = await User.findById(id);
 
@@ -275,6 +295,8 @@ export const updateUser = handleAsync(async (req: Request, res: Response) => {
       password: hashPassword,
       live: body.live,
       roles: newRoles,
+      liquidRate,
+      stakeRate,
     },
     { new: true },
   );

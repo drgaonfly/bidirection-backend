@@ -1,8 +1,10 @@
 import mongoose, { Document } from 'mongoose';
 import { IUser } from './user';
+import { IChannel } from './channel';
 
 export interface IWallet extends Document {
   user: mongoose.Schema.Types.ObjectId | IUser;
+  channel: mongoose.Schema.Types.ObjectId | IChannel;
   network: 'TRX' | 'BSC' | 'ETH';
   type: 'USDT' | 'PledgeBalance';
   address: string;
@@ -19,6 +21,11 @@ const walletSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    channel: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Channel',
+      required: false,
     },
     network: {
       type: String,

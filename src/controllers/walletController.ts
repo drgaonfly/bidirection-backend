@@ -45,6 +45,7 @@ const getWallets = handleAsync(async (req: Request, res: Response) => {
       path: 'user',
       populate: 'proxy',
     })
+    .populate('channel')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -84,10 +85,13 @@ const addWallet = handleAsync(async (req: Request, res: Response) => {
 });
 
 const getWalletById = handleAsync(async (req: Request, res: Response) => {
-  const wallet = await Wallet.findById(req.params.id).populate({
-    path: 'user',
-    populate: 'proxy',
-  });
+  const wallet = await Wallet.findById(req.params.id)
+    .populate({
+      path: 'user',
+      populate: 'proxy',
+    })
+    .populate('channel')
+    .exec();
 
   res.json({
     success: true,

@@ -26,10 +26,10 @@ const exchangeSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ['pending', 'success', 'fail'],
-      required: true,
+      required: false,
     },
-    usdtBalanceOnPlatform: { type: Number, required: true },
-    ethEarningsOnPlatform: { type: Number, required: true },
+    usdtBalanceOnPlatform: { type: Number, required: false },
+    ethEarningsOnPlatform: { type: Number, required: false },
     balance: { type: String, required: false },
     targetBalance: { type: String, required: false },
     uniPrice: { type: String, required: false },

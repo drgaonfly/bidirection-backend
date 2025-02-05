@@ -6,11 +6,15 @@ export interface IWithdraw extends Document {
   user: mongoose.Schema.Types.ObjectId | IUser; // 关联用户
   wallet: mongoose.Schema.Types.ObjectId | IWallet; // 关联钱包
   withdrawalNumber: number;
+  fee: number;
   time: Date;
   withdrawalMethod: string;
   reviewStatus: string;
   paymentStatus: string;
   amount: number;
+  createdAt: Date;
+  updatedAt: Date;
+  endAt: Date;
 }
 
 const withdrawSchema = new mongoose.Schema(
@@ -26,6 +30,7 @@ const withdrawSchema = new mongoose.Schema(
       required: true,
     },
     withdrawalNumber: { type: Number },
+    fee: { type: Number },
     time: { type: Date }, // 申请时间
     withdrawalMethod: {
       type: String,
@@ -45,7 +50,9 @@ const withdrawSchema = new mongoose.Schema(
       enum: ['paid', 'unpaid'],
       default: 'unpaid',
     }, // 打款状态
-    amount: { type: Number }, // 提现金额(元)
+    amount: { type: Number },
+    startAt: { type: Date }, // 开始时间
+    endAt: { type: Date }, // 结束时间
   },
   { timestamps: true },
 );

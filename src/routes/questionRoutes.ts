@@ -13,13 +13,13 @@ const router: Router = express.Router();
 
 router
   .route('/')
-  .get(protect, checkPermission, getQuestions)
+  .get(getQuestions)
   .post(protect, checkPermission, addQuestion)
   .delete(protect, checkPermission, deleteMultipleQuestions);
 
 router
   .route('/:id')
-  .get(protect, checkPermission, getQuestionById)
+  .get(getQuestionById)
   .put(protect, checkPermission, updateQuestion)
   .delete(protect, checkPermission, deleteQuestion);
 

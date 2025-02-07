@@ -3,23 +3,27 @@ import { IUser } from './user';
 
 export interface INotice extends Document {
   customer: mongoose.Schema.Types.ObjectId | IUser;
-  noticeTitle: string;
-  noticeType: string;
+  title: string;
+  type: string;
+  content: string;
   creator: string;
   createdAt?: Date;
   updatedAt?: Date;
+  readAt?: Date;
 }
 
 const noticeSchema = new mongoose.Schema(
   {
     customer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    noticeTitle: { type: String, required: true },
-    noticeType: {
+    title: { type: String, required: false },
+    type: {
       type: String,
       enum: ['notice', 'announcement'],
-      required: true,
+      required: false,
     },
+    content: { type: String, required: false },
     creator: { type: String, required: false },
+    readAt: { type: Date, required: false },
   },
   { timestamps: true },
 );

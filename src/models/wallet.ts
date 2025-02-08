@@ -3,6 +3,7 @@ import { IUser } from './user';
 import { IChannel } from './channel';
 
 export interface IWallet extends Document {
+  id: string;
   user: mongoose.Schema.Types.ObjectId | IUser;
   channel: mongoose.Schema.Types.ObjectId | IChannel;
   network: 'TRX' | 'BSC' | 'ETH';
@@ -17,6 +18,9 @@ export interface IWallet extends Document {
 
 const walletSchema = new mongoose.Schema(
   {
+    id: {
+      type: String,
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

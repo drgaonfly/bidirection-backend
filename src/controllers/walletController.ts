@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import Wallet from '../models/wallet';
 import handleAsync from '../utils/handleAsync';
+import { IdGen } from '../utils/idGen';
 
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
@@ -72,8 +73,11 @@ const getWallets = handleAsync(async (req: Request, res: Response) => {
 });
 
 const addWallet = handleAsync(async (req: Request, res: Response) => {
+  const newId = await IdGen.next(Wallet, 'id', 6);
+
   const newWallet = new Wallet({
     ...req.body,
+    id: newId,
   });
 
   const savedWallet = await newWallet.save();

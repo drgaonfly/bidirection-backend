@@ -1,10 +1,9 @@
 import mongoose, { Document } from 'mongoose';
-import { IUser } from './user';
 
 export interface INotice extends Document {
-  customer: mongoose.Schema.Types.ObjectId | IUser;
+  id: string;
   title: string;
-  type: string;
+  type: 'notice' | 'propaganda';
   content: string;
   creator: string;
   createdAt?: Date;
@@ -14,12 +13,12 @@ export interface INotice extends Document {
 
 const noticeSchema = new mongoose.Schema(
   {
-    customer: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    id: { type: String, required: false },
     title: { type: String, required: false },
     type: {
       type: String,
-      enum: ['notice', 'announcement'],
-      required: false,
+      enum: ['notice', 'propaganda'],
+      required: true,
     },
     content: { type: String, required: false },
     creator: { type: String, required: false },

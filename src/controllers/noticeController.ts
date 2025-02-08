@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import Notice from '../models/notice';
 import handleAsync from '../utils/handleAsync';
+import { IdGen } from '../utils/idGen';
 
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
@@ -27,7 +28,6 @@ const getNotices = handleAsync(async (req: Request, res: Response) => {
   const query = buildQuery(req.query);
 
   const notices = await Notice.find(query)
-    .populate('customer') // 如果需要填充客户信息
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -46,8 +46,12 @@ const getNotices = handleAsync(async (req: Request, res: Response) => {
 
 // 添加通知记录
 const addNotice = handleAsync(async (req: Request, res: Response) => {
+  const newId = await IdGen.next(Notice, 'id', 4);
+
   const newNotice = new Notice({
     ...req.body,
+    creator: req.user.name,
+    id: newId,
   });
 
   const savedNotice = await newNotice.save();

@@ -1,9 +1,11 @@
 import mongoose, { Document } from 'mongoose';
 import { IWallet } from './wallet';
+import { IChannel } from './channel';
 
 export interface IUser extends Document {
   id: string;
-  wallets: IWallet[];
+  wallet: mongoose.Schema.Types.ObjectId | IWallet;
+  channel: mongoose.Schema.Types.ObjectId | IChannel;
   liquidRate: number;
   stakeRate: number;
   isAdmin: boolean;
@@ -32,13 +34,16 @@ export interface IUser extends Document {
 const userSchema = new mongoose.Schema(
   {
     id: { type: String, required: true, unique: true },
-    wallets: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Wallet', // Reference the Wallet model
-        required: false,
-      },
-    ],
+    wallet: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Wallet', // Reference the Wallet model
+      required: false,
+    },
+    channel: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Channel', // Reference the Channel model
+      required: false,
+    },
     liquidRate: {
       type: Number,
       default: 0,

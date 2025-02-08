@@ -11,6 +11,7 @@ import Role from '../models/role';
 import Wallet from '../models/wallet';
 import { IdGen } from '../utils/idGen';
 import LoginHistory from '../models/loginHistory';
+import Channel from '../models/channel';
 
 //user
 async function generateInviteCode(length: number = 5): Promise<string> {
@@ -137,6 +138,7 @@ export const getUsers = handleAsync(
 
     const users = await User.find(query)
       .populate('roles')
+      .populate('wallet')
       .populate('proxy') // 加载代理信息
       .sort('-createdAt') // 按创建时间降序排序
       .limit(+pageSize)
@@ -146,11 +148,9 @@ export const getUsers = handleAsync(
     // 获取每个用户的最后登录时间，并填充到用户数据中
     const usersWithWallets = await Promise.all(
       users.map(async (user) => {
-        const wallets = await Wallet.find({ user: user._id }).select(
-          'network type address balance',
-        );
+        const wallet = await Wallet.find({ user: user._id });
 
-        console.log('user.id');
+        const channel = await Channel.find({ user: user._id });
 
         // 获取用户的最后登录记录
         const lastLogin = await LoginHistory.findOne({ userId: user.id }).sort({
@@ -169,8 +169,8 @@ export const getUsers = handleAsync(
 
         return {
           ...exclude(user.toObject(), 'password'),
-          hasWallet: wallets.length > 0, // 是否存在钱包
-          wallets, // 具体钱包信息
+          wallet: wallet[0],
+          channel: channel[0],
           lastLoginAt: lastLogin ? lastLogin.loginAt : null, // 填充 lastLoginAt
           LogedinIP: normalizedIP,
           logedinAt: logedinAt,

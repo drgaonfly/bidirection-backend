@@ -8,10 +8,6 @@ import { IdGen } from '../utils/idGen';
 const buildChannelQuery = (queryParams: any): any => {
   const query: any = {};
 
-  if (queryParams.agent) {
-    query.agent = queryParams.agent;
-  }
-
   if (queryParams.status !== undefined) {
     query.status = queryParams.status === 'true';
   }
@@ -63,7 +59,7 @@ const addChannel = handleAsync(async (req: Request, res: Response) => {
 
 // Get channel by ID and generate QR code
 const getChannelById = handleAsync(async (req: Request, res: Response) => {
-  const channel = await Channel.findById(req.params.id).populate('agent');
+  const channel = (await Channel.findById(req.params.id)).populated('user');
 
   if (!channel) {
     res.status(404);
@@ -86,7 +82,7 @@ const updateChannel = handleAsync(async (req: Request, res: Response) => {
     id,
     { ...req.body },
     { new: true },
-  ).populate('agent');
+  ).populate('user');
 
   if (!updatedChannel) {
     res.status(404);

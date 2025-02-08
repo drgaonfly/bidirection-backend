@@ -30,12 +30,12 @@ const activitySchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['stacking', 'joined', 'finished', 'expired'],
+      enum: ['pending', 'joined', 'finished', 'expired'],
       required: true,
     },
     type: {
       type: String,
-      enum: ['pending', 'rewards'],
+      enum: ['stacking', 'rewards'],
       required: true,
     },
     usdtBalance: { type: Number, required: true },

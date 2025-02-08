@@ -1,9 +1,10 @@
 import mongoose, { Document } from 'mongoose';
 import { IWallet } from './wallet';
 import { IActivity } from './activity';
+import { IUser } from './user';
 
 export interface IReleaseRecord extends Document {
-  // user: mongoose.Schema.Types.ObjectId | IUser;
+  user: mongoose.Schema.Types.ObjectId | IUser;
   wallet: mongoose.Schema.Types.ObjectId | IWallet;
   activity: mongoose.Schema.Types.ObjectId | IActivity;
   stackedUsdtBalance: number;
@@ -16,11 +17,11 @@ export interface IReleaseRecord extends Document {
 
 const releaseRecordSchema = new mongoose.Schema(
   {
-    // user: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: 'User',
-    //   required: true,
-    // },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
     wallet: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Wallet',

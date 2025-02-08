@@ -36,7 +36,13 @@ const getReleaseRecords = handleAsync(async (req: Request, res: Response) => {
       path: 'wallet',
       populate: 'user',
     })
-    .populate('activity')
+    .populate({
+      path: 'activity',
+      populate: {
+        path: 'user',
+        populate: 'proxy',
+      },
+    })
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -76,7 +82,12 @@ const getReleaseRecordById = handleAsync(
         path: 'wallet',
         populate: 'user',
       })
-      .populate('activity');
+      .populate({
+        path: 'activity',
+        populate: {
+          path: 'user',
+        },
+      });
 
     if (!releaseRecord) {
       res.status(404);
@@ -100,7 +111,10 @@ const updateReleaseRecord = handleAsync(async (req: Request, res: Response) => {
   )
     .populate('user')
     .populate('wallet')
-    .populate('activity');
+    .populate({
+      path: 'activity',
+      populate: 'user',
+    });
 
   if (!updatedReleaseRecord) {
     res.status(404);

@@ -20,12 +20,12 @@ const releaseRecordSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: false,
     },
     wallet: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Wallet',
-      required: true,
+      required: false,
     },
     activity: {
       type: mongoose.Schema.Types.ObjectId,

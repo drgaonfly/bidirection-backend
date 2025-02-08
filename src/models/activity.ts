@@ -28,12 +28,12 @@ const activitySchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    type: {
+    status: {
       type: String,
       enum: ['stacking', 'joined', 'finished', 'expired'],
       required: true,
     },
-    status: {
+    type: {
       type: String,
       enum: ['pending', 'rewards'],
       required: true,

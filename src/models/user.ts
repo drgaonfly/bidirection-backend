@@ -4,7 +4,7 @@ import { IChannel } from './channel';
 
 export interface IUser extends Document {
   id: string;
-  wallet: mongoose.Schema.Types.ObjectId | IWallet;
+  wallets: mongoose.Schema.Types.ObjectId | IWallet;
   channel: mongoose.Schema.Types.ObjectId | IChannel;
   liquidRate: number;
   stakeRate: number;
@@ -34,11 +34,10 @@ export interface IUser extends Document {
 const userSchema = new mongoose.Schema(
   {
     id: { type: String, required: true, unique: true },
-    wallet: {
+    wallets: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Wallet', // Reference the Wallet model
       required: false,
-      unique: true,
     },
     channel: {
       type: mongoose.Schema.Types.ObjectId,

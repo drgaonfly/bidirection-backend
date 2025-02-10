@@ -42,7 +42,6 @@ export const getUsers = handleAsync(
       // 执行统计逻辑
       const { startDate, endDate } = req.query;
 
-      // 默认统计最近 7 天的数据
       const start = startDate
         ? new Date(startDate as string)
         : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -138,7 +137,6 @@ export const getUsers = handleAsync(
 
     const users = await User.find(query)
       .populate('roles')
-      .populate('wallet')
       .populate('proxy') // 加载代理信息
       .sort('-createdAt') // 按创建时间降序排序
       .limit(+pageSize)
@@ -147,9 +145,8 @@ export const getUsers = handleAsync(
 
     // 获取每个用户的最后登录时间，并填充到用户数据中
     const usersWithWallets = await Promise.all(
-      users.map(async (user) => {
+      users.flatMap(async (user) => {
         const wallet = await Wallet.find({ user: user._id });
-
         const channel = await Channel.find({ user: user._id });
 
         // 获取用户的最后登录记录
@@ -167,22 +164,26 @@ export const getUsers = handleAsync(
 
         const logedinAt = new Date();
 
-        return {
+        // 如果钱包存在，则将每个钱包拆开，并将用户的其他信息复制到每一行
+        return wallet.map((w) => ({
           ...exclude(user.toObject(), 'password'),
-          wallet: wallet[0],
+          wallet: [w][0],
           channel: channel[0],
           lastLoginAt: lastLogin ? lastLogin.loginAt : null, // 填充 lastLoginAt
           LogedinIP: normalizedIP,
           logedinAt: logedinAt,
-        };
+        }));
       }),
     );
 
     const total = await User.countDocuments(query);
 
+    // 扁平化数据返回，避免嵌套数组
+    const flattenedUsers = usersWithWallets.flat();
+
     res.json({
       success: true,
-      data: usersWithWallets,
+      data: flattenedUsers,
       total,
       current: +current,
       pageSize: +pageSize,

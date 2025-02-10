@@ -38,6 +38,7 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Wallet', // Reference the Wallet model
       required: false,
+      unique: true,
     },
     channel: {
       type: mongoose.Schema.Types.ObjectId,

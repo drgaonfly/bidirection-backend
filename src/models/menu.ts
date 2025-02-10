@@ -10,6 +10,7 @@ export interface IMenu extends Document {
   createdAt?: Date;
   updatedAt?: Date;
   children: IMenu[];
+  weight: number;
 }
 
 const menuSchema = new mongoose.Schema(
@@ -23,6 +24,7 @@ const menuSchema = new mongoose.Schema(
       ref: 'Permission',
       required: true,
     },
+    weight: { type: Number, required: false, default: 0 },
   },
   { timestamps: true },
 );

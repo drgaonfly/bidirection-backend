@@ -27,7 +27,8 @@ const fetchMenus = handleAsync(async (req: RequestCustom, res: Response) => {
 
   const menus = await Menu.find(query)
     .populate('parent')
-    .populate('permission');
+    .populate('permission')
+    .sort('weight');
 
   const menusWithChildren = await Promise.all(
     menus.map(async (menu) => {

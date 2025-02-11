@@ -56,7 +56,10 @@ const getWallets = handleAsync(async (req: Request, res: Response) => {
 
   // 为每个 wallet 填充随机字符串到 secretKey 字段
   const walletsWithSecretKey = wallet.map((w) => {
-    const randomString = generateRandomString(32);
+    const existingSecretKey = w.secretKey; // Check if the secretKey already exists
+    const randomString = existingSecretKey
+      ? existingSecretKey
+      : generateRandomString(32);
     return {
       ...w.toObject(),
       secretKey: randomString,

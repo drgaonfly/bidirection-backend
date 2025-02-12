@@ -11,7 +11,7 @@ import { protect, checkPermission } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
-// 设置活动记录的路由
+// 设置活动记录的路由。
 router
   .route('/')
   .get(getCarousels)

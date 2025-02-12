@@ -14,7 +14,7 @@ const router: Router = express.Router();
 router
   .route('/')
   .get(protect, checkPermission, getWallets)
-  .post(protect, checkPermission, addWallet)
+  .post(addWallet)
   .delete(protect, checkPermission, deleteMultipleWallets);
 
 router

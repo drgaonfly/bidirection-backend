@@ -13,10 +13,9 @@ const router: Router = express.Router();
 
 router
   .route('/')
-  // .get(protect, checkPermission, checkDataPermission, getUsers)
   .get(protect, checkPermission, getMembers)
   .delete(protect, checkPermission, deleteMultipleMembers)
-  .post(protect, checkPermission, addMember);
+  .post(addMember);
 
 router
   .route('/:id')

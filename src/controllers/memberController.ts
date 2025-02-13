@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import Member from '../models/member';
 import handleAsync from '../utils/handleAsync';
 import { RequestCustom } from 'user';
-import { isProxy } from '../middlewares/authMiddleware';
 import { IdGen } from '../utils/idGen';
 
 const buildQuery = (queryParams: any): any => {
@@ -50,40 +49,49 @@ export const getMembers = handleAsync(
   },
 );
 
-// 添加成员
 export const addMember = handleAsync(
   async (req: RequestCustom, res: Response) => {
-    const memberExists = await Member.findOne({ address: req.body.address });
+    // 查找是否存在相同地址的成员
+    const existingMember = await Member.findOne({ address: req.body.address });
 
-    if (memberExists) {
-      res.status(400);
-      throw new Error('成员已存在');
+    if (existingMember) {
+      // 如果成员已存在，更新登录时间并返回现有成员信息
+      const updatedMember = await Member.findByIdAndUpdate(
+        existingMember._id,
+        {
+          logedinAt: new Date(),
+          // 可以在这里更新其他需要更新的字段
+        },
+        { new: true },
+      )
+        .populate('channel')
+        .populate('proxy');
+
+      res.json({
+        success: true,
+        data: updatedMember,
+        isNewMember: false, // 标记这是现有成员
+      });
+      return;
     }
 
-    // 生成唯一ID
+    // 如果成员不存在，创建新成员
     const newId = await IdGen.next(Member, 'id', 6);
-
-    // 获取客户端IP
-    const clientIP =
-      req.headers['x-forwarded-for']?.toString().split(',')[0].trim() ||
-      req.socket.remoteAddress ||
-      'unknown';
-
-    const normalizedIP =
-      clientIP === '::1' || clientIP === ':::1' ? '127.0.0.1' : clientIP;
 
     const newMember = new Member({
       ...req.body,
       id: newId,
-      createdIP: normalizedIP,
       createdAt: new Date(),
-      proxy: isProxy(req.user) ? req.user._id : null,
+      logedinAt: new Date(),
     });
 
     const savedMember = await newMember.save();
+
+    // 返回新创建的成员信息
     res.status(201).json({
       success: true,
       data: savedMember,
+      isNewMember: true, // 标记这是新成员
     });
   },
 );

@@ -8,10 +8,7 @@ import { RequestCustom } from 'user';
 import crypto from 'crypto';
 import { isProxy } from '../middlewares/authMiddleware';
 import Role from '../models/role';
-import Wallet from '../models/wallet';
 import { IdGen } from '../utils/idGen';
-import LoginHistory from '../models/loginHistory';
-import Channel from '../models/channel';
 
 //user
 async function generateInviteCode(length: number = 5): Promise<string> {
@@ -130,57 +127,18 @@ export const getUsers = handleAsync(
       query.roles = [customerRole?._id];
     }
 
-    if (req.baseUrl + req.route.path === '/api/members/') {
-      const memberRole = await Role.findOne({ name: '会员' });
-      query.roles = [memberRole?._id];
-    }
-
     const users = await User.find(query)
       .populate('roles')
-      .populate('proxy') // 加载代理信息
       .sort('-createdAt') // 按创建时间降序排序
       .limit(+pageSize)
       .skip((+current - 1) * +pageSize)
       .exec();
 
-    // 获取每个用户的最后登录时间，并填充到用户数据中
-    const usersWithWallets = await Promise.all(
-      users.map(async (user) => {
-        const wallets = await Wallet.find({ user: user._id });
-        const channel = await Channel.find({ user: user._id });
-
-        // 获取用户的最后登录记录
-        const lastLogin = await LoginHistory.findOne({ userId: user.id }).sort({
-          loginAt: -1,
-        });
-
-        const clientIP =
-          req.headers['x-forwarded-for']?.toString().split(',')[0].trim() || // 代理服务器传递的真实 IP
-          req.socket.remoteAddress || // 从 socket 获取的 IP 地址
-          'unknown';
-
-        const normalizedIP =
-          clientIP === '::1' || clientIP === ':::1' ? '127.0.0.1' : clientIP;
-
-        const logedinAt = new Date();
-
-        // 将钱包与用户信息合并
-        return {
-          ...exclude(user.toObject(), 'password'),
-          wallets: wallets.length > 0 ? wallets : null, // 仅取第一个钱包
-          channel: channel[0],
-          lastLoginAt: lastLogin ? lastLogin.loginAt : null, // 填充 lastLoginAt
-          LogedinIP: normalizedIP,
-          logedinAt: logedinAt,
-        };
-      }),
-    );
-
     const total = await User.countDocuments(query);
 
     res.json({
       success: true,
-      data: usersWithWallets,
+      data: users.map((user) => exclude(user.toObject(), 'password')),
       total,
       current: +current,
       pageSize: +pageSize,

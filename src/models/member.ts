@@ -13,8 +13,8 @@ export interface IMember extends Document {
   ethPlatform: number;
   createdAt: Date;
   logedinAt: Date;
-  createdIP: string;
-  LogedinIP: string;
+  registerIP: string;
+  loginIP: string;
   isDemo: boolean;
   isSpied: boolean;
   isAuthorized: boolean;
@@ -38,8 +38,8 @@ const memberSchema = new mongoose.Schema(
 
     createdAt: { type: Date }, // 创建时间
     logedinAt: { type: Date }, // 登录时间
-    createdIP: { type: String }, // 创建IP
-    LogedinIP: { type: String }, // 登录IP
+    registerIP: { type: String }, // 创建IP
+    loginIP: { type: String }, // 登录IP
 
     isDemo: { type: Boolean, default: false }, //账户类型
     isSpied: { type: Boolean, default: false }, //监控状态

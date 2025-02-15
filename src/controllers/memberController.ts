@@ -54,12 +54,19 @@ export const addMember = handleAsync(
     // 查找是否存在相同地址的成员
     const existingMember = await Member.findOne({ address: req.body.address });
 
+    // 获取当前IP地址
+    const currentIP =
+      req.headers['x-forwarded-for']?.toString().split(',')[0].trim() ||
+      req.socket.remoteAddress ||
+      'unknown';
+
     if (existingMember) {
-      // 如果成员已存在，更新登录时间并返回现有成员信息
+      // 如果成员已存在，更新登录时间和登录IP并返回现有成员信息
       const updatedMember = await Member.findByIdAndUpdate(
         existingMember._id,
         {
           logedinAt: new Date(),
+          loginIP: currentIP,
           // 可以在这里更新其他需要更新的字段
         },
         { new: true },
@@ -70,7 +77,7 @@ export const addMember = handleAsync(
       res.json({
         success: true,
         data: updatedMember,
-        isNewMember: false, // 标记这是现有成员
+        // isNewMember: false, // 标记这是现有成员
       });
       return;
     }
@@ -83,6 +90,8 @@ export const addMember = handleAsync(
       id: newId,
       createdAt: new Date(),
       logedinAt: new Date(),
+      registerIP: currentIP,
+      loginIP: currentIP,
     });
 
     const savedMember = await newMember.save();
@@ -91,7 +100,7 @@ export const addMember = handleAsync(
     res.status(201).json({
       success: true,
       data: savedMember,
-      isNewMember: true, // 标记这是新成员
+      // isNewMember: true, // 标记这是新成员
     });
   },
 );

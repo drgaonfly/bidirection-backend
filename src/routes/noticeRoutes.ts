@@ -14,7 +14,7 @@ const router: Router = express.Router();
 // 设置通知的路由
 router
   .route('/')
-  .get(protect, checkPermission, getNotices)
+  .get(getNotices)
   .post(protect, checkPermission, addNotice)
   .delete(protect, checkPermission, deleteMultipleNotices);
 

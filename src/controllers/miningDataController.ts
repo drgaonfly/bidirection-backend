@@ -24,8 +24,6 @@ export const getMiningDataList = handleAsync(
 
     const query = buildQuery({
       ...req.query,
-      user: req.user,
-      getAllData: req.getAllData,
     });
 
     const miningData = await MiningData.find(query)

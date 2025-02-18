@@ -6,6 +6,7 @@ import {
   getMiningOutputById,
   updateMiningOutput,
   deleteMiningOutput,
+  getRandomMiningOutput,
 } from '../controllers/miningOutputController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
@@ -16,6 +17,8 @@ router
   .get(getMiningOutputList)
   .delete(protect, checkPermission, deleteMultipleMiningOutput)
   .post(addMiningOutput);
+
+router.get('/random', getRandomMiningOutput);
 
 router
   .route('/:id')

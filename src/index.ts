@@ -25,6 +25,7 @@ import activityRoutes from './routes/activityRoutes'; // 新增
 import miningDataRoutes from './routes/miningDataRoutes'; // 新增
 import stackingConfigurationRoutes from './routes/stackingConfigurationRoutes';
 import translateRoutes from './routes/translateRoutes';
+import miningOutputRoutes from './routes/miningOutputRoutes'; // 新增
 
 // 新增的路由
 
@@ -99,6 +100,8 @@ app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/transfers', transferRoutes);
 app.use('/api/exchanges', exchangeRoutes);
 app.use('/api/mining-data', miningDataRoutes);
+app.use('/api/mining-outputs', miningOutputRoutes);
+
 setupDB();
 // setupRedis();
 // 初始化 Socket.IO

@@ -48,6 +48,7 @@ import exchangeRoutes from './routes/exchangeRoutes';
 import transferRoutes from './routes/transferRoutes';
 import partnershipRoutes from './routes/partnershipRoutes';
 import regulationAgencyRoutes from './routes/regulationAgencyRoutes';
+import settingRoutes from './routes/settingRoutes';
 
 // import { startWebHookBot } from './bot';
 dotenv.config();
@@ -105,6 +106,7 @@ app.use('/api/mining-data', miningDataRoutes);
 app.use('/api/partnerships', partnershipRoutes);
 app.use('/api/mining-outputs', miningOutputRoutes);
 app.use('/api/regulation-agencies', regulationAgencyRoutes);
+app.use('/api/settings', settingRoutes);
 
 setupDB();
 // setupRedis();

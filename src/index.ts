@@ -34,7 +34,6 @@ import { setupSocket } from './services/socket'; // 引入 socket 服务
 import withdrawRoutes from './routes/withdrawRoutes';
 import instructionRoutes from './routes/instructionRoutes';
 import memberRoutes from './routes/memberRoutes';
-import customerRoutes from './routes/customerRoutes';
 import walletRoutes from './routes/walletRoutes';
 import transactionRoutes from './routes/transactionRoutes';
 import carouselRoutes from './routes/carouselRoutes';
@@ -82,7 +81,6 @@ app.use('/api/employees', employeeRoutes);
 app.use('/api/withdraws', withdrawRoutes);
 app.use('/api/instructions', instructionRoutes);
 app.use('/api/members', memberRoutes);
-app.use('/api/customers', customerRoutes);
 app.use('/api/wallets', walletRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/notices', noticeRoutes); // 新增

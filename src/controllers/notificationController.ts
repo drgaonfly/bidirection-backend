@@ -10,14 +10,6 @@ interface CustomRequest extends Request {
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
 
-  if (queryParams.receiver) {
-    query.receiver = queryParams.receiver;
-  }
-
-  if (queryParams.sender) {
-    query.sender = queryParams.sender;
-  }
-
   if (queryParams.title) {
     query.title = { $regex: new RegExp(queryParams.title, 'i') };
   }
@@ -44,8 +36,8 @@ const getNotifications = handleAsync(
     const query = buildQuery(req.query);
 
     const notifications = await Notification.find(query)
-      .populate('sender')
-      .populate('receiver')
+      .populate('customer')
+      .populate('user')
       .sort('-createdAt')
       .skip((+current - 1) * +pageSize)
       .limit(+pageSize)
@@ -71,6 +63,7 @@ const addNotification = handleAsync(
     const newNotification = new Notification({
       ...req.body,
       id: newId,
+      user: req.user._id, // 添加当前登录用户ID
     });
 
     const savedNotification = await newNotification.save();

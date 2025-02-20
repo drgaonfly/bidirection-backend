@@ -8,6 +8,7 @@ import { ROLES } from '../constants';
 import { RequestCustom } from '/user';
 import { IDataPermission } from '../models/dataPermission';
 import { IRole } from '../models/role';
+import Customer from '../models/customer';
 
 const protect = handleAsync(
   async (
@@ -49,6 +50,45 @@ const protect = handleAsync(
         }
 
         req.user = user;
+        next();
+      } catch (error) {
+        console.error(error);
+        res
+          .status(401)
+          .send({ message: error.message || 'Not authorized, token failed' });
+      }
+    }
+
+    if (!token) {
+      res.status(401).send({ message: 'Not authorized, no token' });
+    }
+  },
+);
+
+const customerProtect = handleAsync(
+  async (req: RequestCustom, res: Response, next: NextFunction) => {
+    let token;
+
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith('Bearer')
+    ) {
+      try {
+        token = req.headers.authorization.split(' ')[1];
+        const decoded = jwt.verify(
+          token,
+          process.env.JWT_SECRET as string,
+        ) as jwt.JwtPayload;
+
+        console.log('decoded', decoded);
+
+        const customer = await Customer.findById(decoded.id).exec();
+
+        if (!customer) {
+          throw new Error('Customer is not live or not found');
+        }
+
+        req.customer = customer;
         next();
       } catch (error) {
         console.error(error);
@@ -191,4 +231,10 @@ export const isEmployee = (user: IUser): boolean => {
   );
 };
 
-export { protect, allow, checkPermission, checkDataPermission };
+export {
+  protect,
+  allow,
+  checkPermission,
+  checkDataPermission,
+  customerProtect,
+};

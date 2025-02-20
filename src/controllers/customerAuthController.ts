@@ -4,6 +4,7 @@ import Customer, { ICustomer } from '../models/customer';
 import { generateToken, generateRefreshToken } from '../utils/generateToken';
 import handleAsync from '../utils/handleAsync';
 import { RequestCustom } from 'user';
+import { IdGen } from '../utils/idGen';
 // import Redis from 'ioredis';
 // import { IdGen } from '../utils/idGen';
 
@@ -19,17 +20,34 @@ import { RequestCustom } from 'user';
 export const login = handleAsync(async (req: Request, res: Response) => {
   const { address, network } = req.body;
 
-  const customer = await Customer.findOne({ address, network });
+  // 获取当前IP地址
+  const currentIP =
+    req.headers['x-forwarded-for']?.toString().split(',')[0].trim() ||
+    req.socket.remoteAddress ||
+    'unknown';
+
+  let customer = await Customer.findOne({ address, network });
 
   if (!customer) {
-    res.status(400);
-    throw new Error('Customer not found');
-  }
+    // 如果用户不存在，创建新用户
+    const newId = await IdGen.next(Customer, 'id', 6);
 
-  // 更新登录IP和时间
-  customer.loginIP = req.ip;
-  customer.logedinAt = new Date();
-  await customer.save();
+    const newCustomer = new Customer({
+      ...req.body,
+      id: newId,
+      createdAt: new Date(),
+      logedinAt: new Date(),
+      registerIP: currentIP,
+      loginIP: currentIP,
+    });
+
+    customer = await newCustomer.save();
+  } else {
+    // 如果用户存在，更新登录信息
+    customer.loginIP = currentIP;
+    customer.logedinAt = new Date();
+    await customer.save();
+  }
 
   const refreshToken = generateRefreshToken(customer._id);
 
@@ -108,16 +126,24 @@ export const refreshToken = handleAsync(async (req: Request, res: Response) => {
 
 export const getCustomerProfile = handleAsync(
   async (req: RequestCustom, res: Response) => {
+    console.log('Getting customer profile for ID:', req.customer?._id);
+
     const customer: ICustomer | null = await Customer.findById(
       req.customer?._id,
     );
 
+    console.log('Found customer:', customer);
+
     if (customer) {
+      const customerData = customer.toObject();
+      console.log('Returning customer data:', customerData);
+
       res.json({
         success: true,
-        user: customer.toObject(),
+        user: customerData,
       });
     } else {
+      console.log('Customer not found for ID:', req.customer?._id);
       res.status(404);
       throw new Error('Customer not found');
     }

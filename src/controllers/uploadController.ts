@@ -18,11 +18,19 @@ export interface CustomRequest extends Request {
   file: MulterFile;
 }
 
-// Configure multer to use disk storage
+// 1. 首先定义临时目录路径（移到项目根目录）
+const tmpDir = path.join(__dirname, '../../tmp'); // 回退到项目根目录
+
+// 2. 确保临时目录存在
+if (!fs.existsSync(tmpDir)) {
+  fs.mkdirSync(tmpDir, { recursive: true });
+}
+
+// 3. 修改 multer 配置
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // Use the /tmp directory for storing files temporarily
-    cb(null, '/tmp');
+    // 使用创建好的临时目录
+    cb(null, tmpDir);
   },
   filename: function (req, file, cb) {
     const fileExtension = path.extname(file.originalname);

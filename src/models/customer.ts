@@ -26,8 +26,13 @@ const customerSchema = new mongoose.Schema(
   {
     id: { type: String, required: true, unique: true }, //id
     channel: { type: mongoose.Schema.Types.ObjectId, ref: 'Channel' }, // 渠道
-    network: { type: String, enum: ['TRX', 'BSC', 'ETH'], required: true }, // 网络
-    address: { type: String, required: true }, // 钱包地址
+    network: {
+      type: String,
+      enum: ['TRX', 'BSC', 'ETH'],
+      required: true,
+      index: true,
+    }, // 网络
+    address: { type: String, required: true, index: true }, // 钱包地址
 
     liquidRate: { type: Number, default: 0 }, // 流动倍率
     stakeRate: { type: Number, default: 0 }, // 质押倍率
@@ -53,6 +58,9 @@ const customerSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+// 创建复合唯一索引
+customerSchema.index({ network: 1, address: 1 }, { unique: true });
 
 const Customer = mongoose.model<ICustomer>('Customer', customerSchema);
 

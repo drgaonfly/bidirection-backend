@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import Customer, { ICustomer } from '../models/customer';
+import Customer from '../models/customer';
 import { generateToken, generateRefreshToken } from '../utils/generateToken';
 import handleAsync from '../utils/handleAsync';
 import { RequestCustom } from 'user';
@@ -126,26 +126,11 @@ export const refreshToken = handleAsync(async (req: Request, res: Response) => {
 
 export const getCustomerProfile = handleAsync(
   async (req: RequestCustom, res: Response) => {
-    console.log('Getting customer profile for ID:', req.customer?._id);
+    const customerData = req.customer?.toObject();
 
-    const customer: ICustomer | null = await Customer.findById(
-      req.customer?._id,
-    );
-
-    console.log('Found customer:', customer);
-
-    if (customer) {
-      const customerData = customer.toObject();
-      console.log('Returning customer data:', customerData);
-
-      res.json({
-        success: true,
-        user: customerData,
-      });
-    } else {
-      console.log('Customer not found for ID:', req.customer?._id);
-      res.status(404);
-      throw new Error('Customer not found');
-    }
+    res.json({
+      success: true,
+      user: customerData,
+    });
   },
 );

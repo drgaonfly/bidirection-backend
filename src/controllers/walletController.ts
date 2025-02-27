@@ -42,10 +42,7 @@ const getWallets = handleAsync(async (req: Request, res: Response) => {
   const query = buildQuery(req.query);
 
   const wallet = await Wallet.find(query)
-    .populate({
-      path: 'user',
-      populate: 'proxy',
-    })
+    .populate('user')
     .populate('channel')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
@@ -93,10 +90,7 @@ const addWallet = handleAsync(async (req: Request, res: Response) => {
 
 const getWalletById = handleAsync(async (req: Request, res: Response) => {
   const wallet = await Wallet.findById(req.params.id)
-    .populate({
-      path: 'user',
-      populate: 'proxy',
-    })
+    .populate('user')
     .populate('channel')
     .exec();
 
@@ -113,7 +107,9 @@ const updateWallet = handleAsync(async (req: Request, res: Response) => {
     id,
     { ...req.body },
     { new: true, runValidators: true },
-  );
+  )
+    .populate('user')
+    .populate('channel');
 
   res.json({
     success: true,

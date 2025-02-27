@@ -5,17 +5,6 @@ import { generateToken, generateRefreshToken } from '../utils/generateToken';
 import handleAsync from '../utils/handleAsync';
 import { RequestCustom } from 'user';
 import { IdGen } from '../utils/idGen';
-// import Redis from 'ioredis';
-// import { IdGen } from '../utils/idGen';
-
-// 创建 Redis 客户端实例
-
-// const redis = new Redis({
-//   host: process.env.REDIS_HOST,
-//   port: Number(process.env.REDIS_PORT),
-//   password: process.env.REDIS_PASSWORD,
-//   db: Number(process.env.REDIS_DB),
-// });
 
 export const login = handleAsync(async (req: Request, res: Response) => {
   const { address, network } = req.body;
@@ -87,42 +76,6 @@ export const refreshToken = handleAsync(async (req: Request, res: Response) => {
     throw new Error(err.message || 'Not authorized, token failed');
   }
 });
-
-// export const register = handleAsync(async (req: Request, res: Response) => {
-//   const { address, network } = req.body;
-
-//   const customerExists = await Customer.findOne({ address, network });
-
-//   if (customerExists) {
-//     res.status(400);
-//     throw new Error('Customer already exists');
-//   }
-
-//   // 生成用户 ID
-//   const currentUserId = await IdGen.next(Customer, 'id');
-
-//   const customer = await Customer.create({
-//     id: currentUserId,
-//     address,
-//     network,
-//     registerIP: req.ip,
-//     createdAt: new Date(),
-//     logedinAt: new Date(),
-//   });
-
-//   if (customer) {
-//     const refreshToken = generateRefreshToken(customer._id);
-
-//     res.status(201).json({
-//       user: customer.toObject(),
-//       jwt: generateToken(customer._id),
-//       refreshToken,
-//     });
-//   } else {
-//     res.status(400);
-//     throw new Error('Invalid customer data');
-//   }
-// });
 
 export const getCustomerProfile = handleAsync(
   async (req: RequestCustom, res: Response) => {

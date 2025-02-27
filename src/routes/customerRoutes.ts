@@ -6,10 +6,14 @@ import {
   getCustomerById,
   updateCustomer,
   deleteCustomer,
+  verifyCustomer,
 } from '../controllers/customerController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
+import { customerProtect } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
+
+router.route('/verify').post(customerProtect, verifyCustomer);
 
 router
   .route('/')

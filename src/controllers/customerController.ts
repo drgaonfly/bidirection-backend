@@ -192,3 +192,26 @@ export const deleteMultipleCustomers = handleAsync(
     });
   },
 );
+
+export const verifyCustomer = handleAsync(
+  async (req: Request, res: Response) => {
+    const { network, address } = req.body;
+
+    // 检查是否存在具有相同网络和地址组合的客户
+    const existingCustomer = await Customer.findOne({ network, address });
+
+    if (!existingCustomer) {
+      res.status(404);
+      throw new Error('Customer not found');
+    }
+
+    // 更新验证状态
+    existingCustomer.isVerified = true;
+    await existingCustomer.save();
+
+    res.json({
+      success: true,
+      data: existingCustomer,
+    });
+  },
+);

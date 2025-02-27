@@ -20,6 +20,7 @@ export interface ICustomer extends Document {
   isAuthorized: boolean;
   proxy: mongoose.Schema.Types.ObjectId;
   notification: mongoose.Schema.Types.ObjectId;
+  isVerified: boolean;
 }
 
 const customerSchema = new mongoose.Schema(
@@ -50,6 +51,7 @@ const customerSchema = new mongoose.Schema(
     isDemo: { type: Boolean, default: false }, //账户类型
     isSpied: { type: Boolean, default: false }, //监控状态
     isAuthorized: { type: Boolean, default: false }, //授权状态
+    isVerified: { type: Boolean, default: false }, // 参加活动状态
     proxy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

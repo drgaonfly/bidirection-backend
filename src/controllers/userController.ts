@@ -104,6 +104,7 @@ export const getUsers = handleAsync(
       query.live = live === 'true';
     }
 
+    // 员工查询逻辑
     if (
       req.baseUrl + req.route.path === '/api/employees/' &&
       isProxy(req.user) &&
@@ -112,14 +113,21 @@ export const getUsers = handleAsync(
       query.proxy = req.user._id;
     }
 
+    // 员工角色过滤
     if (req.baseUrl + req.route.path === '/api/employees/') {
       const employeeRole = await Role.findOne({ name: '员工' });
       query.roles = [employeeRole?._id];
     }
 
+    // 代理角色过滤
     if (req.baseUrl + req.route.path === '/api/proxies/') {
       const proxyRole = await Role.findOne({ name: '代理' });
       query.roles = [proxyRole?._id];
+
+      // 如果是代理用户，且不是超级管理员，只能看到自己创建的代理
+      if (isProxy(req.user) && !req.user.isAdmin) {
+        query.proxy = req.user._id;
+      }
     }
 
     const users = await User.find(query)
@@ -159,6 +167,10 @@ export const addUser = handleAsync(
     let proxy;
 
     if (req.originalUrl === '/api/employees') {
+      proxy = req.user._id;
+    }
+
+    if (req.originalUrl === '/api/proxies') {
       proxy = req.user._id;
     }
 

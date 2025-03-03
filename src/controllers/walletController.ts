@@ -145,7 +145,7 @@ const generateBnbWallet = handleAsync(
 
     if (existingWallet) {
       res.status(400);
-      throw new Error('用户已有BNB钱包');
+      throw new Error('用户已有BSC钱包');
     }
 
     // 生成新钱包

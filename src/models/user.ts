@@ -40,6 +40,11 @@ const userSchema = new mongoose.Schema(
     roles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Role' }],
     inviteCode: { type: String },
     memberNum: { type: Number, default: 0 },
+    proxy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
+    },
     commissionRate: { type: Number, default: 0 },
     stackingChannel: { type: String, enum: ['platform', 'broker'] },
     lastLoginAt: { type: Date },

@@ -165,12 +165,10 @@ export const addUser = handleAsync(
     const inviteCode = await generateInviteCode();
 
     let proxy;
-    let live = true; // 默认值
 
     // 根据不同的路径设置不同的值
     if (req.originalUrl === '/api/employees') {
       proxy = req.user._id;
-      live = false;
     }
 
     if (req.originalUrl === '/api/proxies') {
@@ -199,7 +197,6 @@ export const addUser = handleAsync(
 
     const newUser = new User({
       ...req.body,
-      live,
       password: hashPassword,
       inviteCode,
       proxy,

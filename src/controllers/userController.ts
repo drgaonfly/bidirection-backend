@@ -122,12 +122,8 @@ export const getUsers = handleAsync(
       query.roles = [proxyRole?._id];
     }
 
-    if (req.baseUrl + req.route.path === '/api/customers/') {
-      const customerRole = await Role.findOne({ name: '客户' });
-      query.roles = [customerRole?._id];
-    }
-
     const users = await User.find(query)
+      .populate('proxy')
       .populate('roles')
       .sort('-createdAt') // 按创建时间降序排序
       .limit(+pageSize)

@@ -165,9 +165,12 @@ export const addUser = handleAsync(
     const inviteCode = await generateInviteCode();
 
     let proxy;
+    let live = true; // 默认值
 
+    // 根据不同的路径设置不同的值
     if (req.originalUrl === '/api/employees') {
       proxy = req.user._id;
+      live = false;
     }
 
     if (req.originalUrl === '/api/proxies') {
@@ -183,12 +186,12 @@ export const addUser = handleAsync(
       proxy = req.user._id;
     }
 
-    // Generate unique 3-digit ID
-    const newId = await IdGen.next(User, 'id', 6); // Generate a 6-digit unique ID
+    // Generate unique ID
+    const newId = await IdGen.next(User, 'id', 6);
 
     const clientIP =
-      req.headers['x-forwarded-for']?.toString().split(',')[0].trim() || // 代理服务器传递的真实 IP
-      req.socket.remoteAddress || // 从 socket 获取的 IP 地址
+      req.headers['x-forwarded-for']?.toString().split(',')[0].trim() ||
+      req.socket.remoteAddress ||
       'unknown';
 
     const normalizedIP =
@@ -196,10 +199,11 @@ export const addUser = handleAsync(
 
     const newUser = new User({
       ...req.body,
+      live,
       password: hashPassword,
       inviteCode,
       proxy,
-      id: newId, // Set the new ID
+      id: newId,
       createdIP: normalizedIP,
     });
 

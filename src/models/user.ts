@@ -21,6 +21,7 @@ export interface IUser extends Document {
   stackingChannel: 'platform' | 'broker';
   createAt: Date;
   updateAt: Date;
+  isOnline: boolean;
 }
 
 const userSchema = new mongoose.Schema(
@@ -37,6 +38,7 @@ const userSchema = new mongoose.Schema(
     live: { type: Boolean, default: true },
     status: { type: Boolean, default: false },
     isAdmin: { type: Boolean, default: false },
+    isOnline: { type: Boolean, default: false },
     roles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Role' }],
     inviteCode: { type: String },
     memberNum: { type: Number, default: 0 },

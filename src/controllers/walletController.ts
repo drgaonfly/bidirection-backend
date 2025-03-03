@@ -2,6 +2,11 @@ import { Request, Response } from 'express';
 import Wallet from '../models/wallet';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
+import { ethers } from 'ethers';
+
+interface CustomRequest extends Request {
+  user?: any; // 用于携带用户信息，根据你的实际情况调整
+}
 
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
@@ -25,17 +30,6 @@ const buildQuery = (queryParams: any): any => {
   return query;
 };
 
-// 生成随机字符串的方法
-function generateRandomString(length: number) {
-  const characters =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
-}
-
 const getWallets = handleAsync(async (req: Request, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
@@ -43,29 +37,15 @@ const getWallets = handleAsync(async (req: Request, res: Response) => {
 
   const wallet = await Wallet.find(query)
     .populate('user')
-    .populate('channel')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .exec();
 
   const total = await Wallet.countDocuments(query).exec();
-
-  // 为每个 wallet 填充随机字符串到 secretKey 字段
-  const walletsWithSecretKey = wallet.map((w) => {
-    const existingSecretKey = w.secretKey; // Check if the secretKey already exists
-    const randomString = existingSecretKey
-      ? existingSecretKey
-      : generateRandomString(32);
-    return {
-      ...w.toObject(),
-      secretKey: randomString,
-    };
-  });
-
   res.json({
     success: true,
-    data: walletsWithSecretKey,
+    data: wallet,
     total,
     current: +current,
     pageSize: +pageSize,
@@ -143,6 +123,49 @@ const deleteMultipleWallets = handleAsync(
   },
 );
 
+// 创建provider实例
+const provider = new ethers.JsonRpcProvider('https://eth.llamarpc.com');
+
+const generateEthWallet = handleAsync(
+  async (req: CustomRequest, res: Response) => {
+    // 生成新钱包
+    const ethWallet = ethers.Wallet.createRandom();
+
+    // 获取钱包信息
+    const walletInfo = {
+      address: ethWallet.address,
+      privateKey: ethWallet.privateKey,
+    };
+
+    // 获取实时余额
+    const balance = await provider.getBalance(walletInfo.address);
+    const balanceInEth = ethers.formatEther(balance);
+
+    // 创建新的钱包记录
+    const newId = await IdGen.next(Wallet, 'id', 6);
+    const newWallet = new Wallet({
+      id: newId,
+      user: req.user._id,
+      network: 'ETH',
+      address: walletInfo.address,
+      secretKey: walletInfo.privateKey,
+      balance: balanceInEth,
+      ...req.body,
+    });
+
+    const savedWallet = await newWallet.save();
+
+    res.json({
+      success: true,
+      data: {
+        ...savedWallet.toObject(),
+        privateKey: walletInfo.privateKey,
+        balance: balanceInEth,
+      },
+    });
+  },
+);
+
 export {
   getWallets,
   addWallet,
@@ -150,4 +173,5 @@ export {
   updateWallet,
   deleteWallet,
   deleteMultipleWallets,
+  generateEthWallet,
 };

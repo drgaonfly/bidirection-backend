@@ -6,10 +6,18 @@ import {
   updateWallet,
   deleteWallet,
   deleteMultipleWallets,
+  generateEthWallet,
 } from '../controllers/walletController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
+
+router.post(
+  '/generate-eth-wallet',
+  protect,
+  checkPermission,
+  generateEthWallet,
+);
 
 router
   .route('/')

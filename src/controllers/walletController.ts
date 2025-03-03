@@ -140,7 +140,7 @@ const generateBnbWallet = handleAsync(
     // 检查用户是否已有BNB钱包
     const existingWallet = await Wallet.findOne({
       user: req.user._id,
-      network: 'BNB',
+      network: 'BSC',
     });
 
     if (existingWallet) {
@@ -166,7 +166,7 @@ const generateBnbWallet = handleAsync(
     const newWallet = new Wallet({
       id: newId,
       user: req.user._id,
-      network: 'BNB',
+      network: 'BSC',
       address: walletInfo.address,
       secretKey: walletInfo.privateKey,
       balance: balanceInBnb,

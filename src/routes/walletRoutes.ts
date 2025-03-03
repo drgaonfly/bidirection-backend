@@ -13,18 +13,8 @@ import { protect, checkPermission } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
-router.post(
-  '/generate-eth-wallet',
-  protect,
-  checkPermission,
-  generateEthWallet,
-);
-router.post(
-  '/generate-bnb-wallet',
-  protect,
-  checkPermission,
-  generateBnbWallet,
-);
+router.post('/generate-eth-wallet', protect, generateEthWallet);
+router.post('/generate-bnb-wallet', protect, generateBnbWallet);
 
 router
   .route('/')

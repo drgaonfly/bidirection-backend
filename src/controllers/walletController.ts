@@ -42,7 +42,12 @@ const getWallets = handleAsync(async (req: Request, res: Response) => {
   const query = buildQuery(req.query, req);
 
   const wallet = await Wallet.find(query)
-    .populate('user')
+    .populate({
+      path: 'user',
+      populate: {
+        path: 'creator',
+      },
+    })
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)

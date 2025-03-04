@@ -131,6 +131,7 @@ export const getUsers = handleAsync(
     }
 
     const users = await User.find(query)
+      .populate('creator')
       .populate('proxy')
       .populate('roles')
       .sort('-createdAt') // 按创建时间降序排序

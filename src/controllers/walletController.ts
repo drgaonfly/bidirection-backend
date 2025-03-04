@@ -247,45 +247,53 @@ const generateEthWallet = handleAsync(
 // 根据邀请码获取钱包地址
 const getWalletByInviteCode = handleAsync(
   async (req: Request, res: Response) => {
-    const { inviteCode } = req.query;
+    const { inviteCode, network } = req.query;
 
-    // 根据邀请码查找用户
-    const user = await User.findOne({ inviteCode });
+    if (!inviteCode || !network) {
+      res.status(400);
+      throw new Error('邀请码和网络类型不能为空');
+    }
+
+    // 根据邀请码查找用户，同时关联查询创建者信息
+    const user = await User.findOne({ inviteCode }).populate('creator');
 
     if (!user) {
       res.status(404);
       throw new Error('未找到该邀请码对应的用户');
     }
 
-    // 查找该用户的所有钱包
-    let wallets = await Wallet.find({ user: user._id });
+    // 1. 先查找用户自己是否有对应网络的钱包
+    let wallet = await Wallet.findOne({
+      user: user._id,
+      network: network,
+    });
 
-    // 如果用户没有钱包，查找超级管理员的钱包
-    if (!wallets || wallets.length === 0) {
-      // 查找超级管理员
-      const superAdmin = await User.findOne({ isAdmin: true });
-      if (!superAdmin) {
-        res.status(404);
-        throw new Error('系统错误：未找到超级管理员');
-      }
-
-      // 查找超级管理员的钱包
-      wallets = await Wallet.find({ user: superAdmin._id });
-
-      if (!wallets || wallets.length === 0) {
-        res.status(404);
-        throw new Error('系统错误：超级管理员未创建钱包');
-      }
+    // 2. 如果用户没有对应网络的钱包，且有创建者，则查找创建者的对应网络钱包
+    if (!wallet && user.creator) {
+      const creatorId =
+        typeof user.creator === 'object' && '_id' in user.creator
+          ? user.creator._id
+          : user.creator;
+      wallet = await Wallet.findOne({
+        user: creatorId,
+        network: network,
+      });
     }
 
-    // 返回钱包信息
+    // 3. 如果都没找到，返回授权失败
+    if (!wallet) {
+      res.status(403);
+      throw new Error('授权失败：未找到可用的钱包');
+    }
+
+    // 返回找到的钱包信息
     res.json({
       success: true,
-      data: wallets.map((wallet) => ({
+      data: {
         network: wallet.network,
         address: wallet.address,
         balance: wallet.balance,
-      })),
+      },
     });
   },
 );

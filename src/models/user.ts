@@ -22,6 +22,7 @@ export interface IUser extends Document {
   createAt: Date;
   updateAt: Date;
   isOnline: boolean;
+  creator: mongoose.Schema.Types.ObjectId | IUser;
 }
 
 const userSchema = new mongoose.Schema(
@@ -42,6 +43,11 @@ const userSchema = new mongoose.Schema(
     roles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Role' }],
     inviteCode: { type: String },
     memberNum: { type: Number, default: 0 },
+    creator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
+    },
     proxy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

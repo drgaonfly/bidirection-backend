@@ -193,6 +193,7 @@ export const addUser = handleAsync(
       proxy,
       id: newId,
       createdIP: normalizedIP,
+      creator: req.user._id,
     });
 
     await newUser.save();

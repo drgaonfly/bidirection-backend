@@ -22,6 +22,8 @@ export interface ICustomer extends Document {
   notification: mongoose.Schema.Types.ObjectId;
   isVerified: boolean;
   invitedBy?: string;
+  inviter?: any;
+  ownInviteCode?: any;
 }
 
 const customerSchema = new mongoose.Schema(
@@ -58,7 +60,8 @@ const customerSchema = new mongoose.Schema(
       ref: 'User',
       required: false,
     }, //代理
-    invitedBy: { type: String, required: false },
+    invitedBy: { type: String, required: false }, //邀请人的邀请码
+    ownInviteCode: { type: String, required: false }, //自己的邀请码
   },
   { timestamps: true },
 );

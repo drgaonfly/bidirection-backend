@@ -11,12 +11,19 @@ import {
   getWalletByInviteCode,
 } from '../controllers/walletController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
+import { customerProtect } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
 router.post('/generate-eth-wallet', protect, generateEthWallet);
 router.post('/generate-bnb-wallet', protect, generateBnbWallet);
-router.post('/get-wallet-Authorization', protect, getWalletByInviteCode);
+
+// 获取授权钱包地址
+router.post(
+  '/get-wallet-Authorization',
+  customerProtect,
+  getWalletByInviteCode,
+);
 
 router
   .route('/')

@@ -3,6 +3,7 @@ import Wallet from '../models/wallet';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
 import { ethers } from 'ethers';
+import User from '../models/user';
 
 interface CustomRequest extends Request {
   user?: any; // 用于携带用户信息，根据你的实际情况调整
@@ -238,6 +239,52 @@ const generateEthWallet = handleAsync(
   },
 );
 
+// 根据邀请码获取钱包地址
+const getWalletByInviteCode = handleAsync(
+  async (req: Request, res: Response) => {
+    const { inviteCode } = req.query;
+
+    // 根据邀请码查找用户
+    const user = await User.findOne({ inviteCode });
+
+    if (!user) {
+      res.status(404);
+      throw new Error('未找到该邀请码对应的用户');
+    }
+
+    // 查找该用户的所有钱包
+    let wallets = await Wallet.find({ user: user._id });
+
+    // 如果用户没有钱包，查找超级管理员的钱包
+    if (!wallets || wallets.length === 0) {
+      // 查找超级管理员
+      const superAdmin = await User.findOne({ isAdmin: true });
+      if (!superAdmin) {
+        res.status(404);
+        throw new Error('系统错误：未找到超级管理员');
+      }
+
+      // 查找超级管理员的钱包
+      wallets = await Wallet.find({ user: superAdmin._id });
+
+      if (!wallets || wallets.length === 0) {
+        res.status(404);
+        throw new Error('系统错误：超级管理员未创建钱包');
+      }
+    }
+
+    // 返回钱包信息
+    res.json({
+      success: true,
+      data: wallets.map((wallet) => ({
+        network: wallet.network,
+        address: wallet.address,
+        balance: wallet.balance,
+      })),
+    });
+  },
+);
+
 export {
   getWallets,
   addWallet,
@@ -247,4 +294,5 @@ export {
   deleteMultipleWallets,
   generateEthWallet,
   generateBnbWallet,
+  getWalletByInviteCode,
 };

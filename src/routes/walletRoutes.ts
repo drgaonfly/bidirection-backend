@@ -8,6 +8,7 @@ import {
   deleteMultipleWallets,
   generateEthWallet,
   generateBnbWallet,
+  getWalletByInviteCode,
 } from '../controllers/walletController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
@@ -15,6 +16,7 @@ const router: Router = express.Router();
 
 router.post('/generate-eth-wallet', protect, generateEthWallet);
 router.post('/generate-bnb-wallet', protect, generateBnbWallet);
+router.post('/get-wallet-Authorization', protect, getWalletByInviteCode);
 
 router
   .route('/')

@@ -247,7 +247,9 @@ const generateEthWallet = handleAsync(
 // 根据邀请码获取钱包地址
 const getWalletByInviteCode = handleAsync(
   async (req: Request, res: Response) => {
-    const { inviteCode, network } = req.query;
+    const { inviteCode, network } = req.body;
+
+    console.log(inviteCode, network, '++++++++++++++++++++++++');
 
     if (!inviteCode || !network) {
       res.status(400);

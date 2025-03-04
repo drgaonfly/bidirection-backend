@@ -15,7 +15,6 @@ export interface ICustomer extends Document {
   logedinAt: Date;
   registerIP: string;
   loginIP: string;
-  isDemo: boolean;
   isSpied: boolean;
   isAuthorized: boolean;
   proxy: mongoose.Schema.Types.ObjectId;
@@ -51,10 +50,9 @@ const customerSchema = new mongoose.Schema(
     registerIP: { type: String }, // 创建IP
     loginIP: { type: String }, // 登录IP
 
-    isDemo: { type: Boolean, default: false }, //账户类型
     isSpied: { type: Boolean, default: false }, //监控状态
     isAuthorized: { type: Boolean, default: false }, //授权状态
-    isVerified: { type: Boolean, default: false }, // 参加活动状态
+    isVerified: { type: Boolean, default: false }, // 账户类型
     proxy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

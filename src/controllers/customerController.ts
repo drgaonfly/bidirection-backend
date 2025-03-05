@@ -16,10 +16,6 @@ const buildQuery = (queryParams: any): any => {
     query.network = queryParams.network;
   }
 
-  if (queryParams.isVerified) {
-    query.isVerified = queryParams.isVerified;
-  }
-
   return query;
 };
 
@@ -162,6 +158,12 @@ export const updateCustomer = handleAsync(
     if (!customer) {
       res.status(404);
       throw new Error('成员未找到');
+    }
+
+    // 检查是否是授权状态。
+    if (updateData.isVerified === true && customer.isAuthorized === true) {
+      res.status(400);
+      throw new Error('该账户已授权，不能修改账户类型');
     }
 
     // 如果更新登录信息

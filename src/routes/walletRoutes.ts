@@ -9,11 +9,15 @@ import {
   generateEthWallet,
   generateBnbWallet,
   getWalletByInviteCode,
+  getCurrentUserWallet,
 } from '../controllers/walletController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 import { customerProtect } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
+
+// 获取当前用户指定网络的钱包
+router.post('/get-current-user-wallet', protect, getCurrentUserWallet);
 
 router.post('/generate-eth-wallet', protect, generateEthWallet);
 router.post('/generate-bnb-wallet', protect, generateBnbWallet);

@@ -300,6 +300,39 @@ const getWalletByInviteCode = handleAsync(
   },
 );
 
+// 获取当前用户指定网络的钱包
+const getCurrentUserWallet = handleAsync(
+  async (req: CustomRequest, res: Response) => {
+    const { network } = req.body;
+
+    if (!network) {
+      res.status(400);
+      throw new Error('网络类型不能为空');
+    }
+
+    // 查找当前用户指定网络的钱包
+    const wallet = await Wallet.findOne({
+      user: req.user._id,
+      network: network,
+    });
+
+    if (!wallet) {
+      res.status(404);
+      throw new Error('未找到该网络类型的钱包');
+    }
+
+    // 返回钱包信息
+    res.json({
+      success: true,
+      data: {
+        network: wallet.network,
+        address: wallet.address,
+        balance: wallet.balance,
+      },
+    });
+  },
+);
+
 export {
   getWallets,
   addWallet,
@@ -310,4 +343,5 @@ export {
   generateEthWallet,
   generateBnbWallet,
   getWalletByInviteCode,
+  getCurrentUserWallet,
 };

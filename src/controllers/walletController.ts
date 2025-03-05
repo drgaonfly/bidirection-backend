@@ -303,7 +303,10 @@ const getWalletByInviteCode = handleAsync(
 // 获取当前用户指定网络的钱包
 const getCurrentUserWallet = handleAsync(
   async (req: CustomRequest, res: Response) => {
-    const { network } = req.body;
+    const { network } = req.query;
+
+    console.log('Received network:', network);
+    console.log('Current user:', req.user?._id);
 
     if (!network) {
       res.status(400);
@@ -313,15 +316,18 @@ const getCurrentUserWallet = handleAsync(
     // 查找当前用户指定网络的钱包
     const wallet = await Wallet.findOne({
       user: req.user._id,
-      network: network,
+      network: network.toString().toUpperCase(),
     });
 
+    // 如果没找到钱包，返回空数据
     if (!wallet) {
-      res.status(404);
-      throw new Error('未找到该网络类型的钱包');
+      res.json({
+        success: true,
+        data: null,
+      });
     }
 
-    // 返回钱包信息
+    // 返回找到的钱包信息
     res.json({
       success: true,
       data: {

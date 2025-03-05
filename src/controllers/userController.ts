@@ -29,6 +29,7 @@ export const getUsers = handleAsync(
       email,
       name,
       live,
+      isOnline,
       inviteCode,
       current = '1',
       pageSize = '10',
@@ -102,6 +103,10 @@ export const getUsers = handleAsync(
 
     if (live) {
       query.live = live === 'true';
+    }
+
+    if (isOnline !== '') {
+      query.isOnline = isOnline === 'true';
     }
 
     // 员工查询逻辑
@@ -227,7 +232,7 @@ export const getUserById = handleAsync(async (req: Request, res: Response) => {
 
 export const updateUser = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { liquidRate, stakeRate, ...body } = req.body;
+  const { liquidRate, stakeRate, isOnline, ...body } = req.body;
 
   const user = await User.findById(id);
 
@@ -248,6 +253,7 @@ export const updateUser = handleAsync(async (req: Request, res: Response) => {
   const updatedUser = await User.findByIdAndUpdate(
     id,
     {
+      isOnline,
       name: body.name,
       email: body.email,
       password: hashPassword,

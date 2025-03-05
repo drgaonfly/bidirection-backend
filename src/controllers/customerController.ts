@@ -16,6 +16,10 @@ const buildQuery = (queryParams: any): any => {
     query.network = queryParams.network;
   }
 
+  if (queryParams.isVerified) {
+    query.isVerified = queryParams.isVerified;
+  }
+
   return query;
 };
 

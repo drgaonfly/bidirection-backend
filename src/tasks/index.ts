@@ -3,7 +3,7 @@ import { updatePoolValues } from './cron/updatePoolValues';
 
 // 启动定时任务
 export const scheduledtasks = (): void => {
-  if (process.env.CRON_ENABLE === 'true') {
+  if (process.env.CRON_ENABLE === 'false') {
     // 每2秒执行一次更新
     setInterval(updatePoolValues, 3000);
 

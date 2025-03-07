@@ -3,40 +3,44 @@ import Setting from '../../models/setting';
 // 更新池子数值的函数
 export const updatePoolValues = async (): Promise<void> => {
   try {
-    // 获取当前设置
-    const setting = await Setting.findOne();
+    // 获取所有设置项
+    const settings = await Setting.find();
 
-    if (!setting) {
-      // 如果没有设置，创建初始设置
-      const newSetting = new Setting({
-        key: 'pool_settings',
-        revenuePool: 1000, // 初始值
-        incomePool: 1000, // 初始值
-        StakingApy: 5, // 初始 APY
+    for (const setting of settings) {
+      const currentValue = parseFloat(setting.value);
+      let newValue: number = currentValue;
+
+      // 根据 key 应用不同的增长规则
+      switch (setting.key) {
+        case 'StakingApy':
+          // 	质押apy增长
+          newValue = currentValue + currentValue * 0.002;
+          break;
+        case 'incomePool':
+          // 	玩家收入增长
+          newValue = currentValue + currentValue * 0.0015;
+          break;
+        case 'revenuePool':
+          // 收益池增长
+          newValue = currentValue + 0.01;
+          break;
+          // 其他 key 不进行增长
+          continue;
+      }
+
+      // 更新设置值
+      setting.value = newValue.toFixed(3); // 保留4位小数
+      await setting.save();
+
+      console.log(`Updated ${setting.key}:`, {
+        parameter: setting.parameter,
+        oldValue: currentValue,
+        newValue: newValue,
       });
-      await newSetting.save();
-      return;
     }
 
-    // 计算增长值
-    const revenueIncrease = setting.revenuePool * 0.001; // 每次增长 0.1%
-    const incomeIncrease = setting.incomePool * 0.001; // 每次增长 0.1%
-    const apyIncrease = 0.01; // APY 每次增长 0.01
-
-    // 更新值
-    setting.revenuePool += revenueIncrease;
-    setting.incomePool += incomeIncrease;
-    setting.StakingApy += apyIncrease;
-
-    // 保存更新
-    await setting.save();
-
-    console.log('Pool values updated:', {
-      revenuePool: setting.revenuePool,
-      incomePool: setting.incomePool,
-      StakingApy: setting.StakingApy,
-    });
+    console.log('All values updated successfully');
   } catch (error) {
-    console.error('Error updating pool values:', error);
+    console.error('Error updating values:', error);
   }
 };

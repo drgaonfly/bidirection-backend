@@ -14,7 +14,7 @@ const settingSchema = new mongoose.Schema(
   {
     id: { type: String, required: true, unique: true },
     parameter: { type: String, required: true, trim: true }, // 去除空格
-    key: { type: String, required: true, trim: true },
+    key: { type: String, unique: true, required: true, trim: true },
     value: { type: String, required: true },
     remark: { type: String, default: '' }, // 默认空字符串
   },

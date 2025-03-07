@@ -38,10 +38,12 @@ export const updatePoolValues = async (): Promise<void> => {
           newValue = currentValue + randomValue;
           break;
         }
-        case 'validNodes':
-          // 有效节点增长或减少
-          newValue = Math.random() < 0.5 ? currentValue + 1 : currentValue - 4;
+        case 'validNodes': {
+          // 有效节点增长
+          const randomValue = minValue + Math.random() * (maxValue - minValue);
+          newValue = currentValue + randomValue;
           break;
+        }
         case 'participants':
           // 参与人数增长
           newValue = currentValue + 2;

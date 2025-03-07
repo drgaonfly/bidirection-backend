@@ -50,7 +50,7 @@ import partnershipRoutes from './routes/partnershipRoutes';
 import regulationAgencyRoutes from './routes/regulationAgencyRoutes';
 import settingRoutes from './routes/settingRoutes';
 import notificationRoutes from './routes/notificationRoutes';
-
+import { scheduledtasks } from './tasks';
 // import { startWebHookBot } from './bot';
 dotenv.config();
 
@@ -114,6 +114,8 @@ setupDB();
 // 初始化 Socket.IO
 setupSocket(server);
 console.log('Socket.IO server initialized');
+
+scheduledtasks(); // 定时任务
 
 process.env.NODE_ENV === 'production';
 

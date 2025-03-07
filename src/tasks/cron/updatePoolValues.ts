@@ -8,8 +8,8 @@ export const updatePoolValues = async (): Promise<void> => {
 
     for (const setting of settings) {
       const currentValue = parseFloat(setting.value);
-      const minValue = setting.minValue;
-      const maxValue = setting.maxValue;
+      const minValue = setting.min;
+      const maxValue = setting.max;
       let newValue: number = currentValue;
 
       // 根据 key 应用不同的增长规则

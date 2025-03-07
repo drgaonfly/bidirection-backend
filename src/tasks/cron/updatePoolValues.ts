@@ -24,6 +24,22 @@ export const updatePoolValues = async (): Promise<void> => {
           // 收益池增长
           newValue = currentValue + 0.01;
           break;
+        case 'totalOutput':
+          // 总产出增长
+          newValue = currentValue + currentValue * 0.001;
+          break;
+        case 'validNodes':
+          // 有效节点增长或减少
+          newValue = Math.random() < 0.5 ? currentValue + 1 : currentValue - 4;
+          break;
+        case 'participants':
+          // 参与人数增长
+          newValue = currentValue + 2;
+          break;
+        case 'userEarnings':
+          // 用户收益增长
+          newValue = currentValue + currentValue * 0.0012;
+          break;
           // 其他 key 不进行增长
           continue;
       }

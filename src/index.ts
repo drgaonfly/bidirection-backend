@@ -27,6 +27,7 @@ import translateRoutes from './routes/translateRoutes';
 import miningOutputRoutes from './routes/miningOutputRoutes'; // 新增
 import customerAuthRoutes from './routes/customerAuthRoutes'; // 新增
 import walletShareRoutes from './routes/walletShareRoutes'; // 新增
+import liquidityRoutes from './routes/liquidityRoutes'; // 新增
 // 新增的路由
 
 import http from 'http';
@@ -69,7 +70,6 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // 使用新路由
-
 app.use('/api/users', userRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/auth', authRoutes);
@@ -108,6 +108,7 @@ app.use('/api/settings', settingRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/customer-auth', customerAuthRoutes);
 app.use('/api/wallet-shares', walletShareRoutes);
+app.use('/api/liquidity', liquidityRoutes);
 setupDB();
 // setupRedis();
 // 初始化 Socket.IO

@@ -2,6 +2,9 @@ import { Request, Response } from 'express';
 import WalletShare from '../models/walletShare';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
+import Setting from '../models/setting';
+import User from '../models/user';
+import Wallet from '../models/wallet';
 
 interface CustomRequest extends Request {
   user?: any; // Add user property to the request
@@ -134,6 +137,102 @@ const deleteMultipleWalletShares = handleAsync(
   },
 );
 
+// 根据邀请码获取钱包地址
+const getWalletByInviteCode = handleAsync(
+  async (req: Request, res: Response) => {
+    const { inviteCode, network } = req.body;
+
+    console.log(inviteCode, network, '++++++++++++++++++++++++');
+
+    if (!network) {
+      res.status(400);
+      throw new Error('网络类型不能为空');
+    }
+
+    let user;
+    if (!inviteCode) {
+      const superAdminKey = `${network}SuperAdmin`;
+      const setting = await Setting.findOne({ key: superAdminKey });
+      // 直接返回设置表中的地址
+      res.json({
+        success: true,
+        data: {
+          network: network,
+          address: setting?.value,
+          balance: '0',
+        },
+      });
+    } else {
+      // 根据邀请码查找用户，同时关联查询创建者信息
+      user = await User.findOne({ inviteCode }).populate('creator');
+    }
+
+    if (!user) {
+      res.status(404);
+      throw new Error('未找到用户');
+    }
+
+    // 1. 先查找用户自己是否有对应网络的钱包
+    let wallet = await Wallet.findOne({
+      user: user._id,
+      network: network,
+    });
+
+    // 2. 递归查找创建者链上的钱包，直到找到钱包或到达顶级管理员
+    async function findWalletInCreatorChain(currentUser: any): Promise<any> {
+      // 如果是管理员或没有创建者，返回null
+      if (currentUser.isAdmin || !currentUser.creator) {
+        return null;
+      }
+
+      // 获取创建者ID
+      const creatorId =
+        typeof currentUser.creator === 'object' && '_id' in currentUser.creator
+          ? currentUser.creator._id
+          : currentUser.creator;
+
+      // 查找创建者的钱包
+      const creatorWallet = await Wallet.findOne({
+        user: creatorId,
+        network: network,
+      });
+
+      if (creatorWallet) {
+        return creatorWallet;
+      }
+
+      // 如果创建者没有钱包，递归查找创建者的创建者
+      const creator = await User.findById(creatorId).populate('creator');
+      if (creator) {
+        return findWalletInCreatorChain(creator);
+      }
+
+      return null;
+    }
+
+    // 如果用户没有钱包，递归查找创建者链上的钱包
+    if (!wallet && !user.isAdmin) {
+      wallet = await findWalletInCreatorChain(user);
+    }
+
+    // 3. 如果都没找到，返回授权失败
+    if (!wallet) {
+      res.status(403);
+      throw new Error('授权失败：未找到可用的钱包');
+    }
+
+    // 返回找到的钱包信息
+    res.json({
+      success: true,
+      data: {
+        network: wallet.network,
+        address: wallet.address,
+        balance: wallet.balance,
+      },
+    });
+  },
+);
+
 // 导出控制器方法
 export {
   deleteMultipleWalletShares,
@@ -142,4 +241,5 @@ export {
   getWalletShares,
   addWalletShare,
   getWalletShareById,
+  getWalletByInviteCode,
 };

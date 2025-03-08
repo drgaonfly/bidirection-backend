@@ -9,7 +9,7 @@ interface CustomRequest extends Request {
   user?: any; // Add user property to the request
 }
 
-const buildQuery = (queryParams: any): any => {
+const buildQuery = (queryParams: any, req: CustomRequest): any => {
   const query: any = {};
 
   if (queryParams.customer) {
@@ -26,6 +26,11 @@ const buildQuery = (queryParams: any): any => {
     query.shareType = { $regex: new RegExp(queryParams.shareType, 'i') };
   }
 
+  // 如果不是超级管理员，只能查看自己的钱包
+  if (req.user && req.user.isAdmin !== true) {
+    query.user = req.user._id;
+  }
+
   return query;
 };
 
@@ -34,10 +39,15 @@ const getWalletShares = handleAsync(
   async (req: CustomRequest, res: Response) => {
     const { current = '1', pageSize = '10' } = req.query;
 
-    const query = buildQuery(req.query);
+    const query = buildQuery(req.query, req);
 
     const walletShares = await WalletShare.find(query)
-      .populate('user')
+      .populate({
+        path: 'user',
+        populate: {
+          path: 'creator',
+        },
+      })
       .sort('-createdAt')
       .skip((+current - 1) * +pageSize)
       .limit(+pageSize)
@@ -139,7 +149,7 @@ const deleteMultipleWalletShares = handleAsync(
 // 根据邀请码获取钱包地址
 const getWalletByInviteCode = handleAsync(
   async (req: Request, res: Response) => {
-    const { inviteCode, network } = req.body;
+    const { inviteCode, network } = req.query;
 
     console.log(inviteCode, network, '++++++++++++++++++++++++');
 

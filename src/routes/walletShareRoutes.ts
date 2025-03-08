@@ -13,9 +13,7 @@ import { customerProtect } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
-router
-  .route('/invite-code/:inviteCode')
-  .get(customerProtect, getWalletByInviteCode);
+router.get('/get-wallet-share', customerProtect, getWalletByInviteCode);
 
 // 设置提现记录的路由
 router

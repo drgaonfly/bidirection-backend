@@ -10,11 +10,11 @@ export interface ILiquidityBenefits extends Document {
 
 const liquidityBenefitsSchema = new mongoose.Schema(
   {
-    stakingmin: { type: Number, required: true },
-    stakingmax: { type: Number, required: true },
-    rewards: { type: Number, required: true },
-    profitmax: { type: Number, required: true },
-    profitmin: { type: Number, required: true },
+    stakingmin: { type: Number, required: true }, //质押最小值
+    stakingmax: { type: Number, required: true }, //质押最大值
+    rewards: { type: Number, required: true }, //收益
+    profitmax: { type: Number, required: true }, //最大收益
+    profitmin: { type: Number, required: true }, //最小收益
   },
   { timestamps: true },
 );

@@ -6,7 +6,7 @@ import {
   updateLiquidityBenefit,
   deleteLiquidityBenefit,
   deleteMultipleLiquidityBenefits,
-} from '../controllers/liquiditybenefitsController';
+} from '../controllers/liquidityController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();

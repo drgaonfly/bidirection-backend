@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import LiquidityBenefits from '../models/liquidity';
 import handleAsync from '../utils/handleAsync';
-import mongoose from 'mongoose';
 
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
@@ -48,18 +47,17 @@ const getLiquidityBenefits = handleAsync(
 
 // 添加流动性收益记录
 const addLiquidityBenefit = handleAsync(async (req: Request, res: Response) => {
+  // 确保rewards保留两位小数
   const body = {
     ...req.body,
     rewards: req.body.rewards
-      ? mongoose.Types.Decimal128.fromString(
-          Number(req.body.rewards).toFixed(2),
-        )
+      ? Number(Number(req.body.rewards).toFixed(2))
       : req.body.rewards,
   };
 
   const newLiquidityBenefit = new LiquidityBenefits(body);
-  const savedLiquidityBenefit = await newLiquidityBenefit.save();
 
+  const savedLiquidityBenefit = await newLiquidityBenefit.save();
   res.json({
     success: true,
     data: savedLiquidityBenefit,
@@ -83,12 +81,11 @@ const updateLiquidityBenefit = handleAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
 
+    // 确保rewards保留两位小数
     const body = {
       ...req.body,
       rewards: req.body.rewards
-        ? mongoose.Types.Decimal128.fromString(
-            Number(req.body.rewards).toFixed(2),
-          )
+        ? Number(Number(req.body.rewards).toFixed(2))
         : req.body.rewards,
     };
 

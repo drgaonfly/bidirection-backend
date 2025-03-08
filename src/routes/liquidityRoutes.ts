@@ -11,6 +11,9 @@ import { protect, checkPermission } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
+// 前端获取流动性收益记录
+router.route('/benefits').get(getLiquidityBenefits);
+
 router
   .route('/')
   .get(protect, checkPermission, getLiquidityBenefits)

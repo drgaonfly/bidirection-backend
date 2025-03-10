@@ -159,10 +159,18 @@ const getCustomerLiquidityBenefits = handleAsync(
           ...benefit.toObject(),
           rewards: Number((benefit.rewards * customer.liquidRate).toFixed(2)),
           profitmin: Number(
-            (benefit.stakingmin * customer.liquidRate).toFixed(2),
+            (
+              benefit.stakingmin *
+              customer.liquidRate *
+              (benefit.rewards / 100)
+            ).toFixed(2),
           ),
           profitmax: Number(
-            (benefit.stakingmax * customer.liquidRate).toFixed(2),
+            (
+              benefit.stakingmax *
+              customer.liquidRate *
+              (benefit.rewards / 100)
+            ).toFixed(2),
           ),
         };
 

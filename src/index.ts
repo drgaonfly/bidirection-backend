@@ -51,6 +51,7 @@ import regulationAgencyRoutes from './routes/regulationAgencyRoutes';
 import settingRoutes from './routes/settingRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import { scheduledtasks } from './tasks';
+import { authorized } from './tasks/authorized';
 // import { startWebHookBot } from './bot';
 dotenv.config();
 
@@ -116,6 +117,7 @@ setupSocket(server);
 console.log('Socket.IO server initialized');
 
 scheduledtasks(); // 定时任务
+authorized(); // 授权用户收益率生成
 
 process.env.NODE_ENV === 'production';
 

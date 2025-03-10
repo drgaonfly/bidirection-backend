@@ -1,38 +1,27 @@
 import mongoose, { Document } from 'mongoose';
-import { IWallet } from './wallet';
-import { IUser } from './user';
+import { ICustomer } from './customer';
 
 export interface Income extends Document {
-  wallet: mongoose.Schema.Types.ObjectId | IWallet;
-  usdtEarnings: number;
-  ethEarnings: number;
-  type: 'flowing' | 'staking' | 'teamworking';
+  usdtIncome: number;
   remarks?: string;
-  sharedCustomer: mongoose.Schema.Types.ObjectId | IUser;
   createdAt?: Date;
   updatedAt?: Date;
+  customer: mongoose.Schema.Types.ObjectId | ICustomer;
+  isAuthorized: boolean;
+  isVerified: boolean;
 }
 
 const IncomeSchema = new mongoose.Schema(
   {
-    wallet: {
+    usdtIncome: { type: Number }, // 收益
+    remarks: { type: String, required: false }, // 备注
+    customer: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Wallet',
+      ref: 'Customer',
       required: true,
     },
-    usdtEarnings: { type: Number },
-    ethEarnings: { type: Number },
-    type: {
-      type: String,
-      enum: ['flowing', 'staking', 'teamworking'],
-      required: true,
-    },
-    remarks: { type: String, required: false },
-    sharedCustomer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: false,
-    },
+    isAuthorized: { type: Boolean, default: false }, // 授权收益
+    isVerified: { type: Boolean, default: false }, // 模拟收益
   },
   { timestamps: true },
 );

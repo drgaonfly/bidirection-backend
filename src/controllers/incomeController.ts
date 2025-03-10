@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import Income from '../models/income';
+import Customer from '../models/customer';
+import LiquidityBenefits from '../models/liquidity';
 import handleAsync from '../utils/handleAsync';
 
 const buildQuery = (queryParams: any): any => {
@@ -23,11 +25,7 @@ const getIncomes = handleAsync(async (req: Request, res: Response) => {
   const query = buildQuery(req.query);
 
   const incomes = await Income.find(query)
-    .populate({
-      path: 'wallet',
-      populate: 'user',
-    }) // 如果需要填充客户信息
-    .populate('sharedCustomer')
+    .populate('customer')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -110,6 +108,50 @@ const deleteMultipleIncomes = handleAsync(
     });
   },
 );
+
+// 自动生成流动性收益
+export const generateFlowingIncome = async (): Promise<void> => {
+  try {
+    // 查找所有已授权或已验证的用户
+    const authorizedCustomers = await Customer.find({
+      $or: [{ isAuthorized: true }, { isVerified: true }],
+    });
+
+    for (const customer of authorizedCustomers) {
+      // 根据用户的 usdtBalance 查找对应的收益范围
+      console.log(`用户 ${customer.address} USDT余额: ${customer.usdtBalance}`);
+      const liquidityBenefit = await LiquidityBenefits.findOne({
+        stakingmin: { $lte: customer.usdtBalance },
+        stakingmax: { $gte: customer.usdtBalance },
+      });
+      if (liquidityBenefit) {
+        console.log(
+          `找到收益范围: ${liquidityBenefit.stakingmin} - ${liquidityBenefit.stakingmax}, 收益率: ${liquidityBenefit.rewards}%`,
+        );
+      } else {
+        console.log('未找到匹配的收益范围');
+      }
+
+      if (liquidityBenefit) {
+        // 计算收益 = rewards × liquidRate
+        const earnings = liquidityBenefit.rewards * customer.liquidRate;
+
+        // 创建收益记录
+        await Income.create({
+          customer: customer._id,
+          usdtIncome: earnings,
+          isAuthorized: customer.isAuthorized,
+          isVerified: customer.isVerified,
+          remarks: `流动倍率: ${liquidityBenefit.rewards}%, 用户倍率: ${customer.liquidRate}`,
+        });
+      }
+    }
+    console.log('已完成授权用户收益记录创建');
+  } catch (error) {
+    console.error('创建收益记录时发生错误:', error);
+    throw error; // 向上抛出错误，让调用者处理
+  }
+};
 
 // 导出控制器方法
 export {

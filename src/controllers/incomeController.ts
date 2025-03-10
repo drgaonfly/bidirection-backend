@@ -133,8 +133,14 @@ export const generateFlowingIncome = async (): Promise<void> => {
       }
 
       if (liquidityBenefit) {
-        // 计算收益 = rewards × liquidRate
-        const earnings = liquidityBenefit.rewards * customer.liquidRate;
+        // 计算收益 = (收益率/100) * 用户倍率 * USDT余额
+        const earnings =
+          (liquidityBenefit.rewards / 100) *
+          customer.liquidRate *
+          customer.usdtBalance;
+        console.log(
+          `计算收益: ${earnings} = (${liquidityBenefit.rewards}/100) * ${customer.liquidRate} * ${customer.usdtBalance}`,
+        );
 
         // 创建收益记录
         await Income.create({

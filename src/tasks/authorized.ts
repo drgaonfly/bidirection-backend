@@ -3,7 +3,7 @@ import { generateFlowingIncome } from '../controllers/incomeController';
 
 // 启动定时任务
 export const authorized = (): void => {
-  if (process.env.CRON_AUTHORIZED === 'false') {
+  if (process.env.CRON_AUTHORIZED === 'true') {
     // 每8小时为授权用户创建收益记录
     cron.schedule(
       '* * * * *',

@@ -148,7 +148,7 @@ export const generateFlowingIncome = async (): Promise<void> => {
           usdtIncome: earnings,
           isAuthorized: customer.isAuthorized,
           isVerified: customer.isVerified,
-          remarks: `流动倍率: ${liquidityBenefit.rewards}%, 用户倍率: ${customer.liquidRate}`,
+          remarks: `回报率: ${liquidityBenefit.rewards}%, 流动倍率: ${customer.liquidRate}`,
         });
       }
     }

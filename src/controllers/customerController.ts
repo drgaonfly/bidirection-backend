@@ -160,10 +160,14 @@ export const updateCustomer = handleAsync(
       throw new Error('成员未找到');
     }
 
-    // 检查是否是授权状态。
-    if (updateData.isVerified === true && customer.isAuthorized === true) {
+    // 检查 isAuthorized 和 isVerified 不能同时为 true
+    if (
+      (updateData.isVerified === true && customer.isAuthorized === true) ||
+      (updateData.isAuthorized === true && customer.isVerified === true) ||
+      (updateData.isVerified === true && updateData.isAuthorized === true)
+    ) {
       res.status(400);
-      throw new Error('该账户已授权，不能修改账户类型');
+      throw new Error('授权账户和模拟账户不能同时存在');
     }
 
     // 如果更新登录信息

@@ -7,11 +7,19 @@ import {
   deleteSetting,
   deleteMultipleSettings,
   getSettingByKey,
+  getCustomerAuthorizationSetting,
 } from '../controllers/settingController'; // 导入 settingController
 import { protect, checkPermission } from '../middlewares/authMiddleware';
-// import { customerProtect } from '../middlewares/authMiddleware';
+import { customerProtect } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
+
+// 获取客户授权记时
+router.get(
+  '/customer-authorization',
+  customerProtect,
+  getCustomerAuthorizationSetting,
+);
 
 // 根据 key 获取设置
 router.get('/key', getSettingByKey);

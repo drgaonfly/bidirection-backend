@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import Setting from '../models/setting'; // 假设有设置模型
+import Customer from '../models/customer';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
 
@@ -145,6 +146,48 @@ const getSettingByKey = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
+// 根据客户信息获取授权设置
+const getCustomerAuthorizationSetting = handleAsync(
+  async (req: Request, res: Response) => {
+    const { address, network } = req.query;
+
+    if (!address || !network) {
+      res.status(400);
+      throw new Error('地址和网络参数是必需的');
+    }
+
+    // 查找客户
+    const customer = await Customer.findOne({
+      address: address as string,
+      network: network as string,
+    });
+
+    if (!customer) {
+      res.status(404);
+      throw new Error('未找到客户信息');
+    }
+
+    // 获取授权设置
+    const authorizationSetting = await Setting.findOne({
+      key: 'authorization',
+    });
+
+    if (!authorizationSetting) {
+      res.status(404);
+      throw new Error('未找到授权设置');
+    }
+
+    res.json({
+      success: true,
+      data: {
+        value: authorizationSetting.value,
+        isAuthorized: customer.isAuthorized,
+        isVerified: customer.isVerified,
+      },
+    });
+  },
+);
+
 export {
   getSettings,
   addSetting,
@@ -153,4 +196,5 @@ export {
   deleteSetting,
   deleteMultipleSettings,
   getSettingByKey,
+  getCustomerAuthorizationSetting,
 };

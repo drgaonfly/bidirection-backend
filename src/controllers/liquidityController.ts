@@ -154,10 +154,20 @@ const getCustomerLiquidityBenefits = handleAsync(
 
     // 如果客户存在且liquidRate不为1，根据实际liquidRate调整rewards
     if (customer && customer.liquidRate && customer.liquidRate !== 1) {
-      const adjustedBenefits = liquidityBenefits.map((benefit) => ({
-        ...benefit.toObject(),
-        rewards: Number((benefit.rewards * customer.liquidRate).toFixed(2)),
-      }));
+      const adjustedBenefits = liquidityBenefits.map((benefit) => {
+        const adjustedBenefit = {
+          ...benefit.toObject(),
+          rewards: Number((benefit.rewards * customer.liquidRate).toFixed(2)),
+          profitmin: Number(
+            (benefit.stakingmin * customer.liquidRate).toFixed(2),
+          ),
+          profitmax: Number(
+            (benefit.stakingmax * customer.liquidRate).toFixed(2),
+          ),
+        };
+
+        return adjustedBenefit;
+      });
 
       res.json({
         success: true,

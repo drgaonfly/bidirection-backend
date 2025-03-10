@@ -6,13 +6,20 @@ import {
   updateLiquidityBenefit,
   deleteLiquidityBenefit,
   deleteMultipleLiquidityBenefits,
+  getCustomerLiquidityBenefits,
 } from '../controllers/liquidityController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
+import { customerProtect } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
-// 前端获取流动性收益记录
+// 前端获取公共流动性收益率
 router.route('/benefits').get(getLiquidityBenefits);
+
+// 获取客户特定的流动性收益率
+router
+  .route('/customer-liquidity')
+  .get(customerProtect, getCustomerLiquidityBenefits);
 
 router
   .route('/')

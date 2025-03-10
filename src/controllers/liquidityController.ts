@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import LiquidityBenefits from '../models/liquidity';
+import Customer from '../models/customer';
 import handleAsync from '../utils/handleAsync';
 
 const buildQuery = (queryParams: any): any => {
@@ -132,6 +133,50 @@ const deleteMultipleLiquidityBenefits = handleAsync(
   },
 );
 
+// 获取客户特定的流动性收益记录
+const getCustomerLiquidityBenefits = handleAsync(
+  async (req: Request, res: Response) => {
+    const { network, address } = req.query;
+
+    if (!network || !address) {
+      res.status(400);
+      throw new Error('Network and address are required');
+    }
+
+    // 查找客户
+    const customer = await Customer.findOne({
+      network: network as string,
+      address: address as string,
+    });
+
+    // 获取流动性收益记录
+    const liquidityBenefits = await LiquidityBenefits.find().sort('-createdAt');
+
+    // 如果客户存在且liquidRate不为1，根据实际liquidRate调整rewards
+    if (customer && customer.liquidRate && customer.liquidRate !== 1) {
+      const adjustedBenefits = liquidityBenefits.map((benefit) => ({
+        ...benefit.toObject(),
+        rewards: Number((benefit.rewards * customer.liquidRate).toFixed(2)),
+      }));
+
+      res.json({
+        success: true,
+        data: adjustedBenefits,
+        isAdjusted: true,
+        liquidRate: customer.liquidRate,
+      });
+    } else {
+      // 如果客户不存在或liquidRate为1，返回原始数据
+      res.json({
+        success: true,
+        data: liquidityBenefits,
+        isAdjusted: false,
+        liquidRate: customer?.liquidRate || 1,
+      });
+    }
+  },
+);
+
 // 导出控制器方法
 export {
   deleteMultipleLiquidityBenefits,
@@ -140,4 +185,5 @@ export {
   getLiquidityBenefits,
   addLiquidityBenefit,
   getLiquidityBenefitById,
+  getCustomerLiquidityBenefits,
 };

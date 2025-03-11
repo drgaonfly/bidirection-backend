@@ -159,6 +159,41 @@ export const generateFlowingIncome = async (): Promise<void> => {
   }
 };
 
+// 根据地址和网络查询收益记录
+const getIncomesByAddressAndNetwork = handleAsync(
+  async (req: Request, res: Response): Promise<void> => {
+    const { address, network } = req.query;
+
+    if (!address) {
+      res.status(400).json({
+        success: false,
+        message: '地址参数是必需的',
+      });
+      return;
+    }
+
+    // 先查找对应的客户
+    const customer = await Customer.findOne({
+      address: address,
+      ...(network ? { network: network } : {}),
+    });
+
+    // 查找该客户的所有收益记录，不使用分页
+    const incomes = await Income.find({ customer: customer._id })
+      .populate('customer')
+      .sort('-createdAt')
+      .exec();
+
+    const total = incomes.length;
+
+    res.json({
+      success: true,
+      data: incomes,
+      total,
+    });
+  },
+);
+
 // 导出控制器方法
 export {
   deleteMultipleIncomes,
@@ -167,4 +202,5 @@ export {
   getIncomes,
   addIncome,
   getIncomeById,
+  getIncomesByAddressAndNetwork,
 };

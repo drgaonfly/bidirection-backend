@@ -52,7 +52,8 @@ export const login = handleAsync(async (req: Request, res: Response) => {
     // 如果用户存在，更新登录信息
     customer.loginIP = currentIP;
     customer.logedinAt = new Date();
-    customer.usdtBalance, await customer.save();
+    customer.usdtBalance = req.body.usdtBalance; // 更新 usdtBalance
+    await customer.save();
   }
 
   const refreshToken = generateRefreshToken(customer._id);

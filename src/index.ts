@@ -52,6 +52,8 @@ import settingRoutes from './routes/settingRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import { scheduledtasks } from './tasks';
 import { authorized } from './tasks/authorized';
+import recordRoutes from './routes/recordRoutes';
+
 // import { startWebHookBot } from './bot';
 dotenv.config();
 
@@ -100,7 +102,7 @@ app.use('/api/release-records', releaseRecordRoutes);
 app.use('/api/translates', translateRoutes);
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/transfers', transferRoutes);
-app.use('/api/exchanges', exchangeRoutes);
+app.use('/api/exchange', exchangeRoutes);
 app.use('/api/mining-data', miningDataRoutes);
 app.use('/api/partnerships', partnershipRoutes);
 app.use('/api/mining-outputs', miningOutputRoutes);
@@ -110,6 +112,8 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/customer-auth', customerAuthRoutes);
 app.use('/api/wallet-shares', walletShareRoutes);
 app.use('/api/liquidity', liquidityRoutes);
+app.use('/api/records', recordRoutes);
+
 setupDB();
 // setupRedis();
 // 初始化 Socket.IO

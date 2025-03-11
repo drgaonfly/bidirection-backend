@@ -24,7 +24,7 @@ router
 router
   .route('/:id')
   .delete(protect, checkPermission, deleteCustomer)
-  .get(protect, getCustomerById)
+  .get(protect, checkPermission, getCustomerById)
   .put(protect, checkPermission, updateCustomer);
 
 export default router;

@@ -1,26 +1,11 @@
 import express, { Router } from 'express';
-import {
-  getExchanges,
-  addExchange,
-  getExchangeById,
-  updateExchange,
-  deleteExchange,
-  deleteMultipleExchanges,
-} from '../controllers/exchangeController';
-import { protect, checkPermission } from '../middlewares/authMiddleware';
+import { ethToUsdt, usdtToEth } from '../controllers/exchangeController';
+import { customerProtect } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
-router
-  .route('/')
-  .get(protect, checkPermission, getExchanges)
-  .post(protect, checkPermission, addExchange)
-  .delete(protect, checkPermission, deleteMultipleExchanges);
+router.route('/ethToUsdt').post(customerProtect, ethToUsdt);
 
-router
-  .route('/:id')
-  .get(protect, checkPermission, getExchangeById)
-  .put(protect, checkPermission, updateExchange)
-  .delete(protect, checkPermission, deleteExchange);
+router.route('/usdtToEth').post(customerProtect, usdtToEth);
 
 export default router;

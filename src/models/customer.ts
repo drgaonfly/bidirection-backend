@@ -11,7 +11,6 @@ export interface ICustomer extends Document {
   usdtStaking: number;
   usdtPlatform: number;
   ethPlatform: number;
-  createdAt: Date;
   logedinAt: Date;
   registerIP: string;
   loginIP: string;

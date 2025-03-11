@@ -1,145 +1,112 @@
 import { Request, Response } from 'express';
-import Exchange from '../models/exchange';
 import handleAsync from '../utils/handleAsync';
+import { getExchangeRate } from '../utils/getExchange';
+import Customer from '../models/customer';
+import Record from '../models/record';
+import { IdGen } from '../utils/idGen';
 
-// Helper function to build query
-const buildExchangeQuery = (queryParams: any): any => {
-  const query: any = {};
+// eth 兑 usdt
+const ethToUsdt = handleAsync(async (req: Request, res: Response) => {
+  const { id, ethAmount } = req.body;
 
-  if (queryParams.wallet) {
-    query.wallet = queryParams.wallet;
-  }
+  const exchangeRate = await getExchangeRate('ETH', 'USDT');
 
-  if (queryParams.type) {
-    query.type = queryParams.type;
-  }
+  const usdt = ethAmount * exchangeRate;
 
-  if (queryParams.network) {
-    query.network = queryParams.network;
-  }
+  const customer = await Customer.findById(id);
 
-  return query;
-};
-
-// Get all exchanges
-const getExchanges = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10' } = req.query;
-
-  const query = buildExchangeQuery(req.query);
-
-  // Set default status to 'pending' if not provided in query
-  if (!query.status) {
-    query.status = 'pending';
-  }
-
-  const exchanges = await Exchange.find(query)
-    .populate({
-      path: 'wallet',
-      populate: 'user',
-    })
-    .sort('-createdAt')
-    .skip((+current - 1) * +pageSize)
-    .limit(+pageSize)
-    .exec();
-
-  const total = await Exchange.countDocuments(query).exec();
-
-  res.json({
-    success: true,
-    data: exchanges,
-    total,
-    current: +current,
-    pageSize: +pageSize,
-  });
-});
-
-// Add a new exchange
-const addExchange = handleAsync(async (req: Request, res: Response) => {
-  const newExchange = new Exchange({
-    ...req.body,
-  });
-
-  const savedExchange = await newExchange.save();
-
-  res.json({
-    success: true,
-    data: savedExchange,
-  });
-});
-
-// Get exchange by ID
-const getExchangeById = handleAsync(async (req: Request, res: Response) => {
-  const exchange = await Exchange.findById(req.params.id).populate('wallet');
-
-  if (!exchange) {
+  if (!customer) {
     res.status(404);
-    throw new Error('Exchange not found');
+    throw new Error('Customer not found');
   }
+
+  if (!ethAmount) {
+    res.status(400);
+    throw new Error('请输入ETH数量');
+  }
+
+  if (ethAmount <= 0) {
+    res.status(400);
+    throw new Error('请输入大于0的ETH数量');
+  }
+
+  if (ethAmount > customer.ethPlatform) {
+    res.status(400);
+    throw new Error('ETH数量超过可用余额');
+  }
+
+  customer.usdtPlatform += usdt;
+  customer.ethPlatform -= ethAmount;
+
+  await customer.save();
+
+  const recordId = await IdGen.next(Record, 'id', 6);
+
+  await Record.create({
+    id: recordId,
+    customer: customer._id,
+    type: 'eth to usdt',
+    amount: ethAmount,
+  });
 
   res.json({
     success: true,
-    data: exchange,
+    data: usdt,
   });
 });
 
-// Update exchange
-const updateExchange = handleAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const updatedExchange = await Exchange.findByIdAndUpdate(
-    id,
-    { ...req.body },
-    { new: true },
-  ).populate('wallet');
+// usdt 兑 eth
+const usdtToEth = handleAsync(async (req: Request, res: Response) => {
+  const { id, usdtAmount } = req.body;
 
-  if (!updatedExchange) {
+  console.log('usdtAmount', usdtAmount);
+
+  const exchangeRate = await getExchangeRate('ETH', 'USDT');
+
+  const eth = usdtAmount / exchangeRate;
+
+  console.log('eth', eth);
+
+  const customer = await Customer.findById(id);
+
+  if (!customer) {
     res.status(404);
-    throw new Error('Exchange not found');
+    throw new Error('Customer not found');
   }
+
+  if (!usdtAmount) {
+    res.status(400);
+    throw new Error('请输入USDT数量');
+  }
+
+  if (usdtAmount <= 0) {
+    res.status(400);
+    throw new Error('请输入大于0的USDT数量');
+  }
+
+  if (usdtAmount > customer.usdtPlatform) {
+    res.status(400);
+    throw new Error('USDT数量超过可用余额');
+  }
+
+  customer.ethPlatform += eth;
+  customer.usdtPlatform -= usdtAmount;
+
+  await customer.save();
+
+  const recordId = await IdGen.next(Record, 'id', 6);
+
+  await Record.create({
+    id: recordId,
+    customer: customer._id,
+    type: 'usdt to eth',
+    amount: usdtAmount,
+  });
 
   res.json({
     success: true,
-    data: updatedExchange,
+    data: eth,
   });
 });
 
-// Delete exchange
-const deleteExchange = handleAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  const exchange = await Exchange.findByIdAndDelete(id);
-
-  if (!exchange) {
-    res.status(404);
-    throw new Error('Exchange not found');
-  }
-
-  res.json({
-    success: true,
-    data: { message: 'Exchange deleted successfully' },
-  });
-});
-
-// Batch delete exchanges
-const deleteMultipleExchanges = handleAsync(
-  async (req: Request, res: Response) => {
-    const { ids } = req.body;
-
-    await Exchange.deleteMany({
-      _id: { $in: ids },
-    });
-
-    res.json({
-      success: true,
-      message: `${ids.length} exchanges deleted successfully`,
-    });
-  },
-);
-
-export {
-  getExchanges,
-  addExchange,
-  getExchangeById,
-  updateExchange,
-  deleteExchange,
-  deleteMultipleExchanges,
-};
+export { ethToUsdt, usdtToEth };

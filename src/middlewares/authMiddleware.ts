@@ -46,6 +46,7 @@ const protect = handleAsync(
           .exec();
 
         if (!user || !user.live) {
+          console.log('user', user);
           throw new Error('User is not live or not found');
         }
 

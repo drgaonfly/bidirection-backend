@@ -28,7 +28,7 @@ const getActivities = handleAsync(async (req: Request, res: Response) => {
   const query = buildActivityQuery(req.query);
 
   const activities = await Activity.find(query)
-    .populate('user')
+    .populate('customer')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)

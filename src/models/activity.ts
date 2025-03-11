@@ -1,17 +1,13 @@
 import mongoose, { Document } from 'mongoose';
-import { IUser } from './user';
 
 export interface IActivity extends Document {
   id: string;
-  user: mongoose.Schema.Types.ObjectId | IUser;
-  type: 'stacking' | 'rewards';
-  status: 'pending' | 'joined' | 'finished' | 'expired';
-  usdtBalance: number;
-  ethEarnings: number;
-  lockDays: number;
-  startAt: Date;
-  endAt: Date;
-  joinAt: Date;
+  customer: mongoose.Schema.Types.ObjectId;
+  usdtAmount: number;
+  ethProfit: number;
+  lockDuration: number;
+  activityEndTime: Date;
+  status: 'pending' | 'active' | 'completed';
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -21,29 +17,34 @@ const activitySchema = new mongoose.Schema(
     id: {
       type: String,
       required: true,
-      unique: true,
+      unique: true, // 活动唯一标识ID
     },
-    user: {
+    customer: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
+      ref: 'Customer',
+      required: true, // 关联的用户ID
+    },
+    usdtAmount: {
+      type: Number,
+      required: true, // USDT参与金额
+    },
+    ethProfit: {
+      type: Number,
+      required: true, // ETH收益金额
+    },
+    lockDuration: {
+      type: Number,
+      required: true, // 锁定天数
+    },
+    activityEndTime: {
+      type: Date,
+      required: true, // 活动结束时间
     },
     status: {
       type: String,
-      enum: ['pending', 'joined', 'finished', 'expired'],
-      required: true,
+      enum: ['pending', 'active', 'completed'],
+      default: 'pending', // 活动状态
     },
-    type: {
-      type: String,
-      enum: ['stacking', 'rewards'],
-      required: true,
-    },
-    usdtBalance: { type: Number, required: true },
-    ethEarnings: { type: Number, required: true },
-    lockDays: { type: Number, required: false },
-    startAt: { type: Date, required: false },
-    endAt: { type: Date, required: false },
-    joinAt: { type: Date, required: false },
   },
   { timestamps: true },
 );

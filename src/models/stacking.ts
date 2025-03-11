@@ -1,6 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 
-export interface IStackingConfiguration extends Document {
+export interface IStacking extends Document {
   investBalance: number;
   rateOfReturn: number;
   profit: number;
@@ -8,7 +8,7 @@ export interface IStackingConfiguration extends Document {
   updatedAt?: Date;
 }
 
-const stackingConfigurationSchema = new mongoose.Schema(
+const stackingSchema = new mongoose.Schema(
   {
     investBalance: { type: Number, required: true, dedualt: 0 },
     rateOfReturn: { type: Number, required: true, default: 0 },
@@ -19,9 +19,6 @@ const stackingConfigurationSchema = new mongoose.Schema(
   },
 );
 
-const StackingConfiguration = mongoose.model<IStackingConfiguration>(
-  'StackingConfiguration',
-  stackingConfigurationSchema,
-);
+const Stacking = mongoose.model<IStacking>('Stacking', stackingSchema);
 
-export default StackingConfiguration;
+export default Stacking;

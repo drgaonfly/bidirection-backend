@@ -22,7 +22,7 @@ import noticeRoutes from './routes/noticeRoutes'; // 新增
 import incomeRoutes from './routes/incomeRoutes'; // 新增
 import activityRoutes from './routes/activityRoutes'; // 新增
 import miningDataRoutes from './routes/miningDataRoutes'; // 新增
-import stackingConfigurationRoutes from './routes/stackingConfigurationRoutes';
+import stackingRoutes from './routes/stackingRoutes';
 import translateRoutes from './routes/translateRoutes';
 import miningOutputRoutes from './routes/miningOutputRoutes'; // 新增
 import customerAuthRoutes from './routes/customerAuthRoutes'; // 新增
@@ -90,7 +90,7 @@ app.use('/api/notices', noticeRoutes); // 新增
 app.use('/api/incomes', incomeRoutes); // 新增
 app.use('/api/activities', activityRoutes); // 新增
 app.use('/api/carousels', carouselRoutes); // 新增
-app.use('/api/stacking-configurations', stackingConfigurationRoutes);
+app.use('/api/stackings', stackingRoutes);
 app.use('/api/lottery-records', lotteryRecordRoutes);
 app.use('/api/proxy-commission-records', proxyCommissionRecordRoutes);
 app.use('/api/wallet-deal-records', walletDealRecordRoutes);

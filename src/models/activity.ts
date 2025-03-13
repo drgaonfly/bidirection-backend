@@ -7,6 +7,7 @@ export interface IActivity extends Document {
   ethProfit: number;
   lockDuration: number;
   activityEndTime: Date;
+  participateTime: Date;
   status: 'pending' | 'active' | 'completed';
   createdAt?: Date;
   updatedAt?: Date;
@@ -39,6 +40,10 @@ const activitySchema = new mongoose.Schema(
     activityEndTime: {
       type: Date,
       required: true, // 活动结束时间
+    },
+    participateTime: {
+      type: Date,
+      required: true, // 参与时间
     },
     status: {
       type: String,

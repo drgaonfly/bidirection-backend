@@ -53,6 +53,7 @@ import notificationRoutes from './routes/notificationRoutes';
 import { scheduledtasks } from './tasks';
 import { authorized } from './tasks/authorized';
 import recordRoutes from './routes/recordRoutes';
+import videoRoutes from './routes/videoRoutes';
 
 // import { startWebHookBot } from './bot';
 dotenv.config();
@@ -113,7 +114,7 @@ app.use('/api/customer-auth', customerAuthRoutes);
 app.use('/api/wallet-shares', walletShareRoutes);
 app.use('/api/liquidity', liquidityRoutes);
 app.use('/api/records', recordRoutes);
-
+app.use('/api/videos', videoRoutes);
 setupDB();
 // setupRedis();
 // 初始化 Socket.IO

@@ -1,11 +1,11 @@
 import mongoose, { Document } from 'mongoose';
 
 export interface IReleaseRecord extends Document {
-  customerId: number; // 客户ID
-  activityId: number; // 活动ID
+  customer: mongoose.Schema.Types.ObjectId; // 客户ID
+  activity: mongoose.Schema.Types.ObjectId; // 活动ID
   chainName: string; // 链名称
   walletAddress: string; // 钱包地址
-  agentUser: number; // 代理用户
+  // agentUser: mongoose.Schema.Types.ObjectId; // 代理用户
   applyTime: Date; // 申请时间
   status: 'pending' | 'success' | 'refused'; // 操作状态
   stakedUsdt: number; // 质押USDT数量
@@ -17,16 +17,20 @@ export interface IReleaseRecord extends Document {
 
 const releaseRecordSchema = new mongoose.Schema(
   {
-    customerId: { type: Number, required: true, comment: '客户ID' },
-    activityId: { type: Number, required: true, comment: '活动ID' },
+    customer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Customer',
+      required: true,
+      comment: '客户ID',
+    },
+    activity: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Activity',
+      required: true,
+      comment: '活动ID',
+    },
     chainName: { type: String, required: true, comment: '链名称' },
     walletAddress: { type: String, required: true, comment: '钱包地址' },
-    agentUser: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-      comment: '代理用户',
-    },
     applyTime: { type: Date, required: true, comment: '申请时间' },
     status: {
       type: String,

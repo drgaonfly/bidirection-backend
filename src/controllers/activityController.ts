@@ -227,11 +227,10 @@ const updateActivityAndCreateRelease = handleAsync(
 
     // 创建释放记录
     const releaseRecord = await ReleaseRecord.create({
-      customerId: customer._id,
-      activityId: activity._id,
+      customer: customer._id,
+      activity: activity._id,
       chainName: network,
       walletAddress: address,
-      agentUser: activity.customer, // 使用活动中的客户ID作为代理用户
       applyTime: new Date(),
       status: 'pending',
       stakedUsdt: usdtAmount,

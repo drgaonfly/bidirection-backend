@@ -15,41 +15,22 @@ export interface IActivity extends Document {
 
 const activitySchema = new mongoose.Schema(
   {
-    id: {
-      type: String,
-      required: true,
-      unique: true, // 活动唯一标识ID
-    },
+    id: { type: String, required: true, unique: true }, // 活动唯一标识ID
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Customer',
-      required: true, // 关联的用户ID
-    },
-    usdtAmount: {
-      type: Number,
-      required: true, // USDT参与金额
-    },
-    ethProfit: {
-      type: Number,
-      required: true, // ETH收益金额
-    },
-    lockDuration: {
-      type: Number,
-      required: true, // 锁定天数
-    },
-    activityEndTime: {
-      type: Date,
-      required: true, // 活动结束时间
-    },
-    participateTime: {
-      type: Date,
-      required: false, // 参与时间
-    },
+      required: true,
+    }, // 关联的用户ID
+    usdtAmount: { type: Number, required: true }, // USDT参与金额
+    ethProfit: { type: Number, required: true }, // ETH收益金额
+    lockDuration: { type: Number, required: true }, // 锁定天数
+    activityEndTime: { type: Date, required: true }, // 活动结束时间
+    participateTime: { type: Date, required: false }, // 参与时间
     status: {
       type: String,
       enum: ['pending', 'active', 'completed'],
-      default: 'pending', // 活动状态
-    },
+      default: 'pending',
+    }, // 活动状态
   },
   { timestamps: true },
 );

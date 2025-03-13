@@ -3,6 +3,7 @@ import Activity from '../models/activity';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
 import Customer from '../models/customer';
+import ReleaseRecord from '../models/releaseRecord';
 
 // Helper function to build query
 const buildActivityQuery = (queryParams: any): any => {
@@ -180,6 +181,75 @@ const getPendingActivityByAddress = handleAsync(
   },
 );
 
+// 更新活动状态并创建解押记录
+const updateActivityAndCreateRelease = handleAsync(
+  async (req: Request, res: Response) => {
+    const { address, network, status, ethProfit, usdtAmount } = req.body;
+
+    if (!address || !network || !status || !ethProfit || !usdtAmount) {
+      res.status(400).json({
+        success: false,
+        message: '所有参数都是必需的',
+      });
+      return;
+    }
+
+    // 先找到对应的用户
+    const customer = await Customer.findOne({ address, network });
+    if (!customer) {
+      res.status(404).json({
+        success: false,
+        message: '未找到该用户',
+      });
+      return;
+    }
+
+    // 查找并更新该用户的活动
+    const activity = await Activity.findOneAndUpdate(
+      {
+        customer: customer._id,
+        status: 'pending', // 确保只更新待处理的活动
+      },
+      {
+        status: 'completed',
+        participateTime: new Date(),
+      },
+      { new: true },
+    );
+
+    if (!activity) {
+      res.status(404).json({
+        success: false,
+        message: '未找到待处理的活动',
+      });
+      return;
+    }
+
+    // 创建释放记录
+    const releaseRecord = await ReleaseRecord.create({
+      customerId: customer._id,
+      activityId: activity._id,
+      chainName: network,
+      walletAddress: address,
+      agentUser: activity.customer, // 使用活动中的客户ID作为代理用户
+      applyTime: new Date(),
+      status: 'pending',
+      stakedUsdt: usdtAmount,
+      rewardEth: ethProfit,
+      lockDays: activity.lockDuration,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        activity,
+        releaseRecord,
+      },
+      message: '活动状态更新成功并创建释放记录',
+    });
+  },
+);
+
 export {
   getActivities,
   addActivity,
@@ -188,4 +258,5 @@ export {
   deleteActivity,
   deleteMultipleActivities,
   getPendingActivityByAddress,
+  updateActivityAndCreateRelease,
 };

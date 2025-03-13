@@ -32,17 +32,6 @@ const getReleaseRecords = handleAsync(async (req: Request, res: Response) => {
   const query = buildReleaseRecordQuery(req.query);
 
   const releaseRecords = await ReleaseRecord.find(query)
-    .populate({
-      path: 'wallet',
-      populate: 'user',
-    })
-    .populate({
-      path: 'activity',
-      populate: {
-        path: 'user',
-        populate: 'proxy',
-      },
-    })
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)

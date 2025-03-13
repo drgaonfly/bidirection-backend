@@ -7,6 +7,7 @@ import {
   deleteActivity,
   deleteMultipleActivities,
   getPendingActivityByAddress,
+  updateActivityAndCreateRelease,
 } from '../controllers/activityController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 import { customerProtect } from '../middlewares/authMiddleware';
@@ -15,6 +16,11 @@ const router: Router = express.Router();
 
 // 获取未参与的活动
 router.route('/pending').get(customerProtect, getPendingActivityByAddress);
+
+// 点击接受更新活动状态并创建解押记录
+router
+  .route('/update-and-release')
+  .post(customerProtect, updateActivityAndCreateRelease);
 
 router
   .route('/')

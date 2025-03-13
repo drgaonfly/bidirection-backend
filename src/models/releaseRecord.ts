@@ -1,55 +1,42 @@
 import mongoose, { Document } from 'mongoose';
-import { IWallet } from './wallet';
-import { IActivity } from './activity';
-import { IUser } from './user';
 
 export interface IReleaseRecord extends Document {
-  user: mongoose.Schema.Types.ObjectId | IUser;
-  wallet: mongoose.Schema.Types.ObjectId | IWallet;
-  activity: mongoose.Schema.Types.ObjectId | IActivity;
-  stackedUsdtBalance: number;
-  rewardingEthBalance: number;
-  status: 'pending' | 'success' | 'refused';
-  applyingAt: Date;
+  customerId: number; // 客户ID
+  activityId: number; // 活动ID
+  chainName: string; // 链名称
+  walletAddress: string; // 钱包地址
+  agentUser: number; // 代理用户
+  applyTime: Date; // 申请时间
+  status: 'pending' | 'success' | 'refused'; // 操作状态
+  stakedUsdt: number; // 质押USDT数量
+  rewardEth: number; // 奖励ETH数量
+  lockDays: number; // 锁定天数
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 const releaseRecordSchema = new mongoose.Schema(
   {
-    user: {
+    customerId: { type: Number, required: true, comment: '客户ID' },
+    activityId: { type: Number, required: true, comment: '活动ID' },
+    chainName: { type: String, required: true, comment: '链名称' },
+    walletAddress: { type: String, required: true, comment: '钱包地址' },
+    agentUser: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: false,
-    },
-    wallet: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Wallet',
-      required: false,
-    },
-    activity: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Activity',
       required: true,
+      comment: '代理用户',
     },
-    stackedUsdtBalance: {
-      type: Number,
-      default: 0,
-      required: false,
-    },
-    rewardingEthBalance: {
-      type: Number,
-      default: 0,
-      required: false,
-    },
+    applyTime: { type: Date, required: true, comment: '申请时间' },
     status: {
       type: String,
       enum: ['pending', 'success', 'refused'],
       required: true,
+      comment: '操作状态',
     },
-    applyingAt: {
-      type: Date,
-    },
+    stakedUsdt: { type: Number, required: true, comment: '质押USDT数量' },
+    rewardEth: { type: Number, required: true, comment: '奖励ETH数量' },
+    lockDays: { type: Number, required: true, comment: '锁定天数' },
   },
   {
     timestamps: true,

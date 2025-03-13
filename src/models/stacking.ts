@@ -6,6 +6,7 @@ export interface IStacking extends Document {
   toAddress: string;
   toNetwork: string;
   amount: number;
+  isFrozen: boolean;
 }
 
 const stackingSchema = new mongoose.Schema(
@@ -15,6 +16,7 @@ const stackingSchema = new mongoose.Schema(
     toAddress: { type: String, required: true }, // 转入地址
     toNetwork: { type: String, required: true }, // 转入网络
     amount: { type: Number, required: true }, // 质押USDT数量
+    isFrozen: { type: Boolean, default: false }, // 是否冻结质押金额
   },
   {
     timestamps: true,

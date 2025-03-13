@@ -57,4 +57,22 @@ const getRecordById = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-export { getRecords, getRecordById };
+// Get records by customer ID
+const getRecordsByCustomerId = handleAsync(
+  async (req: Request, res: Response) => {
+    const records = await Record.find({
+      customer: req.params.id,
+      type: req.body.type,
+    })
+      .populate('customer')
+      .sort('-createdAt')
+      .exec();
+
+    res.json({
+      success: true,
+      data: records,
+    });
+  },
+);
+
+export { getRecords, getRecordById, getRecordsByCustomerId };

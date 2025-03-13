@@ -1,58 +1,36 @@
 import mongoose, { Document } from 'mongoose';
-import { IUser } from './user';
-import { IWallet } from './wallet';
+import { ICustomer } from './customer';
 
 export interface IWithdraw extends Document {
-  user: mongoose.Schema.Types.ObjectId | IUser; // 关联用户
-  wallet: mongoose.Schema.Types.ObjectId | IWallet; // 关联钱包
-  withdrawalNumber: number;
-  fee: number;
-  time: Date;
-  withdrawalMethod: string;
-  reviewStatus: string;
-  paymentStatus: string;
+  id: string;
+  customer: mongoose.Schema.Types.ObjectId | ICustomer;
   amount: number;
-  createdAt: Date;
-  updatedAt: Date;
-  endAt: Date;
+  status: string;
+  remark: string;
 }
 
 const withdrawSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+    id: {
+      type: String,
       required: true,
     },
-    wallet: {
+    customer: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Wallet',
+      ref: 'Customer',
       required: true,
     },
-    withdrawalNumber: { type: Number },
-    fee: { type: Number },
-    time: { type: Date }, // 申请时间
-    withdrawalMethod: {
-      type: String,
-      required: true,
-      enum: ['WeChat', 'Alipay', 'Cash', 'Other'],
-      default: 'WeChat',
-    }, // 提现方式
-    reviewStatus: {
-      type: String,
-      required: true,
-      enum: ['reviewed', 'unreviewed', 'reviewing'],
-      default: 'unreviewed',
-    }, // 审核状态
-    paymentStatus: {
-      type: String,
-      required: true,
-      enum: ['paid', 'unpaid'],
-      default: 'unpaid',
-    }, // 打款状态
     amount: { type: Number },
-    startAt: { type: Date }, // 开始时间
-    endAt: { type: Date }, // 结束时间
+    status: {
+      type: String,
+      required: true,
+      enum: ['pending', 'completed', 'rejected'],
+      default: 'pending',
+    }, // 审核状态
+    remark: {
+      type: String,
+      default: '',
+    }, // 备注
   },
   { timestamps: true },
 );

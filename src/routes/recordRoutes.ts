@@ -1,5 +1,9 @@
 import express, { Router } from 'express';
-import { getRecords, getRecordById } from '../controllers/recordController';
+import {
+  getRecords,
+  getRecordById,
+  getRecordsByCustomerId,
+} from '../controllers/recordController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
@@ -8,5 +12,7 @@ const router: Router = express.Router();
 router.route('/').get(protect, checkPermission, getRecords);
 
 router.route('/:id').get(protect, checkPermission, getRecordById);
+
+router.route('/customer/:id').post(getRecordsByCustomerId);
 
 export default router;

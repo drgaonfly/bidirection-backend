@@ -6,8 +6,13 @@ import {
   updateWithdraw,
   deleteWithdraw,
   deleteMultipleWithdraws,
+  getWithdrawByCustomerId,
 } from '../controllers/withdrawController';
-import { protect, checkPermission } from '../middlewares/authMiddleware';
+import {
+  protect,
+  checkPermission,
+  customerProtect,
+} from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
@@ -15,7 +20,7 @@ const router: Router = express.Router();
 router
   .route('/')
   .get(protect, checkPermission, getWithdraws)
-  .post(protect, checkPermission, addWithdraw)
+  .post(customerProtect, addWithdraw)
   .delete(protect, checkPermission, deleteMultipleWithdraws);
 
 router
@@ -23,5 +28,7 @@ router
   .get(protect, checkPermission, getWithdrawById)
   .put(protect, checkPermission, updateWithdraw)
   .delete(protect, checkPermission, deleteWithdraw);
+
+router.route('/customer/:id').get(customerProtect, getWithdrawByCustomerId);
 
 export default router;

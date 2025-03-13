@@ -1,37 +1,32 @@
 import { Request, Response } from 'express';
 import Withdraw from '../models/withdraw';
 import handleAsync from '../utils/handleAsync';
+import Customer from '../models/customer';
+import { IdGen } from '../utils/idGen';
+import { getExchangeRate } from '../utils/getExchange';
 
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
 
-  if (queryParams.brandName) {
-    query.brandName = queryParams.brandName;
+  if (queryParams.status) {
+    query.status = queryParams.status;
   }
 
-  if (queryParams.skuName) {
-    query.skuName = { $regex: new RegExp(queryParams.skuName, 'i') };
-  }
-
-  if (queryParams.sn) {
-    query.sn = queryParams.sn;
+  if (queryParams.customer) {
+    query.customer = queryParams.customer;
   }
 
   return query;
 };
 
-// 获取所有提现记录
+// Get all withdraws
 const getWithdraws = handleAsync(async (req: Request, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
   const query = buildQuery(req.query);
 
   const withdraws = await Withdraw.find(query)
-    .populate('user')
-    .populate({
-      path: 'wallet',
-      populate: 'user',
-    })
+    .populate('customer')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -48,10 +43,41 @@ const getWithdraws = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-// 添加提现记录
+// Add new withdraw
 const addWithdraw = handleAsync(async (req: Request, res: Response) => {
+  const { amount, customer } = req.body;
+
+  const customerExist = await Customer.findById(customer);
+
+  if (!customerExist) {
+    res.status(404);
+    throw new Error('钱包不存在');
+  }
+
+  if (Number(amount) <= 0) {
+    res.status(400);
+    throw new Error('提现金额不能小于0');
+  }
+
+  if (Number(amount) > Number(customerExist.usdtPlatform)) {
+    res.status(400);
+    throw new Error('USDT余额不足');
+  }
+
+  customerExist.usdtPlatform -= amount;
+
+  await customerExist.save();
+
+  const newId = await IdGen.next(Withdraw, 'id', 6);
+
+  const exchangedAmount = amount * (await getExchangeRate('USDT', 'USD'));
+
   const newWithdraw = new Withdraw({
     ...req.body,
+    id: newId,
+    customer: customer,
+    amount: exchangedAmount,
+    status: 'completed',
   });
 
   const savedWithdraw = await newWithdraw.save();
@@ -61,9 +87,14 @@ const addWithdraw = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-// 根据 ID 获取提现记录
+// Get withdraw by ID
 const getWithdrawById = handleAsync(async (req: Request, res: Response) => {
-  const withdraw = await Withdraw.findById(req.params.id).populate('user');
+  const withdraw = await Withdraw.findById(req.params.id).populate('customer');
+
+  if (!withdraw) {
+    res.status(404);
+    throw new Error('Withdraw not found');
+  }
 
   res.json({
     success: true,
@@ -71,15 +102,21 @@ const getWithdrawById = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-// 更新提现记录
+// Update withdraw
 const updateWithdraw = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+
+  const withdraw = await Withdraw.findById(id);
+  if (!withdraw) {
+    res.status(404);
+    throw new Error('Withdraw not found');
+  }
 
   const updatedWithdraw = await Withdraw.findByIdAndUpdate(
     id,
     { ...req.body },
     { new: true, runValidators: true },
-  );
+  ).populate('customer');
 
   res.json({
     success: true,
@@ -87,35 +124,55 @@ const updateWithdraw = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-// 删除提现记录
+// Delete withdraw
 const deleteWithdraw = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
-  const withdraw = await Withdraw.findByIdAndDelete(id);
+  const withdraw = await Withdraw.findById(id);
+  if (!withdraw) {
+    res.status(404);
+    throw new Error('Withdraw not found');
+  }
+
+  await withdraw.deleteOne();
 
   res.json({
     success: true,
-    message: withdraw,
+    message: 'Withdraw deleted successfully',
   });
 });
 
-// 批量删除提现记录
+// Delete multiple withdraws
 const deleteMultipleWithdraws = handleAsync(
   async (req: Request, res: Response) => {
     const { ids } = req.body;
 
-    await Withdraw.deleteMany({
+    const result = await Withdraw.deleteMany({
       _id: { $in: ids },
     });
 
     res.json({
       success: true,
-      message: `${ids.length} withdraws deleted successfully`,
+      message: `${result.deletedCount} withdraws deleted successfully`,
     });
   },
 );
 
-// 导出控制器方法
+// get withdraw by customer id
+const getWithdrawByCustomerId = handleAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const withdraws = await Withdraw.find({ customer: id });
+
+    res.json({
+      success: true,
+      data: withdraws,
+    });
+  },
+);
+
+// Export controller methods
 export {
   deleteMultipleWithdraws,
   updateWithdraw,
@@ -123,4 +180,5 @@ export {
   getWithdraws,
   addWithdraw,
   getWithdrawById,
+  getWithdrawByCustomerId,
 };

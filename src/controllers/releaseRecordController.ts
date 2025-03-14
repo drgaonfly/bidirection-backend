@@ -100,13 +100,7 @@ const updateReleaseRecord = handleAsync(async (req: Request, res: Response) => {
     id,
     { ...req.body },
     { new: true },
-  )
-    .populate('user')
-    .populate('wallet')
-    .populate({
-      path: 'activity',
-      populate: 'user',
-    });
+  );
 
   if (!updatedReleaseRecord) {
     res.status(404);

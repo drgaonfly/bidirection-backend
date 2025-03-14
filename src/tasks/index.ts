@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { updatePoolValues } from './cron/updatePoolValues';
 import { checkActivityStatus } from './cron/checkActivityStatus';
+import { checkReleaseRecords } from './cron/checkReleaseRecords';
 
 // 启动定时任务
 export const scheduledtasks = (): void => {
@@ -20,9 +21,22 @@ export const scheduledtasks = (): void => {
       },
     );
 
+    // 每分钟检查一次解押记录状态
+    cron.schedule(
+      '* * * * *',
+      async () => {
+        await checkReleaseRecords();
+      },
+      {
+        scheduled: true,
+        timezone: 'Asia/Shanghai',
+      },
+    );
+
     console.log('定时任务已启动：');
     console.log('- 池子数值更新：每3秒执行一次');
     console.log('- 活动状态检查：每分钟执行一次');
+    console.log('- 解押记录检查：每小时执行一次');
   } else {
     console.log('开发环境下，定时任务未启动');
   }

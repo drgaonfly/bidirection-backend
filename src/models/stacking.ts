@@ -7,6 +7,8 @@ export interface IStacking extends Document {
   toNetwork: string;
   amount: number;
   isFrozen: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const stackingSchema = new mongoose.Schema(

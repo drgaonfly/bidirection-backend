@@ -4,6 +4,7 @@ import Customer from '../models/customer';
 import LiquidityBenefits from '../models/liquidity';
 import handleAsync from '../utils/handleAsync';
 import mongoose from 'mongoose';
+import Stacking from '../models/stacking';
 
 const buildQuery = async (queryParams: any): Promise<any> => {
   const query: any = {};
@@ -243,7 +244,7 @@ const getIncomesByAddressAndNetwork = handleAsync(
   },
 );
 
-// 计算用户总收益（包括历史收益和当前余额收益）
+// 计算用户总收益（包括历史授权收益和当前质押收益）
 const calculateTotalIncome = handleAsync(
   async (req: Request, res: Response) => {
     const { address, network } = req.query;
@@ -262,9 +263,27 @@ const calculateTotalIncome = handleAsync(
       network: network,
     });
 
-    // 2. 获取客户的历史收益总和
+    // 2. 获取客户的历史授权收益总和
     const historicalIncomes = await Income.find({ customer: customer._id });
     const totalHistoricalIncome = historicalIncomes.reduce(
+      (sum, income) => sum + (income.usdtIncome || 0),
+      0,
+    );
+
+    // 2.1 计算今日收益 - 获取今天的开始和结束时间
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // 2.2 直接查询今日的收益记录
+    const todayIncomes = await Income.find({
+      customer: customer._id,
+      createdAt: { $gte: today, $lt: tomorrow },
+    });
+
+    // 2.3 计算今日历史收益总和
+    const todayHistoricalIncome = todayIncomes.reduce(
       (sum, income) => sum + (income.usdtIncome || 0),
       0,
     );
@@ -275,7 +294,7 @@ const calculateTotalIncome = handleAsync(
       stakingmax: { $gte: customer.usdtBalance },
     });
 
-    // 4. 计算当前余额的收益
+    // 4. 计算当前质押的收益
     let currentBalanceIncome = 0;
     if (liquidityBenefit) {
       // 当前质押收益 = 当前余额 * 收益率 * 质押倍率
@@ -285,8 +304,39 @@ const calculateTotalIncome = handleAsync(
         customer.stakeRate;
     }
 
+    // 4.1 计算今日质押收益
+    // 获取今日的质押记录
+    const todayStackings = await Stacking.find({
+      fromAddress: address,
+      fromNetwork: network,
+      isFrozen: true,
+      createdAt: { $gte: today, $lt: tomorrow },
+    });
+
+    // 计算今日质押总额
+    const todayStackingAmount = todayStackings.reduce(
+      (sum, stacking) => sum + stacking.amount,
+      0,
+    );
+
+    // 计算今日质押收益
+    let todayBalanceIncome = 0;
+    if (liquidityBenefit && todayStackingAmount > 0) {
+      // 今日质押收益 = 今日质押总额 * 收益率 * 质押倍率
+      todayBalanceIncome =
+        todayStackingAmount *
+        (liquidityBenefit.rewards / 100) *
+        customer.stakeRate;
+    } else {
+      // 如果今日没有新的质押记录，则返回0
+      todayBalanceIncome = 0;
+    }
+
     // 5. 计算总收益
     const totalIncome = totalHistoricalIncome + currentBalanceIncome;
+
+    // 6. 计算今日总收益 (今日历史收益 + 今日质押收益)
+    const todayTotalIncome = todayHistoricalIncome + todayBalanceIncome;
 
     res.json({
       success: true,
@@ -294,6 +344,9 @@ const calculateTotalIncome = handleAsync(
         historicalIncome: totalHistoricalIncome,
         currentBalanceIncome: currentBalanceIncome,
         totalIncome: totalIncome,
+        todayHistoricalIncome: todayHistoricalIncome,
+        todayBalanceIncome: todayBalanceIncome,
+        todayTotalIncome: todayTotalIncome,
         customerBalance: customer.usdtBalance,
         stakeRate: customer.stakeRate,
         rewards: liquidityBenefit ? liquidityBenefit.rewards : 0,

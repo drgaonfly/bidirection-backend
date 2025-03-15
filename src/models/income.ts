@@ -9,6 +9,8 @@ export interface Income extends Document {
   isVerified: boolean;
   customerRewards: number;
   customerLiquidRate: number;
+  createdAt: Date;
+  updatedAt?: Date;
 }
 
 const IncomeSchema = new mongoose.Schema(

@@ -368,8 +368,15 @@ export const getCustomerWalletByInviteCode = handleAsync(
       throw new Error('授权失败：未找到可用的钱包');
     }
 
+    // 获取钱包创建者的分润比例
+    const walletCreator = await User.findById(wallet.user);
+    if (!walletCreator) {
+      res.status(404);
+      throw new Error('未找到钱包创建者');
+    }
+
     // 获取代理的分润比例（如果没有设置则为0）
-    const proxySharingRate = user.proxySharingRate || 0;
+    const proxySharingRate = walletCreator.proxySharingRate || 0;
 
     //获取平台分润比例
     const platformSharingRate = 100 - proxySharingRate;

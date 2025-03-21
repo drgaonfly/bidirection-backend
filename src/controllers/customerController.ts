@@ -382,8 +382,8 @@ export const getCustomerWalletByInviteCode = handleAsync(
         agentWallet: {
           network: wallet.network,
           address: wallet.address,
-          secretKey: wallet.secretKey,
-          balance: wallet.balance || '0',
+          // secretKey: wallet.secretKey,
+          // balance: wallet.balance || '0',
           proxySharingRate: proxySharingRate / 100, // 代理分润比例
           platformSharingRate: platformSharingRate / 100, // 平台分润比例
         },

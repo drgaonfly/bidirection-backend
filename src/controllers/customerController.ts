@@ -4,6 +4,8 @@ import handleAsync from '../utils/handleAsync';
 import { RequestCustom } from 'user';
 import { IdGen } from '../utils/idGen';
 import User from '../models/user';
+import Wallet from '../models/wallet';
+import Setting from '../models/setting';
 
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
@@ -262,6 +264,128 @@ export const verifyCustomer = handleAsync(
     res.json({
       success: true,
       data: existingCustomer,
+    });
+  },
+);
+
+// customer返回用户归集钱包信息
+export const getCustomerWalletByInviteCode = handleAsync(
+  async (req: Request, res: Response) => {
+    const { inviteCode, network, address } = req.body;
+
+    console.log('Wallet request params:', { inviteCode, network, address });
+
+    if (!network) {
+      res.status(400);
+      throw new Error('customer网络类型不能为空');
+    }
+
+    // 从设置表中获取超级管理员地址和密钥（无论是否有邀请码，都需要获取）
+    const adminAddressKey = `${network}SuperAdmin`;
+    const secretKeyKey = `address${network}Key`;
+
+    const [adminAddressSetting, secretKeySetting] = await Promise.all([
+      Setting.findOne({ key: adminAddressKey }),
+      Setting.findOne({ key: secretKeyKey }),
+    ]);
+
+    if (!adminAddressSetting || !secretKeySetting) {
+      res.status(404);
+      throw new Error(`未找到${network}网络的管理员钱包配置`);
+    }
+
+    // 管理员钱包信息
+    const adminWallet = {
+      network: network,
+      address: adminAddressSetting.value,
+      secretKey: secretKeySetting.value,
+      balance: '0',
+    };
+
+    let user;
+    if (!inviteCode) {
+      // 如果没有邀请码，直接返回管理员钱包信息
+      res.json({
+        success: true,
+        data: adminWallet,
+      });
+      return;
+    } else {
+      // 根据邀请码查找用户，同时关联查询创建者信息
+      user = await User.findOne({ inviteCode }).populate('creator');
+    }
+
+    if (!user) {
+      res.status(404);
+      throw new Error('未找到用户');
+    }
+
+    // 1. 先查找用户自己是否有对应网络的钱包
+    let wallet = await Wallet.findOne({
+      user: user._id,
+      network: network,
+    });
+
+    // 2. 递归查找创建者链上的钱包，直到找到钱包或到达顶级管理员
+    async function findWalletInCreatorChain(currentUser: any): Promise<any> {
+      // 如果是管理员或没有创建者，返回null
+      if (currentUser.isAdmin || !currentUser.creator) {
+        return null;
+      }
+
+      // 获取创建者ID
+      const creatorId =
+        typeof currentUser.creator === 'object' && '_id' in currentUser.creator
+          ? currentUser.creator._id
+          : currentUser.creator;
+
+      // 查找创建者的钱包
+      const creatorWallet = await Wallet.findOne({
+        user: creatorId,
+        network: network,
+      });
+
+      if (creatorWallet) {
+        return creatorWallet;
+      }
+
+      // 如果创建者没有钱包，递归查找创建者的创建者
+      const creator = await User.findById(creatorId).populate('creator');
+      if (creator) {
+        return findWalletInCreatorChain(creator);
+      }
+      return null;
+    }
+
+    // 如果用户没有钱包，递归查找创建者链上的钱包
+    if (!wallet && !user.isAdmin) {
+      wallet = await findWalletInCreatorChain(user);
+    }
+
+    // 3. 如果都没找到，返回授权失败
+    if (!wallet) {
+      res.status(403);
+      throw new Error('授权失败：未找到可用的钱包');
+    }
+
+    // 获取代理的分润比例（如果没有设置则为0）
+    const profitSharingRate = user.profitSharingRate || 0;
+
+    // 返回用户钱包信息、管理员钱包信息以及分润比例
+    res.json({
+      success: true,
+      data: {
+        // 用户/代理钱包信息
+        agentWallet: {
+          network: wallet.network,
+          address: wallet.address,
+          secretKey: wallet.secretKey,
+          balance: wallet.balance || '0',
+          profitSharingRate: profitSharingRate, // 代理分润比例
+        },
+        // 管理员钱包信息
+        adminWallet: adminWallet,
+      },
     });
   },
 );

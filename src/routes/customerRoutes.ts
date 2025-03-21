@@ -16,10 +16,10 @@ const router: Router = express.Router();
 
 router.route('/verify').post(customerProtect, verifyCustomer);
 
-// 获取用户归集返回代理钱包信息
+// 获取customer归集返回代理钱包信息
 router
   .route('/wallet')
-  .post(protect, checkPermission, getCustomerWalletByInviteCode);
+  .get(protect, checkPermission, getCustomerWalletByInviteCode);
 
 router
   .route('/')

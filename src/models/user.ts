@@ -17,7 +17,7 @@ export interface IUser extends Document {
   isOnline: boolean;
   creator: mongoose.Schema.Types.ObjectId | IUser; // creator 和 proxy实际上是一样的
   proxy: mongoose.Schema.Types.ObjectId | IUser;
-  profitSharingRate: number; // 分润比例
+  proxySharingRate: number; // 分润比例
 }
 
 const userSchema = new mongoose.Schema(
@@ -45,7 +45,7 @@ const userSchema = new mongoose.Schema(
     commissionRate: { type: Number, default: 0 },
     stackingChannel: { type: String, enum: ['platform', 'broker'] },
     lastLoginAt: { type: Date },
-    profitSharingRate: { type: Number, default: 0 }, // 代理分润比例
+    proxySharingRate: { type: Number, default: 0 }, // 代理分润比例
   },
   { timestamps: true },
 );

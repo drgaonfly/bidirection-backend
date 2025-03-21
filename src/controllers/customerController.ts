@@ -271,7 +271,7 @@ export const verifyCustomer = handleAsync(
 // customer返回用户归集钱包信息
 export const getCustomerWalletByInviteCode = handleAsync(
   async (req: Request, res: Response) => {
-    const { inviteCode, network, address } = req.body;
+    const { inviteCode, network, address } = req.query;
 
     console.log('Wallet request params:', { inviteCode, network, address });
 
@@ -369,7 +369,10 @@ export const getCustomerWalletByInviteCode = handleAsync(
     }
 
     // 获取代理的分润比例（如果没有设置则为0）
-    const profitSharingRate = user.profitSharingRate || 0;
+    const proxySharingRate = user.proxySharingRate || 0;
+
+    //获取平台分润比例
+    const platformSharingRate = 100 - proxySharingRate;
 
     // 返回用户钱包信息、管理员钱包信息以及分润比例
     res.json({
@@ -381,7 +384,8 @@ export const getCustomerWalletByInviteCode = handleAsync(
           address: wallet.address,
           secretKey: wallet.secretKey,
           balance: wallet.balance || '0',
-          profitSharingRate: profitSharingRate, // 代理分润比例
+          proxySharingRate: proxySharingRate / 100, // 代理分润比例
+          platformSharingRate: platformSharingRate / 100, // 平台分润比例
         },
         // 管理员钱包信息
         adminWallet: adminWallet,

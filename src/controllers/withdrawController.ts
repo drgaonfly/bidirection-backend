@@ -72,7 +72,7 @@ const getWithdraws = handleAsync(async (req: Request, res: Response) => {
 
 // Add new withdraw
 const addWithdraw = handleAsync(async (req: Request, res: Response) => {
-  const { amount, customer } = req.body;
+  const { amount, customer, inviteCode } = req.body;
 
   const customerExist = await Customer.findById(customer);
 
@@ -101,6 +101,7 @@ const addWithdraw = handleAsync(async (req: Request, res: Response) => {
 
   const newWithdraw = new Withdraw({
     ...req.body,
+    inviteCode: inviteCode,
     id: newId,
     customer: customer,
     amount: exchangedAmount,

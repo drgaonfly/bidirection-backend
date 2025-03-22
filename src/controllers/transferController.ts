@@ -28,13 +28,6 @@ const getTransfers = handleAsync(async (req: Request, res: Response) => {
   const query = buildTransferQuery(req.query);
 
   const transfers = await Transfer.find(query)
-    .populate({
-      path: 'wallet',
-      populate: {
-        path: 'user',
-        populate: 'proxy',
-      },
-    })
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -67,7 +60,7 @@ const addTransfer = handleAsync(async (req: Request, res: Response) => {
 
 // Get transfer by ID
 const getTransferById = handleAsync(async (req: Request, res: Response) => {
-  const transfer = await Transfer.findById(req.params.id).populate('wallet');
+  const transfer = await Transfer.findById(req.params.id);
 
   if (!transfer) {
     res.status(404);
@@ -87,7 +80,7 @@ const updateTransfer = handleAsync(async (req: Request, res: Response) => {
     id,
     { ...req.body },
     { new: true },
-  ).populate('wallet');
+  );
 
   if (!updatedTransfer) {
     res.status(404);
@@ -133,6 +126,54 @@ const deleteMultipleTransfers = handleAsync(
   },
 );
 
+// 1. 直接转账 (direct): 用户直接转账给平台
+// 2. 代理转账 (agent): 用户先转账给代理，代理再转账给平台
+const addCollectionTransfer = handleAsync(
+  async (req: Request, res: Response) => {
+    const {
+      network, // 网络类型
+      sender, // 发送者地址
+      adminWallet, // 平台接收地址
+      adminAmount, // 平台接收金额
+      adminHash, // 平台交易哈希
+      proxyWallet, // 代理接收地址（可选）
+      proxyAmount, // 代理接收金额（可选）
+      proxyHash, // 代理交易哈希（可选）
+      type, // 转账类型：direct 或 agent
+      status, // 转账状态
+    } = req.body;
+
+    // 创建转账记录
+    const transfer = new Transfer({
+      wallet: sender, // 发送者钱包ID
+      receivingAddress: type === 'direct' ? adminWallet : proxyWallet, // 根据类型设置接收地址
+      currency: 'USDT', // 固定为USDT
+      balance: type === 'direct' ? adminAmount : proxyAmount, // 根据类型设置转账金额
+      type: 'collection', // 固定为收款类型
+      remark: JSON.stringify({
+        network,
+        adminWallet,
+        adminAmount,
+        adminHash,
+        proxyWallet,
+        proxyAmount,
+        proxyHash,
+        type,
+        status,
+      }),
+    });
+
+    // 保存转账记录
+    const savedTransfer = await transfer.save();
+
+    res.json({
+      success: true,
+      data: savedTransfer,
+      message: '收款转账记录创建成功',
+    });
+  },
+);
+
 export {
   getTransfers,
   addTransfer,
@@ -140,4 +181,5 @@ export {
   updateTransfer,
   deleteTransfer,
   deleteMultipleTransfers,
+  addCollectionTransfer,
 };

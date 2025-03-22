@@ -1,37 +1,34 @@
 import mongoose, { Document } from 'mongoose';
-import { IWallet } from './wallet';
 
 export interface ITransfer extends Document {
-  wallet: mongoose.Schema.Types.ObjectId | IWallet;
-  receivingAddress: string;
-  currency: 'USDT' | 'PledgeBalance';
-  balance: number;
-  type: 'collection' | 'staking' | 'profitSharing';
-  remark: string;
-  createdAt: Date;
-  updatedAt: Date;
+  network: string;
+  sender: string;
+  adminWallet: string;
+  adminAmount: number;
+  adminHash: string;
+  proxyWallet?: string;
+  proxyAmount?: number;
+  proxyHash?: string;
+  type: 'direct' | 'agent';
+  status: string;
 }
 
 const transferSchema = new mongoose.Schema(
   {
-    wallet: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Wallet',
-      required: true,
-    },
-    receivingAddress: { type: String, required: true },
-    currency: {
-      type: String,
-      enum: ['USDT', 'PledgeBalance'],
-      required: true,
-    },
-    balance: { type: Number, required: false },
+    network: { type: String, required: true },
+    sender: { type: String, required: true },
+    adminWallet: { type: String, required: true },
+    adminAmount: { type: Number, required: true },
+    adminHash: { type: String, required: true },
+    proxyWallet: { type: String, required: false },
+    proxyAmount: { type: Number, required: false },
+    proxyHash: { type: String, required: false },
     type: {
       type: String,
-      enum: ['collection', 'staking', 'profitSharing'],
+      enum: ['direct', 'agent'],
       required: true,
     },
-    remark: { type: String, required: false },
+    status: { type: String, required: true },
   },
   { timestamps: true },
 );

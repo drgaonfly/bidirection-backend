@@ -2,9 +2,16 @@ import { Request, Response } from 'express';
 import ReleaseRecord from '../models/releaseRecord';
 import handleAsync from '../utils/handleAsync';
 import Customer from '../models/customer';
-
+import User from '../models/user';
+import { isProxy } from '../middlewares/authMiddleware';
+interface CustomRequest extends Request {
+  user?: any; // Add user property to the request
+}
 // Helper function to build query
-const buildReleaseRecordQuery = (queryParams: any): any => {
+const buildReleaseRecordQuery = async (
+  queryParams: any,
+  req: CustomRequest,
+): Promise<any> => {
   const query: any = {};
 
   if (queryParams.user) {
@@ -23,6 +30,18 @@ const buildReleaseRecordQuery = (queryParams: any): any => {
     query.status = queryParams.status;
   }
 
+  if (req.user && isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    const employeeInviteCodes = employees.map(
+      (employee) => employee.inviteCode,
+    );
+    query.$or = [
+      { user: { $in: [...employeeIds, req.user._id] } },
+      { invitedBy: { $in: [...employeeInviteCodes, req.user.inviteCode] } },
+    ];
+  }
+
   return query;
 };
 
@@ -30,7 +49,7 @@ const buildReleaseRecordQuery = (queryParams: any): any => {
 const getReleaseRecords = handleAsync(async (req: Request, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
-  const query = buildReleaseRecordQuery(req.query);
+  const query = await buildReleaseRecordQuery(req.query, req);
 
   const releaseRecords = await ReleaseRecord.find(query)
     .populate('customer')

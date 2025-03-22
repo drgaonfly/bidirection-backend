@@ -4,11 +4,16 @@ import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
 import Customer from '../models/customer';
 import ReleaseRecord from '../models/releaseRecord';
+import User from '../models/user';
+import { isProxy } from '../middlewares/authMiddleware';
 interface CustomRequest extends Request {
   user?: any; // Add user property to the request
 }
 // Helper function to build query
-const buildActivityQuery = (queryParams: any): any => {
+const buildActivityQuery = async (
+  queryParams: any,
+  req: CustomRequest,
+): Promise<any> => {
   const query: any = {};
 
   if (queryParams.type) {
@@ -23,6 +28,18 @@ const buildActivityQuery = (queryParams: any): any => {
     query.user = queryParams.user;
   }
 
+  if (req.user && isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    const employeeInviteCodes = employees.map(
+      (employee) => employee.inviteCode,
+    );
+    query.$or = [
+      { user: { $in: [...employeeIds, req.user._id] } },
+      { invitedBy: { $in: [...employeeInviteCodes, req.user.inviteCode] } },
+    ];
+  }
+
   return query;
 };
 
@@ -30,7 +47,7 @@ const buildActivityQuery = (queryParams: any): any => {
 const getActivities = handleAsync(async (req: Request, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
-  const query = buildActivityQuery(req.query);
+  const query = await buildActivityQuery(req.query, req);
 
   const activities = await Activity.find(query)
     .populate('user')

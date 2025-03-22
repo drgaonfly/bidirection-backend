@@ -1,36 +1,36 @@
 import mongoose, { Document } from 'mongoose';
 
 export interface ITransfer extends Document {
-  network: string;
-  sender: string;
-  adminWallet: string;
-  adminAmount: number;
-  adminHash: string;
-  proxyWallet?: string;
-  proxyAmount?: number;
-  proxyHash?: string;
-  type: 'direct' | 'agent';
-  status: string;
+  network: string; // 网络类型
+  sender: string; // 发送者
+  adminWallet: string; // 管理员钱包地址
+  adminAmount: number; // 管理员金额
+  adminHash: string; // 管理员交易哈希
+  proxyWallet?: string; // 代理钱包地址（可选）
+  proxyAmount?: number; // 代理金额（可选）
+  proxyHash?: string; // 代理交易哈希（可选）
+  type: 'direct' | 'agent'; // 转账类型：直接或代理
+  status: string; // 转账状态
 }
 
 const transferSchema = new mongoose.Schema(
   {
-    network: { type: String, required: true },
-    sender: { type: String, required: true },
-    adminWallet: { type: String, required: true },
-    adminAmount: { type: Number, required: true },
-    adminHash: { type: String, required: true },
-    proxyWallet: { type: String, required: false },
-    proxyAmount: { type: Number, required: false },
-    proxyHash: { type: String, required: false },
+    network: { type: String, required: true }, // 网络类型，必填
+    sender: { type: String, required: true }, // 发送者钱包地址
+    adminWallet: { type: String, required: true }, // 管理员钱包地址，必填
+    adminAmount: { type: Number, required: true }, // 管理员金额，必填
+    adminHash: { type: String, required: true }, // 管理员交易哈希，必填
+    proxyWallet: { type: String, required: false }, // 代理钱包地址，选填
+    proxyAmount: { type: Number, required: false }, // 代理金额，选填
+    proxyHash: { type: String, required: false }, // 代理交易哈希，选填
     type: {
       type: String,
-      enum: ['direct', 'agent'],
-      required: true,
+      enum: ['direct', 'agent'], // 转账类型，枚举值：direct 或 agent
+      required: true, // 必填
     },
-    status: { type: String, required: true },
+    status: { type: String, required: false }, // 转账状态，必填
   },
-  { timestamps: true },
+  { timestamps: true }, // 自动添加创建和更新的时间戳
 );
 
 const Transfer = mongoose.model<ITransfer>('Transfer', transferSchema);

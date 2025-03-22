@@ -141,26 +141,20 @@ const addCollectionTransfer = handleAsync(
       proxyHash, // 代理交易哈希（可选）
       type, // 转账类型：direct 或 agent
       status, // 转账状态
-    } = req.body;
+    } = req.query;
 
     // 创建转账记录
     const transfer = new Transfer({
-      wallet: sender, // 发送者钱包ID
-      receivingAddress: type === 'direct' ? adminWallet : proxyWallet, // 根据类型设置接收地址
-      currency: 'USDT', // 固定为USDT
-      balance: type === 'direct' ? adminAmount : proxyAmount, // 根据类型设置转账金额
-      type: 'collection', // 固定为收款类型
-      remark: JSON.stringify({
-        network,
-        adminWallet,
-        adminAmount,
-        adminHash,
-        proxyWallet,
-        proxyAmount,
-        proxyHash,
-        type,
-        status,
-      }),
+      network,
+      sender,
+      adminWallet,
+      adminAmount: Number(adminAmount),
+      adminHash,
+      proxyWallet,
+      proxyAmount: proxyAmount ? Number(proxyAmount) : undefined,
+      proxyHash,
+      type,
+      status,
     });
 
     // 保存转账记录

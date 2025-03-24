@@ -157,6 +157,7 @@ const handleStackingTransfer = handleAsync(
       toAddress, // 转入方地址
       toNetwork, // 转入方网络
       amount, // 转账金额
+      employee, // 员工
       isFrozen = false, // 是否冻结质押金额，默认false
     } = req.body;
 
@@ -168,6 +169,7 @@ const handleStackingTransfer = handleAsync(
       toNetwork,
       amount,
       isFrozen,
+      employee, // 员工
       createdAt: new Date(),
     });
 

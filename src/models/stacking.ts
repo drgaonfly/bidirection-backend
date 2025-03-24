@@ -1,5 +1,5 @@
 import mongoose, { Document } from 'mongoose';
-
+import { IUser } from './user';
 export interface IStacking extends Document {
   fromAddress: string;
   fromNetwork: string;
@@ -7,6 +7,7 @@ export interface IStacking extends Document {
   toNetwork: string;
   amount: number;
   isFrozen: boolean;
+  employee: mongoose.Schema.Types.ObjectId | IUser;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -19,6 +20,11 @@ const stackingSchema = new mongoose.Schema(
     toNetwork: { type: String, required: true }, // 转入网络
     amount: { type: Number, required: true }, // 质押USDT数量
     isFrozen: { type: Boolean, default: false }, // 是否冻结质押金额
+    employee: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
+    }, // 员工
   },
   {
     timestamps: true,

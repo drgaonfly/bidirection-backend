@@ -23,7 +23,6 @@ import incomeRoutes from './routes/incomeRoutes'; // 新增
 import activityRoutes from './routes/activityRoutes'; // 新增
 import miningDataRoutes from './routes/miningDataRoutes'; // 新增
 import stackingRoutes from './routes/stackingRoutes';
-import translateRoutes from './routes/translateRoutes';
 import miningOutputRoutes from './routes/miningOutputRoutes'; // 新增
 import customerAuthRoutes from './routes/customerAuthRoutes'; // 新增
 import walletShareRoutes from './routes/walletShareRoutes'; // 新增
@@ -100,7 +99,6 @@ app.use('/api/wallet-deal-records', walletDealRecordRoutes);
 app.use('/api/langues', langueRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/release-records', releaseRecordRoutes);
-app.use('/api/translates', translateRoutes);
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/transfers', transferRoutes);
 app.use('/api/exchange', exchangeRoutes);

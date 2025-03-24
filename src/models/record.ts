@@ -1,11 +1,13 @@
 import mongoose, { Document } from 'mongoose';
 import { ICustomer } from './customer';
+import { IUser } from './user';
 
 export interface IRecord extends Document {
   id: string;
   customer: mongoose.Schema.Types.ObjectId | ICustomer;
   type: 'usdt to eth' | 'eth to usdt';
   amount: number;
+  employee: mongoose.Schema.Types.ObjectId | IUser;
 }
 
 const recordSchema = new mongoose.Schema(
@@ -25,6 +27,11 @@ const recordSchema = new mongoose.Schema(
     },
     amount: {
       type: Number,
+      required: true,
+    },
+    employee: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
       required: true,
     },
   },

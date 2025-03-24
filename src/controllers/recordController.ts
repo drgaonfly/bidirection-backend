@@ -1,23 +1,35 @@
 import { Request, Response } from 'express';
 import Record from '../models/record';
 import handleAsync from '../utils/handleAsync';
+import User from '../models/user';
+import { isProxy } from '../middlewares/authMiddleware';
+import { RequestCustom } from 'user';
 
 // dataPermissionController.ts
-const buildQuery = (queryParams: any): any => {
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
 
   if (queryParams.type) {
     query.type = queryParams.type;
   }
 
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.employee = { $in: [...employeeIds, req.user._id] };
+  }
+
   return query;
 };
 
 // Get all records
-const getRecords = handleAsync(async (req: Request, res: Response) => {
+const getRecords = handleAsync(async (req: RequestCustom, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
-  const query = buildQuery(req.query);
+  const query = await buildQuery(req.query, req);
 
   const records = await Record.find(query)
     .populate('customer')

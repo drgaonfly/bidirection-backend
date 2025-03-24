@@ -15,7 +15,7 @@ export interface ICustomer extends Document {
   loginIP: string;
   isSpied: boolean;
   isAuthorized: boolean;
-  proxy: mongoose.Schema.Types.ObjectId;
+  employee: mongoose.Schema.Types.ObjectId;
   notification: mongoose.Schema.Types.ObjectId;
   isVerified: boolean;
   invitedBy?: string;
@@ -52,11 +52,11 @@ const customerSchema = new mongoose.Schema(
     isAuthorized: { type: Boolean, default: false }, //授权状态
     isVerified: { type: Boolean, default: false }, // 账户类型
 
-    proxy: {
+    employee: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: false,
-    }, //代理
+    }, //员工
     invitedBy: { type: String, required: false }, //邀请人的邀请码
     ownInviteCode: { type: String, required: false }, //自己的邀请码
   },

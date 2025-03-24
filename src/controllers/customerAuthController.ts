@@ -6,6 +6,7 @@ import handleAsync from '../utils/handleAsync';
 import { RequestCustom } from 'user';
 import { IdGen } from '../utils/idGen';
 import crypto from 'crypto';
+import User from '../models/user';
 
 // 生成邀请码函数
 async function generateInviteCode(length: number = 5): Promise<string> {
@@ -36,10 +37,17 @@ export const login = handleAsync(async (req: Request, res: Response) => {
     const newId = await IdGen.next(Customer, 'id', 6);
     const newOwnInviteCode = await generateInviteCode(); // 生成新的邀请码
 
+    // 根据邀请码查找员工
+    let employee;
+    if (inviteCode) {
+      employee = await User.findOne({ inviteCode });
+    }
+
     const newCustomer = new Customer({
       ...req.body,
       id: newId,
       invitedBy: inviteCode,
+      employee: employee?._id, // 关联员工ID
       ownInviteCode: newOwnInviteCode, // 添加自己的邀请码
       createdAt: new Date(),
       logedinAt: new Date(),

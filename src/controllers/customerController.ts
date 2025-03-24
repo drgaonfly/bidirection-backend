@@ -53,7 +53,7 @@ export const getCustomers = handleAsync(
 
     // 添加这个日志来查看实际查询结果的内容
     const members = await Customer.find(query)
-      .populate('proxy')
+      .populate('employee')
       .sort('-createdAt')
       .limit(+pageSize)
       .skip((+current - 1) * +pageSize)
@@ -69,36 +69,9 @@ export const getCustomers = handleAsync(
 
     const total = await Customer.countDocuments(query);
 
-    // 处理返回数据，添加邀请人信息
-    const formattedMembers = await Promise.all(
-      members.map(async (member) => {
-        const memberObj = member.toObject();
-        if (memberObj.invitedBy) {
-          const inviter = await User.findOne({
-            inviteCode: memberObj.invitedBy,
-          }).select('name email');
-          if (inviter) {
-            memberObj.inviter = {
-              name: inviter.name || inviter.email,
-              email: inviter.email,
-            };
-          }
-        }
-        return memberObj;
-      }),
-    );
-
-    console.log(
-      'Final formatted results:',
-      formattedMembers.map((m) => ({
-        id: m.id,
-        network: m.network,
-      })),
-    ); // 添加格式化后的日志
-
     res.json({
       success: true,
-      data: formattedMembers,
+      data: members,
       total,
       current: +current,
       pageSize: +pageSize,

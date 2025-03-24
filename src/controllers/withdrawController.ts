@@ -46,34 +46,9 @@ const buildQuery = async (
   }
 
   if (isProxy(req.user)) {
-    // 查找该代理下的所有员工
-    const employees = await User.find({
-      proxy: req.user._id,
-    }).populate('roles');
-
-    // 过滤出具有员工角色的用户
-    const employeeUsers = employees.filter(
-      (emp) =>
-        emp.roles && emp.roles.length === 1 && emp.roles[0]?.name === '代理',
-    );
-
-    console.log('Found employees++++++++++++:', employeeUsers);
-
-    // 填充角色过滤器
-    // 查找与这些员工相关的所有客户
-    const employeeCustomerIds = employeeUsers.map((e) => e._id);
-    const employeeCustomers = await Customer.find({
-      proxy: { $in: employeeCustomerIds },
-    });
-    console.log('Employee IDs:', employeeCustomerIds);
-    console.log('Found employee customers+++++++++++:', employeeCustomers);
-
-    // 合并代理的直接客户和员工的客户的所有客户ID
-    const customerIds = [...employeeCustomers.map((c) => c._id)];
-    console.log('Customer IDs++++++++++++:', customerIds);
-
-    // 设置查询以查找这些客户的任何提款
-    query.customer = { $in: customerIds };
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.employee = { $in: [...employeeIds, req.user._id] };
   }
 
   return query;

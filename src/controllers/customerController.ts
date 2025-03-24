@@ -27,16 +27,10 @@ const buildQuery = async (
     query.isAuthorized = queryParams.isAuthorized === 'true';
   }
 
-  if (req.user && isProxy(req.user)) {
+  if (isProxy(req.user)) {
     const employees = await User.find({ proxy: req.user._id });
     const employeeIds = employees.map((employee) => employee._id);
-    const employeeInviteCodes = employees.map(
-      (employee) => employee.inviteCode,
-    );
-    query.$or = [
-      { user: { $in: [...employeeIds, req.user._id] } },
-      { invitedBy: { $in: [...employeeInviteCodes, req.user.inviteCode] } },
-    ];
+    query.employee = { $in: [...employeeIds, req.user._id] };
   }
 
   console.log('Built query:', query); // 添加日志

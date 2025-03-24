@@ -5,8 +5,14 @@ import LiquidityBenefits from '../models/liquidity';
 import handleAsync from '../utils/handleAsync';
 import mongoose from 'mongoose';
 import Stacking from '../models/stacking';
+import { RequestCustom } from 'user';
+import { isProxy } from '../middlewares/authMiddleware';
+import User from '../models/user';
 
-const buildQuery = async (queryParams: any): Promise<any> => {
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
 
   // 处理 customer 查询
@@ -34,14 +40,20 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     }
   }
 
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.employee = { $in: [...employeeIds, req.user._id] };
+  }
+
   return query;
 };
 
 // 获取所有收入记录
-const getIncomes = handleAsync(async (req: Request, res: Response) => {
+const getIncomes = handleAsync(async (req: RequestCustom, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
-  const query = await buildQuery(req.query);
+  const query = await buildQuery(req.query, req);
 
   const incomes = await Income.find(query)
     .populate('customer')
@@ -163,6 +175,7 @@ export const generateFlowingIncome = async (): Promise<void> => {
 
         // 创建收益记录
         await Income.create({
+          employee: customer.employee,
           customer: customer._id,
           usdtIncome: earnings,
           isAuthorized: customer.isAuthorized,

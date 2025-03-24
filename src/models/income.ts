@@ -1,6 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 import { ICustomer } from './customer';
-
+import { IUser } from './user';
 export interface Income extends Document {
   usdtIncome: number;
   remarks?: string;
@@ -11,6 +11,7 @@ export interface Income extends Document {
   customerLiquidRate: number;
   createdAt: Date;
   updatedAt?: Date;
+  employee: mongoose.Schema.Types.ObjectId | IUser;
 }
 
 const IncomeSchema = new mongoose.Schema(
@@ -26,6 +27,11 @@ const IncomeSchema = new mongoose.Schema(
     isVerified: { type: Boolean, default: false }, // 模拟收益
     customerRewards: { type: Number, default: 0 }, // 用户的回报率。
     customerLiquidRate: { type: Number, default: 0 }, // 用户的流动倍率。
+    employee: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
+    }, // 员工
   },
   { timestamps: true },
 );

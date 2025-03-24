@@ -37,9 +37,10 @@ const buildTransferQuery = async (
 const getTransfers = handleAsync(async (req: RequestCustom, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
-  const query = buildTransferQuery(req.query, req);
+  const query = await buildTransferQuery(req.query, req);
 
   const transfers = await Transfer.find(query)
+    .populate('employee')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)

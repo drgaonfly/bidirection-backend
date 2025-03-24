@@ -52,8 +52,9 @@ const buildQuery = async (
     }).populate('roles');
 
     // 过滤出具有员工角色的用户
-    const employeeUsers = employees.filter((emp) =>
-      emp.roles.some((role: { name: string }) => role.name === '员工'),
+    const employeeUsers = employees.filter(
+      (emp) =>
+        emp.roles && emp.roles.length === 1 && emp.roles[0]?.name === '代理',
     );
 
     console.log('Found employees++++++++++++:', employeeUsers);

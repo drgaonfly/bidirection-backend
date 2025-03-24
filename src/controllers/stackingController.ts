@@ -2,8 +2,13 @@ import { Request, Response } from 'express';
 import Stacking from '../models/stacking';
 import handleAsync from '../utils/handleAsync';
 import Customer from '../models/customer';
-
-const buildQuery = (queryParams: any): any => {
+import { isProxy } from '../middlewares/authMiddleware';
+import User from '../models/user';
+import { RequestCustom } from 'user';
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
 
   if (queryParams.fromNetwork) {
@@ -14,16 +19,23 @@ const buildQuery = (queryParams: any): any => {
     query.toNetwork = queryParams.toNetwork;
   }
 
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.employee = { $in: [...employeeIds, req.user._id] };
+  }
+
   return query;
 };
 
 // 获取所有叠加配置记录
-const getStackings = handleAsync(async (req: Request, res: Response) => {
+const getStackings = handleAsync(async (req: RequestCustom, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
-  const query = buildQuery(req.query);
+  const query = await buildQuery(req.query, req);
 
   const stackings = await Stacking.find(query)
+    .populate('employee')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)

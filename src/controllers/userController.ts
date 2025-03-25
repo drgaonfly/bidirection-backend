@@ -284,8 +284,14 @@ export const getUserById = handleAsync(async (req: Request, res: Response) => {
 
 export const updateUser = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { liquidRate, stakeRate, isOnline, proxySharingRate, ...body } =
-    req.body;
+  const {
+    liquidRate,
+    stakeRate,
+    isOnline,
+    proxySharingRate,
+    stackingChannel,
+    ...body
+  } = req.body;
 
   const user = await User.findById(id);
 
@@ -306,6 +312,7 @@ export const updateUser = handleAsync(async (req: Request, res: Response) => {
   const updatedUser = await User.findByIdAndUpdate(
     id,
     {
+      stackingChannel,
       isOnline,
       proxySharingRate,
       name: body.name,

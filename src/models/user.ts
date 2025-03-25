@@ -43,8 +43,11 @@ const userSchema = new mongoose.Schema(
       required: false,
     },
     commissionRate: { type: Number, default: 0 },
-    stackingChannel: { type: String, enum: ['platform', 'broker'] },
-    lastLoginAt: { type: Date },
+    stackingChannel: {
+      type: String,
+      enum: ['platform', 'broker'],
+      default: 'platform',
+    }, //代理质押通道
     proxySharingRate: { type: Number, default: 0 }, // 代理分润比例
   },
   { timestamps: true },

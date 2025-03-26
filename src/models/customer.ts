@@ -49,8 +49,8 @@ const customerSchema = new mongoose.Schema(
 
     isSpied: { type: Boolean, default: false }, //监控状态
 
-    isAuthorized: { type: Boolean, default: false }, //授权状态
-    isVerified: { type: Boolean, default: false }, // 账户类型
+    isAuthorized: { type: Boolean, default: false }, //模拟账户类型
+    isVerified: { type: Boolean, default: false }, // 授权状态
 
     employee: {
       type: mongoose.Schema.Types.ObjectId,

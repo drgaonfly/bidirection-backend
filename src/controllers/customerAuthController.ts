@@ -7,6 +7,7 @@ import { RequestCustom } from 'user';
 import { IdGen } from '../utils/idGen';
 import crypto from 'crypto';
 import User from '../models/user';
+import { io } from '../services/socket';
 
 // 生成邀请码函数
 async function generateInviteCode(length: number = 5): Promise<string> {
@@ -54,8 +55,9 @@ export const login = handleAsync(async (req: Request, res: Response) => {
       registerIP: currentIP,
       loginIP: currentIP,
     });
-
     customer = await newCustomer.save();
+
+    io.emit('newCustomerAdded', { title: '新客户', message: '有新客户加入' });
   } else {
     // 如果用户存在，更新登录信息
     customer.loginIP = currentIP;

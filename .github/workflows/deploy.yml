@@ -30,7 +30,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: 38.85.201.59
+          host: 3.107.241.66
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}  # 替换为PEM证书内容
           # password: ${{ secrets.CLIENT_PASSWORD }}  # 删除密码认证

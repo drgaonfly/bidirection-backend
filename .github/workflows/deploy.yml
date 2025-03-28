@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: deploy to release server
-        if: github.ref == 'refs/heads/release'
+        if: github.ref == 'refs/heads/main'
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: 82.180.137.15
@@ -20,7 +20,7 @@ jobs:
           port: 22
           script: |
             cd /www/wwwroot/mev-bot-backend.2025fc.xyz/mev-bot-backend
-            git pull --rebase origin release
+            git pull --rebase origin main
             /www/server/nodejs/v20.16.0/bin/pnpm install
             git checkout -f .
             npm run build

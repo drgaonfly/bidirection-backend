@@ -3,7 +3,6 @@ import Withdraw from '../models/withdraw';
 import handleAsync from '../utils/handleAsync';
 import Customer from '../models/customer';
 import { IdGen } from '../utils/idGen';
-// import { getExchangeRate } from '../utils/getExchange';
 import mongoose from 'mongoose';
 import { RequestCustom } from 'user';
 import { isProxy } from '../middlewares/authMiddleware';
@@ -85,7 +84,7 @@ const getWithdraws = handleAsync(async (req: RequestCustom, res: Response) => {
 
 // Add new withdraw
 const addWithdraw = handleAsync(async (req: Request, res: Response) => {
-  const { amount, customer, inviteCode } = req.body;
+  const { amount, customer, inviteCode, isFrozen = false } = req.body;
 
   const customerExist = await Customer.findById(customer);
 
@@ -123,22 +122,18 @@ const addWithdraw = handleAsync(async (req: Request, res: Response) => {
     }
   }
 
-  customerExist.usdtPlatform -= amount;
-
-  await customerExist.save();
-
   const newId = await IdGen.next(Withdraw, 'id', 6);
-
-  // const exchangedAmount = finalAmount * (await getExchangeRate('USDT', 'USD'));
 
   const newWithdraw = new Withdraw({
     ...req.body,
     employee: customerExist.employee,
     id: newId,
     customer: customer,
-    amount: finalAmount,
+    amount: amount,
     fee: feeAmount,
-    status: 'completed',
+    finalAmount: finalAmount,
+    isFrozen: isFrozen,
+    status: 'pending',
   });
 
   const savedWithdraw = await newWithdraw.save();
@@ -166,11 +161,23 @@ const getWithdrawById = handleAsync(async (req: Request, res: Response) => {
 // Update withdraw
 const updateWithdraw = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const { isFrozen } = req.body;
 
   const withdraw = await Withdraw.findById(id);
   if (!withdraw) {
     res.status(404);
     throw new Error('Withdraw not found');
+  }
+
+  if (isFrozen) {
+    const customerExist = await Customer.findById(withdraw.customer);
+    if (!customerExist) {
+      res.status(404);
+      throw new Error('Customer not found');
+    }
+    customerExist.usdtPlatform -= withdraw.amount;
+    await customerExist.save();
+    req.body.status = 'completed';
   }
 
   const updatedWithdraw = await Withdraw.findByIdAndUpdate(

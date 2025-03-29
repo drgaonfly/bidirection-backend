@@ -10,6 +10,7 @@ export interface IWithdraw extends Document {
   status: string;
   remark: string;
   employee: mongoose.Schema.Types.ObjectId | IUser;
+  isFrozen: boolean;
 }
 
 const withdrawSchema = new mongoose.Schema(
@@ -23,8 +24,13 @@ const withdrawSchema = new mongoose.Schema(
       ref: 'Customer',
       required: true,
     },
-    amount: { type: Number },
+    amount: { type: Number }, //提现金额
     fee: { type: Number, required: true }, // 手续费
+    isFrozen: {
+      type: Boolean,
+      default: false,
+    }, //冻结状态
+    finalAmount: { type: Number }, //扣去手续费金额
     status: {
       type: String,
       required: true,

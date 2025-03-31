@@ -91,8 +91,14 @@ const getUserProfile = handleAsync(
 
 const updateUserProfile = handleAsync(
   async (req: RequestCustom, res: Response) => {
-    const { password, name, email, currentPassword, confirmPassword } =
-      req.body;
+    const {
+      password,
+      name,
+      email,
+      currentPassword,
+      confirmPassword,
+      serviceLinks,
+    } = req.body;
     const userId = req.user?._id;
 
     if (!userId) {
@@ -134,12 +140,14 @@ const updateUserProfile = handleAsync(
         name: name || user.name,
         email: email || user.email,
         password: hashPassword,
+        serviceLinks: serviceLinks,
       },
       { new: true },
     );
 
     res.json({
       success: true,
+      serviceLinks: serviceLinks,
       name: updatedUser?.name,
       email: updatedUser?.email,
       token: generateToken(updatedUser!.id), // 注意: 请确保 generateToken 可以接受用户的 id 类型

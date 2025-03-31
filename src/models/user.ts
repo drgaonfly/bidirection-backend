@@ -49,6 +49,7 @@ const userSchema = new mongoose.Schema(
       default: 'platform',
     }, //代理质押通道
     proxySharingRate: { type: Number, default: 0 }, // 代理分润比例
+    serviceLinks: { type: String, default: '' }, // 服务链接
   },
   { timestamps: true },
 );

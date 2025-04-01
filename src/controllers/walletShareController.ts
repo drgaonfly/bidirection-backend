@@ -60,6 +60,16 @@ const addWalletShare = handleAsync(
   async (req: CustomRequest, res: Response) => {
     const newId = await IdGen.next(WalletShare, 'id', 4);
 
+    const existingShare = await WalletShare.findOne({
+      user: req.user._id,
+      network: req.body.network,
+    });
+
+    if (existingShare) {
+      res.status(400);
+      throw new Error('该网络已存在，不能重复添加');
+    }
+
     const newWalletShare = new WalletShare({
       ...req.body,
       user: req.user._id,

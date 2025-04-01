@@ -71,6 +71,7 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
+    "@types/speakeasy": "^2.0.10",
     "ali-oss": "^6.20.0",
     "aws-sdk": "^2.1579.0",
     "axios": "^1.6.7",
@@ -98,6 +99,7 @@
     "sharp": "^0.33.5",
     "socket.io": "^4.8.1",
     "socks-proxy-agent": "^8.0.4",
+    "speakeasy": "^2.0.0",
     "telegram": "^2.26.8",
     "tslib": "~2.6",
     "uuid": "^11.0.3",

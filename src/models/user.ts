@@ -19,6 +19,11 @@ export interface IUser extends Document {
   proxy: mongoose.Schema.Types.ObjectId | IUser;
   proxySharingRate: number; // 分润比例
   serviceLinks: string; // 服务链接
+
+  twoFAEnabled: boolean; // 是否启用双因素认证
+  twoFASecret?: string; // 加密后的TOTP密钥（正式）
+  temp2FASecret?: string; // 临时存储的TOTP密钥（用于激活过程）
+  twoFABackupCodes?: string[]; // 备用代码（可选增强）
 }
 
 const userSchema = new mongoose.Schema(
@@ -51,6 +56,29 @@ const userSchema = new mongoose.Schema(
     }, //代理质押通道
     proxySharingRate: { type: Number, default: 0 }, // 代理分润比例
     serviceLinks: { type: String, default: '' }, // 服务链接
+
+    twoFAEnabled: {
+      type: Boolean,
+      default: false,
+      // select: false, // 默认不返回该字段
+    },
+    twoFASecret: {
+      type: String,
+      select: false, // 敏感字段默认不返回
+      default: null,
+    },
+    temp2FASecret: {
+      type: String,
+      select: false,
+      default: null,
+    },
+    twoFABackupCodes: [
+      {
+        // 备用代码数组（可选）
+        type: String,
+        select: false,
+      },
+    ],
   },
   { timestamps: true },
 );

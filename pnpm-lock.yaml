@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@types/speakeasy':
+        specifier: ^2.0.10
+        version: 2.0.10
       ali-oss:
         specifier: ^6.20.0
         version: 6.20.0
@@ -89,6 +92,9 @@ importers:
       socks-proxy-agent:
         specifier: ^8.0.4
         version: 8.0.4
+      speakeasy:
+        specifier: ^2.0.0
+        version: 2.0.0
       telegram:
         specifier: ^2.26.8
         version: 2.26.8
@@ -854,6 +860,9 @@ packages:
   '@types/serve-static@1.15.5':
     resolution: {integrity: sha512-PDRk21MnK70hja/YF8AHfC7yIsiQHn1rcXx7ijCFBX/k+XQJhQT/gw3xekXKJvx+5SXaMMS8oqQy09Mzvz2TuQ==}
 
+  '@types/speakeasy@2.0.10':
+    resolution: {integrity: sha512-QVRlDW5r4yl7p7xkNIbAIC/JtyOcClDIIdKfuG7PWdDT1MmyhtXSANsildohy0K+Lmvf/9RUtLbNLMacvrVwxA==}
+
   '@types/stack-utils@2.0.3':
     resolution: {integrity: sha512-9aEbYZ3TbYMznPdcdr3SmIrLXwC/AKZXQeCf9Pgao5CKb8CyHuEX5jzWPTkvregvhRJHcpRO6BFoGW9ycaOkYw==}
 
@@ -1149,6 +1158,9 @@ packages:
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
+
+  base32.js@0.0.1:
+    resolution: {integrity: sha512-EGHIRiegFa62/SsA1J+Xs2tIzludPdzM064N9wjbiEgHnGnJ1V0WEpA4pEwCYT5nDvZk3ubf0shqaCS7k6xeUQ==}
 
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
@@ -3338,6 +3350,10 @@ packages:
   spawn-sync@1.0.15:
     resolution: {integrity: sha512-9DWBgrgYZzNghseho0JOuh+5fg9u6QWhAWa51QC7+U5rCheZ/j1DrEZnyE0RBBRqZ9uEXGPgSSM0nky6burpVw==}
 
+  speakeasy@2.0.0:
+    resolution: {integrity: sha512-lW2A2s5LKi8rwu77ewisuUOtlCydF/hmQSOJjpTqTj1gZLkNgTaYnyvfxy2WBr4T/h+9c4g8HIITfj83OkFQFw==}
+    engines: {node: '>= 0.10.0'}
+
   speakingurl@14.0.1:
     resolution: {integrity: sha512-1POYv7uv2gXoyGFpBCmpDVSNV74IfsWlDW216UPjbWufNf+bSU6GdbDsxdcxtfwb4xlI3yxzOTKClUosxARYrQ==}
     engines: {node: '>=0.10.0'}
@@ -4677,6 +4693,10 @@ snapshots:
       '@types/mime': 3.0.4
       '@types/node': 20.0.0
 
+  '@types/speakeasy@2.0.10':
+    dependencies:
+      '@types/node': 20.0.0
+
   '@types/stack-utils@2.0.3': {}
 
   '@types/strip-bom@3.0.0': {}
@@ -5082,6 +5102,8 @@ snapshots:
       babel-preset-current-node-syntax: 1.0.1(@babel/core@7.23.9)
 
   balanced-match@1.0.2: {}
+
+  base32.js@0.0.1: {}
 
   base64-js@1.5.1: {}
 
@@ -7523,6 +7545,10 @@ snapshots:
     dependencies:
       concat-stream: 1.6.2
       os-shim: 0.1.3
+
+  speakeasy@2.0.0:
+    dependencies:
+      base32.js: 0.0.1
 
   speakingurl@14.0.1: {}
 

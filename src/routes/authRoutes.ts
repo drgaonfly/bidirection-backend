@@ -1,12 +1,25 @@
 import express, { Router } from 'express';
-import { login, getUserProfile, updateUserProfile, refreshToken } from '../controllers/authController';
+import {
+  login,
+  getUserProfile,
+  updateUserProfile,
+  refreshToken,
+  setup2FA,
+  verify2FA,
+  verify2FALogin,
+} from '../controllers/authController';
 import { protect } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
 router.post('/login', login);
+router.post('/login/verify-2fa', verify2FALogin);
 
 router.post('/refresh', refreshToken);
+
+// 2FA routes
+router.post('/2fa/setup', protect, setup2FA);
+router.post('/2fa/verify', protect, verify2FA);
 
 router
   .route('/profile')

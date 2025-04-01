@@ -31,6 +31,7 @@ import liquidityRoutes from './routes/liquidityRoutes'; // 新增
 
 import http from 'http';
 import { setupSocket } from './services/socket'; // 引入 socket 服务
+import { setupRedis } from './utils/redis';
 import withdrawRoutes from './routes/withdrawRoutes';
 // import instructionRoutes from './routes/instructionRoutes';
 import customerRoutes from './routes/customerRoutes';
@@ -112,7 +113,7 @@ app.use('/api/liquidity', liquidityRoutes);
 app.use('/api/records', recordRoutes);
 app.use('/api/videos', videoRoutes);
 setupDB();
-// setupRedis();
+setupRedis();
 // 初始化 Socket.IO
 setupSocket(server);
 console.log('Socket.IO server initialized');

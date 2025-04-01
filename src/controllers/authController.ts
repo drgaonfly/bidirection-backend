@@ -1,12 +1,16 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import speakeasy from 'speakeasy'; // 新增speakeasy
+import QRCode from 'qrcode'; // 新增qrcode
 import User from '../models/user'; // 假设你的用户模型位于 /models/User.ts
 import { generateToken, generateRefreshToken } from '../utils/generateToken';
 import handleAsync from '../utils/handleAsync';
 import { exclude } from '../utils/handleData';
 import { RequestCustom } from 'user';
 import LoginHistory from '../models/loginHistory';
+import { redis } from '../utils/redis';
+import { v4 as uuidv4 } from 'uuid';
 
 const login = handleAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -21,6 +25,13 @@ const login = handleAsync(async (req: Request, res: Response) => {
 
   // 验证密码是否匹配
   if (await bcrypt.compare(password, user.password)) {
+    // 检查 2FA 状态
+    if (user.twoFAEnabled) {
+      const sessionId = uuidv4();
+      await redis.setex(`loginSession:${sessionId}`, 300, user._id.toString());
+      res.json({ requires2FA: true, sessionId });
+      return;
+    }
     // 生成 refresh token 和 access token
     const refreshToken = generateRefreshToken(user._id.toString());
     const token = generateToken(user._id);
@@ -44,6 +55,114 @@ const login = handleAsync(async (req: Request, res: Response) => {
     throw new Error('Invalid email or password');
   }
 });
+
+// Setup 2FA for user
+export const setup2FA = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const user = await User.findById(req.user._id).select('+temp2FASecret');
+
+    const secret = speakeasy.generateSecret({
+      length: 32,
+      name: `${user.email}`,
+      issuer: 'MevBackend', // 请替换为实际项目名称
+    });
+
+    const qrCode = await QRCode.toDataURL(secret.otpauth_url);
+
+    res.json({
+      success: true,
+      qrCode,
+      tempSecret: secret.base32, // 可选：返回临时密钥用于测试
+    });
+  },
+);
+
+// Verify 2FA token
+export const verify2FA = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { token } = req.body;
+
+    const user = await User.findById(req.user._id).select('+temp2FASecret');
+
+    if (!user.temp2FASecret) {
+      res.status(400);
+      throw new Error('2FA not enabled for this user');
+    }
+
+    // Verify token
+    const verified = speakeasy.totp.verify({
+      secret: user.temp2FASecret,
+      encoding: 'base32',
+      token: token.toString().trim(),
+      window: 2,
+      step: 30,
+      algorithm: 'sha1',
+    });
+
+    if (!verified) {
+      res.status(401);
+      throw new Error('Invalid 2FA token');
+    }
+
+    // Update user's 2FA status
+    await User.findByIdAndUpdate(user._id, {
+      temp2FASecret: null,
+      twoFASecret: user.temp2FASecret,
+      twoFAEnabled: true,
+    });
+
+    res.json({
+      success: true,
+    });
+  },
+);
+
+// Verify 2FA during login
+export const verify2FALogin = handleAsync(
+  async (req: Request, res: Response) => {
+    const { sessionId, token } = req.body;
+
+    // Get userId from Redis session
+    const userId = await redis.get(`loginSession:${sessionId}`);
+
+    if (!userId) {
+      res.status(401);
+      throw new Error('Session expired');
+    }
+
+    // Find user and verify 2FA token
+    const user = await User.findById(userId).select('+twoFASecret');
+
+    if (!user || !user.twoFASecret) {
+      res.status(400);
+      throw new Error('User not found or 2FA not enabled');
+    }
+
+    const verified = speakeasy.totp.verify({
+      secret: user.twoFASecret,
+      encoding: 'base32',
+      token,
+      window: 1,
+    });
+
+    if (!verified) {
+      res.status(401);
+      throw new Error('Invalid 2FA token');
+    }
+
+    // Clear login session and generate tokens
+    await redis.del(`loginSession:${sessionId}`);
+    const refreshToken = generateRefreshToken(user._id.toString());
+    const accessToken = generateToken(user._id);
+
+    res.json({
+      success: true,
+      name: user.name || user.email,
+      token: accessToken,
+      refreshToken,
+    });
+  },
+);
 
 interface DecodedToken {
   id: string;

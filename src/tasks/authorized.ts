@@ -109,7 +109,7 @@ function emitCountdown(nextExecutionTime: Date): void {
     io.emit('income_countdown', {
       nextExecutionTime: nextExecutionTime.toISOString(),
       timeRemaining: Math.floor(timeRemaining / 1000),
-      formatted: `${hours}小时${minutes}分钟${seconds}秒`,
+      formatted: `${hours}:${minutes}:${seconds}`,
       hours,
       minutes,
       seconds,

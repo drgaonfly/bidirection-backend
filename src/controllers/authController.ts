@@ -63,8 +63,12 @@ export const setup2FA = handleAsync(
 
     const secret = speakeasy.generateSecret({
       length: 32,
-      name: `${user.email}`,
-      issuer: 'MevBackend', // 请替换为实际项目名称
+      name: `mev(${user.email})`,
+      issuer: 'FoodBackend', // 请替换为实际项目名称
+    });
+
+    await User.findByIdAndUpdate(user._id, {
+      temp2FASecret: secret.base32, // 只保存临时密钥
     });
 
     const qrCode = await QRCode.toDataURL(secret.otpauth_url);
@@ -197,10 +201,11 @@ const refreshToken = handleAsync(async (req: Request, res: Response) => {
 
 const getUserProfile = handleAsync(
   async (req: RequestCustom, res: Response) => {
+    const user = await User.findById(req.user._id).select('+twoFAEnabled');
     res.json({
       success: true,
       data: {
-        ...exclude(req.user.toObject(), 'password'),
+        ...exclude(user.toObject(), 'password'),
         avatar:
           'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png',
       },
@@ -270,6 +275,52 @@ const updateUserProfile = handleAsync(
       name: updatedUser?.name,
       email: updatedUser?.email,
       token: generateToken(updatedUser!.id), // 注意: 请确保 generateToken 可以接受用户的 id 类型
+    });
+  },
+);
+
+// Disable 2FA for user
+export const disable2FA = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { password, token } = req.body;
+    const user = await User.findById(req.user._id).select(
+      '+password +twoFASecret +twoFAEnabled',
+    );
+
+    if (!user.twoFAEnabled) {
+      res.status(400);
+      throw new Error('2FA is not enabled for this user');
+    }
+
+    // Verify password first
+    if (!(await bcrypt.compare(password, user.password))) {
+      res.status(401);
+      throw new Error('Invalid password');
+    }
+
+    // Verify 2FA token
+    const verified = speakeasy.totp.verify({
+      secret: user.twoFASecret,
+      encoding: 'base32',
+      token: token.toString().trim(),
+      window: 1,
+    });
+
+    if (!verified) {
+      res.status(401);
+      throw new Error('Invalid 2FA token');
+    }
+
+    // Disable 2FA by clearing secrets and setting enabled to false
+    await User.findByIdAndUpdate(user._id, {
+      twoFASecret: null,
+      temp2FASecret: null,
+      twoFAEnabled: false,
+    });
+
+    res.json({
+      success: true,
+      message: '2FA has been disabled successfully',
     });
   },
 );

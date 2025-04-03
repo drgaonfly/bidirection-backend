@@ -224,6 +224,12 @@ const getIncomesByAddressAndNetwork = handleAsync(
       ...(network ? { network: network } : {}),
     });
 
+    // 查找对应的收益范围
+    const liquidityBenefit = await LiquidityBenefits.findOne({
+      stakingmin: { $lte: customer.usdtBalance },
+      stakingmax: { $gte: customer.usdtBalance },
+    });
+
     // 查找该客户的所有收益记录，不使用分页
     const incomes = await Income.find({ customer: customer._id })
       .populate('customer')
@@ -232,27 +238,17 @@ const getIncomesByAddressAndNetwork = handleAsync(
 
     const total = incomes.length;
 
-    // 计算总的usdtIncome
-    // const totalUsdtIncome = incomes.reduce(
-    //   (sum, income) => sum + (income.usdtIncome || 0),
-    //   0,
-    // );
-
-    // 获取最新的customerRewards（取最新一条记录的customerRewards）
-    const latestCustomerRewards =
-      incomes.length > 0 ? incomes[0].customerRewards : 0;
-
-    // 获取最新的customerLiquidRate（取最新一条记录的customerLiquidRate）
-    const latestCustomerLiquidRate =
-      incomes.length > 0 ? incomes[0].customerLiquidRate : 0;
+    // 计算当前的customerRewards（使用当前的liquidityBenefit和customer.liquidRate）
+    const currentCustomerRewards = liquidityBenefit
+      ? liquidityBenefit.rewards * customer.liquidRate
+      : 0;
 
     res.json({
       success: true,
       data: incomes,
       total,
-      // totalUsdtIncome,
-      customerRewards: latestCustomerRewards,
-      customerLiquidRate: latestCustomerLiquidRate,
+      customerRewards: currentCustomerRewards,
+      customerLiquidRate: customer.liquidRate,
     });
   },
 );

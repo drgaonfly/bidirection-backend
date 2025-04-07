@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import LiquidityBenefits from '../models/liquidity';
 import Customer from '../models/customer';
 import handleAsync from '../utils/handleAsync';
+import { RequestCustom } from 'user';
 
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
@@ -135,19 +136,9 @@ const deleteMultipleLiquidityBenefits = handleAsync(
 
 // 获取客户特定的流动性收益记录
 const getCustomerLiquidityBenefits = handleAsync(
-  async (req: Request, res: Response) => {
-    const { network, address } = req.query;
-
-    if (!network || !address) {
-      res.status(400);
-      throw new Error('Network and address are required');
-    }
-
+  async (req: RequestCustom, res: Response) => {
     // 查找客户
-    const customer = await Customer.findOne({
-      network: network as string,
-      address: address as string,
-    });
+    const customer = req.customer;
 
     // 获取流动性收益记录
     const liquidityBenefits = await LiquidityBenefits.find().sort('-createdAt');

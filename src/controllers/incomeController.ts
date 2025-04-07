@@ -256,20 +256,8 @@ export const generateFlowingIncome = async (): Promise<void> => {
 
 // 根据地址和网络查询收益记录
 const getIncomesByAddressAndNetwork = handleAsync(
-  async (req: Request, res: Response): Promise<void> => {
-    const { address, network } = req.query;
-
-    if (!address) {
-      res.status(400);
-      throw new Error('地址参数缺失');
-    }
-
-    // 先查找对应的客户
-    const customer = await Customer.findOne({
-      address: address,
-      ...(network ? { network: network } : {}),
-    });
-
+  async (req: RequestCustom, res: Response): Promise<void> => {
+    const customer = req.customer;
     // 查找对应的收益范围
     const liquidityBenefit = await LiquidityBenefits.findOne({
       stakingmin: { $lte: customer.usdtBalance },

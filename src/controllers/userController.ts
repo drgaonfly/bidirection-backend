@@ -34,58 +34,7 @@ export const getUsers = handleAsync(
       inviteCode,
       current = '1',
       pageSize = '10',
-      stats, // 新增参数，用于控制是否返回统计数据
     } = req.query;
-
-    if (stats === 'true') {
-      // 执行统计逻辑
-      const { startDate, endDate } = req.query;
-
-      const start = startDate
-        ? new Date(startDate as string)
-        : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      const end = endDate ? new Date(endDate as string) : new Date();
-
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        res.status(400).json({
-          success: false,
-          message: 'Invalid date range provided',
-        });
-        return;
-      }
-
-      const stats = await User.aggregate([
-        {
-          $match: {
-            createdAt: {
-              $gte: start,
-              $lte: end,
-            },
-          },
-        },
-        {
-          $group: {
-            _id: {
-              $dateToString: { format: '%Y-%m-%d', date: '$createdAt' }, // 按日期分组
-            },
-            count: { $sum: 1 }, // 统计注册用户数量
-          },
-        },
-        {
-          $sort: { _id: 1 }, // 按日期排序
-        },
-      ]);
-
-      res.json({
-        success: true,
-        data: stats.map((item) => ({
-          date: item._id,
-          count: item.count,
-        })),
-      });
-
-      return;
-    }
 
     // 默认用户查询逻辑
     const query: any = {};

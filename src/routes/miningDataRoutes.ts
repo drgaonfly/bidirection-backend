@@ -13,14 +13,14 @@ const router: Router = express.Router();
 
 router
   .route('/')
-  .get(getMiningDataList)
+  .get(protect, checkPermission, getMiningDataList)
   .delete(protect, checkPermission, deleteMultipleMiningData)
-  .post(addMiningData);
+  .post(protect, checkPermission, addMiningData);
 
 router
   .route('/:id')
   .delete(protect, checkPermission, deleteMiningData)
-  .get(protect, getMiningDataById)
+  .get(protect, checkPermission, getMiningDataById)
   .put(protect, checkPermission, updateMiningData);
 
 export default router;

@@ -4,12 +4,9 @@ import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
 import Setting from '../models/setting';
 import User from '../models/user';
+import { RequestCustom } from 'user';
 
-interface CustomRequest extends Request {
-  user?: any; // Add user property to the request
-}
-
-const buildQuery = (queryParams: any, req: CustomRequest): any => {
+const buildQuery = (queryParams: any, req: RequestCustom): any => {
   const query: any = {};
 
   if (queryParams.network) {
@@ -26,7 +23,7 @@ const buildQuery = (queryParams: any, req: CustomRequest): any => {
 
 // 获取所有钱包分享记录
 const getWalletShares = handleAsync(
-  async (req: CustomRequest, res: Response) => {
+  async (req: RequestCustom, res: Response) => {
     const { current = '1', pageSize = '10' } = req.query;
 
     const query = buildQuery(req.query, req);
@@ -57,7 +54,7 @@ const getWalletShares = handleAsync(
 
 // 添加钱包分享记录
 const addWalletShare = handleAsync(
-  async (req: CustomRequest, res: Response) => {
+  async (req: RequestCustom, res: Response) => {
     const newId = await IdGen.next(WalletShare, 'id', 4);
 
     const existingShare = await WalletShare.findOne({
@@ -86,7 +83,7 @@ const addWalletShare = handleAsync(
 
 // 根据 ID 获取钱包分享记录
 const getWalletShareById = handleAsync(
-  async (req: CustomRequest, res: Response) => {
+  async (req: RequestCustom, res: Response) => {
     const walletShare = await WalletShare.findById(req.params.id).populate(
       'customer',
     );
@@ -100,7 +97,7 @@ const getWalletShareById = handleAsync(
 
 // 更新钱包分享记录
 const updateWalletShare = handleAsync(
-  async (req: CustomRequest, res: Response) => {
+  async (req: RequestCustom, res: Response) => {
     const { id } = req.params;
 
     const updatedWalletShare = await WalletShare.findByIdAndUpdate(
@@ -118,7 +115,7 @@ const updateWalletShare = handleAsync(
 
 // 删除钱包分享记录
 const deleteWalletShare = handleAsync(
-  async (req: CustomRequest, res: Response) => {
+  async (req: RequestCustom, res: Response) => {
     const { id } = req.params;
 
     const walletShare = await WalletShare.findByIdAndDelete(id);
@@ -132,7 +129,7 @@ const deleteWalletShare = handleAsync(
 
 // 批量删除钱包分享记录
 const deleteMultipleWalletShares = handleAsync(
-  async (req: CustomRequest, res: Response) => {
+  async (req: RequestCustom, res: Response) => {
     const { ids } = req.body;
 
     await WalletShare.deleteMany({

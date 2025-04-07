@@ -35,28 +35,6 @@ const buildQuery = async (
       return null;
     }
   }
-  // 根据customer网络查询
-  if (queryParams.customer) {
-    let searchText;
-    try {
-      const userParam = JSON.parse(String(queryParams.customer));
-      searchText = userParam.network;
-    } catch (e) {
-      searchText = String(queryParams.customer).trim();
-    }
-    const customerData = await Customer.find({
-      network: {
-        $regex: searchText,
-        $options: 'i',
-      },
-    });
-
-    if (customerData && customerData.length > 0) {
-      query.customer = { $in: customerData.map((customer) => customer._id) };
-    } else {
-      return null;
-    }
-  }
 
   if (isProxy(req.user)) {
     const employees = await User.find({ proxy: req.user._id });

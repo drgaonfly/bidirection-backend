@@ -516,11 +516,6 @@ export const getCustomerAuthorizationRemaining = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const customer = req.customer; // 从请求体中获取customer对象
 
-    if (!customer.address || !customer.network) {
-      res.status(400);
-      throw new Error('地址和网络类型不能为空');
-    }
-
     const { authorizedAt, verifiedAt } = customer;
 
     // 检查是否有授权时间

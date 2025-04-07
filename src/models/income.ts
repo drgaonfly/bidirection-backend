@@ -24,8 +24,8 @@ const IncomeSchema = new mongoose.Schema(
       ref: 'Customer',
       required: true,
     },
-    isAuthorized: { type: Boolean, default: false }, // 授权收益
-    isVerified: { type: Boolean, default: false }, // 模拟收益
+    isAuthorized: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: false },
     stakingIcome: { type: Boolean, default: false }, //质押收益
     customerRewards: { type: Number, default: 0 }, // 用户的回报率。
     customerLiquidRate: { type: Number, default: 0 }, // 用户的流动倍率。

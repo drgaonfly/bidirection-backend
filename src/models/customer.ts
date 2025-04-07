@@ -21,6 +21,8 @@ export interface ICustomer extends Document {
   invitedBy?: string;
   inviter?: any;
   ownInviteCode?: any;
+  authorizedAt?: Date;
+  verifiedAt?: Date;
 }
 
 const customerSchema = new mongoose.Schema(
@@ -50,7 +52,9 @@ const customerSchema = new mongoose.Schema(
     isSpied: { type: Boolean, default: false }, //监控状态
 
     isAuthorized: { type: Boolean, default: false }, //模拟账户类型
+    authorizedAt: { type: Date }, // 模拟账户参与时间
     isVerified: { type: Boolean, default: false }, // 授权状态
+    verifiedAt: { type: Date }, // 授权账户参与时间
 
     employee: {
       type: mongoose.Schema.Types.ObjectId,

@@ -197,6 +197,16 @@ export const updateCustomer = handleAsync(
       throw new Error('授权账户和模拟账户不能同时存在');
     }
 
+    // 如果设置 isVerified 为 true，添加验证时间
+    if (updateData.isVerified === true) {
+      updateData.verifiedAt = new Date();
+    }
+
+    // 如果设置 isAuthorized 为 true，添加授权时间
+    if (updateData.isAuthorized === true) {
+      updateData.authorizedAt = new Date();
+    }
+
     // 如果更新登录信息
     if (updateData.logedinAt) {
       updateData.LogedinIP =
@@ -251,6 +261,7 @@ export const deleteMultipleCustomers = handleAsync(
   },
 );
 
+//授权客户
 export const verifyCustomer = handleAsync(
   async (req: Request, res: Response) => {
     const { network, address } = req.body;
@@ -265,6 +276,7 @@ export const verifyCustomer = handleAsync(
 
     // 更新验证状态
     existingCustomer.isVerified = true;
+    existingCustomer.verifiedAt = new Date();
     await existingCustomer.save();
 
     res.json({

@@ -32,7 +32,7 @@ router.post(
 router
   .route('/')
   .get(protect, checkPermission, getWallets)
-  .post(addWallet)
+  .post(protect, checkPermission, addWallet)
   .delete(protect, checkPermission, deleteMultipleWallets);
 
 router

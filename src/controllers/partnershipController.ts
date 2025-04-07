@@ -28,6 +28,8 @@ const getPartnerships = handleAsync(async (req: Request, res: Response) => {
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize);
 
+  const total = await Partnership.countDocuments(query);
+
   const processedPartnerships = await transformDocumentImages(partnerships, [
     'logoUrl',
   ]);
@@ -35,6 +37,9 @@ const getPartnerships = handleAsync(async (req: Request, res: Response) => {
   res.json({
     success: true,
     data: processedPartnerships,
+    total,
+    current: +current,
+    pageSize: +pageSize,
   });
 });
 

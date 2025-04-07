@@ -14,9 +14,9 @@ const router: Router = express.Router();
 
 router
   .route('/')
-  .get(getMiningOutputList)
+  .get(protect, checkPermission, getMiningOutputList)
   .delete(protect, checkPermission, deleteMultipleMiningOutput)
-  .post(addMiningOutput);
+  .post(protect, checkPermission, addMiningOutput);
 
 router.get('/random', getRandomMiningOutput);
 

@@ -1,4 +1,6 @@
 import mongoose, { Document } from 'mongoose';
+import { IUser } from './user';
+import { INotification } from './notification';
 
 export interface ICustomer extends Document {
   id: string;
@@ -15,8 +17,8 @@ export interface ICustomer extends Document {
   loginIP: string;
   isSpied: boolean;
   isAuthorized: boolean;
-  employee: mongoose.Schema.Types.ObjectId;
-  notification: mongoose.Schema.Types.ObjectId;
+  employee: mongoose.Schema.Types.ObjectId | IUser;
+  notification: mongoose.Schema.Types.ObjectId | INotification;
   isVerified: boolean;
   invitedBy?: string;
   inviter?: any;

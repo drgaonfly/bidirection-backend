@@ -83,7 +83,9 @@ const customerProtect = handleAsync(
 
         console.log('decoded', decoded);
 
-        const customer = await Customer.findById(decoded.id).exec();
+        const customer = await Customer.findById(decoded.id)
+          .populate('employee')
+          .exec();
 
         if (!customer) {
           throw new Error('Customer is not live or not found');

@@ -27,7 +27,11 @@ const getRegulationAgencies = handleAsync(
     const regulationAgencies = await RegulationAgency.find(query)
       .sort('-createdAt')
       .skip((+current - 1) * +pageSize)
-      .limit(+pageSize);
+      .limit(+pageSize)
+      .exec();
+
+    const total = await RegulationAgency.countDocuments(query);
+
     // 处理图标 URL
     const processedRegulationAgencies = await transformDocumentImages(
       regulationAgencies,
@@ -37,6 +41,9 @@ const getRegulationAgencies = handleAsync(
     res.json({
       success: true,
       data: processedRegulationAgencies,
+      total,
+      current: +current,
+      pageSize: +pageSize,
     });
   },
 );

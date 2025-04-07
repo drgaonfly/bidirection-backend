@@ -38,7 +38,6 @@ import customerRoutes from './routes/customerRoutes';
 import walletRoutes from './routes/walletRoutes';
 // import transactionRoutes from './routes/transactionRoutes';
 import carouselRoutes from './routes/carouselRoutes';
-import lotteryRecordRoutes from './routes/lotteryRecordRoutes';
 import proxyCommissionRecordRoutes from './routes/proxyCommissionRecordRoutes';
 import walletDealRecordRoutes from './routes/walletDealRecordRoutes';
 import questionRoutes from './routes/questionRoutes';
@@ -93,7 +92,6 @@ app.use('/api/incomes', incomeRoutes); // 新增
 app.use('/api/activities', activityRoutes); // 新增
 app.use('/api/carousels', carouselRoutes); // 新增
 app.use('/api/stackings', stackingRoutes);
-app.use('/api/lottery-records', lotteryRecordRoutes);
 app.use('/api/proxy-commission-records', proxyCommissionRecordRoutes);
 app.use('/api/wallet-deal-records', walletDealRecordRoutes);
 app.use('/api/questions', questionRoutes);

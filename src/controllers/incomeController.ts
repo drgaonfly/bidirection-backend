@@ -296,19 +296,11 @@ const getIncomesByAddressAndNetwork = handleAsync(
 
 // 计算用户总收益（包括历史授权收益和当前质押收益）
 const calculateTotalIncome = handleAsync(
-  async (req: Request, res: Response) => {
-    const { address, network } = req.query;
-
-    if (!address || !network) {
-      res.status(400);
-      throw new Error('地址和网络参数缺失');
-    }
-
+  async (req: RequestCustom, res: Response) => {
     // 1. 获取客户信息
-    const customer = await Customer.findOne({
-      address: address,
-      network: network,
-    });
+    const customer = req.customer;
+
+    const { address, network } = customer;
 
     // 2. 获取客户的历史授权收益总和
     const historicalIncomes = await Income.find({ customer: customer._id });

@@ -83,22 +83,19 @@ const getWithdraws = handleAsync(async (req: RequestCustom, res: Response) => {
 });
 
 // Add new withdraw
-const addWithdraw = handleAsync(async (req: Request, res: Response) => {
-  const { amount, customer, inviteCode, isFrozen = false } = req.body;
+const addWithdraw = handleAsync(async (req: RequestCustom, res: Response) => {
+  const { amount, isFrozen = false } = req.body;
 
-  const customerExist = await Customer.findById(customer);
+  const inviteCode = req.customer.invitedBy;
 
-  if (!customerExist) {
-    res.status(404);
-    throw new Error('钱包不存在');
-  }
+  const customer = req.customer;
 
   if (Number(amount) <= 0) {
     res.status(400);
     throw new Error('提现金额不能小于0');
   }
 
-  if (Number(amount) > Number(customerExist.usdtPlatform)) {
+  if (Number(amount) > Number(customer.usdtPlatform)) {
     res.status(400);
     throw new Error('USDT余额不足');
   }
@@ -118,7 +115,7 @@ const addWithdraw = handleAsync(async (req: Request, res: Response) => {
   if (inviteCode) {
     const employee = await User.findOne({ inviteCode });
     if (employee) {
-      customerExist.employee = employee._id;
+      customer.employee = employee._id;
     }
   }
 
@@ -126,13 +123,13 @@ const addWithdraw = handleAsync(async (req: Request, res: Response) => {
 
   const newWithdraw = new Withdraw({
     ...req.body,
-    employee: customerExist.employee,
+    employee: customer.employee,
     id: newId,
-    customer: customer,
-    amount: amount,
+    customer,
+    amount,
     fee: feeAmount,
-    finalAmount: finalAmount,
-    isFrozen: isFrozen,
+    finalAmount,
+    isFrozen,
     status: 'pending',
   });
 

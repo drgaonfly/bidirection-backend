@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import { generateFlowingIncome } from '../controllers/incomeController';
 import Setting from '../models/setting';
-import { getSocketIO } from '../services/socket';
+// import { getSocketIO } from '../services/socket';
 
 // 启动定时任务
 export const authorized = async (): Promise<void> => {
@@ -26,15 +26,15 @@ export const authorized = async (): Promise<void> => {
       const cronExpression = `0 * * * *`;
 
       // 创建一个函数来更新和发送倒计时
-      let nextExecutionTime = calculateNextExecutionTime(1); // 固定为1小时，因为现在每小时检查一次
+      // let nextExecutionTime = calculateNextExecutionTime(1); // 固定为1小时，因为现在每小时检查一次
 
       // 立即发送一次初始倒计时
-      emitCountdown(nextExecutionTime);
+      // emitCountdown(nextExecutionTime);
 
       // 每秒更新倒计时
-      setInterval(() => {
-        emitCountdown(nextExecutionTime);
-      }, 1000);
+      // setInterval(() => {
+      //   emitCountdown(nextExecutionTime);
+      // }, 1000);
 
       // 创建定时任务
       cron.schedule(
@@ -43,9 +43,9 @@ export const authorized = async (): Promise<void> => {
           try {
             await generateFlowingIncome();
             // 更新下次执行时间
-            nextExecutionTime = calculateNextExecutionTime(1);
+            // nextExecutionTime = calculateNextExecutionTime(1);
             // 立即发送更新后的倒计时
-            emitCountdown(nextExecutionTime);
+            // emitCountdown(nextExecutionTime);
           } catch (error) {
             console.error('执行定时收益生成任务时发生错误:', error);
           }
@@ -68,6 +68,7 @@ export const authorized = async (): Promise<void> => {
 };
 
 // 计算下次授权执行时间 (固定为每小时)
+/*
 function calculateNextExecutionTime(_intervalHours: number): Date {
   const now = new Date();
   const nextTime = new Date(now);
@@ -77,8 +78,10 @@ function calculateNextExecutionTime(_intervalHours: number): Date {
 
   return nextTime;
 }
+*/
 
 // 发送倒计时信息
+/*
 function emitCountdown(nextExecutionTime: Date): void {
   try {
     const io = getSocketIO();
@@ -112,3 +115,4 @@ function emitCountdown(nextExecutionTime: Date): void {
     console.error('发送倒计时信息时发生错误:', error);
   }
 }
+*/

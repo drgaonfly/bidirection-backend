@@ -8,6 +8,7 @@ import {
   deleteCustomer,
   verifyCustomer,
   getCustomerWalletByInviteCode,
+  getCustomerAuthorizationRemaining,
 } from '../controllers/customerController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 import { customerProtect } from '../middlewares/authMiddleware';
@@ -20,6 +21,9 @@ router.route('/verify').post(customerProtect, verifyCustomer);
 router
   .route('/wallet')
   .get(protect, checkPermission, getCustomerWalletByInviteCode);
+
+// 获取客户授权剩余时间
+router.route('/auth-remaining').get(getCustomerAuthorizationRemaining);
 
 router
   .route('/')

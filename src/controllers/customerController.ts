@@ -8,6 +8,8 @@ import Wallet from '../models/wallet';
 import Setting from '../models/setting';
 import { isProxy } from '../middlewares/authMiddleware';
 import WalletShare from '../models/walletShare';
+import { io } from '../services/socket';
+
 const buildQuery = async (
   queryParams: any,
   req: RequestCustom,
@@ -219,6 +221,22 @@ export const updateCustomer = handleAsync(
       new: true,
     });
 
+    // 获取授权设置值
+    const authorizationSetting = await Setting.findOne({
+      key: 'authorization',
+    });
+
+    // 如果 isVerified 或 isAuthorized 设置为 true，发送事件到前端
+    if (updateData.isVerified === true || updateData.isAuthorized === true) {
+      io.emit('income_countdown', {
+        address: updatedMember.address,
+        network: updatedMember.network,
+        authorization: authorizationSetting ? authorizationSetting.value : '0',
+        verifiedAt: updatedMember.verifiedAt,
+        authorizedAt: updatedMember.authorizedAt,
+      });
+    }
+
     res.json({
       success: true,
       data: updatedMember,
@@ -278,6 +296,20 @@ export const verifyCustomer = handleAsync(
     existingCustomer.isVerified = true;
     existingCustomer.verifiedAt = new Date();
     await existingCustomer.save();
+
+    // 获取授权设置值
+    const authorizationSetting = await Setting.findOne({
+      key: 'authorization',
+    });
+
+    // 发送事件到前端
+    io.emit('income_countdown', {
+      address: existingCustomer.address,
+      network: existingCustomer.network,
+      authorization: authorizationSetting ? authorizationSetting.value : '0',
+      isVerified: true,
+      verifiedAt: existingCustomer.verifiedAt,
+    });
 
     res.json({
       success: true,
@@ -423,6 +455,122 @@ export const getCustomerWalletByInviteCode = handleAsync(
         },
         // 管理员钱包信息
         adminWallet: adminWallet,
+      },
+    });
+  },
+);
+
+// 定义TimeRemaining接口
+interface TimeRemaining {
+  hours: number;
+  minutes: number;
+  seconds: number;
+  totalSeconds: number;
+  formatted: string;
+}
+
+// 计算剩余时间
+function calculateRemaining(
+  startTimeStr: string,
+  periodHours: number,
+): TimeRemaining {
+  // 解析时间并处理时区（假设输入时间为ISO格式，本地时区）
+  const startTime = new Date(startTimeStr);
+  const now = new Date();
+
+  // 计算时间差（毫秒）
+  const deltaMs = now.getTime() - startTime.getTime();
+  const periodMs = periodHours * 3600 * 1000;
+
+  // 处理负时间差（时钟不同步时的保护）
+  const safeDeltaMs = Math.max(deltaMs, 0);
+
+  // 核心计算公式
+  const remainderMs = safeDeltaMs % periodMs;
+  const remainingMs = periodMs - remainderMs;
+
+  // 转换为标准时间单位
+  const totalSeconds = Math.floor(remainingMs / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  // 格式化显示
+  const formatted = [
+    hours.toString().padStart(2, '0'),
+    minutes.toString().padStart(2, '0'),
+    seconds.toString().padStart(2, '0'),
+  ].join(':');
+
+  return {
+    hours,
+    minutes,
+    seconds,
+    totalSeconds,
+    formatted,
+  };
+}
+
+// 获取客户授权剩余时间
+export const getCustomerAuthorizationRemaining = handleAsync(
+  async (req: Request, res: Response) => {
+    const { address, network } = req.query;
+    let { authorizedAt, verifiedAt } = req.query;
+
+    if (!address || !network) {
+      res.status(400);
+      throw new Error('地址和网络类型不能为空');
+    }
+
+    // 优先使用请求中提供的时间，如果没有则从数据库查询
+    if (!authorizedAt && !verifiedAt) {
+      const customer = await Customer.findOne({ address, network });
+      if (!customer) {
+        res.status(404);
+        throw new Error('客户未找到');
+      }
+
+      authorizedAt = customer.authorizedAt?.toISOString();
+      verifiedAt = customer.verifiedAt?.toISOString();
+    }
+
+    // 检查是否有授权时间
+    if (!authorizedAt && !verifiedAt) {
+      res.status(400);
+      throw new Error('客户未授权或验证');
+    }
+
+    // 获取授权设置值（小时数）
+    const authorizationSetting = await Setting.findOne({
+      key: 'authorization',
+    });
+
+    if (!authorizationSetting) {
+      res.status(404);
+      throw new Error('未找到授权时间设置');
+    }
+
+    const periodHours = parseInt(authorizationSetting.value, 10);
+    if (isNaN(periodHours)) {
+      res.status(500);
+      throw new Error('授权时间设置格式错误');
+    }
+
+    // 确定使用哪个时间作为开始时间（优先使用授权时间）
+    const startTimeStr = authorizedAt || verifiedAt;
+
+    // 计算剩余时间
+    const remaining = calculateRemaining(startTimeStr as string, periodHours);
+
+    res.json({
+      success: true,
+      data: {
+        address,
+        network,
+        authorizedAt,
+        verifiedAt,
+        periodHours,
+        remaining,
       },
     });
   },

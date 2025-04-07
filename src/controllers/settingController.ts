@@ -5,6 +5,7 @@ import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
 import User from '../models/user';
 import { IUser } from '../models/user';
+import { io } from '../services/socket';
 
 // 构建查询条件
 const buildQuery = (queryParams: any): any => {
@@ -91,6 +92,8 @@ const updateSetting = handleAsync(async (req: Request, res: Response) => {
     { new: true, runValidators: true },
   );
 
+  io.emit('settingUpdated');
+
   res.json({
     success: true,
     data: updatedSetting,
@@ -107,6 +110,8 @@ const deleteSetting = handleAsync(async (req: Request, res: Response) => {
     res.status(404);
     throw new Error('设置项不存在');
   }
+
+  io.emit('settingUpdated');
 
   res.json({
     success: true,

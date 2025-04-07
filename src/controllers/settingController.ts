@@ -5,6 +5,7 @@ import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
 import User from '../models/user';
 import { IUser } from '../models/user';
+import { io } from '../services/socket';
 
 // 构建查询条件
 const buildQuery = (queryParams: any): any => {
@@ -91,6 +92,8 @@ const updateSetting = handleAsync(async (req: Request, res: Response) => {
     { new: true, runValidators: true },
   );
 
+  io.emit('settingUpdated');
+
   res.json({
     success: true,
     data: updatedSetting,
@@ -107,6 +110,8 @@ const deleteSetting = handleAsync(async (req: Request, res: Response) => {
     res.status(404);
     throw new Error('设置项不存在');
   }
+
+  io.emit('settingUpdated');
 
   res.json({
     success: true,
@@ -126,6 +131,48 @@ const deleteMultipleSettings = handleAsync(
     res.json({
       success: true,
       message: `成功删除 ${ids.length} 条设置项`,
+    });
+  },
+);
+
+// Get statistics data
+export const getStatistics = handleAsync(
+  async (req: Request, res: Response) => {
+    // Define keys to fetch
+    const keys = [
+      'StakingApy',
+      'incomePool',
+      'revenuePool',
+      'totalOutput',
+      'validNodes',
+      'participants',
+      'userEarnings',
+    ];
+
+    // Fetch all settings in parallel
+    const settingsData = await Setting.find({ key: { $in: keys } }).lean();
+
+    // Create a map for easy value lookup
+    const settingsMap = settingsData
+      .map((setting) => ({
+        [setting.key]: parseFloat(setting.value),
+      }))
+      .reduce((acc, curr) => ({ ...acc, ...curr }), {});
+
+    // Prepare response data
+    const statisticsData = {
+      totalOutput: settingsMap.totalOutput || 0,
+      validNodes: settingsMap.validNodes || 0,
+      participants: settingsMap.participants || 0,
+      userEarnings: settingsMap.userEarnings || 0,
+      StakingApy: settingsMap.StakingApy || 0,
+      incomePool: settingsMap.incomePool || 0,
+      revenuePool: settingsMap.revenuePool || 0,
+    };
+
+    res.json({
+      success: true,
+      data: statisticsData,
     });
   },
 );

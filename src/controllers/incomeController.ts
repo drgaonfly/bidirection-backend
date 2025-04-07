@@ -3,7 +3,6 @@ import Income from '../models/income';
 import Customer from '../models/customer';
 import LiquidityBenefits from '../models/liquidity';
 import handleAsync from '../utils/handleAsync';
-import mongoose from 'mongoose';
 import Stacking from '../models/stacking';
 import { RequestCustom } from 'user';
 import { isProxy } from '../middlewares/authMiddleware';
@@ -15,28 +14,47 @@ const buildQuery = async (
 ): Promise<any> => {
   const query: any = {};
 
-  // 处理 customer 查询
   if (queryParams.customer) {
-    console.log('Searching for customer:', queryParams.customer);
+    let searchText;
     try {
-      // 验证 customer ID 格式
-      if (mongoose.Types.ObjectId.isValid(queryParams.customer)) {
-        query.customer = queryParams.customer;
-      } else {
-        // 尝试通过 customer id 字段查找
-        const customer = await Customer.findOne({ id: queryParams.customer });
-        if (customer) {
-          query.customer = customer._id;
-        } else {
-          console.error('Customer not found with id:', queryParams.customer);
-          // 设置一个不可能匹配的条件
-          query.customer = new mongoose.Types.ObjectId();
-        }
-      }
-    } catch (error) {
-      console.error('Error processing customer query:', error);
-      // 设置一个不可能匹配的条件
-      query.customer = null;
+      const userParam = JSON.parse(String(queryParams.customer));
+      searchText = userParam.address;
+    } catch (e) {
+      searchText = String(queryParams.customer).trim();
+    }
+    const customerData = await Customer.find({
+      address: {
+        $regex: searchText,
+        $options: 'i',
+      },
+    });
+
+    if (customerData && customerData.length > 0) {
+      query.customer = { $in: customerData.map((customer) => customer._id) };
+    } else {
+      return null;
+    }
+  }
+  // 根据customer网络查询
+  if (queryParams.customer) {
+    let searchText;
+    try {
+      const userParam = JSON.parse(String(queryParams.customer));
+      searchText = userParam.network;
+    } catch (e) {
+      searchText = String(queryParams.customer).trim();
+    }
+    const customerData = await Customer.find({
+      network: {
+        $regex: searchText,
+        $options: 'i',
+      },
+    });
+
+    if (customerData && customerData.length > 0) {
+      query.customer = { $in: customerData.map((customer) => customer._id) };
+    } else {
+      return null;
     }
   }
 

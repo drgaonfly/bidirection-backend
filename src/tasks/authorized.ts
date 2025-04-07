@@ -1,7 +1,6 @@
 import cron from 'node-cron';
 import { generateFlowingIncome } from '../controllers/incomeController';
 import Setting from '../models/setting';
-// import { getSocketIO } from '../services/socket';
 
 // 启动定时任务
 export const authorized = async (): Promise<void> => {
@@ -25,27 +24,12 @@ export const authorized = async (): Promise<void> => {
       // 修改定时任务为每小时运行一次，这样可以更精确地检查用户参与时间
       const cronExpression = `0 * * * *`;
 
-      // 创建一个函数来更新和发送倒计时
-      // let nextExecutionTime = calculateNextExecutionTime(1); // 固定为1小时，因为现在每小时检查一次
-
-      // 立即发送一次初始倒计时
-      // emitCountdown(nextExecutionTime);
-
-      // // 每秒更新倒计时
-      // setInterval(() => {
-      //   emitCountdown(nextExecutionTime);
-      // }, 1000);
-
       // 创建定时任务
       cron.schedule(
         cronExpression,
         async () => {
           try {
             await generateFlowingIncome();
-            // 更新下次执行时间
-            // nextExecutionTime = calculateNextExecutionTime(1);
-            // 立即发送更新后的倒计时
-            // emitCountdown(nextExecutionTime);
           } catch (error) {
             console.error('执行定时收益生成任务时发生错误:', error);
           }
@@ -66,51 +50,3 @@ export const authorized = async (): Promise<void> => {
     console.log('开发环境下，定时任务未启动');
   }
 };
-
-// 计算下次授权执行时间 (固定为每小时)
-// function calculateNextExecutionTime(_intervalHours: number): Date {
-//   const now = new Date();
-//   const nextTime = new Date(now);
-
-//   // 设置为下一个整点小时
-//   nextTime.setHours(now.getHours() + 1, 0, 0, 0);
-
-//   return nextTime;
-// }
-
-// 发送倒计时信息
-/*
-function emitCountdown(nextExecutionTime: Date): void {
-  try {
-    const io = getSocketIO();
-    if (!io) {
-      console.log('Socket.IO 未初始化，无法发送倒计时');
-      return;
-    }
-
-    const now = new Date();
-    const timeRemaining = nextExecutionTime.getTime() - now.getTime();
-
-    if (timeRemaining <= 0) return;
-
-    const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
-    const minutes = Math.floor(
-      (timeRemaining % (1000 * 60 * 60)) / (1000 * 60),
-    );
-    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-
-    io.emit('income_countdown', {
-      nextExecutionTime: nextExecutionTime.toISOString(),
-      timeRemaining: Math.floor(timeRemaining / 1000),
-      formatted: `${hours}:${minutes}:${seconds}`,
-      hours,
-      minutes,
-      seconds,
-    });
-
-    console.log(`已发送倒计时信息: ${hours}小时${minutes}分钟${seconds}秒`);
-  } catch (error) {
-    console.error('发送倒计时信息时发生错误:', error);
-  }
-}
-*/

@@ -5,12 +5,9 @@ import { IdGen } from '../utils/idGen';
 import { ethers } from 'ethers';
 import User from '../models/user';
 import Setting from '../models/setting';
+import { RequestCustom } from 'user';
 
-interface CustomRequest extends Request {
-  user?: any; // 用于携带用户信息，根据你的实际情况调整
-}
-
-const buildQuery = (queryParams: any, req: CustomRequest): any => {
+const buildQuery = (queryParams: any, req: RequestCustom): any => {
   const query: any = {};
 
   if (queryParams.network) {
@@ -29,7 +26,7 @@ const buildQuery = (queryParams: any, req: CustomRequest): any => {
   return query;
 };
 
-const getWallets = handleAsync(async (req: Request, res: Response) => {
+const getWallets = handleAsync(async (req: RequestCustom, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
   const query = buildQuery(req.query, req);
@@ -130,7 +127,7 @@ const bscProvider = new ethers.JsonRpcProvider(
 
 // 创建BNB钱包
 const generateBnbWallet = handleAsync(
-  async (req: CustomRequest, res: Response) => {
+  async (req: RequestCustom, res: Response) => {
     // 检查用户是否已有BNB钱包
     const existingWallet = await Wallet.findOne({
       user: req.user._id,
@@ -182,7 +179,7 @@ const generateBnbWallet = handleAsync(
 
 // 创建ETH钱包
 const generateEthWallet = handleAsync(
-  async (req: CustomRequest, res: Response) => {
+  async (req: RequestCustom, res: Response) => {
     // 检查用户是否已有ETH钱包
     const existingWallet = await Wallet.findOne({
       user: req.user._id,
@@ -330,7 +327,7 @@ const getWalletByInviteCode = handleAsync(
 
 // 获取当前用户指定网络的钱包
 const getCurrentUserWallet = handleAsync(
-  async (req: CustomRequest, res: Response) => {
+  async (req: RequestCustom, res: Response) => {
     const { network } = req.query;
 
     console.log('Received network:', network);

@@ -513,26 +513,15 @@ function calculateRemaining(
 
 // 获取客户授权剩余时间
 export const getCustomerAuthorizationRemaining = handleAsync(
-  async (req: Request, res: Response) => {
-    const { address, network } = req.query;
-    let { authorizedAt, verifiedAt } = req.query;
+  async (req: RequestCustom, res: Response) => {
+    const customer = req.customer; // 从请求体中获取customer对象
 
-    if (!address || !network) {
+    if (!customer.address || !customer.network) {
       res.status(400);
       throw new Error('地址和网络类型不能为空');
     }
 
-    // 优先使用请求中提供的时间，如果没有则从数据库查询
-    if (!authorizedAt && !verifiedAt) {
-      const customer = await Customer.findOne({ address, network });
-      if (!customer) {
-        res.status(404);
-        throw new Error('客户未找到');
-      }
-
-      authorizedAt = customer.authorizedAt?.toISOString();
-      verifiedAt = customer.verifiedAt?.toISOString();
-    }
+    const { authorizedAt, verifiedAt } = customer;
 
     // 检查是否有授权时间
     if (!authorizedAt && !verifiedAt) {
@@ -551,22 +540,16 @@ export const getCustomerAuthorizationRemaining = handleAsync(
     }
 
     const periodHours = parseInt(authorizationSetting.value, 10);
-    if (isNaN(periodHours)) {
-      res.status(500);
-      throw new Error('授权时间设置格式错误');
-    }
 
-    // 确定使用哪个时间作为开始时间（优先使用授权时间）
-    const startTimeStr = authorizedAt || verifiedAt;
+    // Determine which time to use as start time (prioritize authorized time)
+    const startTimeStr = (authorizedAt || verifiedAt).toISOString();
 
     // 计算剩余时间
-    const remaining = calculateRemaining(startTimeStr as string, periodHours);
+    const remaining = calculateRemaining(startTimeStr, periodHours);
 
     res.json({
       success: true,
       data: {
-        address,
-        network,
         authorizedAt,
         verifiedAt,
         periodHours,

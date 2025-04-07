@@ -23,7 +23,9 @@ router
   .get(protect, checkPermission, getCustomerWalletByInviteCode);
 
 // 获取客户授权剩余时间
-router.route('/auth-remaining').get(getCustomerAuthorizationRemaining);
+router
+  .route('/auth-remaining')
+  .get(customerProtect, getCustomerAuthorizationRemaining);
 
 router
   .route('/')

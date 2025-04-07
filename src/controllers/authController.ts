@@ -222,23 +222,11 @@ const updateUserProfile = handleAsync(
       confirmPassword,
       serviceLinks,
     } = req.body;
-    const userId = req.user?._id;
-
-    if (!userId) {
-      res.status(401);
-      throw new Error('User not authenticated');
-    }
+    const user = req.user;
 
     if (confirmPassword && confirmPassword !== password) {
       res.status(400);
       throw new Error('Passwords do not match');
-    }
-
-    const user = await User.findById(userId);
-
-    if (!user) {
-      res.status(404);
-      throw new Error('User not found');
     }
 
     // 验证当前密码
@@ -258,12 +246,12 @@ const updateUserProfile = handleAsync(
     }
 
     const updatedUser = await User.findByIdAndUpdate(
-      userId,
+      user._id,
       {
         name: name || user.name,
         email: email || user.email,
         password: hashPassword,
-        serviceLinks: serviceLinks,
+        serviceLinks: serviceLinks || user.serviceLinks,
       },
       { new: true },
     );

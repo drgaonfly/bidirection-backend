@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import Notification from '../models/notification'; // 确保路径正确
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';

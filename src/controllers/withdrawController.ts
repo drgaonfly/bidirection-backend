@@ -228,10 +228,8 @@ const deleteMultipleWithdraws = handleAsync(
 
 // get withdraw by customer id
 const getWithdrawByCustomerId = handleAsync(
-  async (req: Request, res: Response) => {
-    const { id } = req.params;
-
-    const withdraws = await Withdraw.find({ customer: id });
+  async (req: RequestCustom, res: Response) => {
+    const withdraws = await Withdraw.find({ customer: req.customer._id });
 
     res.json({
       success: true,

@@ -32,6 +32,6 @@ router
   .put(protect, checkPermission, updateWithdraw)
   .delete(protect, checkPermission, deleteWithdraw);
 
-router.route('/customer/:id').get(customerProtect, getWithdrawByCustomerId);
+router.route('/customer').get(customerProtect, getWithdrawByCustomerId);
 
 export default router;

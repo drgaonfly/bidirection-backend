@@ -5,12 +5,63 @@ import Question from '../models/question';
 import Video from '../models/video';
 import Partnership from '../models/partnership';
 import { transformDocumentImages } from '../utils/transformUtils';
+import Notice from '../models/notice';
+import MiningOutput from '../models/miningOutput';
+import RegulationAgency from '../models/regulationAgency';
+import Carousel from '../models/carousel';
 
 // 获取所有页面
 export const getHome = handleAsync(async (req: Request, res: Response) => {
+  const { lang } = req.query;
+
+  const [
+    faqData,
+    notices,
+    miningOutputs,
+    partnerships,
+    regulationAgencies,
+    carousels,
+  ] = await Promise.all([
+    // Get FAQ data
+    Question.find(lang ? { lang } : {}).sort('-createdAt'),
+
+    // Get notices
+    Notice.find().sort('-createdAt'),
+
+    // Get mining outputs
+    MiningOutput.aggregate([{ $sample: { size: 50 } }]),
+
+    // Get partnerships
+    Partnership.find().sort('-createdAt'),
+
+    // Get regulation agencies
+    RegulationAgency.find().sort('-createdAt'),
+
+    // Get carousels
+    Carousel.find().sort('-createdAt').select('image'),
+  ]);
+
+  // Process carousel images, partnership logos and regulation agency logos
+  const [
+    processedCarousels,
+    processedPartnerships,
+    processedRegulationAgencies,
+  ] = await Promise.all([
+    transformDocumentImages(carousels, ['image']),
+    transformDocumentImages(partnerships, ['logoUrl']),
+    transformDocumentImages(regulationAgencies, ['logoUrl']),
+  ]);
+
   res.json({
     success: true,
-    message: 'Hello World',
+    data: {
+      faq: faqData,
+      notices,
+      miningOutputs,
+      partnerships: processedPartnerships,
+      regulationAgencies: processedRegulationAgencies,
+      carousels: processedCarousels,
+    },
   });
 });
 

@@ -15,7 +15,7 @@ const router: Router = express.Router();
 // 获取所有角色、添加新角色和批量删除角色
 router
   .route('/')
-  .get(protect, checkPermission, getRoles, checkPermission)
+  .get(protect, checkPermission, getRoles)
   .post(protect, checkPermission, addRole)
   .delete(protect, checkPermission, deleteMultipleRoles);
 

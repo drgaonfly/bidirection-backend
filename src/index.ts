@@ -53,6 +53,7 @@ import { authorized } from './tasks/authorized';
 import recordRoutes from './routes/recordRoutes';
 import videoRoutes from './routes/videoRoutes';
 import pageRoutes from './routes/pageRoutes';
+import chatRoutes from './routes/chatRoutes';
 
 // import { startWebHookBot } from './bot';
 dotenv.config();
@@ -112,6 +113,7 @@ app.use('/api/liquidity', liquidityRoutes);
 app.use('/api/records', recordRoutes);
 app.use('/api/videos', videoRoutes);
 app.use('/api/pages', pageRoutes);
+app.use('/api/chats', chatRoutes);
 
 setupDB();
 setupRedis();

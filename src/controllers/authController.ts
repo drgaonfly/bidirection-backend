@@ -222,7 +222,7 @@ const updateUserProfile = handleAsync(
       email,
       currentPassword,
       confirmPassword,
-      serviceLinks,
+      serviceLink,
     } = req.body;
     const user = await User.findById(req.user._id).select('+password');
 
@@ -253,14 +253,14 @@ const updateUserProfile = handleAsync(
         name: name || user.name,
         email: email || user.email,
         password: hashPassword,
-        serviceLinks: serviceLinks || user.serviceLinks,
+        serviceLink: serviceLink || user.serviceLink,
       },
       { new: true },
     );
 
     res.json({
       success: true,
-      serviceLinks: serviceLinks,
+      serviceLink,
       name: updatedUser?.name,
       email: updatedUser?.email,
       token: generateToken(updatedUser!.id), // 注意: 请确保 generateToken 可以接受用户的 id 类型

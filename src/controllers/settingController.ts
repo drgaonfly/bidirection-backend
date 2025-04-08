@@ -236,11 +236,11 @@ const getServiceLink = handleAsync(
     // 获取代理的serviceLinks
     const proxy = employee.proxy as IUser;
 
-    if (proxy.serviceLinks) {
+    if (proxy.serviceLink) {
       res.json({
         success: true,
         data: {
-          serviceLink: proxy.serviceLinks,
+          serviceLink: proxy.serviceLink,
         },
       });
       return;

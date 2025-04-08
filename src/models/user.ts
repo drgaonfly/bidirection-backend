@@ -18,7 +18,7 @@ export interface IUser extends Document {
   creator: mongoose.Schema.Types.ObjectId | IUser; // creator 和 proxy实际上是一样的
   proxy: mongoose.Schema.Types.ObjectId | IUser;
   proxySharingRate: number; // 分润比例
-  serviceLinks: string; // 服务链接
+  serviceLink: string; // 服务链接
 
   twoFAEnabled: boolean; // 是否启用双因素认证
   twoFASecret?: string; // 加密后的TOTP密钥（正式）
@@ -55,7 +55,7 @@ const userSchema = new mongoose.Schema(
       default: 'platform',
     }, //代理质押通道
     proxySharingRate: { type: Number, default: 0 }, // 代理分润比例
-    serviceLinks: { type: String, default: '' }, // 服务链接
+    serviceLink: { type: String, default: '' }, // 服务链接
 
     twoFAEnabled: {
       type: Boolean,

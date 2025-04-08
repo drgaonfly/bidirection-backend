@@ -244,7 +244,7 @@ export const updateUser = handleAsync(async (req: Request, res: Response) => {
     isOnline,
     proxySharingRate,
     stackingChannel,
-    serviceLinks,
+    serviceLink,
     ...body
   } = req.body;
 
@@ -277,7 +277,7 @@ export const updateUser = handleAsync(async (req: Request, res: Response) => {
       roles: newRoles,
       liquidRate,
       stakeRate,
-      serviceLinks, // 服务链接
+      serviceLink, // 服务链接
     },
     { new: true },
   );

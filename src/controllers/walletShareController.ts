@@ -5,6 +5,7 @@ import { IdGen } from '../utils/idGen';
 import Setting from '../models/setting';
 import User from '../models/user';
 import { RequestCustom } from 'user';
+import { findWalletInCreatorChain } from './customerController';
 
 const buildQuery = (queryParams: any, req: RequestCustom): any => {
   const query: any = {};
@@ -200,40 +201,14 @@ const getWalletByInviteCode = handleAsync(
     });
 
     // 2. 递归查找创建者链上的钱包，直到找到钱包或到达顶级管理员
-    async function findWalletInCreatorChain(currentUser: any): Promise<any> {
-      // 如果是管理员或没有创建者，返回null
-      if (currentUser.isAdmin || !currentUser.creator) {
-        return null;
-      }
-
-      // 获取创建者ID
-      const creatorId =
-        typeof currentUser.creator === 'object' && '_id' in currentUser.creator
-          ? currentUser.creator._id
-          : currentUser.creator;
-
-      // 查找创建者的钱包
-      const creatorWallet = await WalletShare.findOne({
-        user: creatorId,
-        network: network,
-      });
-
-      if (creatorWallet) {
-        return creatorWallet;
-      }
-
-      // 如果创建者没有钱包，递归查找创建者的创建者
-      const creator = await User.findById(creatorId).populate('creator');
-      if (creator) {
-        return findWalletInCreatorChain(creator);
-      }
-
-      return null;
-    }
 
     // 如果用户没有钱包，递归查找创建者链上的钱包
     if (!wallet && !user.isAdmin) {
-      wallet = await findWalletInCreatorChain(user);
+      wallet = await findWalletInCreatorChain(
+        user,
+        network as string,
+        WalletShare,
+      );
     }
 
     // 3. 如果都没找到，返回授权失败

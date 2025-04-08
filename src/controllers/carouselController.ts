@@ -6,7 +6,6 @@ import {
   transformDocumentImage,
   transformDocumentImages,
 } from '../utils/transformUtils';
-import probe from 'probe-image-size';
 
 // dataPermissionController.ts
 const buildQuery = (queryParams: any): any => {
@@ -35,21 +34,6 @@ const getCarousels = handleAsync(async (req: Request, res: Response) => {
   const processedCarousels = await transformDocumentImages(carousels, [
     'image',
   ]);
-
-  // 遍历处理每个轮播图的图片大小和类型
-  for (const carousel of processedCarousels) {
-    try {
-      const result = await probe(carousel.image); // 获取图片尺寸和类型
-
-      carousel.size = `${result.width}x${result.height}`; // 添加图片尺寸
-      carousel.type = result.type; // 添加图片类型 (如 'jpeg', 'png' 等)
-      carousel.path = carousel.image; // 添加图片路径
-    } catch (err) {
-      console.error(`Error fetching details for image: ${carousel.image}`, err);
-      carousel.size = 'unknown'; // 如果获取失败，设置为 unknown
-      carousel.type = 'unknown'; // 图片类型也设置为 unknown
-    }
-  }
 
   const total = await Carousel.countDocuments(query).exec();
 

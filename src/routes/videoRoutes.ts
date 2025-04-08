@@ -13,7 +13,7 @@ const router: Router = express.Router();
 
 router
   .route('/')
-  .get(getVideos)
+  .get(protect, checkPermission, getVideos)
   .post(protect, checkPermission, addVideo)
   .delete(protect, checkPermission, deleteMultipleVideos);
 

@@ -16,7 +16,9 @@ const login = handleAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   // 查找用户，允许通过 email 或者 name 查找
-  const user = await User.findOne({ $or: [{ email }, { name: email }] });
+  const user = await User.findOne({ $or: [{ email }, { name: email }] }).select(
+    '+password',
+  );
 
   if (!user) {
     res.status(400);
@@ -222,7 +224,7 @@ const updateUserProfile = handleAsync(
       confirmPassword,
       serviceLinks,
     } = req.body;
-    const user = req.user;
+    const user = await User.findById(req.user._id).select('+password');
 
     if (confirmPassword && confirmPassword !== password) {
       res.status(400);

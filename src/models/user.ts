@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema(
   {
     id: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    password: { type: String, required: true, select: false },
     name: { type: String, required: false },
     live: { type: Boolean, default: true },
     status: { type: Boolean, default: false },

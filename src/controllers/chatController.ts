@@ -41,7 +41,7 @@ const getChats = handleAsync(async (req: Request, res: Response) => {
   // 填充客户和用户信息
   const populatedChats = await Chat.populate(latestChats, [
     { path: 'customer' },
-    { path: 'user' },
+    { path: 'user', select: '-password' },
   ]);
 
   res.json({

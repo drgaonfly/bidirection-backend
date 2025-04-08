@@ -69,7 +69,7 @@ const getChatUserMessages = handleAsync(
 
     // 查询数据库获取聊天记录
     const messages = await Chat.find(query)
-      .sort('-createdAt')
+      .sort('createdAt')
       .skip((+current - 1) * +pageSize)
       .limit(+pageSize)
       .populate('customer')
@@ -131,7 +131,7 @@ const getChatMessages = handleAsync(
 
     // 查询数据库获取聊天记录
     const messages = await Chat.find(query)
-      .sort('-createdAt')
+      .sort('createdAt')
       .skip((+current - 1) * +pageSize)
       .limit(+pageSize)
       .populate('customer')

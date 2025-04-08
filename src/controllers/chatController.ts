@@ -3,7 +3,8 @@ import Chat from '../models/chat';
 import handleAsync from '../utils/handleAsync';
 import { RequestCustom } from 'user';
 import { io } from '../services/socket';
-import { IUser } from '../models/user';
+import User, { IUser } from '../models/user';
+import { ICustomer } from '../models/customer';
 
 // Build query based on query parameters
 const buildQuery = (queryParams: any): any => {
@@ -121,7 +122,7 @@ const getChatMessages = handleAsync(
     const { current = '1', pageSize = '10' } = req.query;
 
     const customerId = req.customer._id;
-    const userId = req.query.userId;
+    const userId = await findCustomerUser(req.customer);
 
     const query = {
       customer: customerId,
@@ -133,6 +134,8 @@ const getChatMessages = handleAsync(
       .sort('-createdAt')
       .skip((+current - 1) * +pageSize)
       .limit(+pageSize)
+      .populate('customer')
+      .populate('user', '-password')
       .exec();
 
     res.json({
@@ -141,6 +144,19 @@ const getChatMessages = handleAsync(
     });
   },
 );
+
+const findCustomerUser = async (customer: ICustomer): Promise<IUser> => {
+  const employee = customer.employee as IUser;
+
+  let user = employee?.proxy as IUser;
+
+  if (!user) {
+    // 找一下超级管理员
+    user = await User.findOne({ isAdmin: true });
+  }
+
+  return user;
+};
 
 // 添加客户与客服的聊天消息
 const addChatMessage = handleAsync(
@@ -153,9 +169,7 @@ const addChatMessage = handleAsync(
       throw new Error('消息内容是必需的');
     }
 
-    const employee = req.customer.employee as IUser;
-
-    const userId = (employee.proxy as IUser)?._id;
+    const userId = await findCustomerUser(req.customer);
 
     const newChat = new Chat({
       customer: customerId,
@@ -169,7 +183,7 @@ const addChatMessage = handleAsync(
 
     const populatedChat = await Chat.findById(savedChat._id)
       .populate('customer')
-      .populate('user');
+      .populate('user', '-password');
 
     io.emit('chatMessage', populatedChat);
 

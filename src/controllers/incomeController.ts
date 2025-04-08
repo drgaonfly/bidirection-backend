@@ -333,17 +333,6 @@ const calculateTotalIncome = handleAsync(
       stakingmax: { $gte: customer.usdtBalance },
     });
 
-    // 4. 计算当前质押的收益
-    let currentBalanceIncome = 0;
-    if (liquidityBenefit) {
-      // 当前质押收益 = 当前余额 * 收益率 * 质押倍率
-      currentBalanceIncome =
-        customer.usdtBalance *
-        (liquidityBenefit.rewards / 100) *
-        customer.stakeRate;
-    }
-
-    // 4.1 计算今日质押收益
     // 获取今日的质押记录
     const todayStackings = await Stacking.find({
       fromAddress: address,
@@ -360,7 +349,7 @@ const calculateTotalIncome = handleAsync(
 
     // 计算今日质押收益
     let todayBalanceIncome = 0;
-    if (liquidityBenefit && todayStackingAmount > 0) {
+    if (liquidityBenefit.rewards > 0 && todayStackingAmount > 0) {
       // 今日质押收益 = 今日质押总额 * 收益率 * 质押倍率
       todayBalanceIncome =
         todayStackingAmount *
@@ -372,22 +361,28 @@ const calculateTotalIncome = handleAsync(
     }
 
     // 5. 计算总收益
-    const totalIncome = totalHistoricalIncome + currentBalanceIncome;
+    const totalIncome = totalHistoricalIncome;
 
     // 6. 计算今日总收益 (今日历史收益 + 今日质押收益)
     const todayTotalIncome = todayHistoricalIncome + todayBalanceIncome;
+
+    // 计算当前的customerRewards（使用当前的liquidityBenefit和customer.liquidRate）
+    const currentCustomerRewards = liquidityBenefit
+      ? liquidityBenefit.rewards * customer.liquidRate
+      : 0;
 
     res.json({
       success: true,
       data: {
         historicalIncome: totalHistoricalIncome,
-        currentBalanceIncome: currentBalanceIncome,
+        // currentBalanceIncome: currentBalanceIncome,
         totalIncome: totalIncome,
         todayHistoricalIncome: todayHistoricalIncome,
         todayBalanceIncome: todayBalanceIncome,
         todayTotalIncome: todayTotalIncome,
         customerBalance: customer.usdtBalance,
         stakeRate: customer.stakeRate,
+        customerRewards: currentCustomerRewards,
         rewards: liquidityBenefit ? liquidityBenefit.rewards : 0,
       },
     });

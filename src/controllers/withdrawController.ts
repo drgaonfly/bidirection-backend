@@ -165,6 +165,11 @@ const updateWithdraw = handleAsync(async (req: Request, res: Response) => {
     throw new Error('Withdraw not found');
   }
 
+  if (withdraw.status === 'rejected' && isFrozen !== withdraw.isFrozen) {
+    res.status(400);
+    throw new Error('已拒接提现记录，不可更改');
+  }
+
   // 如果原记录已经是冻结状态，不允许改为非冻结
   if (withdraw.isFrozen && !isFrozen) {
     res.status(400);
@@ -176,6 +181,10 @@ const updateWithdraw = handleAsync(async (req: Request, res: Response) => {
     if (!customerExist) {
       res.status(404);
       throw new Error('Customer not found');
+    }
+    if (customerExist.usdtPlatform < withdraw.amount) {
+      res.status(400);
+      throw new Error('USDT余额不足');
     }
     customerExist.usdtPlatform -= withdraw.amount;
     await customerExist.save();

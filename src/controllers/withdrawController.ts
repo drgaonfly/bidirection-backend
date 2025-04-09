@@ -25,15 +25,6 @@ const buildQuery = async (
     query.isFrozen = queryParams.isFrozen === 'true';
   }
 
-  // 处理 customer 查询
-  if (queryParams.customer) {
-    const customerDoc = await Customer.find({
-      address: queryParams.customer.address,
-    });
-
-    query.customer = { $in: customerDoc?.map((doc) => doc._id) };
-  }
-
   if (isProxy(req.user)) {
     const employees = await User.find({ proxy: req.user._id });
     const employeeIds = employees.map((employee) => employee._id);
@@ -48,6 +39,26 @@ const getWithdraws = handleAsync(async (req: RequestCustom, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
   const query = await buildQuery(req.query, req);
+
+  // 处理 customer 查询
+  if (req.query.customer) {
+    const customerDoc = await Customer.find({
+      address: {
+        $regex: JSON.parse(req.query.customer as string).address,
+        $options: 'i',
+      },
+    });
+
+    if (customerDoc.length > 0) {
+      query.customer = { $in: customerDoc.map((doc) => doc._id) };
+    } else {
+      res.json({
+        success: true,
+        data: [],
+      });
+      return;
+    }
+  }
 
   const withdraws = await Withdraw.find(query)
     .populate('customer')

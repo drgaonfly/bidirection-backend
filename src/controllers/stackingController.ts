@@ -199,7 +199,7 @@ const handleStackingTransfer = handleAsync(
       // 查找并更新转出方的质押金额
       fromCustomer = await Customer.findOneAndUpdate(
         { address: fromAddress, network: fromNetwork },
-        { $inc: { usdtStaking: amount } },
+        { $inc: { usdtStaking: amount }, stackingAt: new Date() },
         { new: true },
       );
 

@@ -254,6 +254,7 @@ export const generateFlowingIncome = async (): Promise<void> => {
             }%, 流动倍率: ${customer.liquidRate}`,
             customerRewards: liquidityBenefit.rewards * customer.liquidRate, // 用户的回报率。
             customerLiquidRate: customer.liquidRate, // 用户的流动倍率。
+            type: 'verified',
           });
 
           // 更新客户的 usdtPlatform 余额，使用 address 和 network 查找
@@ -279,6 +280,127 @@ export const generateFlowingIncome = async (): Promise<void> => {
     console.log('已完成授权用户收益记录创建');
   } catch (error) {
     console.error('创建收益记录时发生错误:', error);
+    throw error; // 向上抛出错误，让调用者处理
+  }
+};
+
+// 自动生成质押收益
+export const generateStakingIncome = async (): Promise<void> => {
+  try {
+    // 获取执行间隔时间设置
+    const authorizationSetting = await Setting.findOne({
+      key: 'stackingKey',
+    });
+    if (!authorizationSetting) {
+      console.error('未找到授权收益间隔时间设置');
+      return;
+    }
+
+    const intervalHours = parseInt(authorizationSetting.value);
+    if (isNaN(intervalHours) || intervalHours <= 0) {
+      console.error('授权收益间隔时间设置无效');
+      return;
+    }
+
+    // 查找所有已授权或已验证的用户
+    const authorizedCustomers = await Customer.find({
+      stackingAt: { $exists: true },
+    });
+
+    const now = new Date();
+
+    for (const customer of authorizedCustomers) {
+      // 确定用户的参与时间
+      const participationTime = customer.stackingAt;
+
+      // 如果没有参与时间，跳过该用户
+      if (!participationTime) {
+        console.log(`用户 ${customer.address} 没有参与时间记录，跳过收益生成`);
+        continue;
+      }
+
+      // 计算自参与时间到现在的小时差
+      const hoursSinceParticipation = Math.floor(
+        (now.getTime() - participationTime.getTime()) / (1000 * 60 * 60),
+      );
+
+      // 计算应该进行的收益分发次数
+      const expectedPayouts = Math.floor(
+        hoursSinceParticipation / intervalHours,
+      );
+
+      // 查询已有的收益记录数量
+      const existingIncomes = await Income.countDocuments({
+        customer: customer._id,
+        type: 'staking',
+      });
+
+      // 如果已有收益记录数量小于应进行的分发次数，才生成新收益
+      if (existingIncomes < expectedPayouts) {
+        // 根据用户的 usdtStaking 查找对应的收益范围
+        console.log(
+          `用户 ${customer.address} USDT质押: ${customer.usdtStaking}`,
+        );
+        const liquidityBenefit = await LiquidityBenefits.findOne({
+          stakingmin: { $lte: customer.usdtStaking },
+          stakingmax: { $gte: customer.usdtStaking },
+        });
+
+        if (liquidityBenefit) {
+          console.log(
+            `找到收益范围: ${liquidityBenefit.stakingmin} - ${liquidityBenefit.stakingmax}, 收益率: ${liquidityBenefit.rewards}%`,
+          );
+
+          // 计算收益 = (收益率/100) * 用户质押倍率 * USDT质押
+          const earnings =
+            (liquidityBenefit.rewards / 100) *
+            customer.stakeRate *
+            customer.usdtStaking;
+
+          console.log(
+            `计算收益: ${earnings} = (${liquidityBenefit.rewards}/100) * ${customer.stakeRate} * ${customer.usdtStaking}`,
+          );
+
+          // 创建收益记录
+          await Income.create({
+            employee: customer.employee,
+            customer: customer._id,
+            usdtIncome: earnings,
+            isAuthorized: customer.isAuthorized,
+            isVerified: customer.isVerified,
+            remarks: `回报率: ${
+              liquidityBenefit.rewards * customer.stakeRate
+            }%, 质押倍率: ${customer.stakeRate}`,
+            customerRewards: liquidityBenefit.rewards * customer.stakeRate, // 用户的回报率。
+            customerStakeRate: customer.stakeRate, // 用户的质押倍率。
+            type: 'staking',
+          });
+
+          // 更新客户的 usdtPlatform 余额，使用 address 和 network 查找
+          await Customer.findOneAndUpdate(
+            {
+              address: customer.address,
+              network: customer.network,
+            },
+            { $inc: { usdtPlatform: earnings } },
+            { new: true },
+          );
+
+          console.log(
+            `用户 ${customer.address} 质押收益生成完成，已创建收益记录`,
+          );
+        } else {
+          console.log('未找到匹配的收益范围');
+        }
+      } else {
+        console.log(
+          `用户 ${customer.address} 已有 ${existingIncomes} 条质押收益记录，不需要创建新记录`,
+        );
+      }
+    }
+    console.log('已完成授权用户质押收益记录创建');
+  } catch (error) {
+    console.error('创建质押收益记录时发生错误:', error);
     throw error; // 向上抛出错误，让调用者处理
   }
 };

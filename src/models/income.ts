@@ -24,6 +24,11 @@ const IncomeSchema = new mongoose.Schema(
       ref: 'Customer',
       required: true,
     },
+    type: {
+      type: String,
+      enum: ['staking', 'verified'], // 质押收益和授权收益
+      required: true,
+    },
     isAuthorized: { type: Boolean, default: false },
     isVerified: { type: Boolean, default: false },
     stakingIcome: { type: Boolean, default: false }, //质押收益

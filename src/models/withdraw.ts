@@ -9,6 +9,7 @@ export interface IWithdraw extends Document {
   fee: number;
   status: string;
   remark: string;
+  reason: string;
   employee: mongoose.Schema.Types.ObjectId | IUser;
   isFrozen: boolean;
 }
@@ -41,6 +42,10 @@ const withdrawSchema = new mongoose.Schema(
       type: String,
       default: '',
     }, // 备注
+    reason: {
+      type: String,
+      default: '',
+    }, // 理由
     employee: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

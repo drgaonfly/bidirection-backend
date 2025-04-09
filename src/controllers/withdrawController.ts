@@ -245,7 +245,9 @@ const deleteMultipleWithdraws = handleAsync(
 // get withdraw by customer id
 const getWithdrawByCustomerId = handleAsync(
   async (req: RequestCustom, res: Response) => {
-    const withdraws = await Withdraw.find({ customer: req.customer._id });
+    const withdraws = await Withdraw.find({ customer: req.customer._id }).sort({
+      createdAt: 1,
+    }); // -1 means descending order, newest first
 
     res.json({
       success: true,

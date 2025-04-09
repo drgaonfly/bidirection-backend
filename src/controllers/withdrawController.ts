@@ -120,6 +120,10 @@ const addWithdraw = handleAsync(async (req: RequestCustom, res: Response) => {
 
   const newId = await IdGen.next(Withdraw, 'id', 6);
 
+  // 减少用户的可用余额，并将金额转移到 frozenAmount
+  customer.usdtPlatform -= Number(amount);
+  await customer.save();
+
   const newWithdraw = new Withdraw({
     ...req.body,
     employee: customer.employee,
@@ -129,6 +133,7 @@ const addWithdraw = handleAsync(async (req: RequestCustom, res: Response) => {
     fee: feeAmount,
     finalAmount,
     isFrozen,
+    frozenAmount: Number(amount),
     status: 'pending',
   });
 
@@ -157,7 +162,7 @@ const getWithdrawById = handleAsync(async (req: Request, res: Response) => {
 // Update withdraw
 const updateWithdraw = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { isFrozen } = req.body;
+  const { isFrozen, status } = req.body;
 
   const withdraw = await Withdraw.findById(id);
   if (!withdraw) {
@@ -176,18 +181,18 @@ const updateWithdraw = handleAsync(async (req: Request, res: Response) => {
     throw new Error('已提现记录，不可更改');
   }
 
+  // 处理状态变更为拒绝的情况
+  if (status === 'rejected' && withdraw.status !== 'rejected') {
+    // 获取用户并返回冻结金额
+    const customerData = await Customer.findById(withdraw.customer);
+    if (customerData) {
+      customerData.usdtPlatform += withdraw.frozenAmount || 0;
+      await customerData.save();
+    }
+  }
+
   if (isFrozen) {
-    const customerExist = await Customer.findById(withdraw.customer);
-    if (!customerExist) {
-      res.status(404);
-      throw new Error('Customer not found');
-    }
-    if (customerExist.usdtPlatform < withdraw.amount) {
-      res.status(400);
-      throw new Error('USDT余额不足');
-    }
-    customerExist.usdtPlatform -= withdraw.amount;
-    await customerExist.save();
+    // 仅需将状态更新为已完成
     req.body.status = 'completed';
   }
 

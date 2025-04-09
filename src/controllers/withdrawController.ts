@@ -8,6 +8,7 @@ import { RequestCustom } from 'user';
 import { isProxy } from '../middlewares/authMiddleware';
 import User from '../models/user';
 import Setting from '../models/setting';
+import { filterCustomerAddress } from './incomeController';
 
 const buildQuery = async (
   queryParams: any,
@@ -38,27 +39,10 @@ const buildQuery = async (
 const getWithdraws = handleAsync(async (req: RequestCustom, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
-  const query = await buildQuery(req.query, req);
+  let query = await buildQuery(req.query, req);
 
   // 处理 customer 查询
-  if (req.query.customer) {
-    const customerDoc = await Customer.find({
-      address: {
-        $regex: JSON.parse(req.query.customer as string).address,
-        $options: 'i',
-      },
-    });
-
-    if (customerDoc.length > 0) {
-      query.customer = { $in: customerDoc.map((doc) => doc._id) };
-    } else {
-      res.json({
-        success: true,
-        data: [],
-      });
-      return;
-    }
-  }
+  query = await filterCustomerAddress(req, query, res);
 
   const withdraws = await Withdraw.find(query)
     .populate('customer')

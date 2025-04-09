@@ -46,11 +46,40 @@ const buildQuery = async (
   return query;
 };
 
+export const filterCustomerAddress = async (
+  req: RequestCustom,
+  query: any,
+  res: Response,
+) => {
+  if (req.query.customer) {
+    const customerDoc = await Customer.find({
+      address: {
+        $regex: JSON.parse(req.query.customer as string).address,
+        $options: 'i',
+      },
+    });
+
+    if (customerDoc.length > 0) {
+      query.customer = { $in: customerDoc.map((doc) => doc._id) };
+    } else {
+      res.json({
+        success: true,
+        data: [],
+      });
+      return;
+    }
+  }
+
+  return query;
+};
+
 // 获取所有收入记录
 const getIncomes = handleAsync(async (req: RequestCustom, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
-  const query = await buildQuery(req.query, req);
+  let query = await buildQuery(req.query, req);
+
+  query = await filterCustomerAddress(req, query, res);
 
   const incomes = await Income.find(query)
     .populate('customer')

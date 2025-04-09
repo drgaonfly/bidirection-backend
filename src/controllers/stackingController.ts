@@ -19,6 +19,22 @@ const buildQuery = async (
     query.toNetwork = queryParams.toNetwork;
   }
 
+  // fromAddress
+  if (queryParams.fromAddress) {
+    query.fromAddress = {
+      $regex: queryParams.fromAddress,
+      $options: 'i',
+    };
+  }
+
+  // toAddress
+  if (queryParams.toAddress) {
+    query.toAddress = {
+      $regex: queryParams.toAddress,
+      $options: 'i',
+    };
+  }
+
   if (isProxy(req.user)) {
     const employees = await User.find({ proxy: req.user._id });
     const employeeIds = employees.map((employee) => employee._id);

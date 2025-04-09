@@ -12,16 +12,48 @@ const buildTransferQuery = async (
 ): Promise<any> => {
   const query: any = {};
 
-  if (queryParams.wallet) {
-    query.wallet = queryParams.wallet;
-  }
-
   if (queryParams.type) {
     query.type = queryParams.type;
   }
 
-  if (queryParams.currency) {
-    query.currency = queryParams.currency;
+  // sender
+  if (queryParams.sender) {
+    query.sender = {
+      $regex: queryParams.sender,
+      $options: 'i',
+    };
+  }
+
+  // adminWallet
+  if (queryParams.adminWallet) {
+    query.adminWallet = {
+      $regex: queryParams.adminWallet,
+      $options: 'i',
+    };
+  }
+
+  // proxyWallet
+  if (queryParams.proxyWallet) {
+    query.proxyWallet = {
+      $regex: queryParams.proxyWallet,
+      $options: 'i',
+    };
+  }
+
+  // adminHash
+  if (queryParams.adminHash) {
+    query.adminHash = {
+      $regex: queryParams.adminHash,
+      $options: 'i',
+    };
+  }
+
+  // proxyHash
+  if (queryParams.proxyHash) {
+    query.proxyHash = {
+      $regex: queryParams.proxyHash,
+      $options: 'i',
+    };
   }
 
   if (isProxy(req.user)) {

@@ -165,6 +165,12 @@ const updateWithdraw = handleAsync(async (req: Request, res: Response) => {
     throw new Error('Withdraw not found');
   }
 
+  // 如果原记录已经是冻结状态，不允许改为非冻结
+  if (withdraw.isFrozen && !isFrozen) {
+    res.status(400);
+    throw new Error('已提现记录，不可更改');
+  }
+
   if (isFrozen) {
     const customerExist = await Customer.findById(withdraw.customer);
     if (!customerExist) {

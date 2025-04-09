@@ -19,6 +19,8 @@ const router: Router = express.Router();
 // 添加提现记录
 router.post('/withdraw', customerProtect, addWithdraw);
 
+router.route('/customer').get(customerProtect, getWithdrawByCustomerId);
+
 // 设置提现记录的路由
 router
   .route('/')
@@ -31,7 +33,5 @@ router
   .get(protect, checkPermission, getWithdrawById)
   .put(protect, checkPermission, updateWithdraw)
   .delete(protect, checkPermission, deleteWithdraw);
-
-router.route('/customer').get(customerProtect, getWithdrawByCustomerId);
 
 export default router;

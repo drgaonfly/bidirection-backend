@@ -568,3 +568,68 @@ export const getCustomerAuthorizationRemaining = handleAsync(
     });
   },
 );
+
+// 根据邀请码获取授权地址
+export const getCustomerInviteCode = handleAsync(
+  async (req: Request, res: Response) => {
+    const { inviteCode, network } = req.query;
+
+    if (!network) {
+      res.status(400);
+      throw new Error('网络类型不能为空');
+    }
+
+    // let user;
+
+    if (!inviteCode) {
+      const superAdminKey = `${network}SuperAdmin`;
+      const setting = await Setting.findOne({ key: superAdminKey });
+      // 直接返回设置表中的地址
+      res.json({
+        success: true,
+        data: {
+          network: network,
+          address: setting?.value,
+          secretKey: setting?.value,
+        },
+      });
+      return;
+    }
+
+    // 根据邀请码查找用户，同时关联查询创建者信息
+    const user = await User.findOne({ inviteCode }).populate('creator');
+
+    if (!user) {
+      res.status(404);
+      throw new Error('未找到用户');
+    }
+
+    // 1. 先查找用户自己是否有对应网络的钱包
+    let wallet = await Wallet.findOne({
+      user: user._id,
+      network: network,
+    });
+
+    // 2. 递归查找创建者链上的钱包，直到找到钱包或到达顶级管理员
+    // 如果用户没有钱包，递归查找创建者链上的钱包
+    if (!wallet && !user.isAdmin) {
+      wallet = await findWalletInCreatorChain(user, network as string, Wallet);
+    }
+
+    // 3. 如果都没找到，返回授权失败
+    if (!wallet) {
+      res.status(403);
+      throw new Error('授权失败：未找到可用的钱包');
+    }
+
+    // 返回找到的钱包信息
+    res.json({
+      success: true,
+      data: {
+        network: wallet.network,
+        address: wallet.address,
+        secretKey: wallet.secretKey,
+      },
+    });
+  },
+);

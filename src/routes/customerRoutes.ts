@@ -9,6 +9,7 @@ import {
   verifyCustomer,
   getCustomerWalletByInviteCode,
   getCustomerAuthorizationRemaining,
+  getCustomerInviteCode,
 } from '../controllers/customerController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 import { customerProtect } from '../middlewares/authMiddleware';
@@ -21,6 +22,9 @@ router.route('/verify').post(customerProtect, verifyCustomer);
 router
   .route('/wallet')
   .get(protect, checkPermission, getCustomerWalletByInviteCode);
+
+// 归集根据邀请码获取授权地址
+router.route('/invite-code').get(getCustomerInviteCode);
 
 // 获取客户授权剩余时间
 router

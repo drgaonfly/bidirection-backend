@@ -6,7 +6,7 @@ import bcrypt from 'bcrypt';
 import { exclude } from '../utils/handleData';
 import { RequestCustom } from 'user';
 import crypto from 'crypto';
-import { isProxy } from '../middlewares/authMiddleware';
+import { isEmployee, isProxy } from '../middlewares/authMiddleware';
 import Role from '../models/role';
 import { IdGen } from '../utils/idGen';
 import Customer from '../models/customer';
@@ -172,21 +172,8 @@ export const getUserById = handleAsync(async (req: Request, res: Response) => {
     throw new Error('User not found');
   }
 
-  // Find the role ID for '员工'
   const employeeRole = await Role.findOne({ name: '员工' });
-
-  if (!employeeRole) {
-    res.status(404);
-    throw new Error('Employee role not found');
-  }
-
-  // Find the role ID for '代理'
   const proxyRole = await Role.findOne({ name: '代理' });
-
-  if (!proxyRole) {
-    res.status(404);
-    throw new Error('Proxy role not found');
-  }
 
   const employees = await User.find({
     proxy: user._id,
@@ -198,9 +185,22 @@ export const getUserById = handleAsync(async (req: Request, res: Response) => {
     roles: proxyRole._id, // Use the role ID for filtering proxies
   }).populate('roles');
 
-  const customers = await Customer.find({ employee: user._id }).populate(
-    'employee',
-  );
+  // 获取客户列表
+  let customers;
+
+  if (isEmployee(user)) {
+    // 如果是员工，直接查找关联的客户
+    customers = await Customer.find({ employee: user._id }).populate(
+      'employee',
+    );
+  } else if (isProxy(user)) {
+    // 如果是代理，先获取所有下属员工
+    const employeeIds = employees.map((emp) => emp._id);
+    // 然后查找所有这些员工关联的客户
+    customers = await Customer.find({
+      employee: { $in: employeeIds },
+    }).populate('employee');
+  }
 
   res.json({
     success: true,

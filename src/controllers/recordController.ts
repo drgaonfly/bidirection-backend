@@ -72,7 +72,7 @@ const getRecordsByCustomerId = handleAsync(
       type: req.body.type,
     })
       .populate('customer')
-      .sort('-createdAt')
+      .sort({ createdAt: 1 })
       .exec();
 
     res.json({

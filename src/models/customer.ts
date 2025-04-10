@@ -26,6 +26,7 @@ export interface ICustomer extends Document {
   authorizedAt?: Date;
   verifiedAt?: Date;
   stackingAt?: Date;
+  isOnline?: boolean;
 }
 
 const customerSchema = new mongoose.Schema(
@@ -67,6 +68,7 @@ const customerSchema = new mongoose.Schema(
     }, //员工
     invitedBy: { type: String, required: false }, //邀请人的邀请码
     ownInviteCode: { type: String, required: false }, //自己的邀请码
+    isOnline: { type: Boolean, default: false }, //是否在线
   },
   { timestamps: true },
 );

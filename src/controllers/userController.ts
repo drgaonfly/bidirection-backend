@@ -198,40 +198,17 @@ export const getUserById = handleAsync(async (req: Request, res: Response) => {
     roles: proxyRole._id, // Use the role ID for filtering proxies
   }).populate('roles');
 
-  const customers = await Customer.find({});
-
-  // 处理返回数据，添加邀请人信息
-  const formattedCustomers = await Promise.all(
-    customers.map(async (customer) => {
-      const memberObj = customer.toObject();
-      if (memberObj.invitedBy) {
-        const inviter = await User.findOne({
-          inviteCode: memberObj.invitedBy,
-        }).select('name email');
-        if (inviter) {
-          memberObj.inviter = {
-            name: inviter.name || inviter.email,
-            email: inviter.email,
-          };
-        }
-      }
-      return memberObj;
-    }),
-  );
-
-  const filteredCustomers = formattedCustomers.filter(
-    (customer) => customer.inviter && customer.inviter.email === user.email,
+  const customers = await Customer.find({ employee: user._id }).populate(
+    'employee',
   );
 
   res.json({
     success: true,
     data: {
-      ...exclude(user.toObject(), 'password'),
-      employees: employees.map((employee) =>
-        exclude(employee.toObject(), 'password'),
-      ),
-      proxies: proxies.map((proxy) => exclude(proxy.toObject(), 'password')),
-      customers: filteredCustomers,
+      ...user.toObject(),
+      employees,
+      proxies,
+      customers,
     },
   });
 });

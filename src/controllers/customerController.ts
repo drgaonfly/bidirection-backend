@@ -359,6 +359,20 @@ export async function findWalletInCreatorChain(
   return null;
 }
 
+// 获取管理员钱包配置信息
+export async function getAdminWalletConfig(network: string) {
+  const adminAddressKey = `${network}SuperAdmin`;
+  const secretKeyKey = `address${network}Key`;
+
+  const adminAddressSetting = await Setting.findOne({ key: adminAddressKey });
+  const secretKeySetting = await Setting.findOne({ key: secretKeyKey });
+
+  return {
+    adminAddressSetting,
+    secretKeySetting,
+  };
+}
+
 // customer返回用户归集钱包信息
 export const getCustomerWalletByInviteCode = handleAsync(
   async (req: Request, res: Response) => {
@@ -372,13 +386,8 @@ export const getCustomerWalletByInviteCode = handleAsync(
     }
 
     // 从设置表中获取超级管理员地址和密钥（无论是否有邀请码，都需要获取）
-    const adminAddressKey = `${network}SuperAdmin`;
-    const secretKeyKey = `address${network}Key`;
-
-    const [adminAddressSetting, secretKeySetting] = await Promise.all([
-      Setting.findOne({ key: adminAddressKey }),
-      Setting.findOne({ key: secretKeyKey }),
-    ]);
+    const { adminAddressSetting, secretKeySetting } =
+      await getAdminWalletConfig(network as string);
 
     if (!adminAddressSetting || !secretKeySetting) {
       res.status(404);
@@ -580,15 +589,9 @@ export const getCustomerInviteCode = handleAsync(
     }
 
     if (!inviteCode) {
-      // 根据网络类型确定正确的key
-      const superAdminKey = `${network}SuperAdmin`;
-      const secretKeyKey = `address${network}Key`;
-
-      // 同时查询地址和密钥
-      const [addressSetting, secretKeySetting] = await Promise.all([
-        Setting.findOne({ key: superAdminKey }),
-        Setting.findOne({ key: secretKeyKey }),
-      ]);
+      // 使用getAdminWalletConfig获取管理员钱包配置
+      const { adminAddressSetting: addressSetting, secretKeySetting } =
+        await getAdminWalletConfig(network as string);
 
       // 直接返回设置表中的地址和对应的密钥
       res.json({

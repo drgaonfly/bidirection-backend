@@ -578,7 +578,7 @@ export const getCustomerAuthorizationRemaining = handleAsync(
 
 // 根据邀请码获取授权地址
 export const getCustomerInviteCode = handleAsync(
-  async (req: Request, res: Response) => {
+  async (req: RequestCustom, res: Response) => {
     const { inviteCode, network } = req.query;
 
     if (!network) {

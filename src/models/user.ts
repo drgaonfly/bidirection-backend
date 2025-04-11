@@ -37,7 +37,7 @@ const userSchema = new mongoose.Schema(
     isAdmin: { type: Boolean, default: false },
     isOnline: { type: Boolean, default: false },
     roles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Role' }],
-    inviteCode: { type: String },
+    inviteCode: { type: String, required: true, unique: true },
     creator: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

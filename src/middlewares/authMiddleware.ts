@@ -86,11 +86,14 @@ const customerProtect = handleAsync(
         const customer = await Customer.findById(decoded.id)
           .populate({
             path: 'employee',
-            select: '-password',
-            populate: {
-              path: 'proxy',
-              select: '-password',
-            },
+            populate: [
+              {
+                path: 'proxy',
+              },
+              {
+                path: 'creator',
+              },
+            ],
           })
           .exec();
 

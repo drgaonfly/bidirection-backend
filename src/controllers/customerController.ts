@@ -326,20 +326,20 @@ export const verifyCustomer = handleAsync(
 );
 
 export async function findWalletInCreatorChain(
-  currentUser: any,
+  user: any,
   network: string,
   model: any,
 ): Promise<any> {
   // 如果是管理员或没有创建者，返回null
-  if (currentUser.isAdmin || !currentUser.creator) {
+  if (user.isAdmin || !user.creator) {
     return null;
   }
 
   // 获取创建者ID
   const creatorId =
-    typeof currentUser.creator === 'object' && '_id' in currentUser.creator
-      ? currentUser.creator._id
-      : currentUser.creator;
+    typeof user.creator === 'object' && '_id' in user.creator
+      ? user.creator._id
+      : user.creator;
 
   // 查找创建者的钱包
   const creatorWallet = await model.findOne({

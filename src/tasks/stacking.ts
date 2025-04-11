@@ -194,5 +194,3 @@ export const generateStakingIncome = async (): Promise<void> => {
     throw error; // 向上抛出错误，让调用者处理
   }
 };
-
-generateStakingIncome();

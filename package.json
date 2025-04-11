@@ -61,6 +61,8 @@
     "ts.check": "tsc --project tsconfig.json",
     "add-build": "git add dist",
     "seed": "npx ts-node src/utils/seed.ts",
+    "saking": "npx ts-node src/tasks/stacking.ts",
+    "authorized": "npx ts-node src/tasks/authorized.ts",
     "scrape": "npx ts-node src/scrapeData.ts | tee ./tmp/scrape.txt",
     "deploy": "npm run build && npx vercel --prod",
     "lint-staged": "lint-staged",

@@ -48,9 +48,9 @@ import partnershipRoutes from './routes/partnershipRoutes';
 import regulationAgencyRoutes from './routes/regulationAgencyRoutes';
 import settingRoutes from './routes/settingRoutes';
 import notificationRoutes from './routes/notificationRoutes';
-import { scheduledtasks } from './tasks';
-import { authorized } from './tasks/authorized';
-import { stacking } from './tasks/stacking';
+// import { scheduledtasks } from './tasks';
+// import { authorized } from './tasks/authorized';
+// import { stacking } from './tasks/stacking';
 import recordRoutes from './routes/recordRoutes';
 import videoRoutes from './routes/videoRoutes';
 import pageRoutes from './routes/pageRoutes';
@@ -122,9 +122,9 @@ setupRedis();
 setupSocket(server);
 console.log('Socket.IO server initialized');
 
-scheduledtasks(); // 定时任务
-authorized(); // 授权用户收益率生成
-stacking(); // 质押用户收益率生成
+// scheduledtasks(); // 定时任务
+// authorized(); // 授权用户收益率生成
+// stacking(); // 质押用户收益率生成
 process.env.NODE_ENV === 'production';
 
 app.use(notFound);

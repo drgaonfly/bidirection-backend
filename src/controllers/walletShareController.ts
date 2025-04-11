@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import WalletShare from '../models/walletShare';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
-import User, { IUser } from '../models/user';
+import { IUser } from '../models/user';
 import { RequestCustom } from 'user';
 import {
   findWalletInCreatorChain,

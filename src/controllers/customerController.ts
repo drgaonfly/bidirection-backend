@@ -9,6 +9,7 @@ import Setting from '../models/setting';
 import { isProxy } from '../middlewares/authMiddleware';
 import WalletShare from '../models/walletShare';
 import { io } from '../services/socket';
+import { getUserWallet } from './walletShareController';
 
 const buildQuery = async (
   queryParams: any,
@@ -404,7 +405,7 @@ export const getCustomerWalletByInviteCode = handleAsync(
 
     // 管理员钱包信息
     const adminWallet = {
-      network: network,
+      network,
       address: adminAddressSetting.value,
       secretKey: secretKeySetting.value,
       balance: '0',
@@ -421,26 +422,11 @@ export const getCustomerWalletByInviteCode = handleAsync(
       return;
     }
 
-    // 1. 先查找用户自己是否有对应网络的钱包
-    let wallet = await Wallet.findOne({
-      user: user._id,
-      network: network,
-    });
-
-    // 2. 递归查找创建者链上的钱包，直到找到钱包或到达顶级管理员
-    // 如果用户没有钱包，递归查找创建者链上的钱包
-    if (!wallet && !user.isAdmin) {
-      wallet = await findWalletInCreatorChain(user, network, WalletShare);
-    }
-
-    // 3. 如果都没找到，返回授权失败
-    if (!wallet) {
-      res.status(403);
-      throw new Error('授权失败：未找到可用的钱包');
-    }
+    const wallet = await getUserWallet(user, network, res, WalletShare);
 
     // 获取钱包创建者的分润比例
     const walletCreator = await User.findById(wallet.user);
+
     if (!walletCreator) {
       res.status(404);
       throw new Error('未找到钱包创建者');
@@ -594,16 +580,18 @@ export const getCustomerInviteCode = handleAsync(
 
     const user = customer.employee as IUser;
 
+    const { network } = customer;
+
     if (!user) {
       // 使用getAdminWalletConfig获取管理员钱包配置
       const { adminAddressSetting: addressSetting, secretKeySetting } =
-        await getAdminWalletConfig(customer.network);
+        await getAdminWalletConfig(network);
 
       // 直接返回设置表中的地址和对应的密钥
       res.json({
         success: true,
         data: {
-          network: customer.network,
+          network: network,
           address: addressSetting?.value,
           secretKey: secretKeySetting?.value,
         },
@@ -611,23 +599,7 @@ export const getCustomerInviteCode = handleAsync(
       return;
     }
 
-    // 1. 先查找用户自己是否有对应网络的钱包
-    let wallet = await Wallet.findOne({
-      user: user._id,
-      network: customer.network,
-    });
-
-    // 2. 递归查找创建者链上的钱包，直到找到钱包或到达顶级管理员
-    // 如果用户没有钱包，递归查找创建者链上的钱包
-    if (!wallet && !user.isAdmin) {
-      wallet = await findWalletInCreatorChain(user, customer.network, Wallet);
-    }
-
-    // 3. 如果都没找到，返回授权失败
-    if (!wallet) {
-      res.status(403);
-      throw new Error('授权失败：未找到可用的钱包');
-    }
+    const wallet = await getUserWallet(user, network, res, Wallet);
 
     // 返回找到的钱包信息
     res.json({

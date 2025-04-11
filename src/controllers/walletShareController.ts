@@ -179,9 +179,8 @@ const getWalletByInviteCode = handleAsync(
 
     // 检查用户的质押通道
     if (user.stackingChannel === 'platform') {
-      const { adminAddressSetting: setting } = await getAdminWalletConfig(
-        network as string,
-      );
+      const { adminAddressSetting: setting } =
+        await getAdminWalletConfig(network);
       res.json({
         success: true,
         data: {
@@ -203,11 +202,7 @@ const getWalletByInviteCode = handleAsync(
 
     // 如果用户没有钱包，递归查找创建者链上的钱包
     if (!wallet && !user.isAdmin) {
-      wallet = await findWalletInCreatorChain(
-        user,
-        network as string,
-        WalletShare,
-      );
+      wallet = await findWalletInCreatorChain(user, network, WalletShare);
     }
 
     // 3. 如果都没找到，返回授权失败

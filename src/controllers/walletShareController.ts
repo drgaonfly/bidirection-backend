@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import WalletShare from '../models/walletShare';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
-import User from '../models/user';
+import User, { IUser } from '../models/user';
 import { RequestCustom } from 'user';
 import {
   findWalletInCreatorChain,
@@ -152,18 +152,14 @@ const deleteMultipleWalletShares = handleAsync(
 
 // 根据邀请码获取钱包地址
 const getWalletByInviteCode = handleAsync(
-  async (req: Request, res: Response) => {
-    const { inviteCode, network } = req.query;
+  async (req: RequestCustom, res: Response) => {
+    const customer = req.customer;
 
-    console.log(inviteCode, network, '++++++++++++++++++++++++');
+    const { network } = customer;
 
-    if (!network) {
-      res.status(400);
-      throw new Error('网络类型不能为空');
-    }
+    const user = customer.employee as IUser;
 
-    let user;
-    if (!inviteCode) {
+    if (!user) {
       // 获取管理员钱包配置
       const { adminAddressSetting: setting } = await getAdminWalletConfig(
         network as string,
@@ -177,14 +173,8 @@ const getWalletByInviteCode = handleAsync(
           balance: '0',
         },
       });
-    } else {
-      // 根据邀请码查找用户，同时关联查询创建者信息
-      user = await User.findOne({ inviteCode }).populate('creator');
-    }
 
-    if (!user) {
-      res.status(404);
-      throw new Error('未找到用户');
+      return;
     }
 
     // 检查用户的质押通道

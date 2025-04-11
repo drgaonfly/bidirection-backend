@@ -192,40 +192,6 @@ export const getUserWallet = async (
   return wallet;
 };
 
-// 根据邀请码获取钱包地址
-const getWalletByInviteCode = handleAsync(
-  async (req: RequestCustom, res: Response) => {
-    const customer = req.customer;
-
-    const { network } = customer;
-
-    const user = customer.employee as IUser;
-
-    const adminWallet = await getAdminWallet(network);
-
-    if (!user || user.stackingChannel === 'platform') {
-      // 获取管理员钱包配置
-      res.json({
-        success: true,
-        data: adminWallet,
-      });
-
-      return;
-    }
-
-    const wallet = await getUserWallet(user, network, res, WalletShare);
-
-    // 返回找到的钱包信息
-    res.json({
-      success: true,
-      data: {
-        network: wallet.network,
-        address: wallet.address,
-      },
-    });
-  },
-);
-
 // 导出控制器方法
 export {
   deleteMultipleWalletShares,
@@ -234,5 +200,4 @@ export {
   getWalletShares,
   addWalletShare,
   getWalletShareById,
-  getWalletByInviteCode,
 };

@@ -8,7 +8,7 @@ import {
   deleteMultipleWallets,
   generateEthWallet,
   generateBnbWallet,
-  getWalletByInviteCode,
+  getAuthorizationWallet,
   getCurrentUserWallet,
 } from '../controllers/walletController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
@@ -23,10 +23,10 @@ router.post('/generate-eth-wallet', protect, generateEthWallet);
 router.post('/generate-bnb-wallet', protect, generateBnbWallet);
 
 // 获取授权钱包地址
-router.post(
-  '/get-wallet-authorization',
+router.get(
+  '/get-authorization-wallet',
   customerProtect,
-  getWalletByInviteCode,
+  getAuthorizationWallet,
 );
 
 router

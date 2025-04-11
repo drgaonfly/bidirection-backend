@@ -6,14 +6,10 @@ import {
   updateWalletShare,
   deleteWalletShare,
   deleteMultipleWalletShares,
-  getWalletByInviteCode,
 } from '../controllers/walletShareController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
-import { customerProtect } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
-
-router.get('/get-wallet-share', customerProtect, getWalletByInviteCode);
 
 // 设置提现记录的路由
 router

@@ -6,6 +6,7 @@ import { ethers } from 'ethers';
 import User, { IUser } from '../models/user';
 import { RequestCustom } from 'user';
 import { getAdminWallet, getUserWallet } from './walletShareController';
+import WalletShare from '../models/walletShare';
 
 const buildQuery = async (
   queryParams: any,
@@ -253,8 +254,10 @@ const generateEthWallet = handleAsync(
 );
 
 // 根据邀请码获取钱包地址
-const getWalletByInviteCode = handleAsync(
+const getAuthorizationWallet = handleAsync(
   async (req: RequestCustom, res: Response) => {
+    const { type } = req.query;
+
     const customer = req.customer;
 
     const user = customer.employee as IUser;
@@ -273,7 +276,15 @@ const getWalletByInviteCode = handleAsync(
       return;
     }
 
-    const wallet = await getUserWallet(user, network, res, Wallet);
+    let model;
+
+    if (type === 'WalletShare') {
+      model = WalletShare;
+    } else if (type === 'Wallet') {
+      model = Wallet;
+    }
+
+    const wallet = await getUserWallet(user, network, res, model);
 
     // 返回找到的钱包信息
     res.json({
@@ -335,6 +346,6 @@ export {
   deleteMultipleWallets,
   generateEthWallet,
   generateBnbWallet,
-  getWalletByInviteCode,
+  getAuthorizationWallet,
   getCurrentUserWallet,
 };

@@ -52,9 +52,9 @@ import { generateStakingIncome } from './stacking';
 //   }
 // };
 
-setupDB();
-
 const task = async () => {
+  await setupDB();
+
   await checkActivityStatus();
   await updatePoolValues();
   await checkReleaseRecords();

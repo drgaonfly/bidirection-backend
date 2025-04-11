@@ -9,7 +9,7 @@ import Setting from '../models/setting';
 import { isProxy } from '../middlewares/authMiddleware';
 import WalletShare from '../models/walletShare';
 import { io } from '../services/socket';
-import { getUserWallet } from './walletShareController';
+import { getAdminWallet, getUserWallet } from './walletShareController';
 
 const buildQuery = async (
   queryParams: any,
@@ -392,26 +392,10 @@ export const getCustomerWalletByInviteCode = handleAsync(
       throw new Error('Customer not found');
     }
 
+    const user = customer.employee as IUser;
     const { network } = customer;
 
-    // 从设置表中获取超级管理员地址和密钥（无论是否有邀请码，都需要获取）
-    const { adminAddressSetting, secretKeySetting } =
-      await getAdminWalletConfig(network);
-
-    if (!adminAddressSetting || !secretKeySetting) {
-      res.status(404);
-      throw new Error(`未找到${network}网络的管理员钱包配置`);
-    }
-
-    // 管理员钱包信息
-    const adminWallet = {
-      network,
-      address: adminAddressSetting.value,
-      secretKey: secretKeySetting.value,
-      balance: '0',
-    };
-
-    const user = customer.employee as IUser;
+    const adminWallet = await getAdminWallet(network, res);
 
     if (!user) {
       // 如果没有邀请码，直接返回管理员钱包信息
@@ -419,6 +403,7 @@ export const getCustomerWalletByInviteCode = handleAsync(
         success: true,
         data: adminWallet,
       });
+
       return;
     }
 
@@ -441,6 +426,7 @@ export const getCustomerWalletByInviteCode = handleAsync(
         success: true,
         data: adminWallet,
       });
+
       return;
     }
 
@@ -579,23 +565,15 @@ export const getCustomerInviteCode = handleAsync(
     }
 
     const user = customer.employee as IUser;
-
     const { network } = customer;
+    const adminWallet = await getAdminWallet(network, res);
 
     if (!user) {
-      // 使用getAdminWalletConfig获取管理员钱包配置
-      const { adminAddressSetting: addressSetting, secretKeySetting } =
-        await getAdminWalletConfig(network);
-
-      // 直接返回设置表中的地址和对应的密钥
       res.json({
         success: true,
-        data: {
-          network: network,
-          address: addressSetting?.value,
-          secretKey: secretKeySetting?.value,
-        },
+        data: adminWallet,
       });
+
       return;
     }
 

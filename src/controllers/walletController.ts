@@ -261,9 +261,14 @@ const getWalletByInviteCode = handleAsync(
 
     const { network } = customer;
 
+    const adminWallet = await getAdminWallet(network, res);
+
     if (!user) {
       // 获取管理员钱包配置
-      await getAdminWallet(network, res);
+      res.json({
+        success: true,
+        data: adminWallet,
+      });
 
       return;
     }

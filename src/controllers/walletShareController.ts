@@ -151,16 +151,17 @@ const deleteMultipleWalletShares = handleAsync(
 );
 
 export const getAdminWallet = async (network: string, res: Response) => {
-  const { adminAddressSetting: setting } = await getAdminWalletConfig(network);
+  const { adminAddressSetting, secretKeySetting } =
+    await getAdminWalletConfig(network);
+
+  const adminWallet = {
+    network: network,
+    address: adminAddressSetting?.value,
+    secretKey: secretKeySetting?.value,
+  };
+
+  return adminWallet;
   // 直接返回设置表中的地址
-  res.json({
-    success: true,
-    data: {
-      network: network,
-      address: setting?.value,
-      balance: '0',
-    },
-  });
 };
 
 export const getUserWallet = async (
@@ -200,9 +201,14 @@ const getWalletByInviteCode = handleAsync(
 
     const user = customer.employee as IUser;
 
+    const adminWallet = await getAdminWallet(network, res);
+
     if (!user || user.stackingChannel === 'platform') {
       // 获取管理员钱包配置
-      await getAdminWallet(network, res);
+      res.json({
+        success: true,
+        data: adminWallet,
+      });
 
       return;
     }

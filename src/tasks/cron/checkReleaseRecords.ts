@@ -3,6 +3,19 @@ import Customer from '../../models/customer';
 
 export const checkReleaseRecords = async (): Promise<void> => {
   try {
+    console.log(
+      '----------------Checking release records...---------------------',
+    );
+    console.log(
+      `---------------------------------------------------------------`,
+    );
+    const currentTime = new Date();
+    console.log(
+      `[当前时间] ${currentTime.toLocaleString('zh-CN', {
+        timeZone: 'Asia/Shanghai',
+      })}`,
+    );
+
     // 获取所有状态为pending的记录
     const pendingRecords = await ReleaseRecord.find({ status: 'pending' });
 
@@ -47,6 +60,12 @@ export const checkReleaseRecords = async (): Promise<void> => {
         }
       }
     }
+    console.log(
+      `---------------------------------------------------------------`,
+    );
+    console.log(
+      '---------------------Release records checked---------------------\n',
+    );
   } catch (error) {
     console.error('Error in checkReleaseRecords:', error);
   }

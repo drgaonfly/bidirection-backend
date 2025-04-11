@@ -61,17 +61,17 @@ export const generateFlowingIncome = async (): Promise<void> => {
       return;
     }
 
-    const intervalHours = parseInt(authorizationSetting.value);
+    const intervalHours = parseFloat(authorizationSetting.value);
     console.log(
       `[系统配置] 流动性收益间隔时间: ${intervalHours} 小时, 原始值: ${authorizationSetting.value}`,
     ); // 显示原始值和解析后的值
 
-    if (isNaN(intervalHours) || intervalHours <= 0) {
-      console.error(
-        `[配置错误] 授权收益间隔时间设置无效: ${authorizationSetting.value} -> ${intervalHours}`,
-      ); // 显示转换前后的值
-      return;
-    }
+    // if (isNaN(intervalHours) || intervalHours <= 0) {
+    //   console.error(
+    //     `[配置错误] 授权收益间隔时间设置无效: ${authorizationSetting.value} -> ${intervalHours}`,
+    //   ); // 显示转换前后的值
+    //   return;
+    // }
 
     // 查找所有已授权或已验证的用户
     const authorizedCustomers = await Customer.find({

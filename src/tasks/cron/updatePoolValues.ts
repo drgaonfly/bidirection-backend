@@ -3,6 +3,8 @@ import Setting from '../../models/setting';
 // 更新池子数值的函数
 export const updatePoolValues = async (): Promise<void> => {
   try {
+    console.log('Updating values...');
+    console.log('-------------------------');
     // 获取所有设置项
     const settings = await Setting.find();
 
@@ -75,6 +77,7 @@ export const updatePoolValues = async (): Promise<void> => {
     }
 
     console.log('All values updated successfully');
+    console.log('-------------------------');
   } catch (error) {
     console.error('Error updating values:', error);
   }

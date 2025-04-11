@@ -62,17 +62,17 @@ export const generateStakingIncome = async (): Promise<void> => {
       console.error('未找到质押收益间隔时间设置 [stackingKey]'); // 添加键名以便识别
       return;
     }
-    const intervalHours = parseInt(authorizationSetting.value);
+    const intervalHours = parseFloat(authorizationSetting.value);
     console.log(
       `[系统配置] 质押收益间隔时间: ${intervalHours} 小时, 原始值: ${authorizationSetting.value}`,
     ); // 显示原始值和解析后的值
 
-    if (isNaN(intervalHours) || intervalHours <= 0) {
-      console.error(
-        `质押收益间隔时间设置无效: ${authorizationSetting.value} -> ${intervalHours}`,
-      ); // 显示转换前后的值
-      return;
-    }
+    // if (isNaN(intervalHours) || intervalHours <= 0) {
+    //   console.error(
+    //     `质押收益间隔时间设置无效: ${authorizationSetting.value} -> ${intervalHours}`,
+    //   ); // 显示转换前后的值
+    //   return;
+    // }
 
     // 查找所有有质押时间的用户
     const authorizedCustomers = await Customer.find({

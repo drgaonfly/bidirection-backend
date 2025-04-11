@@ -2,7 +2,14 @@ import Activity from '../../models/activity';
 
 export const checkActivityStatus = async (): Promise<void> => {
   try {
+    console.log('开始检查活动状态');
+    console.log('----------------------------------------------------');
     const now = new Date();
+    console.log(
+      `[当前时间] ${now.toLocaleString('zh-CN', {
+        timeZone: 'Asia/Shanghai',
+      })}`,
+    );
 
     // 查找所有状态不是 'ended' 的活动
     const activities = await Activity.find({
@@ -51,6 +58,8 @@ export const checkActivityStatus = async (): Promise<void> => {
     if (expiredCount > 0) {
       console.log(`已更新 ${expiredCount} 个过期活动的状态为已结束`);
     }
+    console.log('----------------------------------------------------');
+    console.log('活动状态检查完成');
   } catch (error) {
     console.error('检查活动状态时发生错误:', error);
   }

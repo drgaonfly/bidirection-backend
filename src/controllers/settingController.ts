@@ -155,7 +155,10 @@ export const getStatistics = handleAsync(
     // Create a map for easy value lookup
     const settingsMap = settingsData
       .map((setting) => ({
-        [setting.key]: parseFloat(setting.value),
+        [setting.key]:
+          setting.key === 'participants'
+            ? parseInt(setting.value)
+            : parseFloat(setting.value),
       }))
       .reduce((acc, curr) => ({ ...acc, ...curr }), {});
 

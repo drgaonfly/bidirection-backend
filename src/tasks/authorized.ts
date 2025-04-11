@@ -1,4 +1,3 @@
-import cron from 'node-cron';
 import Income from '../models/income';
 import Customer from '../models/customer';
 import LiquidityBenefits from '../models/liquidity';

@@ -125,7 +125,6 @@ console.log('Socket.IO server initialized');
 scheduledtasks(); // 定时任务
 // authorized(); // 授权用户收益率生成
 // stacking(); // 质押用户收益率生成
-process.env.NODE_ENV === 'production';
 
 app.use(notFound);
 app.use(errorHandler);

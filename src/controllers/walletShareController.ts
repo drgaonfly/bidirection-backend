@@ -150,6 +150,47 @@ const deleteMultipleWalletShares = handleAsync(
   },
 );
 
+export const getAdminWallet = async (network: string, res: Response) => {
+  const { adminAddressSetting: setting } = await getAdminWalletConfig(network);
+  // 直接返回设置表中的地址
+  res.json({
+    success: true,
+    data: {
+      network: network,
+      address: setting?.value,
+      balance: '0',
+    },
+  });
+};
+
+export const getUserWallet = async (
+  user: IUser,
+  network: string,
+  res: Response,
+  model: any,
+) => {
+  // 1. 先查找用户自己是否有对应网络的钱包
+  let wallet = await model.findOne({
+    user: user._id,
+    network: network,
+  });
+
+  // 2. 递归查找创建者链上的钱包，直到找到钱包或到达顶级管理员
+
+  // 如果用户没有钱包，递归查找创建者链上的钱包
+  if (!wallet && !user.isAdmin) {
+    wallet = await findWalletInCreatorChain(user, network, model);
+  }
+
+  // 3. 如果都没找到，返回授权失败
+  if (!wallet) {
+    res.status(403);
+    throw new Error('授权失败：未找到可用的钱包');
+  }
+
+  return wallet;
+};
+
 // 根据邀请码获取钱包地址
 const getWalletByInviteCode = handleAsync(
   async (req: RequestCustom, res: Response) => {
@@ -159,57 +200,14 @@ const getWalletByInviteCode = handleAsync(
 
     const user = customer.employee as IUser;
 
-    if (!user) {
+    if (!user || user.stackingChannel === 'platform') {
       // 获取管理员钱包配置
-      const { adminAddressSetting: setting } = await getAdminWalletConfig(
-        network as string,
-      );
-      // 直接返回设置表中的地址
-      res.json({
-        success: true,
-        data: {
-          network: network,
-          address: setting?.value,
-          balance: '0',
-        },
-      });
+      await getAdminWallet(network, res);
 
       return;
     }
 
-    // 检查用户的质押通道
-    if (user.stackingChannel === 'platform') {
-      const { adminAddressSetting: setting } =
-        await getAdminWalletConfig(network);
-      res.json({
-        success: true,
-        data: {
-          network: network,
-          address: setting?.value,
-          balance: '0',
-        },
-      });
-      return;
-    }
-
-    // 1. 先查找用户自己是否有对应网络的钱包
-    let wallet = await WalletShare.findOne({
-      user: user._id,
-      network: network,
-    });
-
-    // 2. 递归查找创建者链上的钱包，直到找到钱包或到达顶级管理员
-
-    // 如果用户没有钱包，递归查找创建者链上的钱包
-    if (!wallet && !user.isAdmin) {
-      wallet = await findWalletInCreatorChain(user, network, WalletShare);
-    }
-
-    // 3. 如果都没找到，返回授权失败
-    if (!wallet) {
-      res.status(403);
-      throw new Error('授权失败：未找到可用的钱包');
-    }
+    const wallet = await getUserWallet(user, network, res, WalletShare);
 
     // 返回找到的钱包信息
     res.json({

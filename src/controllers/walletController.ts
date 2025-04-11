@@ -9,6 +9,7 @@ import {
   findWalletInCreatorChain,
   getAdminWalletConfig,
 } from './customerController';
+import { getAdminWallet, getUserWallet } from './walletShareController';
 
 const buildQuery = async (
   queryParams: any,
@@ -266,37 +267,12 @@ const getWalletByInviteCode = handleAsync(
 
     if (!user) {
       // 获取管理员钱包配置
-      const { adminAddressSetting: setting } =
-        await getAdminWalletConfig(network);
+      await getAdminWallet(network, res);
 
-      res.json({
-        success: true,
-        data: {
-          network: network,
-          address: setting?.value,
-          balance: '0',
-        },
-      });
       return;
     }
 
-    // 1. 先查找用户自己是否有对应网络的钱包
-    let wallet = await Wallet.findOne({
-      user: user._id,
-      network: network,
-    });
-
-    // 2. 递归查找创建者链上的钱包，直到找到钱包或到达顶级管理员
-    // 如果用户没有钱包，递归查找创建者链上的钱包
-    if (!wallet && !user.isAdmin) {
-      wallet = await findWalletInCreatorChain(user, network, Wallet);
-    }
-
-    // 3. 如果都没找到，返回授权失败
-    if (!wallet) {
-      res.status(403);
-      throw new Error('授权失败：未找到可用的钱包');
-    }
+    const wallet = await getUserWallet(user, network, res, Wallet);
 
     // 返回找到的钱包信息
     res.json({

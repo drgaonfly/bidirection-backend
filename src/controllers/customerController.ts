@@ -327,7 +327,7 @@ export const verifyCustomer = handleAsync(
 export async function findWalletInCreatorChain(
   currentUser: any,
   network: string,
-  WalletShare: any,
+  model: any,
 ): Promise<any> {
   // 如果是管理员或没有创建者，返回null
   if (currentUser.isAdmin || !currentUser.creator) {
@@ -341,7 +341,7 @@ export async function findWalletInCreatorChain(
       : currentUser.creator;
 
   // 查找创建者的钱包
-  const creatorWallet = await WalletShare.findOne({
+  const creatorWallet = await model.findOne({
     user: creatorId,
     network: network,
   });
@@ -352,8 +352,9 @@ export async function findWalletInCreatorChain(
 
   // 如果创建者没有钱包，递归查找创建者的创建者
   const creator = await User.findById(creatorId).populate('creator');
+
   if (creator) {
-    return findWalletInCreatorChain(creator, network, WalletShare);
+    return findWalletInCreatorChain(creator, network, model);
   }
 
   return null;

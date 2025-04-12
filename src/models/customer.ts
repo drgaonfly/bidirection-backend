@@ -28,6 +28,7 @@ export interface ICustomer extends Document {
   stackingAt?: Date;
   isOnline?: boolean;
   frozenAmount: number;
+  stakingFrozenAmount: number;
 }
 
 const customerSchema = new mongoose.Schema(
@@ -48,7 +49,8 @@ const customerSchema = new mongoose.Schema(
     usdtStaking: { type: Number, default: 0 }, // USDT质押
     usdtPlatform: { type: Number, default: 0 }, // USDT平台
     ethPlatform: { type: Number, default: 0 }, // ETH平台
-    frozenAmount: { type: Number, default: 0 }, // 冻结金额
+    frozenAmount: { type: Number, default: 0 }, // 冻结金额  提现用的
+    stakingFrozenAmount: { type: Number, default: 0 }, // 质押冻结金额
 
     createdAt: { type: Date }, // 创建时间
     logedinAt: { type: Date }, // 登录时间

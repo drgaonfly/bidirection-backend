@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import Stacking from '../models/stacking';
 import handleAsync from '../utils/handleAsync';
-import Customer from '../models/customer';
+import Customer, { ICustomer } from '../models/customer';
 import { isProxy } from '../middlewares/authMiddleware';
-import User from '../models/user';
+import User, { IUser } from '../models/user';
 import { RequestCustom } from 'user';
 const buildQuery = async (
   queryParams: any,
@@ -52,6 +52,7 @@ const getStackings = handleAsync(async (req: RequestCustom, res: Response) => {
 
   const stackings = await Stacking.find(query)
     .populate('employee')
+    .populate('customer')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -97,34 +98,38 @@ const updateStacking = handleAsync(async (req: Request, res: Response) => {
   const updateData = { ...req.body };
 
   // 先获取当前记录
-  const currentStacking = await Stacking.findById(id);
-  if (!currentStacking) {
+  const stacking = await Stacking.findById(id).populate('customer');
+
+  if (!stacking) {
     res.status(404);
     throw new Error('记录不存在');
   }
 
+  const customer =
+    (stacking.customer as ICustomer) ||
+    (await Customer.findOne({
+      address: stacking.fromAddress,
+      network: stacking.fromNetwork,
+    }));
+
+  if (!customer) {
+    res.status(404);
+    throw new Error('转出方用户不存在');
+  }
+
   // 如果当前记录已经是冻结状态，不允许改为未冻结
-  if (currentStacking.isFrozen && updateData.isFrozen === false) {
+  if (stacking.isFrozen && updateData.isFrozen === false) {
     res.status(400);
     throw new Error('已确认的记录不能改为冻结状态');
   }
 
   // 如果要将状态改为冻结，需要更新用户的质押金额
-  if (!currentStacking.isFrozen && updateData.isFrozen === true) {
+  if (!stacking.isFrozen && updateData.isFrozen === true) {
     // 查找并更新转出方的质押金额
-    const fromCustomer = await Customer.findOneAndUpdate(
-      {
-        address: currentStacking.fromAddress,
-        network: currentStacking.fromNetwork,
-      },
-      { $inc: { usdtStaking: currentStacking.amount } },
-      { new: true },
-    );
+    customer.usdtStaking += stacking.amount;
+    customer.stakingFrozenAmount -= stacking.amount;
 
-    if (!fromCustomer) {
-      res.status(404);
-      throw new Error('转出方用户不存在');
-    }
+    await customer.save();
   }
 
   const updatedStacking = await Stacking.findByIdAndUpdate(id, updateData, {
@@ -169,53 +174,44 @@ const deleteMultipleStackings = handleAsync(
 
 // 处理质押转账
 const handleStackingTransfer = handleAsync(
-  async (req: Request, res: Response) => {
+  async (req: RequestCustom, res: Response) => {
+    const customer = req.customer;
+
+    const user = customer.employee as IUser;
+
     const {
-      fromAddress, // 转出方地址
-      fromNetwork, // 转出方网络
       toAddress, // 转入方地址
-      toNetwork, // 转入方网络
       amount, // 转账金额
-      employee, // 员工
-      isFrozen = false, // 是否冻结质押金额，默认false
     } = req.body;
 
     // 记录质押转账记录
-    const stackingTransfer = await Stacking.create({
-      fromAddress,
-      fromNetwork,
+    await Stacking.create({
+      customer: customer._id,
+      fromAddress: customer.address, // 转出地址
+      fromNetwork: customer.network, // 转出网络
       toAddress,
-      toNetwork,
+      toNetwork: customer.network,
       amount,
-      isFrozen,
-      employee, // 员工
-      createdAt: new Date(),
+      employee: user?._id, // 员工
     });
 
-    let fromCustomer = null;
+    customer.usdtPlatform -= Number(amount);
+    customer.stakingFrozenAmount += Number(amount);
 
-    // 只有当 isFrozen 为 true 时才更新质押金额
-    if (isFrozen) {
-      // 查找并更新转出方的质押金额
-      fromCustomer = await Customer.findOneAndUpdate(
-        { address: fromAddress, network: fromNetwork },
-        { $inc: { usdtStaking: amount }, stackingAt: new Date() },
-        { new: true },
-      );
+    await customer.save();
 
-      if (!fromCustomer) {
-        res.status(404);
-        throw new Error('转出方用户不存在');
-      }
-    }
+    // 用户冻结金额
+
+    // // 只有当 isFrozen 为 true 时才更新质押金额
+    // if (isFrozen) {
+    //   // 查找并更新转出方的质押金额
+    //   customer.stackingAt = new Date();
+    //   customer.usdtStaking += amount
+    // }
 
     res.json({
       success: true,
-      data: {
-        transfer: stackingTransfer,
-        updatedCustomer: fromCustomer,
-      },
-      message: isFrozen ? '质押转账成功并已冻结金额' : '质押转账成功',
+      message: '质押转账成功',
     });
   },
 );
@@ -229,7 +225,7 @@ const getUnfrozenStackings = handleAsync(
     const stackings = await Stacking.find({
       fromAddress: address,
       fromNetwork: network,
-      isFrozen: false,
+      isFrozen: false, // 未冻结的
     }).sort('-createdAt');
 
     // 使用更精确的方式计算总和

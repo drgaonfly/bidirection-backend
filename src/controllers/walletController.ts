@@ -332,15 +332,6 @@ const getCurrentUserWallet = handleAsync(
       network: { $in: networks },
     });
 
-    // 如果没找到钱包，返回空数组
-    if (!wallets || wallets.length === 0) {
-      res.json({
-        success: true,
-        data: [],
-      });
-      return;
-    }
-
     // 返回找到的钱包信息
     res.json({
       success: true,

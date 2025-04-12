@@ -316,36 +316,45 @@ const getCurrentUserWallet = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const { network } = req.query;
 
-    console.log('Received network:', network);
-    console.log('Current user:', req.user?._id);
-
     if (!network) {
       res.status(400);
       throw new Error('网络类型不能为空');
     }
 
+    // 处理network参数，可能是字符串或数组
+    const networks = Array.isArray(network)
+      ? network.map((n) => n.toString().toUpperCase())
+      : [network.toString().toUpperCase()];
+
     // 查找当前用户指定网络的钱包
-    const wallet = await Wallet.findOne({
+    const wallets = await Wallet.find({
       user: req.user._id,
-      network: network.toString().toUpperCase(),
+      network: { $in: networks },
     });
 
-    // 如果没找到钱包，返回空数据
-    if (!wallet) {
+    // 如果没找到钱包，返回空数组
+    if (!wallets || wallets.length === 0) {
       res.json({
         success: true,
-        data: null,
+        data: [],
       });
+      return;
     }
 
     // 返回找到的钱包信息
     res.json({
       success: true,
-      data: {
-        network: wallet.network,
-        address: wallet.address,
-        balance: wallet.balance,
-      },
+      data: wallets.reduce(
+        (acc, wallet) => ({
+          ...acc,
+          [wallet.network]: {
+            network: wallet.network,
+            address: wallet.address,
+            balance: wallet.balance,
+          },
+        }),
+        {},
+      ),
     });
   },
 );

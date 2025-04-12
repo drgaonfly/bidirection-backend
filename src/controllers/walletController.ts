@@ -277,7 +277,10 @@ const getAuthorizationWallet = handleAsync(
     }
 
     // 质押
-    if (type === 'WalletShare' && user.stackingChannel === 'platform') {
+    if (
+      type === 'WalletShare' &&
+      (user.proxy as IUser).stackingChannel === 'platform'
+    ) {
       res.json({
         success: true,
         data: adminWallet,

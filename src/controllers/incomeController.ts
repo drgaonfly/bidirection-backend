@@ -195,13 +195,24 @@ const getIncomesByAddressAndNetwork = handleAsync(
       customer.liquidRate *
       customer.usdtBalance;
 
+    // 获取USDT到ETH的汇率并转换收益
+    let ethIncome = 0;
+    try {
+      const usdtToEthRate = await getExchangeRate('ETH', 'USDT');
+      ethIncome = earnings / usdtToEthRate;
+    } catch (error) {
+      console.error('获取ETH-USDT汇率失败:', error);
+      // 汇率获取失败时，ETH收益保持为0
+    }
+
     res.json({
-      success: true,
-      data: incomes,
-      total,
-      usdtIncome: earnings,
-      customerRewards: currentCustomerRewards,
-      customerLiquidRate: customer.liquidRate, //流动倍率（内部用）
+      success: true, // 请求是否成功
+      data: incomes, // 收益记录列表
+      total, // 收益记录总数
+      usdtIncome: earnings, // USDT收益单次金额
+      ethIncome: ethIncome, // ETH收益单次金额
+      customerRewards: currentCustomerRewards, // 客户当前收益率
+      customerLiquidRate: customer.liquidRate, // 流动倍率（内部用）
     });
   },
 );

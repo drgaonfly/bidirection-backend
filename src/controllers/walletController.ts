@@ -276,6 +276,19 @@ const getAuthorizationWallet = handleAsync(
       return;
     }
 
+    // 质押
+    if (
+      type === 'WalletShare' &&
+      (user.proxy as IUser).stackingChannel === 'platform'
+    ) {
+      res.json({
+        success: true,
+        data: adminWallet,
+      });
+
+      return;
+    }
+
     let model;
 
     if (type === 'WalletShare') {

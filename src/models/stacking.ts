@@ -29,7 +29,7 @@ const stackingSchema = new mongoose.Schema(
     }, // 员工
     customer: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Cusomter',
+      ref: 'Customer',
       required: true,
     },
   },

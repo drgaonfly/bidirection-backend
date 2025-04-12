@@ -2,12 +2,7 @@ import { Response } from 'express';
 import WalletShare from '../models/walletShare';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
-import { IUser } from '../models/user';
 import { RequestCustom } from 'user';
-import {
-  findWalletInCreatorChain,
-  getAdminWalletConfig,
-} from './customerController';
 
 const buildQuery = (queryParams: any, req: RequestCustom): any => {
   const query: any = {};
@@ -149,48 +144,6 @@ const deleteMultipleWalletShares = handleAsync(
     });
   },
 );
-
-export const getAdminWallet = async (network: string) => {
-  const { adminAddressSetting, secretKeySetting } =
-    await getAdminWalletConfig(network);
-
-  const adminWallet = {
-    network: network,
-    address: adminAddressSetting?.value,
-    secretKey: secretKeySetting?.value,
-  };
-
-  return adminWallet;
-  // 直接返回设置表中的地址
-};
-
-export const getUserWallet = async (
-  user: IUser,
-  network: string,
-  res: Response,
-  model: any,
-) => {
-  // 1. 先查找用户自己是否有对应网络的钱包
-  let wallet = await model.findOne({
-    user: user._id,
-    network: network,
-  });
-
-  // 2. 递归查找创建者链上的钱包，直到找到钱包或到达顶级管理员
-
-  // 如果用户没有钱包，递归查找创建者链上的钱包
-  if (!wallet && !user.isAdmin) {
-    wallet = await findWalletInCreatorChain(user, network, model);
-  }
-
-  // 3. 如果都没找到，返回授权失败
-  if (!wallet) {
-    res.status(403);
-    throw new Error('授权失败：未找到可用的钱包');
-  }
-
-  return wallet;
-};
 
 // 导出控制器方法
 export {

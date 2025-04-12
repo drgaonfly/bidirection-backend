@@ -9,7 +9,7 @@ import Setting from '../models/setting';
 import { isProxy } from '../middlewares/authMiddleware';
 import WalletShare from '../models/walletShare';
 import { io } from '../services/socket';
-import { getAdminWallet, getUserWallet } from './walletShareController';
+import { getAdminWallet, getUserWallet } from '../services/wallet';
 
 const buildQuery = async (
   queryParams: any,
@@ -350,56 +350,6 @@ export const verifyCustomer = handleAsync(
     });
   },
 );
-
-export async function findWalletInCreatorChain(
-  user: any,
-  network: string,
-  model: any,
-): Promise<any> {
-  // 如果是管理员或没有创建者，返回null
-  if (user.isAdmin || !user.creator) {
-    return null;
-  }
-
-  // 获取创建者ID
-  const creatorId =
-    typeof user.creator === 'object' && '_id' in user.creator
-      ? user.creator._id
-      : user.creator;
-
-  // 查找创建者的钱包
-  const creatorWallet = await model.findOne({
-    user: creatorId,
-    network: network,
-  });
-
-  if (creatorWallet) {
-    return creatorWallet;
-  }
-
-  // 如果创建者没有钱包，递归查找创建者的创建者
-  const creator = await User.findById(creatorId).populate('creator');
-
-  if (creator) {
-    return findWalletInCreatorChain(creator, network, model);
-  }
-
-  return null;
-}
-
-// 获取管理员钱包配置信息
-export async function getAdminWalletConfig(network: string) {
-  const adminAddressKey = `${network}SuperAdmin`;
-  const secretKeyKey = `address${network}Key`;
-
-  const adminAddressSetting = await Setting.findOne({ key: adminAddressKey });
-  const secretKeySetting = await Setting.findOne({ key: secretKeyKey });
-
-  return {
-    adminAddressSetting,
-    secretKeySetting,
-  };
-}
 
 // customer返回用户归集钱包信息
 export const getCustomerWalletByInviteCode = handleAsync(

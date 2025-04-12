@@ -5,8 +5,8 @@ import { IdGen } from '../utils/idGen';
 import { ethers } from 'ethers';
 import User, { IUser } from '../models/user';
 import { RequestCustom } from 'user';
-import { getAdminWallet, getUserWallet } from './walletShareController';
 import WalletShare from '../models/walletShare';
+import { getAdminWallet, getUserWallet } from '../services/wallet';
 
 const buildQuery = async (
   queryParams: any,

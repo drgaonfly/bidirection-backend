@@ -186,6 +186,7 @@ const updateWithdraw = handleAsync(async (req: Request, res: Response) => {
   if (isFrozen) {
     // 仅需将状态更新为已完成
     customer.frozenAmount -= withdraw.amount;
+    await customer.save();
     req.body.status = 'completed';
   }
 

@@ -45,6 +45,7 @@ const start = async () => {
   }
 
   console.log('\n所有客户处理完成 -----', new Date().toLocaleString());
+  process.exit(0);
 };
 
 start();

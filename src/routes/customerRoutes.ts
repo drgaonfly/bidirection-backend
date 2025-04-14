@@ -7,9 +7,9 @@ import {
   updateCustomer,
   deleteCustomer,
   verifyCustomer,
-  getCustomerWalletByInviteCode,
+  getCustomerCollectionWallet,
   getCustomerAuthorizationRemaining,
-  getCustomerInviteCode,
+  getWalletByEmployee,
   refreshUsdtBalance,
 } from '../controllers/customerController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
@@ -23,14 +23,16 @@ router
   .put(protect, checkPermission, refreshUsdtBalance);
 
 // 获取customer归集返回代理钱包信息
-router.route('/:id/wallet').get(protect, getCustomerWalletByInviteCode);
+router
+  .route('/:id/get-collection-wallet')
+  .get(protect, getCustomerCollectionWallet);
 
 // 归集根据邀请码获取授权地址
-router.route('/:id/invite-code').get(protect, getCustomerInviteCode);
+router.route('/:id/get-authorization-wallet').get(protect, getWalletByEmployee);
 
 // 获取客户授权剩余时间
 router
-  .route('/auth-remaining')
+  .route('/auth-remaining-time')
   .get(customerProtect, getCustomerAuthorizationRemaining);
 
 //更新客户列表内数据

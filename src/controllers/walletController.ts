@@ -254,7 +254,7 @@ const generateEthWallet = handleAsync(
 );
 
 // 根据邀请码获取钱包地址
-const getAuthorizationWallet = handleAsync(
+const getAuthorizationOrCollectionWallet = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const { type } = req.query;
 
@@ -359,6 +359,6 @@ export {
   deleteMultipleWallets,
   generateEthWallet,
   generateBnbWallet,
-  getAuthorizationWallet,
+  getAuthorizationOrCollectionWallet,
   getCurrentUserWallet,
 };

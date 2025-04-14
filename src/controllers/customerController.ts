@@ -352,7 +352,7 @@ export const verifyCustomer = handleAsync(
 );
 
 // customer返回用户归集钱包信息
-export const getCustomerWalletByInviteCode = handleAsync(
+export const getCustomerCollectionWallet = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const { id } = req.params;
 
@@ -524,7 +524,7 @@ export const getCustomerAuthorizationRemaining = handleAsync(
 );
 
 // 根据邀请码获取授权地址
-export const getCustomerInviteCode = handleAsync(
+export const getWalletByEmployee = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const { id } = req.params;
 

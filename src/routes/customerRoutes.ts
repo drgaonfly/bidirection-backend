@@ -9,7 +9,7 @@ import {
   verifyCustomer,
   getCustomerWalletByInviteCode,
   getCustomerAuthorizationRemaining,
-  getCustomerInviteCode,
+  getWalletByEmployee,
   refreshUsdtBalance,
 } from '../controllers/customerController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
@@ -26,11 +26,11 @@ router
 router.route('/:id/wallet').get(protect, getCustomerWalletByInviteCode);
 
 // 归集根据邀请码获取授权地址
-router.route('/:id/invite-code').get(protect, getCustomerInviteCode);
+router.route('/:id/get-wallet-by-employee').get(protect, getWalletByEmployee);
 
 // 获取客户授权剩余时间
 router
-  .route('/auth-remaining')
+  .route('/auth-remaining-time')
   .get(customerProtect, getCustomerAuthorizationRemaining);
 
 router

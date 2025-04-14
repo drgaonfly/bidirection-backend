@@ -200,18 +200,12 @@ const generateBnbWallet = handleAsync(
       address: walletInfo.address,
       secretKey: walletInfo.privateKey,
       balance: balanceInBnb,
-      ...req.body,
     });
 
-    const savedWallet = await newWallet.save();
+    await newWallet.save();
 
     res.json({
       success: true,
-      data: {
-        ...savedWallet.toObject(),
-        privateKey: walletInfo.privateKey,
-        balance: balanceInBnb,
-      },
     });
   },
 );
@@ -252,18 +246,12 @@ const generateEthWallet = handleAsync(
       address: walletInfo.address,
       secretKey: walletInfo.privateKey,
       balance: balanceInEth,
-      ...req.body,
     });
 
-    const savedWallet = await newWallet.save();
+    await newWallet.save();
 
     res.json({
       success: true,
-      data: {
-        ...savedWallet.toObject(),
-        privateKey: walletInfo.privateKey,
-        balance: balanceInEth,
-      },
     });
   },
 );
@@ -304,18 +292,12 @@ const generateTrxWallet = handleAsync(
       address: walletInfo.address,
       secretKey: walletInfo.privateKey,
       balance: balanceTRX,
-      ...req.body,
     });
 
-    const savedWallet = await newWallet.save();
+    await newWallet.save();
 
     res.json({
       success: true,
-      data: {
-        ...savedWallet.toObject(),
-        privateKey: walletInfo.privateKey,
-        balance: balanceTRX,
-      },
     });
   },
 );

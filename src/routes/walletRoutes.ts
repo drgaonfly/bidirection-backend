@@ -24,7 +24,7 @@ router.post('/generate-bnb-wallet', protect, generateBnbWallet);
 
 // 获取授权钱包地址
 router.get(
-  '/get-authorization-wallet',
+  '/get-authorization-or-collection-wallet',
   customerProtect,
   getAuthorizationOrCollectionWallet,
 );

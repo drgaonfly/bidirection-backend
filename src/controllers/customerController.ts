@@ -314,39 +314,17 @@ export const deleteMultipleCustomers = handleAsync(
 
 //授权客户
 export const verifyCustomer = handleAsync(
-  async (req: Request, res: Response) => {
-    const { network, address } = req.body;
-
-    // 检查是否存在具有相同网络和地址组合的客户
-    const existingCustomer = await Customer.findOne({ network, address });
-
-    if (!existingCustomer) {
-      res.status(404);
-      throw new Error('Customer not found');
-    }
+  async (req: RequestCustom, res: Response) => {
+    const customer = req.customer;
 
     // 更新验证状态
-    existingCustomer.isVerified = true;
-    existingCustomer.verifiedAt = new Date();
-    await existingCustomer.save();
-
-    // 获取授权设置值
-    const authorizationSetting = await Setting.findOne({
-      key: 'authorization',
-    });
-
-    // 发送事件到前端
-    io.emit('income_countdown', {
-      address: existingCustomer.address,
-      network: existingCustomer.network,
-      authorization: authorizationSetting ? authorizationSetting.value : '0',
-      isVerified: true,
-      verifiedAt: existingCustomer.verifiedAt,
-    });
+    customer.isVerified = true;
+    customer.verifiedAt = new Date();
+    await customer.save();
 
     res.json({
       success: true,
-      data: existingCustomer,
+      data: customer,
     });
   },
 );

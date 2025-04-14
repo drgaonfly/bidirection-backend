@@ -33,6 +33,9 @@ router
   .route('/auth-remaining')
   .get(customerProtect, getCustomerAuthorizationRemaining);
 
+//更新客户列表内数据
+router.route('/:id/updatedata').put(protect, checkPermission, updateCustomer);
+
 router
   .route('/')
   .get(protect, checkPermission, getCustomers)

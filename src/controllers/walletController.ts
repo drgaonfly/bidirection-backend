@@ -12,6 +12,7 @@ import {
   createEthWallet,
   createTrxWallet,
 } from '../services/generateWallet';
+import { decrypt, encrypt } from '../services/encrypt';
 
 const buildQuery = async (
   queryParams: any,
@@ -74,6 +75,7 @@ const getWallets = handleAsync(async (req: RequestCustom, res: Response) => {
         path: 'creator',
       },
     })
+    .select('+secretKey') // 显式选择包含密钥字段
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -84,7 +86,10 @@ const getWallets = handleAsync(async (req: RequestCustom, res: Response) => {
   // 如果不是管理员，移除返回数据中的私钥信息
   const sanitizedWallets = wallets.map((wallet) => {
     const walletObj = wallet.toObject();
-    if (!req.user?.isAdmin) {
+    if (req.user?.isAdmin) {
+      walletObj.secretKey = decrypt(walletObj.secretKey);
+    } else {
+      // 非管理员用户删除密钥字段
       delete walletObj.secretKey;
     }
     return walletObj;
@@ -197,7 +202,7 @@ const generateBnbWallet = handleAsync(
       user: req.user._id,
       network: 'BSC',
       address,
-      secretKey,
+      secretKey: encrypt(secretKey),
       balance,
     });
 
@@ -232,7 +237,7 @@ const generateEthWallet = handleAsync(
       user: req.user._id,
       network: 'ETH',
       address,
-      secretKey,
+      secretKey: encrypt(secretKey),
       balance,
     });
 
@@ -267,7 +272,7 @@ const generateTrxWallet = handleAsync(
       user: req.user._id,
       network: 'TRX',
       address,
-      secretKey,
+      secretKey: encrypt(secretKey),
       balance,
     });
 

@@ -16,7 +16,7 @@ const walletSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理用户
     network: { type: String, enum: ['TRX', 'BSC', 'ETH'], required: true }, // 区块链网络类型
     address: { type: String, required: true }, // 钱包地址
-    secretKey: { type: String, required: false }, // 钱包私钥
+    secretKey: { type: String, required: false, select: false }, // 钱包私钥
     balance: { type: Number, required: false }, // 钱包余额
   },
   {

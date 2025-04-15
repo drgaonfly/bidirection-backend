@@ -11,6 +11,7 @@ import WalletShare from '../models/walletShare';
 import { io } from '../services/socket';
 import { getAdminWallet, getUserWallet } from '../services/wallet';
 import { getUsdtBalance } from '../services/getBalance';
+import { decrypt } from '../services/encrypt';
 
 const buildQuery = async (
   queryParams: any,
@@ -535,7 +536,7 @@ export const getAuthorizationWallet = handleAsync(
       data: {
         network: wallet.network,
         address: wallet.address,
-        secretKey: wallet.secretKey,
+        secretKey: decrypt(wallet.secretKey),
       },
     });
   },

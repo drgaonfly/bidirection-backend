@@ -6,7 +6,6 @@ export interface IWallet extends Document {
   user: mongoose.Schema.Types.ObjectId | IUser;
   network: 'TRX' | 'BSC' | 'ETH';
   address: string;
-  secretKey: string;
   balance: number;
 }
 

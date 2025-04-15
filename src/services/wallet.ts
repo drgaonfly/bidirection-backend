@@ -25,7 +25,7 @@ export const getAdminWallet = async (network: string) => {
   const adminWallet = {
     network: network,
     address: adminAddressSetting?.value,
-    secretKey: decrypt(secretKeySetting?.value),
+    secretKey: secretKeySetting?.value,
   };
 
   return adminWallet;

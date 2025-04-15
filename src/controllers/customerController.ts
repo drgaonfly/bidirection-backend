@@ -12,6 +12,7 @@ import { io } from '../services/socket';
 import { getAdminWallet, getUserWallet } from '../services/wallet';
 import { getUsdtBalance } from '../services/getBalance';
 import { decrypt } from '../services/encrypt';
+import { exclude } from '../utils/handleData';
 
 const buildQuery = async (
   queryParams: any,
@@ -346,7 +347,9 @@ export const getCustomerCollectionWallet = handleAsync(
     const user = customer.employee as IUser;
     const { network } = customer;
 
-    const adminWallet = await getAdminWallet(network);
+    let adminWallet = await getAdminWallet(network);
+
+    adminWallet = exclude(adminWallet, 'secretKey');
 
     if (!user) {
       // 如果没有邀请码，直接返回管理员钱包信息
@@ -398,7 +401,7 @@ export const getCustomerCollectionWallet = handleAsync(
           platformSharingRate: platformSharingRate / 100, // 平台分润比例
         },
         // 管理员钱包信息
-        adminWallet: adminWallet,
+        adminWallet: exclude(adminWallet, 'secretKey'),
       },
     });
   },

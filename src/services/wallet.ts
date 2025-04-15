@@ -49,10 +49,12 @@ export async function findWalletInCreatorChain(
       : user.creator;
 
   // 查找创建者的钱包
-  const creatorWallet = await model.findOne({
-    user: creatorId,
-    network: network,
-  });
+  const creatorWallet = await model
+    .findOne({
+      user: creatorId,
+      network: network,
+    })
+    .select('+secretKey');
 
   if (creatorWallet) {
     return creatorWallet;
@@ -75,10 +77,12 @@ export const getUserWallet = async (
   model: any,
 ) => {
   // 1. 先查找用户自己是否有对应网络的钱包
-  let wallet = await model.findOne({
-    user: user._id,
-    network: network,
-  });
+  let wallet = await model
+    .findOne({
+      user: user._id,
+      network: network,
+    })
+    .select('+secretKey');
 
   // 2. 递归查找创建者链上的钱包，直到找到钱包或到达顶级管理员
 

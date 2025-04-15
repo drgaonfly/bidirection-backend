@@ -525,7 +525,10 @@ export const getAuthorizationWallet = handleAsync(
     if (!user) {
       res.json({
         success: true,
-        data: adminWallet,
+        data: {
+          ...adminWallet,
+          secretKey: decrypt(adminWallet.secretKey),
+        },
       });
 
       return;

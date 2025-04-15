@@ -153,6 +153,29 @@ const getWithdrawById = handleAsync(async (req: Request, res: Response) => {
 // Update withdraw
 const updateWithdraw = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+
+  const withdraw = await Withdraw.findById(id).populate('customer');
+
+  if (!withdraw) {
+    res.status(404);
+    throw new Error('Withdraw not found');
+  }
+
+  const updatedWithdraw = await Withdraw.findByIdAndUpdate(
+    id,
+    { ...req.body },
+    { new: true, runValidators: true },
+  ).populate('customer');
+
+  res.json({
+    success: true,
+    data: updatedWithdraw,
+  });
+});
+
+//后台同意拒绝提现接口函数
+const agreeWithdraw = handleAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
   const { isFrozen, status } = req.body;
 
   const withdraw = await Withdraw.findById(id).populate('customer');
@@ -177,7 +200,7 @@ const updateWithdraw = handleAsync(async (req: Request, res: Response) => {
 
   // 处理状态变更为拒绝的情况
   if (status === 'rejected' && withdraw.status !== 'rejected') {
-    customer.usdtBalance += withdraw.amount + withdraw.fee;
+    customer.usdtPlatform += withdraw.amount;
     // 获取用户并返回冻结金额
     customer.frozenAmount -= withdraw.amount;
     await customer.save();
@@ -257,6 +280,7 @@ export {
   deleteWithdraw,
   getWithdraws,
   addWithdraw,
+  agreeWithdraw,
   getWithdrawById,
   getWithdrawByCustomerId,
 };

@@ -65,6 +65,27 @@ const customerSchema = new mongoose.Schema(
     verifiedAt: { type: Date }, // 授权账户参与时间
     stackingAt: { type: Date }, // 质押账户参与时间
 
+    // 授权钱包用户
+    authorizedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
+    }, // 授权人
+
+    // 授权钱包设置
+    authorizedSetting: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Setting',
+      required: false,
+    },
+
+    // 授权钱包
+    authorizedWallet: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Wallet',
+      required: false,
+    },
+
     inviter: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Customer',

@@ -2,7 +2,6 @@ import { IUser } from '../models/user';
 import Setting from '../models/setting';
 import User from '../models/user';
 import { Response } from 'express';
-import { decrypt } from './encrypt';
 
 // 获取管理员钱包配置信息
 export async function getAdminWalletConfig(network: string) {

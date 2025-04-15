@@ -10,7 +10,6 @@ import {
   generateBnbWallet,
   generateTrxWallet,
   getAuthorizationOrCollectionWallet,
-  getCurrentUserWallet,
   updateCurrentUserWalletBalance,
 } from '../controllers/walletController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
@@ -18,8 +17,6 @@ import { customerProtect } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
-// 获取当前用户指定网络的钱包
-router.get('/get-current-user-wallet', protect, getCurrentUserWallet);
 // 批量刷新钱包余额
 router.post(
   '/refresh-wallets-balance',

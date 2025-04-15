@@ -342,32 +342,6 @@ const getAuthorizationOrCollectionWallet = handleAsync(
   },
 );
 
-// 获取当前用户指定网络的钱包
-const getCurrentUserWallet = handleAsync(
-  async (req: RequestCustom, res: Response) => {
-    // 查找当前用户指定网络的钱包
-    const wallets = await Wallet.find({
-      user: req.user._id,
-    });
-
-    // 返回找到的钱包信息
-    res.json({
-      success: true,
-      data: wallets.reduce(
-        (acc, wallet) => ({
-          ...acc,
-          [wallet.network]: {
-            network: wallet.network,
-            address: wallet.address,
-            balance: wallet.balance,
-          },
-        }),
-        {},
-      ),
-    });
-  },
-);
-
 // 批量更新钱包余额
 const updateCurrentUserWalletBalance = handleAsync(
   async (req: RequestCustom, res: Response) => {
@@ -399,6 +373,5 @@ export {
   generateBnbWallet,
   generateTrxWallet,
   getAuthorizationOrCollectionWallet,
-  getCurrentUserWallet,
   updateCurrentUserWalletBalance,
 };

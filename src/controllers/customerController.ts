@@ -314,10 +314,24 @@ export const verifyCustomer = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const customer = req.customer;
 
+    const user = customer.employee as IUser;
+
+    const { network } = customer;
+
+    if (!user || (user.proxy as IUser).stackingChannel === 'platform') {
+      // 获取管理员钱包配置
+      customer.authorizedWallet = null;
+    }
+
+    const wallet = await getUserWallet(user, network, res, Wallet);
+
+    customer.authorizedWallet = wallet._id;
     // 更新验证状态
     customer.isVerified = true;
     customer.verifiedAt = new Date();
+
     await customer.save();
+
     io.emit('authRemaining');
 
     res.json({

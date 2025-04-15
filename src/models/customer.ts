@@ -1,6 +1,7 @@
 import mongoose, { Document } from 'mongoose';
 import { IUser } from './user';
 import { INotification } from './notification';
+import { IWallet } from './wallet';
 
 export interface ICustomer extends Document {
   id: string;
@@ -29,6 +30,7 @@ export interface ICustomer extends Document {
   isOnline?: boolean;
   frozenAmount: number;
   stakingFrozenAmount: number;
+  authorizedWallet: mongoose.Schema.Types.ObjectId | IWallet;
 }
 
 const customerSchema = new mongoose.Schema(
@@ -64,20 +66,6 @@ const customerSchema = new mongoose.Schema(
     isVerified: { type: Boolean, default: false }, // 授权状态
     verifiedAt: { type: Date }, // 授权账户参与时间
     stackingAt: { type: Date }, // 质押账户参与时间
-
-    // 授权钱包用户
-    authorizedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: false,
-    }, // 授权人
-
-    // 授权钱包设置
-    authorizedSetting: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Setting',
-      required: false,
-    },
 
     // 授权钱包
     authorizedWallet: {

@@ -373,22 +373,9 @@ const getAuthorizationOrCollectionWallet = handleAsync(
 // 获取当前用户指定网络的钱包
 const getCurrentUserWallet = handleAsync(
   async (req: RequestCustom, res: Response) => {
-    const { network } = req.query;
-
-    if (!network) {
-      res.status(400);
-      throw new Error('网络类型不能为空');
-    }
-
-    // 处理network参数，可能是字符串或数组
-    const networks = Array.isArray(network)
-      ? network.map((n) => n.toString().toUpperCase())
-      : [network.toString().toUpperCase()];
-
     // 查找当前用户指定网络的钱包
     const wallets = await Wallet.find({
       user: req.user._id,
-      network: { $in: networks },
     });
 
     // 返回找到的钱包信息

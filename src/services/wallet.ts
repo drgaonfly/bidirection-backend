@@ -2,6 +2,7 @@ import { IUser } from '../models/user';
 import Setting from '../models/setting';
 import User from '../models/user';
 import { Response } from 'express';
+import { decrypt } from './encrypt';
 
 // 获取管理员钱包配置信息
 export async function getAdminWalletConfig(network: string) {
@@ -24,7 +25,7 @@ export const getAdminWallet = async (network: string) => {
   const adminWallet = {
     network: network,
     address: adminAddressSetting?.value,
-    secretKey: secretKeySetting?.value,
+    secretKey: decrypt(secretKeySetting?.value),
   };
 
   return adminWallet;

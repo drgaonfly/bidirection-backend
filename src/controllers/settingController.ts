@@ -5,6 +5,8 @@ import { IdGen } from '../utils/idGen';
 import { IUser } from '../models/user';
 import { io } from '../services/socket';
 import { RequestCustom } from 'user';
+import { exclude } from '../utils/handleData';
+import { decrypt, encrypt, ENCRYPTEDKEYS } from '../services/encrypt';
 
 // 构建查询条件
 const buildQuery = (queryParams: any): any => {
@@ -28,12 +30,24 @@ const getSettings = handleAsync(async (req: Request, res: Response) => {
 
   const query = buildQuery(req.query);
 
-  const settings = await Setting.find(query)
+  // 获取设置列表
+  let settings = await Setting.find(query)
     .sort('-createdAt') // 按创建时间排序
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .lean()
     .exec();
+
+  // 对加密字段进行解密
+  settings = settings.map((setting) => {
+    if (ENCRYPTEDKEYS.includes(setting.key)) {
+      return {
+        ...setting,
+        value: decrypt(setting.value),
+      };
+    }
+    return setting;
+  });
 
   const total = await Setting.countDocuments(query).exec();
 
@@ -50,14 +64,21 @@ const getSettings = handleAsync(async (req: Request, res: Response) => {
 const addSetting = handleAsync(async (req: Request, res: Response) => {
   const newId = await IdGen.next(Setting, 'id', 6);
 
-  const setting = await Setting.create({
+  // 准备创建的数据
+  const createData = {
     ...req.body,
     id: newId,
-  });
+  };
+
+  // 如果是需要加密的key，对value进行加密
+  if (ENCRYPTEDKEYS.includes(req.body.key)) {
+    createData.value = encrypt(createData.value);
+  }
+
+  await Setting.create(createData);
 
   res.status(201).json({
     success: true,
-    data: setting,
   });
 });
 
@@ -80,16 +101,24 @@ const getSettingById = handleAsync(async (req: Request, res: Response) => {
 const updateSetting = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const setting = await Setting.findById(id);
+
   if (!setting) {
     res.status(404);
     throw new Error('设置项不存在');
   }
 
-  const updatedSetting = await Setting.findByIdAndUpdate(
-    id,
-    { ...req.body },
-    { new: true, runValidators: true },
-  );
+  // 准备更新的数据
+  const updateData = exclude(req.body, 'key');
+
+  // 如果是需要加密的key，对value进行加密
+  if (ENCRYPTEDKEYS.includes(setting.key)) {
+    updateData.value = encrypt(updateData.value);
+  }
+
+  const updatedSetting = await Setting.findByIdAndUpdate(id, updateData, {
+    new: true,
+    runValidators: true,
+  });
 
   io.emit('settingUpdated');
   io.emit('authRemaining');

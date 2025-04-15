@@ -54,7 +54,7 @@ const buildQuery = async (
   }
 
   // 如果不是超级管理员，只能查看自己的钱包
-  if (req.user && req.user.isAdmin !== true) {
+  if (!req.user.isAdmin) {
     query.user = req.user._id;
   }
 

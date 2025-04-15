@@ -95,6 +95,7 @@ const customerProtect = handleAsync(
               },
             ],
           })
+          .populate('authorizedWallet') // 填充授权钱包信息
           .exec();
 
         if (!customer) {

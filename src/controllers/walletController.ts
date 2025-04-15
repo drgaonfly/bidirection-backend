@@ -2,21 +2,21 @@ import { Request, Response } from 'express';
 import Wallet from '../models/wallet';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
-import { ethers } from 'ethers';
 import User, { IUser } from '../models/user';
 import { RequestCustom } from 'user';
 import WalletShare from '../models/walletShare';
 import { getAdminWallet, getUserWallet } from '../services/wallet';
-import { TronWeb } from 'tronweb';
 import { getUsdtBalance } from '../services/getBalance';
-
-const tronWeb = new TronWeb({
-  fullHost: 'https://api.trongrid.io',
-});
+import {
+  createBnbWallet,
+  createEthWallet,
+  createTrxWallet,
+} from '../services/generateWallet';
 
 const buildQuery = async (
   queryParams: any,
   req: RequestCustom,
+  res: Response,
 ): Promise<any> => {
   const query: any = {};
 
@@ -45,11 +45,17 @@ const buildQuery = async (
 
     if (userData && userData.length > 0) {
       query.user = { $in: userData.map((user) => user._id) };
+    } else {
+      res.json({
+        success: true,
+        data: [],
+      });
+      return;
     }
   }
 
   // 如果不是超级管理员，只能查看自己的钱包
-  if (req.user && req.user.isAdmin !== true) {
+  if (!req.user.isAdmin) {
     query.user = req.user._id;
   }
 
@@ -59,7 +65,7 @@ const buildQuery = async (
 const getWallets = handleAsync(async (req: RequestCustom, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
-  const query = await buildQuery(req.query, req);
+  const query = await buildQuery(req.query, req, res);
 
   const wallets = await Wallet.find(query)
     .populate({
@@ -168,12 +174,6 @@ const deleteMultipleWallets = handleAsync(
   },
 );
 
-// 创建provider实例
-const ethProvider = new ethers.JsonRpcProvider('https://eth.llamarpc.com');
-const bscProvider = new ethers.JsonRpcProvider(
-  'https://bsc-dataseed1.binance.org',
-);
-
 // 创建BNB钱包
 const generateBnbWallet = handleAsync(
   async (req: RequestCustom, res: Response) => {
@@ -188,18 +188,7 @@ const generateBnbWallet = handleAsync(
       throw new Error('用户已有BSC钱包');
     }
 
-    // 生成新钱包
-    const bnbWallet = ethers.Wallet.createRandom();
-
-    // 获取钱包信息
-    const walletInfo = {
-      address: bnbWallet.address,
-      privateKey: bnbWallet.privateKey,
-    };
-
-    // 获取实时余额
-    const balance = await bscProvider.getBalance(walletInfo.address);
-    const balanceInBnb = ethers.formatEther(balance);
+    const { address, privateKey: secretKey, balance } = await createBnbWallet();
 
     // 创建新的钱包记录
     const newId = await IdGen.next(Wallet, 'id', 6);
@@ -207,9 +196,9 @@ const generateBnbWallet = handleAsync(
       id: newId,
       user: req.user._id,
       network: 'BSC',
-      address: walletInfo.address,
-      secretKey: walletInfo.privateKey,
-      balance: balanceInBnb,
+      address,
+      secretKey,
+      balance,
     });
 
     await newWallet.save();
@@ -234,18 +223,7 @@ const generateEthWallet = handleAsync(
       throw new Error('用户已有ETH钱包');
     }
 
-    // 生成新钱包
-    const ethWallet = ethers.Wallet.createRandom();
-
-    // 获取钱包信息
-    const walletInfo = {
-      address: ethWallet.address,
-      privateKey: ethWallet.privateKey,
-    };
-
-    // 获取实时余额
-    const balance = await ethProvider.getBalance(walletInfo.address);
-    const balanceInEth = ethers.formatEther(balance);
+    const { address, privateKey: secretKey, balance } = await createEthWallet();
 
     // 创建新的钱包记录
     const newId = await IdGen.next(Wallet, 'id', 6);
@@ -253,9 +231,9 @@ const generateEthWallet = handleAsync(
       id: newId,
       user: req.user._id,
       network: 'ETH',
-      address: walletInfo.address,
-      secretKey: walletInfo.privateKey,
-      balance: balanceInEth,
+      address,
+      secretKey,
+      balance,
     });
 
     await newWallet.save();
@@ -280,18 +258,7 @@ const generateTrxWallet = handleAsync(
       throw new Error('用户已有TRX钱包');
     }
 
-    // 生成新钱包
-    const trxWallet = tronWeb.utils.accounts.generateAccount();
-
-    // 获取钱包信息
-    const walletInfo = {
-      address: (trxWallet.address as any).base58,
-      privateKey: trxWallet.privateKey,
-    };
-
-    // 获取实时余额
-    const balanceInSun = await tronWeb.trx.getBalance(walletInfo.address);
-    const balanceTRX = balanceInSun / 1000000; // Convert from SUN to TRX
+    const { address, privateKey: secretKey, balance } = await createTrxWallet();
 
     // 创建新的钱包记录
     const newId = await IdGen.next(Wallet, 'id', 6);
@@ -299,9 +266,9 @@ const generateTrxWallet = handleAsync(
       id: newId,
       user: req.user._id,
       network: 'TRX',
-      address: walletInfo.address,
-      secretKey: walletInfo.privateKey,
-      balance: balanceTRX,
+      address,
+      secretKey,
+      balance,
     });
 
     await newWallet.save();
@@ -370,32 +337,6 @@ const getAuthorizationOrCollectionWallet = handleAsync(
   },
 );
 
-// 获取当前用户指定网络的钱包
-const getCurrentUserWallet = handleAsync(
-  async (req: RequestCustom, res: Response) => {
-    // 查找当前用户指定网络的钱包
-    const wallets = await Wallet.find({
-      user: req.user._id,
-    });
-
-    // 返回找到的钱包信息
-    res.json({
-      success: true,
-      data: wallets.reduce(
-        (acc, wallet) => ({
-          ...acc,
-          [wallet.network]: {
-            network: wallet.network,
-            address: wallet.address,
-            balance: wallet.balance,
-          },
-        }),
-        {},
-      ),
-    });
-  },
-);
-
 // 批量更新钱包余额
 const updateCurrentUserWalletBalance = handleAsync(
   async (req: RequestCustom, res: Response) => {
@@ -427,6 +368,5 @@ export {
   generateBnbWallet,
   generateTrxWallet,
   getAuthorizationOrCollectionWallet,
-  getCurrentUserWallet,
   updateCurrentUserWalletBalance,
 };

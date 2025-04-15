@@ -129,41 +129,6 @@ const updateSetting = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-// 删除设置
-const deleteSetting = handleAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  const setting = await Setting.findByIdAndDelete(id);
-
-  if (!setting) {
-    res.status(404);
-    throw new Error('设置项不存在');
-  }
-
-  io.emit('settingUpdated');
-
-  res.json({
-    success: true,
-    data: { message: '设置项删除成功' },
-  });
-});
-
-// 批量删除设置
-const deleteMultipleSettings = handleAsync(
-  async (req: Request, res: Response) => {
-    const { ids } = req.body;
-
-    await Setting.deleteMany({
-      _id: { $in: ids },
-    });
-
-    res.json({
-      success: true,
-      message: `成功删除 ${ids.length} 条设置项`,
-    });
-  },
-);
-
 // Get statistics data
 export const getStatistics = handleAsync(
   async (req: Request, res: Response) => {
@@ -292,8 +257,6 @@ export {
   addSetting,
   getSettingById,
   updateSetting,
-  deleteSetting,
-  deleteMultipleSettings,
   getSettingByKey,
   getCustomerAuthorizationSetting,
   getServiceLink,

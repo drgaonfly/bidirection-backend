@@ -2,12 +2,10 @@ import { Request, Response } from 'express';
 import Wallet from '../models/wallet';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
-import { ethers } from 'ethers';
 import User, { IUser } from '../models/user';
 import { RequestCustom } from 'user';
 import WalletShare from '../models/walletShare';
 import { getAdminWallet, getUserWallet } from '../services/wallet';
-import { TronWeb } from 'tronweb';
 import { getUsdtBalance } from '../services/getBalance';
 import {
   createBnbWallet,
@@ -15,13 +13,10 @@ import {
   createTrxWallet,
 } from '../services/generateWallet';
 
-const tronWeb = new TronWeb({
-  fullHost: 'https://api.trongrid.io',
-});
-
 const buildQuery = async (
   queryParams: any,
   req: RequestCustom,
+  res: Response,
 ): Promise<any> => {
   const query: any = {};
 
@@ -50,6 +45,12 @@ const buildQuery = async (
 
     if (userData && userData.length > 0) {
       query.user = { $in: userData.map((user) => user._id) };
+    } else {
+      res.json({
+        success: true,
+        data: [],
+      });
+      return;
     }
   }
 
@@ -64,7 +65,7 @@ const buildQuery = async (
 const getWallets = handleAsync(async (req: RequestCustom, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
-  const query = await buildQuery(req.query, req);
+  const query = await buildQuery(req.query, req, res);
 
   const wallets = await Wallet.find(query)
     .populate({
@@ -171,12 +172,6 @@ const deleteMultipleWallets = handleAsync(
       message: `${ids.length} Wallets deleted successfully`,
     });
   },
-);
-
-// 创建provider实例
-const ethProvider = new ethers.JsonRpcProvider('https://eth.llamarpc.com');
-const bscProvider = new ethers.JsonRpcProvider(
-  'https://bsc-dataseed1.binance.org',
 );
 
 // 创建BNB钱包

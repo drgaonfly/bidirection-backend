@@ -7,6 +7,7 @@ import {
   deleteWithdraw,
   deleteMultipleWithdraws,
   getWithdrawByCustomerId,
+  agreeWithdraw,
 } from '../controllers/withdrawController';
 import {
   protect,
@@ -20,6 +21,9 @@ const router: Router = express.Router();
 router.post('/withdraw', customerProtect, addWithdraw);
 
 router.route('/customer').get(customerProtect, getWithdrawByCustomerId);
+
+//拒绝同意提现
+router.route('/:id/withrdaws').put(protect, checkPermission, agreeWithdraw);
 
 // 设置提现记录的路由
 router

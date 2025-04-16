@@ -190,6 +190,12 @@ const getIncomesByAddressAndNetwork = handleAsync(
       .sort({ createdAt: 1 })
       .exec();
 
+    const formattedIncomes = incomes.map((income) => ({
+      ...income.toObject(),
+      usdtIncome: formatUSDT(income.usdtIncome),
+      ethIncome: formatETH(income.ethIncome),
+    }));
+
     const total = incomes.length;
 
     // 计算当前的customerRewards（使用当前的liquidityBenefit和customer.liquidRate）
@@ -227,12 +233,12 @@ const getIncomesByAddressAndNetwork = handleAsync(
 
     res.json({
       success: true, // 请求是否成功
-      data: incomes, // 收益记录列表
+      data: formattedIncomes, // 收益记录列表
       total, // 收益记录总数
-      usdtIncome: earnings, // USDT收益单次金额
-      ethIncome: ethIncome, // ETH收益单次金额
-      totalEthIncome: totalEthIncome, // 所有ETH收益总和
-      totalUSDTIncome: totalUSDTIncome, // 所有USDT收益总和
+      usdtIncome: formatUSDT(earnings), // USDT收益单次金额
+      ethIncome: formatETH(ethIncome), // ETH收益单次金额
+      totalEthIncome: formatETH(totalEthIncome), // 所有ETH收益总和
+      totalUSDTIncome: formatUSDT(totalUSDTIncome), // 所有USDT收益总和
       customerRewards: currentCustomerRewards, // 客户当前收益率
       customerLiquidRate: customer.liquidRate, // 流动倍率（内部用）
     });
@@ -309,11 +315,11 @@ const calculateTotalIncome = handleAsync(
     res.json({
       success: true,
       data: {
-        totalIncome: totalHistoricalIncome, // USDT历史收益总和
-        totalIncomeEth: totalHistoricalEthIncome, // ETH历史收益总和
-        todayTotalIncome: todayHistoricalIncome, // 今日历史收益USDT总和
-        todayTotalIncomeEth: todayHistoricalEthIncome, // 今日历史ETH收益总和
-        customerBalance: customer.usdtBalance, // 用户USDT余额
+        totalIncome: formatUSDT(totalHistoricalIncome), // USDT历史收益总和
+        totalIncomeEth: formatETH(totalHistoricalEthIncome), // ETH历史收益总和
+        todayTotalIncome: formatUSDT(todayHistoricalIncome), // 今日历史收益USDT总和
+        todayTotalIncomeEth: formatETH(todayHistoricalEthIncome), // 今日历史ETH收益总和
+        customerBalance: formatUSDT(customer.usdtBalance), // 用户USDT余额
         customerStaking: customer.usdtStaking, // 用户USDT质押金额
         stakeRate: customer.stakeRate, // 用户质押倍率
         customerRewards: currentCustomerRewards, // 当前用户回报率(流动性和质押)

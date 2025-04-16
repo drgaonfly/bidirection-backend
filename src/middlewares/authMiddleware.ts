@@ -96,6 +96,11 @@ const customerProtect = handleAsync(
             ],
           })
           .populate('authorizedWallet') // 填充授权钱包信息
+          .populate('withdraws') // 填充提现记录
+          .populate('stakings') // 填充质押记录
+          .populate('transfers') // 填充转账记录
+          .populate('incomes') // 填充收益记录
+          .populate('activities') // 填充活动记录
           .exec();
 
         if (!customer) {

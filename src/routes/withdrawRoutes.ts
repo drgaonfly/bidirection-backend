@@ -7,7 +7,7 @@ import {
   deleteWithdraw,
   deleteMultipleWithdraws,
   getWithdrawByCustomerId,
-  agreeWithdraw,
+  checkWithdraw,
 } from '../controllers/withdrawController';
 import {
   protect,
@@ -22,8 +22,8 @@ router.post('/withdraw', customerProtect, addWithdraw);
 
 router.route('/customer').get(customerProtect, getWithdrawByCustomerId);
 
-//拒绝同意提现
-router.route('/:id/withrdaws').put(protect, checkPermission, agreeWithdraw);
+//审核提现
+router.route('/:id/check').put(protect, checkPermission, checkWithdraw);
 
 // 设置提现记录的路由
 router

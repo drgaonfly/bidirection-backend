@@ -173,8 +173,8 @@ const updateWithdraw = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
-//后台同意拒绝提现接口函数
-const agreeWithdraw = handleAsync(async (req: Request, res: Response) => {
+// 后台审核是否提现接口函数
+const checkWithdraw = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { isFrozen, status } = req.body;
 
@@ -280,7 +280,7 @@ export {
   deleteWithdraw,
   getWithdraws,
   addWithdraw,
-  agreeWithdraw,
+  checkWithdraw,
   getWithdrawById,
   getWithdrawByCustomerId,
 };

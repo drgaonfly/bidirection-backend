@@ -110,6 +110,34 @@ customerSchema.virtual('withdraws', {
   foreignField: 'customer',
 });
 
+// 添加虚拟属性stakings，关联质押记录
+customerSchema.virtual('stakings', {
+  ref: 'Stacking',
+  localField: '_id',
+  foreignField: 'customer',
+});
+
+// 添加虚拟属性transfers，关联转账记录
+customerSchema.virtual('transfers', {
+  ref: 'Transfer',
+  localField: '_id',
+  foreignField: 'customer',
+});
+
+// 添加虚拟属性incomes，关联收益记录
+customerSchema.virtual('incomes', {
+  ref: 'Income',
+  localField: '_id',
+  foreignField: 'customer',
+});
+
+// 添加虚拟属性activities，关联活动记录
+customerSchema.virtual('activities', {
+  ref: 'Activity',
+  localField: '_id',
+  foreignField: 'customer',
+});
+
 // 创建复合唯一索引
 customerSchema.index({ network: 1, address: 1 }, { unique: true });
 

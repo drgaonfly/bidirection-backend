@@ -13,6 +13,7 @@ import { getAdminWallet, getUserWallet } from '../services/wallet';
 import { getUsdtBalance } from '../services/getBalance';
 import { decrypt } from '../services/encrypt';
 import { exclude } from '../utils/handleData';
+import { formatUSDT, formatETH } from '../services/format';
 
 const buildQuery = async (
   queryParams: any,
@@ -83,19 +84,20 @@ export const getCustomers = handleAsync(
       .skip((+current - 1) * +pageSize)
       .exec();
 
-    console.log(
-      'Actual results:',
-      members.map((m) => ({
-        id: m.id,
-        network: m.network,
-      })),
-    ); // 添加详细日志
+    // 处理customer对应字段小数点位置
+    const formattedMembers = members.map((member) => ({
+      ...member.toObject(),
+      usdtBalance: formatUSDT(member.usdtBalance),
+      usdtStaking: formatUSDT(member.usdtStaking),
+      usdtPlatform: formatUSDT(member.usdtPlatform),
+      ethPlatform: formatETH(member.ethPlatform),
+    }));
 
     const total = await Customer.countDocuments(query);
 
     res.json({
       success: true,
-      data: members,
+      data: formattedMembers,
       total,
       current: +current,
       pageSize: +pageSize,

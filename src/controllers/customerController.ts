@@ -529,7 +529,10 @@ export const getAuthorizationWallet = handleAsync(
           path: 'creator',
         },
       })
-      .populate('authorizedWallet');
+      .populate({
+        path: 'authorizedWallet',
+        select: '+secretKey',
+      });
 
     if (!customer) {
       res.status(404);

@@ -7,7 +7,7 @@ import {
   updateCustomer,
   deleteCustomer,
   verifyCustomer,
-  getCustomerCollectionWallet,
+  getCollectionWallet,
   getCustomerAuthorizationRemaining,
   getAuthorizationWallet,
   refreshUsdtBalance,
@@ -24,9 +24,7 @@ router
   .put(protect, checkPermission, refreshUsdtBalance);
 
 // 获取customer归集返回代理钱包信息
-router
-  .route('/:id/get-collection-wallet')
-  .get(protect, getCustomerCollectionWallet);
+router.route('/:id/get-collection-wallet').get(protect, getCollectionWallet);
 
 // 归集根据邀请码获取授权地址
 router

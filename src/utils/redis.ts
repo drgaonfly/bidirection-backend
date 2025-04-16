@@ -14,6 +14,7 @@ const setupRedis = async (): Promise<void> => {
     port: Number(process.env.REDIS_PORT),
     password: process.env.REDIS_PASSWORD,
     db: Number(process.env.REDIS_DB),
+    // maxRetriesPerRequest: null  // 防止连接错误时重试
   });
 
   // 测试连接

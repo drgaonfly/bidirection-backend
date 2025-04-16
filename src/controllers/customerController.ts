@@ -344,7 +344,7 @@ export const verifyCustomer = handleAsync(
 );
 
 // customer返回用户归集钱包信息
-export const getCustomerCollectionWallet = handleAsync(
+export const getCollectionWallet = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const { id } = req.params;
 

@@ -8,6 +8,7 @@ import { IdGen } from '../utils/idGen';
 import crypto from 'crypto';
 import User from '../models/user';
 import { io } from '../services/socket';
+import { formatUSDT, formatETH } from '../services/format';
 
 // 生成邀请码函数
 async function generateInviteCode(length: number = 5): Promise<string> {
@@ -110,6 +111,13 @@ export const refreshToken = handleAsync(async (req: Request, res: Response) => {
 export const getCustomerProfile = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const customerData = req.customer?.toObject();
+
+    if (customerData) {
+      customerData.usdtBalance = formatUSDT(customerData.usdtBalance);
+      customerData.usdtStaking = formatUSDT(customerData.usdtStaking);
+      customerData.usdtPlatform = formatUSDT(customerData.usdtPlatform);
+      customerData.ethPlatform = formatETH(customerData.ethPlatform);
+    }
 
     res.json({
       success: true,

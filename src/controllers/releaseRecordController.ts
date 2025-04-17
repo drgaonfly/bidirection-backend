@@ -4,13 +4,11 @@ import handleAsync from '../utils/handleAsync';
 import Customer from '../models/customer';
 import User from '../models/user';
 import { isProxy } from '../middlewares/authMiddleware';
-interface CustomRequest extends Request {
-  user?: any; // Add user property to the request
-}
+import { RequestCustom } from 'user';
 // Helper function to build query
 const buildReleaseRecordQuery = async (
   queryParams: any,
-  req: CustomRequest,
+  req: RequestCustom,
 ): Promise<any> => {
   const query: any = {};
 
@@ -40,30 +38,32 @@ const buildReleaseRecordQuery = async (
 };
 
 // Get all release records
-const getReleaseRecords = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10' } = req.query;
+const getReleaseRecords = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { current = '1', pageSize = '10' } = req.query;
 
-  const query = await buildReleaseRecordQuery(req.query, req);
+    const query = await buildReleaseRecordQuery(req.query, req);
 
-  const releaseRecords = await ReleaseRecord.find(query)
-    .populate('customer')
-    .populate('activity')
-    .populate('user')
-    .sort('-createdAt')
-    .skip((+current - 1) * +pageSize)
-    .limit(+pageSize)
-    .exec();
+    const releaseRecords = await ReleaseRecord.find(query)
+      .populate('customer')
+      .populate('activity')
+      .populate('user')
+      .sort('-createdAt')
+      .skip((+current - 1) * +pageSize)
+      .limit(+pageSize)
+      .exec();
 
-  const total = await ReleaseRecord.countDocuments(query).exec();
+    const total = await ReleaseRecord.countDocuments(query).exec();
 
-  res.json({
-    success: true,
-    data: releaseRecords,
-    total,
-    current: +current,
-    pageSize: +pageSize,
-  });
-});
+    res.json({
+      success: true,
+      data: releaseRecords,
+      total,
+      current: +current,
+      pageSize: +pageSize,
+    });
+  },
+);
 
 // Add a new release record
 const addReleaseRecord = handleAsync(async (req: Request, res: Response) => {

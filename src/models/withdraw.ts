@@ -7,12 +7,13 @@ export interface IWithdraw extends Document {
   customer: mongoose.Schema.Types.ObjectId | ICustomer;
   amount: number;
   fee: number;
-  status: string;
+  status: 'pending' | 'completed' | 'rejected';
   remark: string;
   reason: string;
   employee: mongoose.Schema.Types.ObjectId | IUser;
   isFrozen: boolean;
   frozen: boolean;
+  proxy: mongoose.Schema.Types.ObjectId | IUser;
 }
 
 const withdrawSchema = new mongoose.Schema(
@@ -33,11 +34,11 @@ const withdrawSchema = new mongoose.Schema(
       default: false,
     }, //默认冻结状态
 
-    // 来代替上面的冻结
-    frozen: {
-      type: Boolean,
-      default: true,
-    },
+    // // 来代替上面的冻结
+    // frozen: {
+    //   type: Boolean,
+    //   default: true,
+    // },
 
     finalAmount: { type: Number }, //扣去手续费金额
     status: {

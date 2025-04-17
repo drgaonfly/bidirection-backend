@@ -18,7 +18,7 @@ import {
 const router: Router = express.Router();
 
 // 添加提现记录
-router.post('/withdraw', customerProtect, addWithdraw);
+router.post('/apply', customerProtect, addWithdraw);
 
 router.route('/customer').get(customerProtect, getWithdrawByCustomerId);
 

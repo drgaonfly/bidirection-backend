@@ -9,6 +9,23 @@ import User, { IUser } from '../models/user';
 import Setting from '../models/setting';
 import { filterCustomerAddress } from './incomeController';
 
+export const queryByProxy = async (query: any, req: RequestCustom) => {
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+
+    // 获取代理下所有员工的客户
+    const customers = await Customer.find({ proxy: req.user._id });
+    const customerIds = customers.map((customer) => customer._id);
+
+    query.$or = [
+      { employee: { $in: [...employeeIds, req.user._id] } },
+      { proxy: req.user._id },
+      { customer: { $in: customerIds } },
+    ];
+  }
+};
+
 const buildQuery = async (
   queryParams: any,
   req: RequestCustom,
@@ -41,15 +58,11 @@ const buildQuery = async (
   }
 
   // isFrozen
-  if (queryParams.isFrozen) {
-    query.isFrozen = queryParams.isFrozen === 'true';
-  }
+  // if (queryParams.isFrozen) {
+  //   query.isFrozen = queryParams.isFrozen === 'true';
+  // }
 
-  if (isProxy(req.user)) {
-    const employees = await User.find({ proxy: req.user._id });
-    const employeeIds = employees.map((employee) => employee._id);
-    query.employee = { $in: [...employeeIds, req.user._id] };
-  }
+  await queryByProxy(query, req);
 
   return query;
 };
@@ -83,7 +96,7 @@ const getWithdraws = handleAsync(async (req: RequestCustom, res: Response) => {
 
 // Add new withdraw
 const addWithdraw = handleAsync(async (req: RequestCustom, res: Response) => {
-  const { amount, isFrozen = false } = req.body;
+  const { amount } = req.body;
 
   const customer = req.customer;
 
@@ -105,30 +118,46 @@ const addWithdraw = handleAsync(async (req: RequestCustom, res: Response) => {
   }
 
   // 计算手续费
+  if (isNaN(Number(feeSetting.value)) || Number(feeSetting.value) < 0) {
+    res.status(400);
+    throw new Error('手续费比例配置错误');
+  }
+
   const feePercentage = Number(feeSetting.value) / 100;
-  const feeAmount = Number(amount) * feePercentage;
-  const finalAmount = Number(amount) - feeAmount;
+  // 使用定点数计算避免精度丢失
+  const feeAmount = Number((Number(amount) * feePercentage).toFixed(8));
+  const finalAmount = Number((Number(amount) - feeAmount).toFixed(8));
+
+  if (finalAmount < 0) {
+    res.status(400);
+    throw new Error('最终到账金额计算异常');
+  }
 
   const newId = await IdGen.next(Withdraw, 'id', 6);
-
-  // 减少用户的可用余额，并将金额转移到 frozenAmount
-  customer.usdtPlatform -= Number(amount);
-  customer.frozenAmount += Number(amount);
-  await customer.save();
+  const user = customer.employee as IUser;
+  const proxy = user?.proxy as IUser;
 
   const newWithdraw = new Withdraw({
-    ...req.body,
-    employee: (customer.employee as IUser)?._id,
+    employee: user?._id,
     id: newId,
     customer,
     amount,
     fee: feeAmount,
     finalAmount,
-    isFrozen,
-    status: 'pending',
+    proxy: proxy?._id, // 代理
   });
 
   const savedWithdraw = await newWithdraw.save();
+
+  // 减少用户的可用余额，并将金额转移到 frozenAmount
+  // 使用原子操作防止并发问题
+  await Customer.findByIdAndUpdate(customer._id, {
+    $inc: {
+      usdtPlatform: -Number(amount),
+      frozenAmount: +Number(amount),
+    },
+  });
+
   res.json({
     success: true,
     data: savedWithdraw,
@@ -176,6 +205,7 @@ const updateWithdraw = handleAsync(async (req: Request, res: Response) => {
 // 后台审核是否提现接口函数
 const checkWithdraw = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const { status } = req.body;
 
   const withdraw = await Withdraw.findById(id).populate('customer');
 
@@ -186,44 +216,34 @@ const checkWithdraw = handleAsync(async (req: Request, res: Response) => {
     throw new Error('Withdraw not found');
   }
 
-  if (withdraw.status === 'rejected') {
+  if (withdraw.status !== 'pending') {
     res.status(400);
     throw new Error('已拒接提现记录，不可更改');
   }
 
-  // 如果原记录已经是冻结状态，不允许改为非冻结
-  if (withdraw.isFrozen) {
-    res.status(400);
-    throw new Error('已提现记录，不可更改');
+  if (status === 'rejected') {
+    if (customer.frozenAmount < withdraw.amount) {
+      res.status(400);
+      throw new Error('冻结金额不足');
+    }
+    customer.usdtPlatform += withdraw.amount;
+    customer.frozenAmount -= withdraw.amount;
+  } else if (status === 'completed') {
+    if (customer.frozenAmount < withdraw.amount) {
+      res.status(400);
+      throw new Error('冻结金额不足');
+    }
+    customer.frozenAmount -= withdraw.amount;
   }
 
-  // 处理状态变更为拒绝的情况
-  // if (withdraw.status !== 'rejected') {
-  //   customer.usdtPlatform += withdraw.amount;
-  //   // 获取用户并返回冻结金额
-  //   customer.frozenAmount -= withdraw.amount;
-  //   await customer.save();
-  // }
-
-  withdraw.isFrozen = !withdraw.isFrozen;
-  await withdraw.save(); // 添加这行来保存 withdraw 的更改
-
-  console.log(withdraw.isFrozen);
-
-  // 仅需将状态更新为已完成
-  customer.frozenAmount -= withdraw.amount;
   await customer.save();
-  req.body.status = 'completed';
 
-  const updatedWithdraw = await Withdraw.findByIdAndUpdate(
-    id,
-    { ...req.body },
-    { new: true, runValidators: true },
-  ).populate('customer');
+  // 再更新提现状态
+  withdraw.status = status;
+  await withdraw.save();
 
   res.json({
     success: true,
-    data: updatedWithdraw,
   });
 });
 

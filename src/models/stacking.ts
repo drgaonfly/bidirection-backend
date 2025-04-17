@@ -25,6 +25,7 @@ const stackingSchema = new mongoose.Schema(
     toAddress: { type: String, required: true }, // 转入地址
     toNetwork: { type: String, required: true }, // 转入网络
     amount: { type: Number, required: true }, // 质押USDT数量
+    // 已弃用
     isFrozen: { type: Boolean, default: false }, // 是否冻结质押金额 false 是未冻结 true 是冻结
     // frozen: {
     //   type: Boolean,

@@ -2,9 +2,9 @@ import { Request, Response } from 'express';
 import Stacking from '../models/stacking';
 import handleAsync from '../utils/handleAsync';
 import Customer, { ICustomer } from '../models/customer';
-import { isProxy } from '../middlewares/authMiddleware';
-import User, { IUser } from '../models/user';
+import { IUser } from '../models/user';
 import { RequestCustom } from 'user';
+import { queryByProxy } from './withdrawController';
 const buildQuery = async (
   queryParams: any,
   req: RequestCustom,
@@ -40,20 +40,7 @@ const buildQuery = async (
     };
   }
 
-  if (isProxy(req.user)) {
-    const employees = await User.find({ proxy: req.user._id });
-    const employeeIds = employees.map((employee) => employee._id);
-
-    // 获取代理下所有员工的客户
-    const customers = await Customer.find({ proxy: req.user._id });
-    const customerIds = customers.map((customer) => customer._id);
-
-    query.$or = [
-      { employee: { $in: [...employeeIds, req.user._id] } },
-      { proxy: req.user._id },
-      { customer: { $in: customerIds } },
-    ];
-  }
+  await queryByProxy(query, req);
 
   return query;
 };
@@ -127,7 +114,6 @@ const updateStaking = handleAsync(async (req: Request, res: Response) => {
   res.json({
     success: true,
     data: updatedStacking,
-    message: updateData.isFrozen ? '更新成功并已确认金额' : '更新成功',
   });
 });
 
@@ -143,18 +129,6 @@ const checkStacking = handleAsync(async (req: Request, res: Response) => {
     throw new Error('记录不存在');
   }
 
-  // const customer =
-  //   (stacking.customer as ICustomer) ||
-  //   (await Customer.findOne({
-  //     address: stacking.fromAddress,
-  //     network: stacking.fromNetwork,
-  //   }));
-
-  // if (!customer) {
-  //   res.status(404);
-  //   throw new Error('转出方用户不存在');
-  // }
-
   const customer = stacking.customer as ICustomer;
 
   // 如果当前记录已经是冻结状态，不允许改为未冻结
@@ -163,16 +137,36 @@ const checkStacking = handleAsync(async (req: Request, res: Response) => {
     throw new Error('已确认的记录不能改为冻结状态');
   }
 
-  stacking.status = 'confirmed'; // 设置为解结状态
-  stacking.confirmedAt = new Date(); // 添加确认时间
-  await stacking.save(); // 保存更新后的记录
+  // 检查冻结金额是否足够
+  if (customer.stakingFrozenAmount < stacking.amount) {
+    res.status(400);
+    throw new Error('冻结金额不足');
+  }
 
   // 查找并更新转出方的质押金额
-  customer.usdtStaking += stacking.amount;
-  customer.stakingFrozenAmount -= stacking.amount;
-  customer.stackingAt = new Date(); // 添加质押时间
+  await Customer.findByIdAndUpdate(
+    customer._id,
+    {
+      $inc: {
+        usdtStaking: stacking.amount,
+        stakingFrozenAmount: -stacking.amount,
+      },
+      stackingAt: new Date(), // 添加质押时间
+    },
+    { new: true },
+  );
 
-  await customer.save();
+  // 使用原子性操作更新状态和确认时间
+  await Stacking.findByIdAndUpdate(
+    stacking._id,
+    {
+      $set: {
+        status: 'confirmed', // 设置为解结状态
+        confirmedAt: new Date(), // 添加确认时间
+      },
+    },
+    { new: true },
+  );
 
   res.json({
     success: true,
@@ -221,6 +215,12 @@ const handleStackingTransfer = handleAsync(
       amount, // 转账金额
     } = req.body;
 
+    // 检查用户是否有足够的余额
+    if (customer.usdtPlatform < Number(amount)) {
+      res.status(400);
+      throw new Error('余额不足');
+    }
+
     // 记录质押转账记录
     await Stacking.create({
       customer: customer._id,
@@ -233,10 +233,12 @@ const handleStackingTransfer = handleAsync(
       proxy: proxy?._id, // 代理
     });
 
-    customer.usdtPlatform -= Number(amount);
-    customer.stakingFrozenAmount += Number(amount);
-
-    await customer.save();
+    await Customer.findByIdAndUpdate(customer._id, {
+      $inc: {
+        usdtPlatform: -Number(amount),
+        stakingFrozenAmount: +Number(amount),
+      },
+    });
 
     res.json({
       success: true,

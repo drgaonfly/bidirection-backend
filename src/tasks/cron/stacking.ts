@@ -63,6 +63,7 @@ export const generateStakingIncome = async (): Promise<void> => {
         const lastIncome = await Income.findOne({
           customer: customer._id,
           type: 'staking',
+          isManual: false,
         }).sort({ createdAt: -1 });
 
         if (lastIncome) {

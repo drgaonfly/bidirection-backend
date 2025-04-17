@@ -111,7 +111,12 @@ const getIncomes = handleAsync(async (req: RequestCustom, res: Response) => {
 const addIncome = handleAsync(
   async (req: Request, res: Response): Promise<void> => {
     // 确保从请求体中获取 isManual 字段
-    const { isManuall, customer: customerId, ...otherData } = req.body;
+    const {
+      isManuall,
+      customer: customerId,
+      ethIncome = 0,
+      ...otherData
+    } = req.body;
 
     // 获取客户信息
     const customer = await Customer.findById(customerId);
@@ -120,6 +125,7 @@ const addIncome = handleAsync(
         success: false,
         message: 'Customer not found',
       });
+      return;
     }
 
     // 获取对应的收益范围
@@ -149,8 +155,16 @@ const addIncome = handleAsync(
       ...otherData,
       isManuall,
       customer: customerId,
-      customerRewards, // 添加 customerRewards 字段
+      customerRewards,
+      ethIncome,
     });
+
+    // 更新客户的 ethPlatform 字段
+    await Customer.findByIdAndUpdate(
+      customerId,
+      { $inc: { ethPlatform: ethIncome } },
+      { new: true },
+    );
 
     const savedIncome = await newIncome.save();
     res.json({

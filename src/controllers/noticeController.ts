@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import Notice from '../models/notice';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';

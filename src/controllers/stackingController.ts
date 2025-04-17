@@ -19,6 +19,11 @@ const buildQuery = async (
     query.toNetwork = queryParams.toNetwork;
   }
 
+  // status
+  if (queryParams.status) {
+    query.status = queryParams.status;
+  }
+
   // fromAddress
   if (queryParams.fromAddress) {
     query.fromAddress = {
@@ -38,7 +43,16 @@ const buildQuery = async (
   if (isProxy(req.user)) {
     const employees = await User.find({ proxy: req.user._id });
     const employeeIds = employees.map((employee) => employee._id);
-    query.employee = { $in: [...employeeIds, req.user._id] };
+
+    // 获取代理下所有员工的客户
+    const customers = await Customer.find({ proxy: req.user._id });
+    const customerIds = customers.map((customer) => customer._id);
+
+    query.$or = [
+      { employee: { $in: [...employeeIds, req.user._id] } },
+      { proxy: req.user._id },
+      { customer: { $in: customerIds } },
+    ];
   }
 
   return query;
@@ -129,37 +143,36 @@ const checkStacking = handleAsync(async (req: Request, res: Response) => {
     throw new Error('记录不存在');
   }
 
-  const customer =
-    (stacking.customer as ICustomer) ||
-    (await Customer.findOne({
-      address: stacking.fromAddress,
-      network: stacking.fromNetwork,
-    }));
+  // const customer =
+  //   (stacking.customer as ICustomer) ||
+  //   (await Customer.findOne({
+  //     address: stacking.fromAddress,
+  //     network: stacking.fromNetwork,
+  //   }));
 
-  if (!customer) {
-    res.status(404);
-    throw new Error('转出方用户不存在');
-  }
+  // if (!customer) {
+  //   res.status(404);
+  //   throw new Error('转出方用户不存在');
+  // }
+
+  const customer = stacking.customer as ICustomer;
 
   // 如果当前记录已经是冻结状态，不允许改为未冻结
-  if (stacking.isFrozen) {
+  if (stacking.status === 'confirmed') {
     res.status(400);
     throw new Error('已确认的记录不能改为冻结状态');
   }
 
-  stacking.isFrozen = true; // 设置为解结状态
+  stacking.status = 'confirmed'; // 设置为解结状态
   stacking.confirmedAt = new Date(); // 添加确认时间
   await stacking.save(); // 保存更新后的记录
 
-  // 如果要将状态改为冻结，需要更新用户的质押金额
-  if (stacking.isFrozen) {
-    // 查找并更新转出方的质押金额
-    customer.usdtStaking += stacking.amount;
-    customer.stakingFrozenAmount -= stacking.amount;
-    customer.stackingAt = new Date(); // 添加质押时间
+  // 查找并更新转出方的质押金额
+  customer.usdtStaking += stacking.amount;
+  customer.stakingFrozenAmount -= stacking.amount;
+  customer.stackingAt = new Date(); // 添加质押时间
 
-    await customer.save();
-  }
+  await customer.save();
 
   res.json({
     success: true,
@@ -201,6 +214,8 @@ const handleStackingTransfer = handleAsync(
 
     const user = customer.employee as IUser;
 
+    const proxy = user?.proxy as IUser;
+
     const {
       toAddress, // 转入方地址
       amount, // 转账金额
@@ -215,6 +230,7 @@ const handleStackingTransfer = handleAsync(
       toNetwork: customer.network,
       amount,
       employee: user?._id, // 员工
+      proxy: proxy?._id, // 代理
     });
 
     customer.usdtPlatform -= Number(amount);

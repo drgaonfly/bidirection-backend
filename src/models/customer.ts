@@ -34,6 +34,8 @@ export interface ICustomer extends Document {
 
   isDemoAccount: boolean;
   demoAt: Date;
+
+  proxy: mongoose.Schema.Types.ObjectId | IUser;
 }
 
 const customerSchema = new mongoose.Schema(
@@ -91,7 +93,13 @@ const customerSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: false,
-    }, //员工
+    }, // 员工
+
+    proxy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
+    }, // 代理
     invitedBy: { type: String, required: false }, //邀请人的邀请码
     ownInviteCode: { type: String, required: false }, //自己的邀请码
     isOnline: { type: Boolean, default: false }, //是否在线

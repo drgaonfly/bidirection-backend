@@ -6,13 +6,11 @@ import ReleaseRecord from '../models/releaseRecord';
 import User from '../models/user';
 import { isProxy } from '../middlewares/authMiddleware';
 import { RequestCustom } from 'user';
-interface CustomRequest extends Request {
-  user?: any; // Add user property to the request
-}
+
 // Helper function to build query
 const buildActivityQuery = async (
   queryParams: any,
-  req: CustomRequest,
+  req: RequestCustom,
 ): Promise<any> => {
   const query: any = {};
 
@@ -38,7 +36,7 @@ const buildActivityQuery = async (
 };
 
 // Get all activities
-const getActivities = handleAsync(async (req: Request, res: Response) => {
+const getActivities = handleAsync(async (req: RequestCustom, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
   const query = await buildActivityQuery(req.query, req);
@@ -63,7 +61,7 @@ const getActivities = handleAsync(async (req: Request, res: Response) => {
 });
 
 // Add a new activity
-const addActivity = handleAsync(async (req: CustomRequest, res: Response) => {
+const addActivity = handleAsync(async (req: RequestCustom, res: Response) => {
   const newId = await IdGen.next(Activity, 'id', 6); // Generate a 6-digit unique ID
 
   // Create the new activity with the generated id and user

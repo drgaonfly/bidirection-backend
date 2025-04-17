@@ -2,10 +2,7 @@ import { Request, Response } from 'express';
 import Notice from '../models/notice';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
-
-interface CustomRequest extends Request {
-  user?: any; // Add user property to the request
-}
+import { RequestCustom } from 'user';
 
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
@@ -22,7 +19,7 @@ const buildQuery = (queryParams: any): any => {
 };
 
 // 获取所有通知记录
-const getNotices = handleAsync(async (req: CustomRequest, res: Response) => {
+const getNotices = handleAsync(async (req: RequestCustom, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
   const query = buildQuery(req.query);
@@ -45,7 +42,7 @@ const getNotices = handleAsync(async (req: CustomRequest, res: Response) => {
 });
 
 // 添加通知记录
-const addNotice = handleAsync(async (req: CustomRequest, res: Response) => {
+const addNotice = handleAsync(async (req: RequestCustom, res: Response) => {
   const newId = await IdGen.next(Notice, 'id', 4);
 
   const newNotice = new Notice({
@@ -62,7 +59,7 @@ const addNotice = handleAsync(async (req: CustomRequest, res: Response) => {
 });
 
 // 根据 ID 获取通知记录
-const getNoticeById = handleAsync(async (req: CustomRequest, res: Response) => {
+const getNoticeById = handleAsync(async (req: RequestCustom, res: Response) => {
   const notice = await Notice.findById(req.params.id).populate('customer');
 
   res.json({
@@ -72,7 +69,7 @@ const getNoticeById = handleAsync(async (req: CustomRequest, res: Response) => {
 });
 
 // 更新通知记录
-const updateNotice = handleAsync(async (req: CustomRequest, res: Response) => {
+const updateNotice = handleAsync(async (req: RequestCustom, res: Response) => {
   const { id } = req.params;
 
   const updatedNotice = await Notice.findByIdAndUpdate(
@@ -88,7 +85,7 @@ const updateNotice = handleAsync(async (req: CustomRequest, res: Response) => {
 });
 
 // 删除通知记录
-const deleteNotice = handleAsync(async (req: CustomRequest, res: Response) => {
+const deleteNotice = handleAsync(async (req: RequestCustom, res: Response) => {
   const { id } = req.params;
 
   const notice = await Notice.findByIdAndDelete(id);
@@ -101,7 +98,7 @@ const deleteNotice = handleAsync(async (req: CustomRequest, res: Response) => {
 
 // 批量删除通知记录
 const deleteMultipleNotices = handleAsync(
-  async (req: CustomRequest, res: Response) => {
+  async (req: RequestCustom, res: Response) => {
     const { ids } = req.body;
 
     await Notice.deleteMany({

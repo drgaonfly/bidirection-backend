@@ -176,7 +176,7 @@ const deleteMultipleTransfers = handleAsync(
 // 1. 直接转账 (direct): 用户直接转账给平台
 // 2. 代理转账 (agent): 用户先转账给代理，代理再转账给平台
 const addCollectionTransfer = handleAsync(
-  async (req: Request, res: Response) => {
+  async (req: RequestCustom, res: Response) => {
     const {
       network, // 网络类型
       sender, // 发送者地址

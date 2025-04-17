@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import Carousel from '../models/carousel';
 import handleAsync from '../utils/handleAsync';
-import { CustomRequest } from './uploadController';
 import {
   transformDocumentImage,
   transformDocumentImages,
 } from '../utils/transformUtils';
+import { RequestCustom } from 'user';
 
 // dataPermissionController.ts
 const buildQuery = (queryParams: any): any => {
@@ -46,7 +46,7 @@ const getCarousels = handleAsync(async (req: Request, res: Response) => {
   });
 });
 // 添加轮播图
-const addCarousel = handleAsync(async (req: CustomRequest, res: Response) => {
+const addCarousel = handleAsync(async (req: RequestCustom, res: Response) => {
   const newcarousel = new Carousel({
     ...req.body,
     image: req.body.image, // 确保路径格式正确

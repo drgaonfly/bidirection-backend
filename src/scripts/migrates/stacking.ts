@@ -8,7 +8,7 @@ import { IUser } from '../../models/user';
 import Customer from '../../models/customer';
 import Stacking from '../../models/stacking';
 import setupDB from '../../utils/db';
-
+import User from '../../models/user';
 const migrateColumns = async () => {
   console.log(`[${new Date().toISOString()}] 开始数据迁移...`);
 
@@ -17,7 +17,10 @@ const migrateColumns = async () => {
 
   // 查询所有质押记录
   // 查询所有质押记录并填充 employee 字段
-  const stackings = await Stacking.find().populate('employee');
+  const stackings = await Stacking.find().populate({
+    path: 'employee',
+    model: User,
+  });
   console.log(
     `[${new Date().toISOString()}] 查询到 ${stackings.length} 条质押记录`,
   );

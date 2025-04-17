@@ -196,11 +196,14 @@ export const getCollectionWalletService = async (customerId: string) => {
 
   const user = (customer.proxy as IUser) || (customer.employee as IUser);
   const { network } = customer;
-  const adminWallet = await getAdminWallet(network);
+
+  let adminWallet = await getAdminWallet(network);
+
+  adminWallet = exclude(adminWallet, 'secretKey');
 
   if (!user) {
     return {
-      adminWallet: exclude(adminWallet, 'secretKey'),
+      adminWallet,
       agentWallet: null,
     };
   }
@@ -208,6 +211,7 @@ export const getCollectionWalletService = async (customerId: string) => {
   const wallet = await getWalletService(user, network, WalletShare);
 
   const walletCreator = await User.findById(wallet.user);
+
   if (!walletCreator) {
     throw new Error('未找到钱包创建者');
   }
@@ -215,7 +219,7 @@ export const getCollectionWalletService = async (customerId: string) => {
   const proxySharingRate = walletCreator.proxySharingRate || 0;
   if (proxySharingRate === 0) {
     return {
-      adminWallet: exclude(adminWallet, 'secretKey'),
+      adminWallet,
       agentWallet: null,
     };
   }

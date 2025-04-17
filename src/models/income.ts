@@ -15,11 +15,13 @@ export interface Income extends Document {
   updatedAt?: Date;
   employee: mongoose.Schema.Types.ObjectId | IUser;
   ethIncome: number; // 以太坊实时收益
+  proxy: mongoose.Schema.Types.ObjectId | IUser;
+  type: 'staking' | 'verified'; // 质押收益和授权收益
 }
 
 const IncomeSchema = new mongoose.Schema(
   {
-    usdtIncome: { type: Number }, // 收益
+    usdtIncome: { type: Number, required: true }, // 收益
     remarks: { type: String, required: false }, // 备注
     customer: {
       type: mongoose.Schema.Types.ObjectId,
@@ -43,6 +45,11 @@ const IncomeSchema = new mongoose.Schema(
       ref: 'User',
       required: false,
     }, // 员工
+    proxy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
+    },
   },
   { timestamps: true },
 );

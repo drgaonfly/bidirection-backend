@@ -1,9 +1,8 @@
 import { Request, Response } from 'express';
 import Transfer from '../models/transfer';
 import handleAsync from '../utils/handleAsync';
-import { isProxy } from '../middlewares/authMiddleware';
-import User from '../models/user';
 import { RequestCustom } from 'user';
+import { queryByProxy } from './withdrawController';
 
 // Helper function to build query
 const buildTransferQuery = async (
@@ -63,11 +62,7 @@ const buildTransferQuery = async (
     };
   }
 
-  if (isProxy(req.user)) {
-    const employees = await User.find({ proxy: req.user._id });
-    const employeeIds = employees.map((employee) => employee._id);
-    query.employee = { $in: [...employeeIds, req.user._id] };
-  }
+  await queryByProxy(query, req);
 
   return query;
 };

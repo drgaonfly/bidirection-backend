@@ -13,6 +13,8 @@ export interface ITransfer extends Document {
   type: 'direct' | 'agent'; // 转账类型：直接或代理
   status: string; // 转账状态
   employee: mongoose.Schema.Types.ObjectId | IUser;
+  proxy: mongoose.Schema.Types.ObjectId | IUser;
+  customer: mongoose.Schema.Types.ObjectId;
 }
 
 const transferSchema = new mongoose.Schema(
@@ -45,7 +47,7 @@ const transferSchema = new mongoose.Schema(
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Customer',
-      required: false,
+      required: true,
     }, // 代理
   },
   { timestamps: true }, // 自动添加创建和更新的时间戳

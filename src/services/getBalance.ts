@@ -3,7 +3,7 @@ import { mainnet, bsc } from 'viem/chains';
 import { TronWeb } from 'tronweb';
 
 // USDT合约地址
-const USDT_CONTRACT_ADDRESSES = {
+export const USDT_CONTRACT_ADDRESSES = {
   ETH: '0xdAC17F958D2ee523a2206206994597C13D831ec7', // 以太坊USDT合约地址
   BSC: '0x55d398326f99059fF775485246999027B3197955', // BSC USDT合约地址
   TRX: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t', // TRX USDT合约地址
@@ -21,12 +21,12 @@ const USDT_ABI = [
 ];
 
 // 预加载客户端
-const ethClient = createPublicClient({
+export const ethClient = createPublicClient({
   chain: mainnet,
   transport: http('https://ethereum.publicnode.com'),
 });
 
-const bscClient = createPublicClient({
+export const bscClient = createPublicClient({
   chain: bsc,
   transport: http('https://bsc-dataseed.binance.org'),
 });

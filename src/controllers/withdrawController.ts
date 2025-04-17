@@ -205,7 +205,7 @@ const updateWithdraw = handleAsync(async (req: Request, res: Response) => {
 // 后台审核是否提现接口函数
 const checkWithdraw = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { status } = req.body;
+  const { status, reason } = req.body;
 
   const withdraw = await Withdraw.findById(id).populate('customer');
 
@@ -226,6 +226,7 @@ const checkWithdraw = handleAsync(async (req: Request, res: Response) => {
       res.status(400);
       throw new Error('冻结金额不足');
     }
+    withdraw.reason = reason;
     customer.usdtPlatform += withdraw.amount;
     customer.frozenAmount -= withdraw.amount;
   } else if (status === 'completed') {

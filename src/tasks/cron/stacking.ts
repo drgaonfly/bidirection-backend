@@ -4,7 +4,6 @@ import LiquidityBenefits from '../../models/liquidity';
 import Setting from '../../models/setting';
 import { getExchangeRate } from '../../utils/getExchange';
 import { formatUSDT, formatETH } from '../../services/format';
-import { IUser } from '../../models/user';
 // 自动生成质押收益
 export const generateStakingIncome = async (): Promise<void> => {
   try {

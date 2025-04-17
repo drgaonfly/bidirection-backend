@@ -130,7 +130,7 @@ const addWithdraw = handleAsync(async (req: RequestCustom, res: Response) => {
 
   const newId = await IdGen.next(Withdraw, 'id', 6);
   const user = customer.employee as IUser;
-  const proxy = user?.proxy as IUser;
+  const proxy = customer?.proxy as IUser;
 
   const newWithdraw = new Withdraw({
     employee: user?._id,

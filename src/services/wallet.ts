@@ -2,6 +2,11 @@ import { IUser } from '../models/user';
 import Setting from '../models/setting';
 import User from '../models/user';
 import { Response } from 'express';
+import Customer from '../models/customer';
+import Wallet, { IWallet } from '../models/wallet';
+import { decrypt } from './encrypt';
+import WalletShare from '../models/walletShare';
+import { exclude } from '../utils/handleData';
 
 // 获取管理员钱包配置信息
 export async function getAdminWalletConfig(network: string) {
@@ -97,4 +102,133 @@ export const getUserWallet = async (
   }
 
   return wallet;
+};
+
+export const getWalletService = async (
+  user: IUser,
+  network: string,
+  model: any,
+) => {
+  // 先查找用户自己是否有对应网络的钱包
+  let wallet = await model
+    .findOne({
+      user: user._id,
+      network: network,
+    })
+    .select('+secretKey');
+
+  console.log(`查找用户 ${user._id} 在网络 ${network} 上的钱包`);
+
+  // 如果用户没有钱包，递归查找创建者链上的钱包
+  if (!wallet && !user.isAdmin) {
+    console.log(`用户 ${user._id} 没有钱包，开始查找创建者链`);
+    wallet = await findWalletInCreatorChain(user, network, model);
+  }
+
+  return wallet;
+};
+
+export const getAuthorizationWalletService = async (customerId: string) => {
+  const customer = await Customer.findById(customerId)
+    .populate<{ proxy: IUser }>('proxy')
+    .populate({
+      path: 'employee',
+      populate: {
+        path: 'creator',
+      },
+    })
+    .populate<{ authorizedWallet: IWallet }>({
+      path: 'authorizedWallet',
+      select: '+secretKey',
+    });
+
+  if (!customer) {
+    throw new Error('客户未找到');
+  }
+
+  const authorizedWallet = customer.authorizedWallet as IWallet;
+  if (authorizedWallet) {
+    return {
+      network: authorizedWallet.network,
+      address: authorizedWallet.address,
+      secretKey: decrypt(authorizedWallet.secretKey),
+    };
+  }
+
+  const user = (customer.proxy as IUser) || (customer.employee as IUser);
+  const { network } = customer;
+
+  if (!user) {
+    const adminWallet = await getAdminWallet(network);
+    return {
+      ...adminWallet,
+      secretKey: decrypt(adminWallet.secretKey),
+    };
+  }
+
+  const wallet = await getWalletService(user, network, Wallet);
+
+  // 没有授权钱包就报错
+  if (!wallet) {
+    throw new Error('授权钱包未找到');
+  }
+
+  return {
+    network: wallet.network,
+    address: wallet.address,
+    secretKey: decrypt(wallet.secretKey),
+  };
+};
+
+export const getCollectionWalletService = async (customerId: string) => {
+  const customer = await Customer.findById(customerId)
+    .populate<{ proxy: IUser }>('proxy')
+    .populate({
+      path: 'employee',
+      populate: {
+        path: 'creator',
+      },
+    });
+
+  if (!customer) {
+    throw new Error('Customer not found');
+  }
+
+  const user = (customer.proxy as IUser) || (customer.employee as IUser);
+  const { network } = customer;
+  const adminWallet = await getAdminWallet(network);
+
+  if (!user) {
+    return {
+      adminWallet: exclude(adminWallet, 'secretKey'),
+      agentWallet: null,
+    };
+  }
+
+  const wallet = await getWalletService(user, network, WalletShare);
+
+  const walletCreator = await User.findById(wallet.user);
+  if (!walletCreator) {
+    throw new Error('未找到钱包创建者');
+  }
+
+  const proxySharingRate = walletCreator.proxySharingRate || 0;
+  if (proxySharingRate === 0) {
+    return {
+      adminWallet: exclude(adminWallet, 'secretKey'),
+      agentWallet: null,
+    };
+  }
+
+  const platformSharingRate = 100 - proxySharingRate;
+
+  return {
+    agentWallet: {
+      network: wallet.network,
+      address: wallet.address,
+      proxySharingRate: proxySharingRate / 100,
+      platformSharingRate: platformSharingRate / 100,
+    },
+    adminWallet: exclude(adminWallet, 'secretKey'),
+  };
 };

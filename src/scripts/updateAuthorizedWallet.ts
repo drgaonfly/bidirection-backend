@@ -7,26 +7,8 @@
 import { IUser } from '../models/user';
 import Customer from '../models/customer';
 import setupDB from '../utils/db';
-import { findWalletInCreatorChain } from '../services/wallet';
+import { getWalletService } from '../services/wallet';
 import Wallet from '../models/wallet';
-
-export const getUserWallet = async (user: IUser, network: string) => {
-  // 先查找用户自己是否有对应网络的钱包
-  let wallet = await Wallet.findOne({
-    user: user._id,
-    network: network,
-  }).select('+secretKey');
-
-  console.log(`查找用户 ${user._id} 在网络 ${network} 上的钱包`);
-
-  // 如果用户没有钱包，递归查找创建者链上的钱包
-  if (!wallet && !user.isAdmin) {
-    console.log(`用户 ${user._id} 没有钱包，开始查找创建者链`);
-    wallet = await findWalletInCreatorChain(user, network, Wallet);
-  }
-
-  return wallet;
-};
 
 const updateAuthorizedWallet = async () => {
   console.log('开始更新授权钱包...');
@@ -58,7 +40,7 @@ const updateAuthorizedWallet = async () => {
     const network = customer.network;
     console.log(`正在为客户 ${customer._id} 查找网络 ${network} 的钱包`);
 
-    const wallet = await getUserWallet(user, network);
+    const wallet = await getWalletService(user, network, Wallet);
 
     customer.authorizedWallet = wallet._id;
     await customer.save();

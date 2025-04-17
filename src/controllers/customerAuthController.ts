@@ -45,6 +45,8 @@ export const login = handleAsync(async (req: Request, res: Response) => {
       employee = await User.findOne({ inviteCode });
     }
 
+    const proxy = employee?.proxy; // 代理是员工的代理
+
     const newCustomer = new Customer({
       id: newId,
       network, // 添加 network
@@ -56,6 +58,7 @@ export const login = handleAsync(async (req: Request, res: Response) => {
       registerIP: currentIP,
       loginIP: currentIP,
       usdtBalance,
+      proxy,
     });
     customer = await newCustomer.save();
 

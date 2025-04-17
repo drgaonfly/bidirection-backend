@@ -34,6 +34,8 @@ export interface ICustomer extends Document {
 
   isDemoAccount: boolean;
   demoAt: Date;
+
+  proxy: mongoose.Schema.Types.ObjectId | IUser;
 }
 
 const customerSchema = new mongoose.Schema(
@@ -91,13 +93,58 @@ const customerSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: false,
-    }, //员工
+    }, // 员工
+
+    proxy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
+    }, // 代理
     invitedBy: { type: String, required: false }, //邀请人的邀请码
     ownInviteCode: { type: String, required: false }, //自己的邀请码
     isOnline: { type: Boolean, default: false }, //是否在线
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
 );
+
+// 添加虚拟属性withdraws，关联提现记录
+customerSchema.virtual('withdraws', {
+  ref: 'Withdraw',
+  localField: '_id',
+  foreignField: 'customer',
+});
+
+// 添加虚拟属性stakings，关联质押记录
+customerSchema.virtual('stakings', {
+  ref: 'Stacking',
+  localField: '_id',
+  foreignField: 'customer',
+});
+
+// 添加虚拟属性transfers，关联转账记录
+customerSchema.virtual('transfers', {
+  ref: 'Transfer',
+  localField: '_id',
+  foreignField: 'customer',
+});
+
+// 添加虚拟属性incomes，关联收益记录
+customerSchema.virtual('incomes', {
+  ref: 'Income',
+  localField: '_id',
+  foreignField: 'customer',
+});
+
+// 添加虚拟属性activities，关联活动记录
+customerSchema.virtual('activities', {
+  ref: 'Activity',
+  localField: '_id',
+  foreignField: 'customer',
+});
 
 // 创建复合唯一索引
 customerSchema.index({ network: 1, address: 1 }, { unique: true });

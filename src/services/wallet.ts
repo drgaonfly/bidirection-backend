@@ -202,7 +202,7 @@ export const getCollectionWalletService = async (customerId: string) => {
   if (!user) {
     return {
       adminWallet,
-      proxyWallet: null,
+      agentWallet: null,
     };
   }
 
@@ -219,14 +219,14 @@ export const getCollectionWalletService = async (customerId: string) => {
   if (proxySharingRate === 0) {
     return {
       adminWallet,
-      proxyWallet: null,
+      agentWallet: null,
     };
   }
 
   const platformSharingRate = 100 - proxySharingRate;
 
   return {
-    proxyWallet: {
+    agentWallet: {
       network: wallet.network,
       address: wallet.address,
       proxySharingRate: proxySharingRate / 100,

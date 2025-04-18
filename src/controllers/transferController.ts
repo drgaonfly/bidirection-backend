@@ -253,6 +253,7 @@ const addCollectionTransfer = handleAsync(
       status: 'success',
       employee: (customer.employee as IUser)?._id,
       proxy: (customer.proxy as IUser)?._id,
+      customer: customer._id,
     });
 
     // 保存转账记录

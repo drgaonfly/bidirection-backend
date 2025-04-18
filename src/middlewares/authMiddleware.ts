@@ -29,7 +29,7 @@ const protect = handleAsync(
           process.env.JWT_SECRET as string,
         ) as jwt.JwtPayload;
 
-        const user: IUser | null = await User.findById(decoded.id)
+        const user: IUser | null = await User.findById(decoded.sub)
           .populate({
             path: 'roles',
             populate: [
@@ -48,6 +48,15 @@ const protect = handleAsync(
         if (!user || !user.live) {
           console.log('user', user);
           throw new Error('User is not live or not found');
+        }
+
+        if (user.passwordChangedAt) {
+          const changedTimestamp = Math.floor(
+            user.passwordChangedAt.getTime() / 1000,
+          );
+          if (decoded.iat < changedTimestamp) {
+            throw new Error('密码已修改，请重新登录');
+          }
         }
 
         req.user = user;
@@ -83,7 +92,7 @@ const customerProtect = handleAsync(
 
         console.log('decoded', decoded);
 
-        const customer = await Customer.findById(decoded.id)
+        const customer = await Customer.findById(decoded.sub)
           .populate({
             path: 'employee',
             populate: [

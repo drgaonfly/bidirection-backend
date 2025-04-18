@@ -36,7 +36,7 @@ const login = handleAsync(async (req: Request, res: Response) => {
     }
     // 生成 refresh token 和 access token
     const refreshToken = generateRefreshToken(user._id.toString());
-    const token = generateToken(user._id);
+    const token: string = generateToken(user._id);
 
     // 创建登录历史记录
     const loginHistory = new LoginHistory({
@@ -171,7 +171,7 @@ export const verify2FALogin = handleAsync(
 );
 
 interface DecodedToken {
-  id: string;
+  sub: string;
 }
 
 const refreshToken = handleAsync(async (req: Request, res: Response) => {
@@ -187,11 +187,11 @@ const refreshToken = handleAsync(async (req: Request, res: Response) => {
       refreshToken,
       process.env.REFRESH_JWT_SECRET as string,
     ) as DecodedToken;
-    const newRefreshToken = generateRefreshToken(decoded.id);
+    const newRefreshToken = generateRefreshToken(decoded.sub);
 
     res.json({
       success: true,
-      token: generateToken(decoded.id),
+      token: generateToken(decoded.sub),
       refreshToken: newRefreshToken,
     });
   } catch (err) {
@@ -226,9 +226,16 @@ const updateUserProfile = handleAsync(
     } = req.body;
     const user = await User.findById(req.user._id).select('+password');
 
+    // 验证确认密码是否匹配
     if (confirmPassword && confirmPassword !== password) {
       res.status(400);
       throw new Error('Passwords do not match');
+    }
+
+    // 验证新密码是否与原密码相同
+    if (password && password === currentPassword) {
+      res.status(400);
+      throw new Error('New password cannot be the same as current password');
     }
 
     // 验证当前密码
@@ -257,6 +264,13 @@ const updateUserProfile = handleAsync(
       },
       { new: true },
     );
+
+    // 如果修改了密码，更新密码修改时间
+    if (password) {
+      await User.findByIdAndUpdate(user._id, {
+        passwordChangedAt: new Date(),
+      });
+    }
 
     res.json({
       success: true,

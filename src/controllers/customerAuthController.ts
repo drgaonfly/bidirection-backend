@@ -84,7 +84,7 @@ export const login = handleAsync(async (req: Request, res: Response) => {
 });
 
 interface DecodedToken {
-  id: string;
+  sub: string;
 }
 
 export const refreshToken = handleAsync(async (req: Request, res: Response) => {
@@ -100,10 +100,10 @@ export const refreshToken = handleAsync(async (req: Request, res: Response) => {
       refreshToken,
       process.env.REFRESH_JWT_SECRET as string,
     ) as DecodedToken;
-    const newRefreshToken = generateRefreshToken(decoded.id);
+    const newRefreshToken = generateRefreshToken(decoded.sub);
 
     res.json({
-      jwt: generateToken(decoded.id),
+      jwt: generateToken(decoded.sub),
       refreshToken: newRefreshToken,
     });
   } catch (err) {

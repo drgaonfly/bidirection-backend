@@ -24,6 +24,8 @@ export interface IUser extends Document {
   twoFASecret?: string; // 加密后的TOTP密钥（正式）
   temp2FASecret?: string; // 临时存储的TOTP密钥（用于激活过程）
   twoFABackupCodes?: string[]; // 备用代码（可选增强）
+
+  passwordChangedAt: Date;
 }
 
 const userSchema = new mongoose.Schema(
@@ -79,6 +81,8 @@ const userSchema = new mongoose.Schema(
         select: false,
       },
     ],
+
+    passwordChangedAt: Date,
   },
   { timestamps: true },
 );

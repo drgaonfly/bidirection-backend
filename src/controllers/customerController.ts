@@ -88,6 +88,7 @@ export const getCustomers = handleAsync(
     const formattedMembers = members.map((member) => ({
       ...member.toObject(),
       usdtBalance: formatUSDT(member.usdtBalance),
+      frozenAmount: formatUSDT(member.frozenAmount),
       usdtStaking: formatUSDT(member.usdtStaking),
       usdtPlatform: formatUSDT(member.usdtPlatform),
       ethPlatform: formatETH(member.ethPlatform),

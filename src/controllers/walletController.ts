@@ -6,7 +6,7 @@ import User, { IUser } from '../models/user';
 import { RequestCustom } from 'user';
 import WalletShare from '../models/walletShare';
 import { getAdminWallet, getUserWallet } from '../services/wallet';
-import { getUsdtBalance } from '../services/getBalance';
+import { getWalletNetworkBalance } from '../services/getWalletNetworkBalance';
 import {
   createBnbWallet,
   createEthWallet,
@@ -301,10 +301,14 @@ const updateCurrentUserWalletBalance = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const wallets = await Wallet.find({
       user: req.user._id,
+      network: { $in: ['ETH', 'BSC'] }, //只查询这两个网络的钱包对应的余额
     });
 
     for (const wallet of wallets) {
-      const balance = await getUsdtBalance(wallet.address, wallet.network);
+      const balance = await getWalletNetworkBalance(
+        wallet.address,
+        wallet.network,
+      );
       wallet.balance = Number(balance);
       await wallet.save();
     }

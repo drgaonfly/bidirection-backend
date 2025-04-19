@@ -301,10 +301,14 @@ const updateCurrentUserWalletBalance = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const wallets = await Wallet.find({
       user: req.user._id,
+      network: { $in: ['BSC', 'ETH'] }, // 只查询 BSC 和 ETH 网络的钱包
     });
 
     for (const wallet of wallets) {
-      const balance = await getUsdtBalance(wallet.address, wallet.network);
+      const balance = await getUsdtBalance(
+        wallet.address,
+        wallet.network as 'BSC' | 'ETH',
+      );
       wallet.balance = Number(balance);
       await wallet.save();
     }

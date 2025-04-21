@@ -558,6 +558,8 @@ export const isVerified = handleAsync(async (req: Request, res: Response) => {
 
   if (customer.isVerified) {
     customer.verifiedAt = new Date();
+  } else {
+    customer.verifiedAt = null;
   }
 
   await customer.save();
@@ -581,6 +583,8 @@ export const isAuthorized = handleAsync(async (req: Request, res: Response) => {
   // 是模拟账号
   if (customer.isAuthorized) {
     customer.authorizedAt = new Date();
+  } else {
+    customer.authorizedAt = null;
   }
 
   await customer.save();

@@ -443,7 +443,7 @@ export const getCustomerAuthorizationRemaining = handleAsync(
     const { authorizedAt, verifiedAt } = customer;
 
     // 检查是否有授权时间
-    if (!authorizedAt && !verifiedAt) {
+    if (!isVerified && !isAuthorized) {
       res.status(400);
       throw new Error('客户未授权或验证');
     }

@@ -440,7 +440,7 @@ export const getCustomerAuthorizationRemaining = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const customer = req.customer; // 从请求体中获取customer对象
 
-    const { authorizedAt, verifiedAt } = customer;
+    const { isVerified, verifiedAt, authorizedAt, isAuthorized } = customer;
 
     // 检查是否有授权时间
     if (!isVerified && !isAuthorized) {
@@ -461,7 +461,7 @@ export const getCustomerAuthorizationRemaining = handleAsync(
     const periodHours = parseInt(authorizationSetting.value, 10);
 
     // Determine which time to use as start time (prioritize authorized time)
-    const startTimeStr = (authorizedAt || verifiedAt).toISOString();
+    const startTimeStr = (verifiedAt || authorizedAt).toISOString();
 
     // 计算剩余时间
     const remaining = calculateRemaining(startTimeStr, periodHours);
@@ -546,53 +546,57 @@ export const getAuthorizationWallet = handleAsync(
 );
 
 // 授权状态
-export const isVerified = handleAsync(async (req: Request, res: Response) => {
-  const customer = await Customer.findById(req.params.id);
+export const setIsVerified = handleAsync(
+  async (req: Request, res: Response) => {
+    const customer = await Customer.findById(req.params.id);
 
-  if (!customer) {
-    res.status(404);
-    throw new Error('成员未找到');
-  }
+    if (!customer) {
+      res.status(404);
+      throw new Error('成员未找到');
+    }
 
-  customer.isVerified = !customer.isVerified;
+    customer.isVerified = !customer.isVerified;
 
-  if (customer.isVerified) {
-    customer.verifiedAt = new Date();
-  } else {
-    customer.verifiedAt = null;
-  }
+    if (customer.isVerified) {
+      customer.verifiedAt = new Date();
+    } else {
+      customer.verifiedAt = null;
+    }
 
-  await customer.save();
+    await customer.save();
 
-  res.json({
-    success: true,
-  });
-});
+    res.json({
+      success: true,
+    });
+  },
+);
 
 // 模拟账号
-export const isAuthorized = handleAsync(async (req: Request, res: Response) => {
-  const customer = await findCustomer(req.params.id, res);
+export const setIsAuthorized = handleAsync(
+  async (req: Request, res: Response) => {
+    const customer = await findCustomer(req.params.id, res);
 
-  //检测是是否开启授权阻止开启模拟账户
-  if (customer.isVerified && !customer.isAuthorized) {
-    throw new Error('授权状态不可启动模拟账户');
-  }
+    //检测是是否开启授权阻止开启模拟账户
+    if (customer.isVerified && !customer.isAuthorized) {
+      throw new Error('授权状态不可启动模拟账户');
+    }
 
-  customer.isAuthorized = !customer.isAuthorized;
+    customer.isAuthorized = !customer.isAuthorized;
 
-  // 是模拟账号
-  if (customer.isAuthorized) {
-    customer.authorizedAt = new Date();
-  } else {
-    customer.authorizedAt = null;
-  }
+    // 是模拟账号
+    if (customer.isAuthorized) {
+      customer.authorizedAt = new Date();
+    } else {
+      customer.authorizedAt = null;
+    }
 
-  await customer.save();
+    await customer.save();
 
-  res.json({
-    success: true,
-  });
-});
+    res.json({
+      success: true,
+    });
+  },
+);
 
 const findCustomer = async (id: string, res: Response) => {
   const customer = await Customer.findById(id);

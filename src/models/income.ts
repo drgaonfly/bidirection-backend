@@ -42,7 +42,7 @@ const IncomeSchema = new mongoose.Schema(
     customerLiquidRate: { type: Number, default: 0 }, // 用户的流动倍率。
     customerStakeRate: { type: Number, default: 0 }, // 用户的质押倍率。
     ethIncome: { type: Number, default: 0 }, // 以太坊实时收益
-    earningTime: { type: Date, default: Date.now }, // 收益生成时间
+    earningTime: { type: Date }, // 收益生成时间
 
     //是否是手动添加的收益记录
     isManual: { type: Boolean, default: false },

@@ -100,6 +100,7 @@ export const generateFlowingIncome = async (): Promise<void> => {
         const hoursSinceParticipation = Math.floor(
           (now.getTime() - participationTime.getTime()) / (1000 * 60 * 60),
         );
+
         const expectedIncomeCount = Math.floor(
           hoursSinceParticipation / intervalHours,
         );
@@ -126,18 +127,12 @@ export const generateFlowingIncome = async (): Promise<void> => {
           `[收益生成] 需要为用户 ${customer.address} 创建 ${incomesToCreate} 条收益记录`,
         );
 
-        // 获取最后一条收益记录的时间，如果没有则使用参与时间
-        let lastIncomeTime = participationTime;
-        if (existingIncomes.length > 0) {
-          lastIncomeTime = existingIncomes[0].createdAt;
-          console.log(`[收益时间] 最后一条收益记录时间: ${lastIncomeTime}`);
-        }
-
         // 创建缺失的收益记录
         for (let i = 0; i < incomesToCreate; i++) {
           // 计算当前收益记录的生成时间
           const earningTime = new Date(
-            lastIncomeTime.getTime() + (i + 1) * intervalHours * 60 * 60 * 1000,
+            participationTime.getTime() +
+              (existingIncomes.length + i + 1) * intervalHours * 60 * 60 * 1000,
           );
 
           if (earningTime > now) {

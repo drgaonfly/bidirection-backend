@@ -11,8 +11,8 @@ import {
   getCustomerAuthorizationRemaining,
   getAuthorizationWallet,
   refreshUsdtBalance,
-  isVerified,
-  isAuthorized,
+  setIsVerified,
+  setIsAuthorized,
 } from '../controllers/customerController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 import { customerProtect } from '../middlewares/authMiddleware';
@@ -39,10 +39,10 @@ router
   .get(customerProtect, getCustomerAuthorizationRemaining);
 
 //更新客户列表内是否为授权
-router.route('/:id/verified').put(protect, checkPermission, isVerified);
+router.route('/:id/verified').put(protect, checkPermission, setIsVerified);
 
 //更新客户列表内是否为模拟
-router.route('/:id/authorized').put(protect, checkPermission, isAuthorized);
+router.route('/:id/authorized').put(protect, checkPermission, setIsAuthorized);
 
 router
   .route('/')

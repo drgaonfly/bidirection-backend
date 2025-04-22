@@ -96,8 +96,9 @@ export const generateStakingIncome = async (): Promise<void> => {
         }
 
         // 计算从参与时间到现在的小时数
-        const hoursSinceParticipation = Math.floor(
-          (now.getTime() - participationTime.getTime()) / (1000 * 60 * 60),
+        const hoursSinceParticipation = Number(
+          (new Date().getTime() - participationTime.getTime()) /
+            (1000 * 60 * 60),
         );
 
         console.log(
@@ -119,7 +120,7 @@ export const generateStakingIncome = async (): Promise<void> => {
         );
 
         // 如果收益时间超过当前时间，跳过
-        if (earningTime > now) {
+        if (earningTime > new Date()) {
           console.log(`[收益跳过] 收益时间 ${earningTime} 超过当前时间，跳过`);
           skippedCount++;
           continue;
@@ -184,8 +185,8 @@ export const generateStakingIncome = async (): Promise<void> => {
           employee: customer.employee,
           customer: customer._id,
           proxy: customer.proxy,
-          usdtIncome: formatUSDT(earnings),
-          ethIncome: formatETH(ethIncome),
+          usdtIncome: earnings,
+          ethIncome: ethIncome,
           isAuthorized: customer.isAuthorized,
           isVerified: customer.isVerified,
           remarks: `回报率: ${

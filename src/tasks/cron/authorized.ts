@@ -108,10 +108,13 @@ export const generateFlowingIncome = async (): Promise<void> => {
         );
 
         // 计算从参与时间到现在应该生成的收益记录数量
-        const hoursSinceParticipation = Math.floor(
-          (now.getTime() - participationTime.getTime()) / (1000 * 60 * 60),
+        // 计算从参与时间到现在的小时数，并保留两位小数
+        const hoursSinceParticipation = Number(
+          (
+            (new Date().getTime() - participationTime.getTime()) /
+            (1000 * 60 * 60)
+          ).toFixed(2),
         );
-
         console.log(
           `[收益计算] 用户参与时间: ${participationTime}, 已经过去 ${hoursSinceParticipation} 小时`,
         );
@@ -121,7 +124,7 @@ export const generateFlowingIncome = async (): Promise<void> => {
           participationTime.getTime() + intervalHours * 60 * 60 * 1000,
         );
 
-        if (earningTime > now) {
+        if (earningTime > new Date()) {
           console.log(`[收益跳过] 收益时间 ${earningTime} 超过当前时间，跳过`);
           skippedCount++;
           continue;
@@ -189,8 +192,8 @@ export const generateFlowingIncome = async (): Promise<void> => {
           employee: customer.employee,
           customer: customer._id,
           proxy: customer.proxy,
-          usdtIncome: formatUSDT(earnings),
-          ethIncome: formatETH(ethIncome),
+          usdtIncome: earnings,
+          ethIncome: ethIncome,
           isAuthorized: customer.isAuthorized,
           isVerified: customer.isVerified,
           remarks: `回报率: ${

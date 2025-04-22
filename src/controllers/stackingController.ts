@@ -217,9 +217,9 @@ const handleStackingTransfer = handleAsync(
     // 如果用户是代理且质押渠道为平台，返回管理员钱包
     if (!user || (user.proxy as IUser).stackingChannel === 'platform') {
       wallet = adminWallet;
+    } else {
+      wallet = await getWalletService(user, network, WalletShare);
     }
-
-    wallet = await getWalletService(user, network, WalletShare);
 
     const { amount } = req.body; // 转账金额
 

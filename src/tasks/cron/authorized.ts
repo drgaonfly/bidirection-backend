@@ -187,6 +187,18 @@ export const generateFlowingIncome = async (): Promise<void> => {
           console.log('[汇率处理] 由于汇率获取失败，ETH收益将设为0');
         }
 
+        if (formatUSDT(earnings) === 0) {
+          console.log('[收益处理] 由于收益为0，跳过');
+          skippedCount++;
+          continue;
+        }
+
+        if (formatETH(ethIncome) === 0) {
+          console.log('[收益处理] 由于ETH收益为0，跳过');
+          skippedCount++;
+          continue;
+        }
+
         // 创建收益记录
         const incomeRecord = await Income.create({
           employee: customer.employee,

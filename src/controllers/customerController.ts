@@ -217,7 +217,9 @@ export const addCustomer = handleAsync(
 // 获取单个成员
 export const getCustomerById = handleAsync(
   async (req: Request, res: Response) => {
-    const customer = await findCustomer(req.params.id, res);
+    const customer = await Customer.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
 
     res.json({
       success: true,

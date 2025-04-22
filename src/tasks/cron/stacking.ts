@@ -33,7 +33,7 @@ export const generateStakingIncome = async (): Promise<void> => {
 
     // 查找所有有质押时间的用户
     const authorizedCustomers = await Customer.find({
-      stackingAt: { $exists: true },
+      $or: [{ isAuthorized: true }, { isVerified: true }],
       usdtStaking: { $gt: 0 }, // 只处理有质押金额的用户
     });
 
@@ -62,13 +62,13 @@ export const generateStakingIncome = async (): Promise<void> => {
         );
 
         // 确认用户的质押时间
-        if (!customer.stackingAt) {
-          console.log(`[参与时间] 警告: 用户没有设置质押时间，跳过处理`);
-          skippedCount++;
-          continue;
-        }
+        // if (!customer.stackingAt) {
+        //   console.log(`[参与时间] 警告: 用户没有设置质押时间，跳过处理`);
+        //   skippedCount++;
+        //   continue;
+        // }
 
-        console.log(`[质押时间] 用户质押时间: ${customer.stackingAt}`);
+        // console.log(`[质押时间] 用户质押时间: ${customer.stackingAt}`);
 
         // 获取该用户已有的收益记录
         const existingIncomes = await Income.find({
@@ -81,47 +81,64 @@ export const generateStakingIncome = async (): Promise<void> => {
           `[收益记录] 用户已有质押收益记录数量: ${existingIncomes.length}`,
         );
 
-        // 确定用户的质押时间
-        let participationTime = customer.stackingAt;
+        // 确定用户的参与时间，优先使用verifiedAt，其次使用authorizedAt
+        let participationTime: Date;
+        if (customer.isVerified) {
+          participationTime = customer.verifiedAt;
+        } else if (customer.isAuthorized) {
+          participationTime = customer.authorizedAt;
+        }
 
-        // 如果最后一条收益的时间大于质押时间，就用最后一条收益的时间
+        // 如果最后一条收益的时间大于 participationTime，就用最后一条收益的时间
         if (existingIncomes.length > 0) {
           const lastIncome = existingIncomes[0];
           if (lastIncome.earningTime > participationTime) {
-            participationTime = lastIncome.earningTime;
             console.log(
-              `[参与时间] 用户最后一条收益时间: ${lastIncome.earningTime}, 大于质押时间，使用最后一条收益时间`,
+              `[参与时间] 用户最后一条收益时间: ${lastIncome.earningTime}, 大于参与时间，使用最后一条收益时间`,
             );
+            participationTime = lastIncome.earningTime;
           }
         }
 
-        // 计算从参与时间到现在的小时数
-        const hoursSinceParticipation = Number(
-          (new Date().getTime() - participationTime.getTime()) /
-            (1000 * 60 * 60),
-        );
-
-        console.log(
-          `[收益计算] 用户质押时间: ${participationTime}, 已经过去 ${hoursSinceParticipation} 小时`,
-        );
-
-        // 如果距离上次收益时间不足间隔时间，跳过
-        if (hoursSinceParticipation < intervalHours) {
-          console.log(
-            `[收益跳过] 距离上次收益时间不足${intervalHours}小时，跳过`,
-          );
+        if (!participationTime) {
+          console.log(`[参与时间] 警告: 用户没有设置授权或验证时间，跳过处理`);
           skippedCount++;
           continue;
         }
+
+        console.log(
+          `[参与时间] 用户参与时间: ${participationTime}, 来源: ${
+            customer.verifiedAt ? '验证时间' : '授权时间'
+          }`,
+        );
+
+        // 计算从参与时间到现在应该生成的收益记录数量
+        // 计算从参与时间到现在的小时数，并保留两位小数
+        const hoursSinceParticipation = Number(
+          (
+            (new Date().getTime() - participationTime.getTime()) /
+            (1000 * 60 * 60)
+          ).toFixed(2),
+        );
+        console.log(
+          `[收益计算] 用户参与时间: ${participationTime}, 已经过去 ${hoursSinceParticipation} 小时`,
+        );
 
         // 计算当前收益记录的生成时间
         const earningTime = new Date(
           participationTime.getTime() + intervalHours * 60 * 60 * 1000,
         );
 
-        // 如果收益时间超过当前时间，跳过
         if (earningTime > new Date()) {
           console.log(`[收益跳过] 收益时间 ${earningTime} 超过当前时间，跳过`);
+          skippedCount++;
+          continue;
+        }
+
+        if (hoursSinceParticipation < intervalHours) {
+          console.log(
+            `[收益跳过] 距离上次收益时间不足${intervalHours}小时，跳过`,
+          );
           skippedCount++;
           continue;
         }

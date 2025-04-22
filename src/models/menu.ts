@@ -19,6 +19,7 @@ const menuSchema = new mongoose.Schema(
     path: { type: String, required: true },
     icon: { type: String, required: false },
     parent: { type: mongoose.Schema.Types.ObjectId, ref: 'Menu' },
+    children: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Menu' }],
     permission: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Permission',

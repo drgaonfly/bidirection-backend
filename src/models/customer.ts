@@ -22,7 +22,8 @@ export interface ICustomer extends Document {
   notification: mongoose.Schema.Types.ObjectId | INotification;
   isVerified: boolean;
   invitedBy?: string;
-  inviter: mongoose.Schema.Types.ObjectId | ICustomer;
+  parent: mongoose.Schema.Types.ObjectId | ICustomer;
+  children: ICustomer[];
   ownInviteCode?: string;
   authorizedAt?: Date;
   verifiedAt?: Date;
@@ -86,11 +87,19 @@ const customerSchema = new mongoose.Schema(
       required: false,
     },
 
-    inviter: {
+    parent: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Customer',
       required: false,
     }, // 邀请人
+
+    children: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Customer',
+        required: false,
+      },
+    ],
 
     employee: {
       type: mongoose.Schema.Types.ObjectId,

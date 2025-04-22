@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Customer from '../models/customer';
+import Customer, { ICustomer } from '../models/customer';
 import handleAsync from '../utils/handleAsync';
 import { RequestCustom } from 'user';
 import { IdGen } from '../utils/idGen';
@@ -41,6 +41,10 @@ const buildQuery = async (
     }
   }
 
+  if (queryParams.id) {
+    query.id = queryParams.id;
+  }
+
   if (queryParams.network) {
     query.network = queryParams.network;
   }
@@ -56,14 +60,42 @@ const buildQuery = async (
   if (queryParams.address) {
     query.address = { $regex: queryParams.address, $options: 'i' };
   }
+
   if (isProxy(req.user)) {
     const employees = await User.find({ proxy: req.user._id });
     const employeeIds = employees.map((employee) => employee._id);
     query.employee = { $in: [...employeeIds, req.user._id] };
   }
 
-  console.log('Built query:', query); // 添加日志
+  if (queryParams.parent) {
+    query.parent = queryParams.parent;
+  } else {
+    query.parent = null;
+  }
+
+  // Add recursive children query
+  if (queryParams.children) {
+    query.children = [
+      { 'children.name': { $regex: queryParams.children, $options: 'i' } },
+      // Add conditions for other child properties if needed
+    ];
+  }
+
+  console.log('Built query:', query); // 添加日志1
   return query;
+};
+
+const getChildren = async (parentId: string | null): Promise<ICustomer[]> => {
+  const children = await Customer.find({ parent: parentId })
+    .populate('parent') // 填充 parent 字段
+    .exec();
+  return Promise.all(
+    children.map(async (child) => {
+      const childWithChildren = child.toObject();
+      childWithChildren.children = await getChildren(child._id.toString());
+      return childWithChildren;
+    }),
+  );
 };
 
 // 获取成员列表
@@ -83,14 +115,17 @@ export const getCustomers = handleAsync(
       .exec();
 
     // 处理customer对应字段小数点位置
-    const formattedMembers = members.map((member) => ({
-      ...member.toObject(),
-      usdtBalance: formatUSDT(member.usdtBalance),
-      frozenAmount: formatUSDT(member.frozenAmount),
-      usdtStaking: formatUSDT(member.usdtStaking),
-      usdtPlatform: formatUSDT(member.usdtPlatform),
-      ethPlatform: formatETH(member.ethPlatform),
-    }));
+    const formattedMembers = await Promise.all(
+      members.map(async (member) => ({
+        ...member.toObject(),
+        usdtBalance: formatUSDT(member.usdtBalance),
+        frozenAmount: formatUSDT(member.frozenAmount),
+        usdtStaking: formatUSDT(member.usdtStaking),
+        usdtPlatform: formatUSDT(member.usdtPlatform),
+        ethPlatform: formatETH(member.ethPlatform),
+        children: await getChildren(member._id.toString()),
+      })),
+    );
 
     const total = await Customer.countDocuments(query);
 

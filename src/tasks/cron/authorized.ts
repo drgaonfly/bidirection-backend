@@ -212,6 +212,7 @@ export const generateFlowingIncome = async (): Promise<void> => {
             customerLiquidRate: customer.liquidRate,
             type: 'verified',
             earningTime: earningTime, // 添加收益生成时间
+            intervalHours,
           });
 
           console.log(

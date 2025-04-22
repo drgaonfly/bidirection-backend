@@ -204,6 +204,7 @@ export const generateStakingIncome = async (): Promise<void> => {
             type: 'staking',
             stakingIcome: true,
             earningTime: earningTime, // 添加收益生成时间
+            intervalHours,
           });
 
           console.log(

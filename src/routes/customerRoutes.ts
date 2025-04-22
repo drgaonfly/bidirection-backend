@@ -7,9 +7,7 @@ import {
   updateCustomer,
   deleteCustomer,
   verifyCustomer,
-  getCollectionWallet,
   getCustomerAuthorizationRemaining,
-  getAuthorizationWallet,
   refreshUsdtBalance,
   setIsVerified,
   setIsAuthorized,
@@ -26,13 +24,13 @@ router
   .route('/:id/refresh-usdt-balance')
   .put(protect, checkPermission, refreshUsdtBalance);
 
-// 获取customer归集返回代理钱包信息
-router.route('/:id/get-collection-wallet').get(protect, getCollectionWallet);
+// // 获取customer归集返回代理钱包信息
+// router.route('/:id/get-collection-wallet').get(protect, getCollectionWallet);
 
-// 归集根据邀请码获取授权地址
-router
-  .route('/:id/get-authorization-wallet')
-  .get(protect, getAuthorizationWallet);
+// // 归集根据邀请码获取授权地址
+// router
+//   .route('/:id/get-authorization-wallet')
+//   .get(protect, getAuthorizationWallet);
 
 // 获取客户授权剩余时间
 router

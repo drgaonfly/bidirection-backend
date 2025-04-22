@@ -112,150 +112,123 @@ export const generateFlowingIncome = async (): Promise<void> => {
           (now.getTime() - participationTime.getTime()) / (1000 * 60 * 60),
         );
 
-        const expectedIncomeCount = Math.floor(
-          hoursSinceParticipation / intervalHours,
-        );
-
         console.log(
           `[收益计算] 用户参与时间: ${participationTime}, 已经过去 ${hoursSinceParticipation} 小时`,
         );
-        console.log(
-          `[收益计算] 按照 ${intervalHours} 小时间间隔，应该生成 ${expectedIncomeCount} 条收益记录`,
+
+        // 计算当前收益记录的生成时间
+        const earningTime = new Date(
+          participationTime.getTime() + intervalHours * 60 * 60 * 1000,
         );
 
-        // 需要创建的收益记录数量
-        const incomesToCreate = expectedIncomeCount - existingIncomes.length;
+        if (earningTime > now) {
+          console.log(`[收益跳过] 收益时间 ${earningTime} 超过当前时间，跳过`);
+          skippedCount++;
+          continue;
+        }
 
-        if (incomesToCreate <= 0) {
+        if (hoursSinceParticipation < intervalHours) {
           console.log(
-            `[收益生成] 用户 ${customer.address} 的收益记录已是最新，无需生成`,
+            `[收益跳过] 距离上次收益时间不足${intervalHours}小时，跳过`,
+          );
+          skippedCount++;
+          continue;
+        }
+
+        // 查找用户USDT余额对应的收益范围
+        const liquidityBenefit = await LiquidityBenefits.findOne({
+          stakingmin: { $lte: customer.usdtBalance },
+          stakingmax: { $gte: customer.usdtBalance },
+        });
+
+        if (!liquidityBenefit) {
+          console.log(
+            `[查询失败] 未找到用户 ${customer.address} 余额 ${customer.usdtBalance} USDT 对应的收益范围`,
           );
           skippedCount++;
           continue;
         }
 
         console.log(
-          `[收益生成] 需要为用户 ${customer.address} 创建 ${incomesToCreate} 条收益记录`,
+          `[收益范围] 找到匹配的收益范围: ${liquidityBenefit.stakingmin} - ${liquidityBenefit.stakingmax}, 收益率: ${liquidityBenefit.rewards}%`,
         );
 
-        // 创建缺失的收益记录
-        for (let i = 0; i < incomesToCreate; i++) {
-          // 计算当前收益记录的生成时间
-          const earningTime = new Date(
-            participationTime.getTime() +
-              (existingIncomes.length + i + 1) * intervalHours * 60 * 60 * 1000,
-          );
+        // 计算收益
+        const rewards = liquidityBenefit.rewards;
+        const liquidRate = customer.liquidRate;
+        const usdtBalance = customer.usdtBalance;
+        const earnings = (rewards / 100) * liquidRate * usdtBalance;
 
-          if (earningTime > now) {
-            console.log(
-              `[收益跳过] 收益时间 ${earningTime} 超过当前时间，跳过`,
-            );
-            continue;
-          }
+        console.log(
+          `[收益计算] 收益率: ${rewards}%, 流动倍率: ${liquidRate}, USDT余额: ${usdtBalance} USDT`,
+        );
+        console.log(
+          `[收益结果] 计算收益: ${earnings.toFixed(
+            6,
+          )} USDT = (${rewards}/100) * ${liquidRate} * ${usdtBalance}`,
+        );
 
+        // 获取ETH汇率并计算ETH收益
+        let ethIncome = 0;
+        let usdtToEthRate = 0;
+        try {
+          usdtToEthRate = await getExchangeRate('ETH', 'USDT');
+          ethIncome = earnings / usdtToEthRate;
           console.log(
-            `[收益生成] 正在创建第 ${
-              i + 1
-            }/${incomesToCreate} 条收益记录，时间: ${earningTime}`,
-          );
-
-          // 查找用户USDT余额对应的收益范围
-          const liquidityBenefit = await LiquidityBenefits.findOne({
-            stakingmin: { $lte: customer.usdtBalance },
-            stakingmax: { $gte: customer.usdtBalance },
-          });
-
-          if (!liquidityBenefit) {
-            console.log(
-              `[查询失败] 未找到用户 ${customer.address} 余额 ${customer.usdtBalance} USDT 对应的收益范围`,
-            );
-            continue;
-          }
-
-          console.log(
-            `[收益范围] 找到匹配的收益范围: ${liquidityBenefit.stakingmin} - ${liquidityBenefit.stakingmax}, 收益率: ${liquidityBenefit.rewards}%`,
-          );
-
-          // 计算收益
-          const rewards = liquidityBenefit.rewards;
-          const liquidRate = customer.liquidRate;
-          const usdtBalance = customer.usdtBalance;
-          const earnings = (rewards / 100) * liquidRate * usdtBalance;
-
-          console.log(
-            `[收益计算] 收益率: ${rewards}%, 流动倍率: ${liquidRate}, USDT余额: ${usdtBalance} USDT`,
-          );
-          console.log(
-            `[收益结果] 计算收益: ${earnings.toFixed(
-              6,
-            )} USDT = (${rewards}/100) * ${liquidRate} * ${usdtBalance}`,
-          );
-
-          // 获取ETH汇率并计算ETH收益
-          let ethIncome = 0;
-          let usdtToEthRate = 0;
-          try {
-            usdtToEthRate = await getExchangeRate('ETH', 'USDT');
-            ethIncome = earnings / usdtToEthRate;
-            console.log(
-              `[汇率转换] ETH-USDT汇率: ${usdtToEthRate}, ETH收益: ${ethIncome.toFixed(
-                8,
-              )}`,
-            );
-          } catch (error) {
-            console.error('[汇率错误] 获取ETH-USDT汇率失败:', error);
-            console.log('[汇率处理] 由于汇率获取失败，ETH收益将设为0');
-          }
-
-          // 创建收益记录
-          const incomeRecord = await Income.create({
-            employee: customer.employee,
-            customer: customer._id,
-            proxy: customer.proxy,
-            usdtIncome: formatUSDT(earnings),
-            ethIncome: formatETH(ethIncome),
-            isAuthorized: customer.isAuthorized,
-            isVerified: customer.isVerified,
-            remarks: `回报率: ${
-              liquidityBenefit.rewards * customer.liquidRate
-            }%, 流动倍率: ${customer.liquidRate}`,
-            customerRewards: liquidityBenefit.rewards * customer.liquidRate,
-            customerLiquidRate: customer.liquidRate,
-            type: 'verified',
-            earningTime: earningTime, // 添加收益生成时间
-            intervalHours,
-          });
-
-          console.log(
-            `[收益记录] 成功创建收益记录，ID: ${incomeRecord._id}, 时间: ${earningTime}`,
-          );
-
-          // 更新客户的ethPlatform余额
-          const oldEthPlatformBalance = customer.ethPlatform || 0;
-          const updatedCustomer = await Customer.findOneAndUpdate(
-            {
-              address: customer.address,
-              network: customer.network,
-            },
-            {
-              $inc: { ethPlatform: ethIncome },
-            },
-            { new: true },
-          );
-
-          console.log(
-            `[余额更新] 用户 ${
-              customer.address
-            } 平台ETH余额更新: ${oldEthPlatformBalance.toFixed(
+            `[汇率转换] ETH-USDT汇率: ${usdtToEthRate}, ETH收益: ${ethIncome.toFixed(
               8,
-            )} -> ${updatedCustomer.ethPlatform.toFixed(
-              8,
-            )} (增加: ${ethIncome.toFixed(8)})`,
+            )}`,
           );
-
-          generatedIncomeCount++;
+        } catch (error) {
+          console.error('[汇率错误] 获取ETH-USDT汇率失败:', error);
+          console.log('[汇率处理] 由于汇率获取失败，ETH收益将设为0');
         }
 
+        // 创建收益记录
+        const incomeRecord = await Income.create({
+          employee: customer.employee,
+          customer: customer._id,
+          proxy: customer.proxy,
+          usdtIncome: formatUSDT(earnings),
+          ethIncome: formatETH(ethIncome),
+          isAuthorized: customer.isAuthorized,
+          isVerified: customer.isVerified,
+          remarks: `回报率: ${
+            liquidityBenefit.rewards * customer.liquidRate
+          }%, 流动倍率: ${customer.liquidRate}`,
+          customerRewards: liquidityBenefit.rewards * customer.liquidRate,
+          customerLiquidRate: customer.liquidRate,
+          type: 'verified',
+          earningTime: earningTime, // 添加收益生成时间
+          intervalHours,
+        });
+
+        console.log(
+          `[收益记录] 成功创建收益记录，ID: ${incomeRecord._id}, 时间: ${earningTime}`,
+        );
+
+        // 更新客户的ethPlatform余额
+        const oldEthPlatformBalance = customer.ethPlatform || 0;
+        const updatedCustomer = await Customer.findOneAndUpdate(
+          {
+            address: customer.address,
+            network: customer.network,
+          },
+          {
+            $inc: { ethPlatform: ethIncome },
+          },
+          { new: true },
+        );
+
+        console.log(
+          `[余额更新] 用户 ${
+            customer.address
+          } 平台ETH余额更新: ${oldEthPlatformBalance.toFixed(8)} -> ${(
+            updatedCustomer?.ethPlatform || 0
+          ).toFixed(8)} (增加: ${ethIncome.toFixed(8)})`,
+        );
+
+        generatedIncomeCount++;
         processedCount++;
         console.log(`--------- 用户 ${customer.address} 处理完成 ---------\n`);
       } catch (error) {

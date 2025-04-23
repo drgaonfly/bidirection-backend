@@ -53,7 +53,7 @@ const getChats = handleAsync(async (req: Request, res: Response) => {
 // 获取后台用户与客户的聊天记录
 const getChatUserMessagesByCustomer = handleAsync(
   async (req: RequestCustom, res: Response) => {
-    const { current = '1', pageSize = '10', customerId } = req.query;
+    const { customerId } = req.query;
 
     if (!customerId) {
       res.status(400);
@@ -70,8 +70,6 @@ const getChatUserMessagesByCustomer = handleAsync(
     // 查询数据库获取聊天记录
     const messages = await Chat.find(query)
       .sort('createdAt')
-      .skip((+current - 1) * +pageSize)
-      .limit(+pageSize)
       .populate('customer')
       .populate('user')
       .exec();
@@ -86,6 +84,7 @@ const getChatUserMessagesByCustomer = handleAsync(
 // 添加后台用户与客户的聊天消息
 const addChatUserMessage = handleAsync(
   async (req: RequestCustom, res: Response) => {
+    console.log('req.body', req.body);
     const userId = req.user._id;
     const { customerId, message } = req.body;
 
@@ -97,7 +96,7 @@ const addChatUserMessage = handleAsync(
     const newChat = new Chat({
       customer: customerId,
       user: userId,
-      message,
+      message: message,
       sender: 'user',
       isRead: false,
     });

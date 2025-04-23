@@ -33,7 +33,10 @@ router
 // 后台用户与客户的群聊对话信息
 router
   .route('/user-messages')
-  .get(protect, checkPermission, getChatUserMessagesByCustomer)
+  .get(protect, checkPermission, getChatUserMessagesByCustomer);
+
+router
+  .route('/add-user-messages')
   .post(protect, checkPermission, addChatUserMessage);
 
 router

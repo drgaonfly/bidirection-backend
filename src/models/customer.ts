@@ -93,14 +93,6 @@ const customerSchema = new mongoose.Schema(
       required: false,
     }, // 邀请人
 
-    children: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Customer',
-        required: false,
-      },
-    ],
-
     employee: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

@@ -4,7 +4,7 @@ import handleAsync from '../utils/handleAsync';
 import { RequestCustom } from 'user';
 import { io } from '../services/socket';
 import User, { IUser } from '../models/user';
-import { ICustomer } from '../models/customer';
+import Customer, { ICustomer } from '../models/customer';
 
 // Build query based on query parameters
 const buildQuery = (queryParams: any): any => {
@@ -60,7 +60,21 @@ const getChatUserMessagesByCustomer = handleAsync(
       throw new Error('客户ID是必需的');
     }
 
-    const userId = req.user._id;
+    // 填充customer信息
+    const customer = await Customer.findById(customerId).exec();
+
+    console.log(customer, '+++++++++++++++++++++++++++----------------');
+
+    if (!customer) {
+      res.status(404);
+      throw new Error('客户不存在');
+    }
+
+    // 获取employee的_id，如果没有则使用req.user._id
+    let userId = req.user._id;
+    if (customer.proxy) {
+      userId = customer.proxy;
+    }
 
     const query = {
       customer: customerId,
@@ -85,8 +99,17 @@ const getChatUserMessagesByCustomer = handleAsync(
 const addChatUserMessage = handleAsync(
   async (req: RequestCustom, res: Response) => {
     console.log('req.body', req.body);
-    const userId = req.user._id;
     const { customerId, message } = req.body;
+
+    // 填充customer信息
+    const customer = await Customer.findById(customerId).exec();
+
+    // 获取employee的_id，如果没有则使用req.user._id
+    //超级管理员发送了信息，如果这个customer有代理会以代理的身份发送信息
+    let userId = req.user._id;
+    if (customer.proxy) {
+      userId = customer.proxy;
+    }
 
     if (!customerId || !message) {
       res.status(400);

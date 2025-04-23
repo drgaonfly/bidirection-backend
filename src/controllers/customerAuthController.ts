@@ -51,7 +51,7 @@ export const login = handleAsync(async (req: Request, res: Response) => {
     if (!parent) {
       depth = 1;
     } else {
-      depth = parent.depth + 1;
+      depth = (parent.depth || 1) + 1;
     }
 
     const proxy = employee?.proxy; // 代理是员工的代理

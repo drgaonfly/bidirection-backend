@@ -148,10 +148,7 @@ export const getCustomerProfile = handleAsync(
     // 递归获取所有子级客户信息
     const pushChildren = (children: any) => {
       for (const customer of children) {
-        depthCustomers.push({
-          address: customer.address,
-          createdAt: customer.createdAt,
-        });
+        depthCustomers.push(customer.toObject());
 
         // 递归处理子级的children
         if (customer.children && customer.children.length > 0) {

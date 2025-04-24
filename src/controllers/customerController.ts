@@ -245,20 +245,8 @@ export const updateCustomer = handleAsync(
       customer.stackingAt = new Date();
     }
 
-    // 计算深度
-    let depth = 1; // 默认深度为1
-    if (parent) {
-      const parentCustomer = await Customer.findById(parent);
-      if (parentCustomer) {
-        depth = (parentCustomer.depth || 1) + 1;
-      }
-    } else {
-      depth = 1; // 如果没有父级，深度为1
-    }
-
     const updateData = {
       ...exclude(req.body, 'authorizedWallet'),
-      depth,
     };
 
     const updatedMember = await Customer.findByIdAndUpdate(id, updateData, {
@@ -267,6 +255,26 @@ export const updateCustomer = handleAsync(
 
     // 更新所有子客户的深度
     if (parent !== customer.parent) {
+      // 计算深度
+      let depth = 1; // 默认深度为1
+      if (parent) {
+        const parentCustomer = await Customer.findById(parent);
+        if (parentCustomer) {
+          depth = parentCustomer.depth + 1;
+        }
+      } else {
+        depth = 1; // 如果没有父级，深度为1
+      }
+
+      // 更新子客户的深度
+      await Customer.findByIdAndUpdate(
+        id,
+        { depth },
+        {
+          new: true,
+        },
+      );
+
       const updateChildrenDepth = async (
         parentId: string,
         parentDepth: number,

@@ -216,19 +216,16 @@ const checkWithdraw = handleAsync(async (req: Request, res: Response) => {
     throw new Error('已拒接提现记录，不可更改');
   }
 
+  if (customer.frozenAmount < withdraw.amount) {
+    res.status(400);
+    throw new Error('冻结金额不足');
+  }
+
   if (status === 'rejected') {
-    if (customer.frozenAmount < withdraw.amount) {
-      res.status(400);
-      throw new Error('冻结金额不足');
-    }
     withdraw.reason = reason;
     customer.usdtPlatform += withdraw.amount;
     customer.frozenAmount -= withdraw.amount;
   } else if (status === 'completed') {
-    if (customer.frozenAmount < withdraw.amount) {
-      res.status(400);
-      throw new Error('冻结金额不足');
-    }
     customer.frozenAmount -= withdraw.amount;
   }
 

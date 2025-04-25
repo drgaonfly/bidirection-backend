@@ -2,16 +2,37 @@ import { Request, Response } from 'express';
 import TeamBenefit from '../models/teamBenefit';
 import handleAsync from '../utils/handleAsync';
 import { RequestCustom } from 'user';
+import Customer from '../models/customer';
 
-const buildQuery = (queryParams: any): any => {
+const buildQuery = async (queryParams: any): Promise<any> => {
   const query: any = {};
 
-  if (queryParams.address) {
-    query.address = { $regex: queryParams.address, $options: 'i' };
+  if (queryParams.fromAddress) {
+    query.fromAddress = { $regex: queryParams.fromAddress, $options: 'i' };
   }
 
-  if (queryParams.network) {
-    query.network = queryParams.network;
+  if (queryParams.toAddress) {
+    query.toAddress = queryParams.toAddress;
+  }
+
+  if (queryParams.customer) {
+    let searchText;
+    try {
+      const userParam = JSON.parse(String(queryParams.customer));
+      searchText = userParam.id;
+    } catch (e) {
+      searchText = String(queryParams.customer).trim();
+    }
+    const customerData = await Customer.find({
+      id: {
+        $regex: searchText,
+        $options: 'i',
+      },
+    });
+
+    if (customerData && customerData.length > 0) {
+      query.customer = { $in: customerData.map((customer) => customer._id) };
+    }
   }
 
   return query;
@@ -22,9 +43,7 @@ export const getTeamBenefitList = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const { current = '1', pageSize = '10' } = req.query;
 
-    const query = buildQuery({
-      ...req.query,
-    });
+    const query = await buildQuery(req.query);
 
     const teamBenefit = await TeamBenefit.find(query)
       .populate('customer')
@@ -48,9 +67,7 @@ export const getTeamBenefitList = handleAsync(
 // 前端获取所有团队收益数据
 export const getAllTeamBenefit = handleAsync(
   async (req: RequestCustom, res: Response) => {
-    const query = buildQuery({
-      ...req.query,
-    });
+    const query = await buildQuery(req.query);
 
     const teamBenefit = await TeamBenefit.find(query)
       .sort({ createdAt: -1 })

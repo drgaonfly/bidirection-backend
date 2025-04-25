@@ -4,6 +4,8 @@ import LiquidityBenefits from '../../models/liquidity';
 import Setting from '../../models/setting';
 import { getExchangeRate } from '../../utils/getExchange';
 import { formatUSDT, formatETH } from '../../services/format';
+import DepthIncome from '../../models/depthIncome';
+import TeamBenefit from '../../models/teamBenefit';
 
 // 自动生成流动性收益
 export const generateFlowingIncome = async (): Promise<void> => {
@@ -243,6 +245,34 @@ export const generateFlowingIncome = async (): Promise<void> => {
             updatedCustomer?.ethPlatform || 0
           ).toFixed(8)} (增加: ${ethIncome.toFixed(8)})`,
         );
+
+        const parentCustomer = await Customer.findById(customer.parent);
+        let depth = 1;
+        if (parentCustomer) {
+          const depthIncome = await DepthIncome.findOne({
+            depth,
+          });
+
+          if (!depthIncome) {
+            console.log(`[查询错误] 未找到深度为 ${depth} 的收益记录`);
+            continue;
+          }
+
+          const incomeRate = depthIncome?.incomeRate;
+
+          // 创建 TeamBenefit 记录
+          const teamBenefit = await TeamBenefit.create({
+            customer: customer._id,
+            parent: customer.parent,
+            depth,
+            usdtBalance: customer.usdtBalance,
+            usdtIncome: formatUSDT(earnings * incomeRate),
+            ethIncome: formatETH(ethIncome * incomeRate),
+            incomeRate,
+          });
+
+          await teamBenefit.save();
+        }
 
         generatedIncomeCount++;
         processedCount++;

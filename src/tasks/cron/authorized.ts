@@ -273,6 +273,7 @@ export const generateFlowingIncome = async (): Promise<void> => {
             incomeRate,
             toAddress: parentCustomer.address, // 转入地址（父级收款地址）
             toNetwork: parentCustomer.network, // 转入网络（父级收款网络）
+            toDepth: parentCustomer.depth, // 转入深度（父级深度）
           });
 
           await teamBenefit.save();

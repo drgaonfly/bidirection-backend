@@ -9,6 +9,8 @@ export interface ITeamBenefit extends Document {
   toNetwork: string; // 网络
   fromAddress: string; // 转出地址
   fromNetwork: string; // 转出网络
+  depth: number; // 深度
+  toDepth: number; // 转入深度
 }
 
 const teamBenefitSchema = new mongoose.Schema(
@@ -18,12 +20,14 @@ const teamBenefitSchema = new mongoose.Schema(
       ref: 'Customer',
       required: true,
     },
+    depth: { type: Number, required: true }, // 所在地址产生收益时的深度
     ethIncome: { type: Number, default: 0 }, // 以太坊实时收益
     usdtIncome: { type: Number, required: true }, // USDT收益
     fromAddress: { type: String, required: true }, // 转出地址
     fromNetwork: { type: String, required: true }, // 转出网络
     toAddress: { type: String, required: true }, // 转入地址（父级收款地址）
     toNetwork: { type: String, required: true }, // 转入网络（父级收款网络）
+    toDepth: { type: Number, required: true }, // 转入深度（父级深度）
   },
   {
     timestamps: true, // 自动生成 createdAt 和 updatedAt 字段

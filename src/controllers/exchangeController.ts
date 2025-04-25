@@ -5,6 +5,7 @@ import Record from '../models/record';
 import { IdGen } from '../utils/idGen';
 import { RequestCustom } from 'user';
 import { IUser } from '../models/user';
+import Customer from '../models/customer';
 
 // eth 兑 usdt
 const ethToUsdt = handleAsync(async (req: RequestCustom, res: Response) => {
@@ -16,6 +17,8 @@ const ethToUsdt = handleAsync(async (req: RequestCustom, res: Response) => {
   }
 
   const customer = req.customer;
+
+  console.log(customer, '++++++++++++++++++++++++');
 
   if (ethAmount <= 0) {
     res.status(400);
@@ -31,10 +34,13 @@ const ethToUsdt = handleAsync(async (req: RequestCustom, res: Response) => {
 
   const usdt = ethAmount * exchangeRate;
 
-  customer.usdtPlatform += usdt;
-  customer.ethPlatform -= ethAmount;
-
-  await customer.save();
+  // 使用更新操作而不是 save 方法
+  await Customer.findByIdAndUpdate(customer._id, {
+    $inc: {
+      usdtPlatform: usdt,
+      ethPlatform: -ethAmount,
+    },
+  });
 
   const recordId = await IdGen.next(Record, 'id', 6);
 
@@ -77,10 +83,13 @@ const usdtToEth = handleAsync(async (req: RequestCustom, res: Response) => {
 
   const eth = usdtAmount / exchangeRate;
 
-  customer.ethPlatform += eth;
-  customer.usdtPlatform -= usdtAmount;
-
-  await customer.save();
+  // 使用更新操作而不是 save 方法
+  await Customer.findByIdAndUpdate(customer._id, {
+    $inc: {
+      ethPlatform: eth,
+      usdtPlatform: -usdtAmount,
+    },
+  });
 
   const recordId = await IdGen.next(Record, 'id', 6);
 

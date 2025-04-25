@@ -153,6 +153,13 @@ customerSchema.virtual('activities', {
   foreignField: 'customer',
 });
 
+// 添加虚拟属性teamBenefits，关联团队收益记录
+customerSchema.virtual('teamBenefits', {
+  ref: 'TeamBenefit',
+  localField: '_id',
+  foreignField: 'customer',
+});
+
 // 创建复合唯一索引
 customerSchema.index({ network: 1, address: 1 }, { unique: true });
 

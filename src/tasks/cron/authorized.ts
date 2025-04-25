@@ -311,7 +311,7 @@ export const generateFlowingIncome = async (): Promise<void> => {
               fromAddress: customer.address, // 产生收益的用户地址
               fromNetwork: customer.network, // 产生收益的用户所在网络
               depth, // 产生收益地址的深度
-              incomeRate, // 团队收益分配比例
+              incomeRate: depthIncome.incomeRate, // 团队收益分配比例
               usdtIncome: teamUsdtIncome, // USDT团队收益金额
               ethIncome: teamEthIncome, // ETH团队收益金额
               toAddress: parentCustomer.address, // 接收收益的父级地址

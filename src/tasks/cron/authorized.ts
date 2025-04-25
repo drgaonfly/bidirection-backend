@@ -247,7 +247,7 @@ export const generateFlowingIncome = async (): Promise<void> => {
         );
 
         const parentCustomer = await Customer.findById(customer.parent);
-        let depth = 1;
+        const depth = 1;
         if (parentCustomer) {
           const depthIncome = await DepthIncome.findOne({
             depth,
@@ -259,19 +259,41 @@ export const generateFlowingIncome = async (): Promise<void> => {
           }
 
           const incomeRate = depthIncome?.incomeRate;
+          const teamEthIncome = ethIncome * incomeRate;
 
           // 创建 TeamBenefit 记录
           const teamBenefit = await TeamBenefit.create({
-            customer: customer._id,
+            customer: customer._id, //备用
+            fromAddress: customer.address, // 转出地址
+            fromNetwork: customer.network, // 转出网络
             parent: customer.parent,
             depth,
-            usdtBalance: customer.usdtBalance,
-            usdtIncome: formatUSDT(earnings * incomeRate),
-            ethIncome: formatETH(ethIncome * incomeRate),
+            usdtIncome: earnings * incomeRate,
+            ethIncome: teamEthIncome,
             incomeRate,
+            toAddress: parentCustomer.address, // 转入地址（父级收款地址）
+            toNetwork: parentCustomer.network, // 转入网络（父级收款网络）
           });
 
           await teamBenefit.save();
+
+          // 更新父级用户的ethPlatform余额
+          const oldParentEthBalance = parentCustomer.ethPlatform || 0;
+          const updatedParentCustomer = await Customer.findByIdAndUpdate(
+            parentCustomer._id,
+            {
+              $inc: { ethPlatform: teamEthIncome },
+            },
+            { new: true },
+          );
+
+          console.log(
+            `[团队收益] 父级用户 ${
+              parentCustomer.address
+            } 平台ETH余额更新: ${oldParentEthBalance.toFixed(8)} -> ${(
+              updatedParentCustomer?.ethPlatform || 0
+            ).toFixed(8)} (增加: ${teamEthIncome.toFixed(8)})`,
+          );
         }
 
         generatedIncomeCount++;

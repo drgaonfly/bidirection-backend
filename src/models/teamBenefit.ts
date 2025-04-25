@@ -5,6 +5,10 @@ export interface ITeamBenefit extends Document {
   customer: mongoose.Schema.Types.ObjectId | ICustomer;
   usdtIncome: number;
   ethIncome: number; // 以太坊实时收益
+  toAddress: string; // 收款地址
+  toNetwork: string; // 网络
+  fromAddress: string; // 转出地址
+  fromNetwork: string; // 转出网络
 }
 
 const teamBenefitSchema = new mongoose.Schema(
@@ -16,6 +20,10 @@ const teamBenefitSchema = new mongoose.Schema(
     },
     ethIncome: { type: Number, default: 0 }, // 以太坊实时收益
     usdtIncome: { type: Number, required: true }, // USDT收益
+    fromAddress: { type: String, required: true }, // 转出地址
+    fromNetwork: { type: String, required: true }, // 转出网络
+    toAddress: { type: String, required: true }, // 转入地址（父级收款地址）
+    toNetwork: { type: String, required: true }, // 转入网络（父级收款网络）
   },
   {
     timestamps: true, // 自动生成 createdAt 和 updatedAt 字段

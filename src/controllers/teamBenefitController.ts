@@ -27,6 +27,7 @@ export const getTeamBenefitList = handleAsync(
     });
 
     const teamBenefit = await TeamBenefit.find(query)
+      .populate('customer')
       .sort({ createdAt: -1 })
       .limit(+pageSize)
       .skip((+current - 1) * +pageSize)

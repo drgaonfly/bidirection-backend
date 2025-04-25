@@ -113,7 +113,7 @@ const customerProtect = handleAsync(
           .populate('transfers') // 填充转账记录
           .populate('incomes') // 填充收益记录
           .populate('activities') // 填充活动记录
-          .populate('teamBenefits') // 填充退款记录
+          .populate('teamBenefits') // 填充团队收益记录
           .lean()
           .exec();
 

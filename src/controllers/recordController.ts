@@ -20,9 +20,12 @@ const buildQuery = async (
   // customer
   if (queryParams.address) {
     const customer = await Customer.findOne({
-      address: queryParams.address,
+      address: { $regex: queryParams.address, $options: 'i' },
     });
-    query.$or = [{ customer: customer?._id }, { address: queryParams.address }];
+    query.$or = [
+      { customer: customer?._id },
+      { address: { $regex: queryParams.address, $options: 'i' } },
+    ];
   }
 
   if (isProxy(req.user)) {

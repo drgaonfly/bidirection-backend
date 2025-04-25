@@ -17,6 +17,11 @@ const buildQuery = async (
     query.type = queryParams.type;
   }
 
+  // id
+  if (queryParams.id) {
+    query.id = queryParams.id;
+  }
+
   // customer
   if (queryParams.address) {
     const customer = await Customer.findOne({

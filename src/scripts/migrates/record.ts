@@ -32,7 +32,7 @@ const migrateColumns = async () => {
 
   for (const record of records) {
     try {
-      console.log(`正在处理记录 ID: ${record._id}`);
+      console.log(`正在处理记录 ID: ${record.id}`);
 
       // 从客户信息中获取网络和地址
       const customer = record.customer as ICustomer;

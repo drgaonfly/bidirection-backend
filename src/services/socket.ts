@@ -7,7 +7,9 @@ export const setupSocket = async (server: http.Server): Promise<Server> => {
   io = new Server(server);
 
   io.on('connection', async (socket: any) => {
-    console.log('新客户端连接');
+    const token = socket.handshake.auth.token;
+
+    console.log(`用户连接: ${socket.id}, token: ${token}`);
 
     socket.on('disconnect', () => {
       console.log('客户端断开连接');

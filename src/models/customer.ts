@@ -157,7 +157,7 @@ customerSchema.virtual('activities', {
 customerSchema.virtual('teamBenefits', {
   ref: 'TeamBenefit',
   localField: '_id',
-  foreignField: 'customer',
+  foreignField: 'parent',
 });
 
 // 创建复合唯一索引

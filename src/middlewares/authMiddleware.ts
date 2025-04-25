@@ -119,7 +119,7 @@ const customerProtect = handleAsync(
         // 获取下级会员信息
         const customerWithChildren = {
           ...customer,
-          children: await getCustomerChildren(customer._id.toString()),
+          children: await getCustomerChildren(customer._id),
         };
 
         if (!customerWithChildren) {

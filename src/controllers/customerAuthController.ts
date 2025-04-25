@@ -135,7 +135,7 @@ export const refreshToken = handleAsync(async (req: Request, res: Response) => {
 
 export const getCustomerProfile = handleAsync(
   async (req: RequestCustom, res: Response) => {
-    const customerData = req.customer?.toObject();
+    const customerData = req.customer;
 
     if (customerData) {
       customerData.usdtBalance = formatUSDT(customerData.usdtBalance);
@@ -143,12 +143,12 @@ export const getCustomerProfile = handleAsync(
       customerData.usdtPlatform = formatUSDT(customerData.usdtPlatform);
       customerData.ethPlatform = formatETH(customerData.ethPlatform);
     }
-    let depthCustomers: any[] = [];
+    const depthCustomers: any[] = [];
 
     // 递归获取所有子级客户信息
     const pushChildren = (children: any) => {
       for (const customer of children) {
-        depthCustomers.push(customer.toObject());
+        depthCustomers.push(customer);
 
         // 递归处理子级的children
         if (customer.children && customer.children.length > 0) {

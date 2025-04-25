@@ -28,6 +28,7 @@ import customerAuthRoutes from './routes/customerAuthRoutes'; // 新增
 import walletShareRoutes from './routes/walletShareRoutes'; // 新增
 import liquidityRoutes from './routes/liquidityRoutes'; // 新增
 import depthIncomeRoutes from './routes/depthIncomeRoutes'; // 新增
+import teamBenefitRoutes from './routes/teamBenefitRoutes'; // 新增
 
 // 新增的路由
 
@@ -118,6 +119,7 @@ app.use('/api/videos', videoRoutes);
 app.use('/api/pages', pageRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/depth-incomes', depthIncomeRoutes);
+app.use('/api/team-benefit', teamBenefitRoutes);
 
 setupDB();
 setupRedis();

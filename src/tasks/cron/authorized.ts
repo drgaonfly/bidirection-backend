@@ -1,5 +1,5 @@
 import Income from '../../models/income';
-import Customer, { ICustomer } from '../../models/customer';
+import Customer from '../../models/customer';
 import LiquidityBenefits from '../../models/liquidity';
 import Setting from '../../models/setting';
 import { getExchangeRate } from '../../utils/getExchange';

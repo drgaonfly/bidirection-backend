@@ -366,7 +366,7 @@ const softDeleteChats = handleAsync(async (req: Request, res: Response) => {
       _id: { $in: ids },
     },
     {
-      $set: { isSoftDeleted: true },
+      $set: { isSoftDeleted: true, DeletedAt: new Date() },
     },
   ).exec();
 

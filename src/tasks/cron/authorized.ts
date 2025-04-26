@@ -43,7 +43,7 @@ export const generateIncome = async (): Promise<void> => {
 
     console.log(`[用户统计] 找到符合条件的用户总数: ${customers.length}`);
 
-    let stats = {
+    const stats = {
       processed: 0,
       generated: 0,
       skipped: 0,

@@ -384,13 +384,14 @@ async function handleTeamBenefit(
     // 创建团队收益记录
     const teamBenefit = await TeamBenefit.create({
       customer: customer._id,
-      parent: parentCustomer._id,
       fromAddress: customer.address,
       fromNetwork: customer.network,
       depth,
       incomeRate: depthIncome.incomeRate,
       usdtIncome: teamUsdtIncome,
       ethIncome: teamEthIncome,
+      // 谁接受到收益
+      parent: parentCustomer._id,
       toAddress: parentCustomer.address,
       toNetwork: parentCustomer.network,
       earningTime,

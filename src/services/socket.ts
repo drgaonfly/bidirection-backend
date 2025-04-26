@@ -78,7 +78,7 @@ export const setupSocket = async (server: http.Server): Promise<Server> => {
     console.log(`客户连接: ${socket.id}, customerId: ${customerId}`);
 
     // 处理用户和客户加入房间
-    if (userId) {
+    if (userId && userId !== 'undefined') {
       await handleUserJoin(socket, userId);
     }
     if (customerId && customerId !== 'undefined') {
@@ -89,7 +89,7 @@ export const setupSocket = async (server: http.Server): Promise<Server> => {
       console.log(`客户端断开连接: ${socket.id}`);
 
       // 处理用户和客户离开房间
-      if (userId) {
+      if (userId && userId !== 'undefined') {
         await handleUserLeave(socket, userId);
       }
       if (customerId && customerId !== 'undefined') {

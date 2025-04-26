@@ -337,7 +337,7 @@ const addChatMessage = handleAsync(
 
     res.json({
       success: true,
-      data: savedChat,
+      data: populatedChat,
     });
   },
 );

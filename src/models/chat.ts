@@ -8,10 +8,8 @@ export interface IChat extends Document {
   message: string;
   sender: 'customer' | 'user';
   isRead: boolean;
-  isDeleted: boolean; // 增加假删除字段
+  isSoftDeleted: boolean; // 增加假删除字段
   deletedAt: Date | null; // 增加删除时间字段
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 const chatSchema = new mongoose.Schema(
@@ -40,10 +38,6 @@ const chatSchema = new mongoose.Schema(
       default: false,
     },
     isSoftDeleted: {
-      type: Boolean,
-      default: false,
-    },
-    isDeleted: {
       type: Boolean,
       default: false,
     },

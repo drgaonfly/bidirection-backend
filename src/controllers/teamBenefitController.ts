@@ -3,8 +3,12 @@ import TeamBenefit from '../models/teamBenefit';
 import handleAsync from '../utils/handleAsync';
 import { RequestCustom } from 'user';
 import Customer from '../models/customer';
+import { isProxy } from '../middlewares/authMiddleware';
 
-const buildQuery = async (queryParams: any): Promise<any> => {
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
 
   if (queryParams.fromAddress) {
@@ -35,6 +39,11 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     }
   }
 
+  // parent
+  if (isProxy(req.user)) {
+    query.parent = req.user._id;
+  }
+
   return query;
 };
 
@@ -43,7 +52,7 @@ export const getTeamBenefitList = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const { current = '1', pageSize = '10' } = req.query;
 
-    const query = await buildQuery(req.query);
+    const query = await buildQuery(req.query, req);
 
     const teamBenefit = await TeamBenefit.find(query)
       .populate('sourceCustomer') //填充原始来源信息
@@ -69,7 +78,7 @@ export const getTeamBenefitList = handleAsync(
 // 前端获取所有团队收益数据
 export const getAllTeamBenefit = handleAsync(
   async (req: RequestCustom, res: Response) => {
-    const query = await buildQuery(req.query);
+    const query = await buildQuery(req.query, req);
 
     const teamBenefit = await TeamBenefit.find(query)
       .sort({ createdAt: -1 })

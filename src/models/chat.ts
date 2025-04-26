@@ -8,8 +8,7 @@ export interface IChat extends Document {
   message: string;
   sender: 'customer' | 'user';
   isRead: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  isSoftDeleted: boolean;
 }
 
 const chatSchema = new mongoose.Schema(
@@ -34,6 +33,10 @@ const chatSchema = new mongoose.Schema(
       required: true,
     },
     isRead: {
+      type: Boolean,
+      default: false,
+    },
+    isSoftDeleted: {
       type: Boolean,
       default: false,
     },

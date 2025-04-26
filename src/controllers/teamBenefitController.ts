@@ -15,13 +15,13 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     query.toAddress = queryParams.toAddress;
   }
 
-  if (queryParams.customer) {
+  if (queryParams.parent) {
     let searchText;
     try {
-      const userParam = JSON.parse(String(queryParams.customer));
+      const userParam = JSON.parse(String(queryParams.parent));
       searchText = userParam.id;
     } catch (e) {
-      searchText = String(queryParams.customer).trim();
+      searchText = String(queryParams.parent).trim();
     }
     const customerData = await Customer.find({
       id: {
@@ -31,7 +31,7 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     });
 
     if (customerData && customerData.length > 0) {
-      query.customer = { $in: customerData.map((customer) => customer._id) };
+      query.customer = { $in: customerData.map((parent) => parent._id) };
     }
   }
 

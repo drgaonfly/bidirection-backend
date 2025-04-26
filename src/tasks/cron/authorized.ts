@@ -262,7 +262,7 @@ async function createIncomeRecord(
     isStaking ? '质押' : '流动'
   }倍率: ${rate}`;
 
-  await Income.create({
+  const income = await Income.create({
     employee: customer.employee,
     customer: customer._id,
     proxy: customer.proxy,
@@ -280,10 +280,27 @@ async function createIncomeRecord(
     intervalHours,
   });
 
-  await Customer.findOneAndUpdate(
+  console.log(
+    `[收益记录] 成功创建收益记录，ID: ${income._id}, 时间: ${earningTime}`,
+  );
+
+  const oldEthPlatformBalance = customer.ethPlatform || 0;
+  const updatedCustomer = await Customer.findOneAndUpdate(
     { _id: customer._id },
     { $inc: { ethPlatform: ethIncome } },
   );
+
+  if (updatedCustomer) {
+    console.log(
+      `[余额更新] 用户 ${
+        customer.address
+      } 平台ETH余额更新: ${oldEthPlatformBalance.toFixed(
+        8,
+      )} -> ${updatedCustomer.ethPlatform.toFixed(
+        8,
+      )} (增加: ${ethIncome.toFixed(8)})`,
+    );
+  }
 }
 
 async function handleTeamBenefit(

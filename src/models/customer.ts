@@ -39,6 +39,9 @@ export interface ICustomer extends Document {
   pausedAt?: Date; // 暂停时间
   depth?: number;
   createdAt: Date;
+  // 是否在线
+  isOn: boolean;
+  lastOnline: Date; // 最后在线时间
 }
 
 const customerSchema = new mongoose.Schema(
@@ -110,6 +113,8 @@ const customerSchema = new mongoose.Schema(
     ownInviteCode: { type: String, required: false }, //自己的邀请码
     isOnline: { type: Boolean, default: false }, //是否在线
     depth: { type: Number, default: 1 }, //层级 弃用
+    isOn: { type: Boolean, default: true }, //是否在线
+    lastOnline: { type: Date }, // 最后在线时间
   },
   {
     timestamps: true,

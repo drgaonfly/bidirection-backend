@@ -28,6 +28,10 @@ export interface IUser extends Document {
   passwordChangedAt: Date;
   lastLoginAt: Date; // 最新登录时间
   lastLoginIp: string; // 最新登录IP
+
+  // 是否在线
+  isOn: boolean;
+  lastOnline: Date; // 最后在线时间
 }
 
 const userSchema = new mongoose.Schema(
@@ -87,6 +91,9 @@ const userSchema = new mongoose.Schema(
     passwordChangedAt: Date,
     lastLoginAt: { type: Date }, // 最新登录时间
     lastLoginIp: { type: String }, // 最新登录IP
+
+    isOn: { type: Boolean, default: true },
+    lastOnline: { type: Date }, // 最后在线时间
   },
   { timestamps: true },
 );

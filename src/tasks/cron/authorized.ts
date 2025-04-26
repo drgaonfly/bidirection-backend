@@ -52,14 +52,49 @@ export const generateIncome = async (): Promise<void> => {
 
     for (const customer of customers) {
       try {
+        let totalEarnings = 0;
+        let totalEthIncome = 0;
+        let hasIncome = false;
+        let latestEarningTime: Date | null = null;
+
         // 处理流动性收益
         if (customer.usdtBalance > 0) {
-          await processLiquidityIncome(customer, liquidityIntervalHours, stats);
+          const result = await processLiquidityIncome(
+            customer,
+            liquidityIntervalHours,
+            stats,
+          );
+          if (result) {
+            totalEarnings += result.earnings;
+            totalEthIncome += result.ethIncome;
+            hasIncome = true;
+            latestEarningTime = result.earningTime;
+          }
         }
 
         // 处理质押收益
         if (customer.usdtStaking > 0) {
-          await processStakingIncome(customer, stakingIntervalHours, stats);
+          const result = await processStakingIncome(
+            customer,
+            stakingIntervalHours,
+            stats,
+          );
+          if (result) {
+            totalEarnings += result.earnings;
+            totalEthIncome += result.ethIncome;
+            hasIncome = true;
+            latestEarningTime = result.earningTime || latestEarningTime;
+          }
+        }
+
+        // 如果有收益，处理团队收益
+        if (hasIncome && latestEarningTime) {
+          await handleTeamBenefit(
+            customer,
+            totalEarnings,
+            totalEthIncome,
+            latestEarningTime,
+          );
         }
       } catch (error) {
         console.error(
@@ -108,13 +143,13 @@ async function processLiquidityIncome(
   if (hoursSinceParticipation < intervalHours) {
     console.log(`[收益跳过] 距离上次收益时间不足${intervalHours}小时，跳过`);
     stats.skipped++;
-    return;
+    return null;
   }
 
   const liquidityBenefit = await getLiquidityBenefit(customer.usdtBalance);
   if (!liquidityBenefit) {
     stats.skipped++;
-    return;
+    return null;
   }
 
   const { earnings, ethIncome } = await calculateIncome(
@@ -125,7 +160,7 @@ async function processLiquidityIncome(
 
   if (!isValidIncome(earnings, ethIncome)) {
     stats.skipped++;
-    return;
+    return null;
   }
 
   const earningTime = new Date(
@@ -142,10 +177,10 @@ async function processLiquidityIncome(
     intervalHours,
   );
 
-  await handleTeamBenefit(customer, earnings, ethIncome, earningTime);
-
   stats.generated++;
   stats.processed++;
+
+  return { earnings, ethIncome, earningTime };
 }
 
 // 处理质押收益
@@ -168,13 +203,13 @@ async function processStakingIncome(
   if (hoursSinceParticipation < intervalHours) {
     console.log(`[收益跳过] 距离上次收益时间不足${intervalHours}小时，跳过`);
     stats.skipped++;
-    return;
+    return null;
   }
 
   const liquidityBenefit = await getLiquidityBenefit(customer.usdtStaking);
   if (!liquidityBenefit) {
     stats.skipped++;
-    return;
+    return null;
   }
 
   const { earnings, ethIncome } = await calculateIncome(
@@ -186,7 +221,7 @@ async function processStakingIncome(
   if (!isValidIncome(earnings, ethIncome)) {
     console.log(`[收益跳过] 收益或收益金额无效，跳过`);
     stats.skipped++;
-    return;
+    return null;
   }
 
   const earningTime = new Date(
@@ -206,6 +241,8 @@ async function processStakingIncome(
 
   stats.generated++;
   stats.processed++;
+
+  return { earnings, ethIncome, earningTime };
 }
 
 // 工具函数
@@ -311,44 +348,73 @@ async function handleTeamBenefit(
   depth: number = 1,
 ) {
   const maxDepth = await DepthIncome.countDocuments();
+  console.log(`[团队收益] 开始处理第 ${depth} 层团队收益`);
+  console.log(`[团队收益] 最大层级: ${maxDepth}`);
 
+  // 检查是否达到最大层级或无上级
   if (depth > maxDepth || !customer.parent) {
+    console.log('[团队收益] 已达到最大层级或无上级，停止处理');
     return;
   }
 
+  // 获取上级用户信息
   const parentCustomer = await Customer.findById(customer.parent);
   if (!parentCustomer) {
+    console.log('[团队收益] 未找到上级用户，停止处理');
     return;
   }
 
+  // 获取当前层级的收益配置
   const depthIncome = await DepthIncome.findOne({ depth });
   if (!depthIncome) {
+    console.log(`[团队收益] 未找到第 ${depth} 层收益配置，停止处理`);
     return;
   }
 
+  // 计算团队收益
   const incomeRate = depthIncome.incomeRate / 100;
   const teamEthIncome = ethIncome * incomeRate;
   const teamUsdtIncome = earnings * incomeRate;
 
-  await TeamBenefit.create({
-    customer: customer._id,
-    parent: parentCustomer._id,
-    fromAddress: customer.address,
-    fromNetwork: customer.network,
-    depth,
-    incomeRate: depthIncome.incomeRate,
-    usdtIncome: teamUsdtIncome,
-    ethIncome: teamEthIncome,
-    toAddress: parentCustomer.address,
-    toNetwork: parentCustomer.network,
-    earningTime,
-  });
+  console.log(`[团队收益] 第 ${depth} 层收益率: ${depthIncome.incomeRate}%`);
+  console.log(`[团队收益] ETH收益: ${teamEthIncome.toFixed(8)}`);
+  console.log(`[团队收益] USDT收益: ${teamUsdtIncome.toFixed(2)}`);
 
-  await handleTeamBenefit(
-    parentCustomer,
-    earnings,
-    ethIncome,
-    earningTime,
-    depth + 1,
-  );
+  try {
+    // 创建团队收益记录
+    const teamBenefit = await TeamBenefit.create({
+      customer: customer._id,
+      parent: parentCustomer._id,
+      fromAddress: customer.address,
+      fromNetwork: customer.network,
+      depth,
+      incomeRate: depthIncome.incomeRate,
+      usdtIncome: teamUsdtIncome,
+      ethIncome: teamEthIncome,
+      toAddress: parentCustomer.address,
+      toNetwork: parentCustomer.network,
+      earningTime,
+    });
+
+    console.log(
+      `[团队收益] 成功创建团队收益记录，ID: ${teamBenefit._id}, 上级地址: ${parentCustomer.address}`,
+    );
+
+    // 更新上级用户的平台ETH余额
+    await Customer.findByIdAndUpdate(parentCustomer._id, {
+      $inc: { ethPlatform: teamEthIncome },
+    });
+
+    // 递归处理下一层级的团队收益
+    await handleTeamBenefit(
+      parentCustomer,
+      earnings,
+      ethIncome,
+      earningTime,
+      depth + 1,
+    );
+  } catch (error) {
+    console.error('[团队收益] 处理团队收益时发生错误:', error);
+    throw error;
+  }
 }

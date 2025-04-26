@@ -388,6 +388,7 @@ async function handleTeamBenefit(
     // 创建团队收益记录
     const teamBenefit = await TeamBenefit.create({
       customer: customer._id,
+      proxy: customer.proxy,
       fromAddress: customer.address,
       fromNetwork: customer.network,
       depth,

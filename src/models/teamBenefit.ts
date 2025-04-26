@@ -1,5 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 import { ICustomer } from './customer';
+import { IUser } from './user';
 
 export interface ITeamBenefit extends Document {
   customer: mongoose.Schema.Types.ObjectId | ICustomer;
@@ -14,6 +15,7 @@ export interface ITeamBenefit extends Document {
   depth: number; // 深度
   earningTime: Date; // 收益生成时间
   sourceCustomer: mongoose.Schema.Types.ObjectId | ICustomer; // 原始来源用户
+  proxy: mongoose.Schema.Types.ObjectId | IUser; // 代理用户，默认为null或ze
   sourceAddress: string; // 原始来源地址
   sourceNetwork: string; // 原始来源网络
   sourceUsdtIncome: number; // 原始来源USDT收益
@@ -31,6 +33,11 @@ const teamBenefitSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Customer',
       required: true,
+    },
+    proxy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
     },
     depth: { type: Number, required: true }, // 所在地址产生收益时的深度
     incomeRate: { type: Number, required: true }, // 收益率

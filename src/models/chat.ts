@@ -39,6 +39,10 @@ const chatSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isSoftDeleted: {
+      type: Boolean,
+      default: false,
+    },
     isDeleted: {
       type: Boolean,
       default: false,

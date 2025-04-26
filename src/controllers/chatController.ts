@@ -10,15 +10,77 @@ import Customer, { ICustomer } from '../models/customer';
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
 
-  if (queryParams.message) {
-    query.message = { $regex: queryParams.message, $options: 'i' };
+  // 根据用户ID查询聊天记录
+  if (queryParams.user) {
+    // 处理用户ID为对象字符串的情况
+    if (typeof queryParams.user === 'string') {
+      try {
+        const userObj = JSON.parse(queryParams.user);
+        query.user = userObj._id;
+      } catch (e) {
+        query.user = queryParams.user;
+      }
+    } else {
+      query.user = queryParams.user;
+    }
   }
+
+  if (queryParams.sender) {
+    query.sender = queryParams.sender;
+  }
+
+  if (queryParams.isSoftDeleted) {
+    query.isSoftDeleted = queryParams.isSoftDeleted;
+  }
+
+  // if (queryParams.customer) {
+
+  //   query['customer.address'] = queryParams.customer;
+  // }
 
   return query;
 };
 
 // 获取所有聊天记录
 const getChats = handleAsync(async (req: Request, res: Response) => {
+  const { current = '1' } = req.query;
+
+  const query = buildQuery(req.query);
+
+  // 获取所有客户的最新一条消息，实现群聊列表
+  // const latestChats = await Chat.aggregate([
+  //   { $match: query },
+  //   { $sort: { createdAt: -1 } },
+  //   {
+  //     $group: {
+  //       _id: '$customer',
+  //       latestMessage: { $first: '$$ROOT' },
+  //     },
+  //   },
+  //   { $replaceRoot: { newRoot: '$latestMessage' } },
+  //   { $skip: (+current - 1) * +pageSize },
+  //   { $limit: +pageSize },
+  // ]).exec();
+
+  const chats = await Chat.find(query)
+    .sort('createdAt')
+    .skip((+current - 1) * +'20')
+    .exec();
+
+  // 填充客户和用户信息
+  const populatedChats = await Chat.populate(chats, [
+    { path: 'customer' },
+    { path: 'user', select: '-password' },
+  ]);
+
+  res.json({
+    success: true,
+    data: populatedChats,
+  });
+});
+
+// 获取所有客户的最新聊天记录
+const getLatestChats = handleAsync(async (req: Request, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
   const query = buildQuery(req.query);
@@ -295,6 +357,25 @@ const deleteMultipleChats = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
+// 后台代理软删除
+const softDeleteChats = handleAsync(async (req: Request, res: Response) => {
+  const { ids } = req.body;
+
+  await Chat.updateMany(
+    {
+      _id: { $in: ids },
+    },
+    {
+      $set: { isSoftDeleted: true },
+    },
+  ).exec();
+
+  res.json({
+    success: true,
+    message: `${ids.length} chats  deleted successfully`,
+  });
+});
+
 export {
   getChats,
   getChatById,
@@ -306,4 +387,6 @@ export {
   addChatMessage,
   getChatUserMessagesByCustomer,
   addChatUserMessage,
+  softDeleteChats,
+  getLatestChats,
 };

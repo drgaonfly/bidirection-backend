@@ -38,6 +38,7 @@ export interface ICustomer extends Document {
   isPausedIncome: boolean; // 是否暂停收益
   pausedAt?: Date; // 暂停时间
   depth?: number;
+  createdAt: Date;
 }
 
 const customerSchema = new mongoose.Schema(
@@ -150,6 +151,13 @@ customerSchema.virtual('activities', {
   ref: 'Activity',
   localField: '_id',
   foreignField: 'customer',
+});
+
+// 添加虚拟属性teamBenefits，关联团队收益记录
+customerSchema.virtual('teamBenefits', {
+  ref: 'TeamBenefit',
+  localField: '_id',
+  foreignField: 'parent',
 });
 
 // 创建复合唯一索引

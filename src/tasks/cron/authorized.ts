@@ -4,6 +4,8 @@ import LiquidityBenefits from '../../models/liquidity';
 import Setting from '../../models/setting';
 import { getExchangeRate } from '../../utils/getExchange';
 import { formatUSDT, formatETH } from '../../services/format';
+import DepthIncome from '../../models/depthIncome';
+import TeamBenefit from '../../models/teamBenefit';
 
 // 自动生成流动性收益
 export const generateFlowingIncome = async (): Promise<void> => {
@@ -243,6 +245,101 @@ export const generateFlowingIncome = async (): Promise<void> => {
             updatedCustomer?.ethPlatform || 0
           ).toFixed(8)} (增加: ${ethIncome.toFixed(8)})`,
         );
+
+        // 获取深度收益配置的总长度
+        const maxDepth = await DepthIncome.countDocuments();
+
+        // 处理团队收益
+        const handleTeamBenefit = async (
+          customer: any,
+          earnings: number,
+          ethIncome: number,
+          depth: number = 1,
+        ) => {
+          console.log(`\n--------- 开始处理深度 ${depth} 的团队收益 ---------`);
+
+          // 如果超过最大深度或没有上级，则停止递归
+          if (depth > maxDepth || !customer.parent) {
+            console.log(
+              `[团队收益] 停止递归: ${
+                !customer.parent ? '没有上级' : '超过最大深度'
+              }`,
+            );
+            return;
+          }
+
+          console.log(`[团队收益] 查找上级用户 ID: ${customer.parent}`);
+          const parentCustomer = await Customer.findById(customer.parent);
+
+          if (parentCustomer) {
+            console.log(`[团队收益] 找到上级用户: ${parentCustomer.address}`);
+            console.log(`[团队收益] 查询深度 ${depth} 的收益配置`);
+
+            const depthIncome = await DepthIncome.findOne({
+              depth,
+            });
+
+            if (!depthIncome) {
+              console.log(`[查询错误] 未找到深度为 ${depth} 的收益记录`);
+              return;
+            }
+
+            console.log(
+              `[团队收益] 深度 ${depth} 的收益率: ${depthIncome.incomeRate}%`,
+            );
+            const incomeRate = depthIncome.incomeRate / 100; // 将收益率转换为百分比
+            const teamEthIncome = ethIncome * incomeRate;
+            const teamUsdtIncome = earnings * incomeRate;
+
+            console.log(
+              `[团队收益] 用户 ${customer.address} 给父级 ${parentCustomer.address} 产生收益`,
+            );
+            console.log(
+              `[团队收益] ETH收益: ${teamEthIncome.toFixed(
+                8,
+              )}, USDT收益: ${teamUsdtIncome.toFixed(6)}`,
+            );
+            console.log(
+              `[团队收益] 收益率: ${incomeRate * 100}%, 深度: ${depth}`,
+            );
+
+            console.log(`[团队收益] 开始创建团队收益记录`);
+            // 创建 TeamBenefit 记录
+            const teamBenefit = await TeamBenefit.create({
+              customer: customer._id, // 产生收益的用户ID，关联Customer表
+              parent: parentCustomer._id, // 父级用户ID，关联Customer表
+              fromAddress: customer.address, // 产生收益的用户地址
+              fromNetwork: customer.network, // 产生收益的用户所在网络
+              depth, // 产生收益地址的深度
+              incomeRate: depthIncome.incomeRate, // 团队收益分配比例
+              usdtIncome: teamUsdtIncome, // USDT团队收益金额
+              ethIncome: teamEthIncome, // ETH团队收益金额
+              toAddress: parentCustomer.address, // 接收收益的父级地址
+              toNetwork: parentCustomer.network, // 接收收益的父级网络
+              earningTime, // 收益生成时间
+            });
+
+            await teamBenefit.save();
+            console.log(
+              `[团队收益] 团队收益记录创建成功, ID: ${teamBenefit._id}`,
+            );
+
+            console.log(`[团队收益] 开始处理上级的团队收益`);
+            // 递归处理上级的团队收益
+            await handleTeamBenefit(
+              parentCustomer,
+              earnings,
+              ethIncome,
+              depth + 1,
+            );
+          } else {
+            console.log(`[团队收益] 未找到上级用户，停止处理`);
+          }
+
+          console.log(`--------- 深度 ${depth} 的团队收益处理完成 ---------\n`);
+        };
+
+        await handleTeamBenefit(customer, earnings, ethIncome);
 
         generatedIncomeCount++;
         processedCount++;

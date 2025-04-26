@@ -4,6 +4,7 @@ import handleAsync from '../utils/handleAsync';
 import User from '../models/user';
 import { isProxy } from '../middlewares/authMiddleware';
 import { RequestCustom } from 'user';
+import Customer from '../models/customer';
 
 // dataPermissionController.ts
 const buildQuery = async (
@@ -14,6 +15,22 @@ const buildQuery = async (
 
   if (queryParams.type) {
     query.type = queryParams.type;
+  }
+
+  // id
+  if (queryParams.id) {
+    query.id = queryParams.id;
+  }
+
+  // customer
+  if (queryParams.address) {
+    const customer = await Customer.findOne({
+      address: { $regex: queryParams.address, $options: 'i' },
+    });
+    query.$or = [
+      { customer: customer?._id },
+      { address: { $regex: queryParams.address, $options: 'i' } },
+    ];
   }
 
   if (isProxy(req.user)) {

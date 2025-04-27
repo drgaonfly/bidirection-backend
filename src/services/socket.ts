@@ -83,10 +83,17 @@ export const setupSocket = async (server: http.Server): Promise<Server> => {
       token = token.split(' ')[1];
     }
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET as string,
-    ) as jwt.JwtPayload & { type: 'user' | 'customer' };
+    let decoded;
+    try {
+      decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET as string,
+      ) as jwt.JwtPayload & { type: 'user' | 'customer' };
+    } catch (error) {
+      // JWT验证失败
+      console.error('JWT验证失败:', error);
+      return;
+    }
 
     if (decoded.type === 'user') {
       const user = await User.findById(decoded.sub).exec();

@@ -95,7 +95,7 @@ export const setupSocket = async (server: http.Server): Promise<Server> => {
       return;
     }
 
-    if (decoded.type === 'user') {
+    if (decoded?.type === 'user') {
       const user = await User.findById(decoded.sub).exec();
 
       if (!user || !user.live) {
@@ -103,7 +103,7 @@ export const setupSocket = async (server: http.Server): Promise<Server> => {
       }
 
       socket.user = user;
-    } else if (decoded.type === 'customer') {
+    } else if (decoded?.type === 'customer') {
       const customer = await Customer.findById(decoded.sub);
       if (!customer) {
         return;

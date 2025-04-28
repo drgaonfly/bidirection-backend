@@ -115,7 +115,8 @@ export const setupSocket = async (server: http.Server): Promise<Server> => {
   });
 
   io.on('connection', async (socket: any) => {
-    console.log(`连接: ${socket.id}`);
+    // socket.handshake.address
+    console.log(`连接: ${socket.id} ${socket.handshake.auth.token}`);
 
     if (socket.user) {
       console.log(`用户连接: ${socket.id}, userId: ${socket.user._id}`);

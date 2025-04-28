@@ -5,6 +5,7 @@ import { RequestCustom } from 'user';
 import { io } from '../services/socket';
 import User, { IUser } from '../models/user';
 import Customer, { ICustomer } from '../models/customer';
+import { isProxy } from '../middlewares/authMiddleware';
 
 // Build query based on query parameters
 const buildQuery = (queryParams: any): any => {
@@ -157,37 +158,77 @@ const deleteMultipleChats = handleAsync(async (req: Request, res: Response) => {
 });
 
 // 后台代理获取与客户的最新聊天记录
-const getLatestChats = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10' } = req.query;
+const getLatestChats = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const query = buildQuery(req.query);
 
-  const query = buildQuery(req.query);
+    // 如果是代理用户，只能看到自己的聊天记录
+    if (isProxy(req.user)) {
+      query.user = req.user._id;
+    }
 
-  // 获取所有客户的最新一条消息，实现群聊列表
-  const latestChats = await Chat.aggregate([
-    { $match: query },
-    { $sort: { createdAt: -1 } },
-    {
-      $group: {
-        _id: '$customer',
-        latestMessage: { $first: '$$ROOT' },
+    // 获取所有客户的最新一条消息和未读消息数量
+    const latestChatsWithUnread = await Chat.aggregate([
+      { $match: query },
+      {
+        $facet: {
+          // 获取最新消息
+          latestMessages: [
+            { $sort: { createdAt: -1 } },
+            {
+              $group: {
+                _id: '$customer',
+                latestMessage: { $first: '$$ROOT' },
+              },
+            },
+            { $replaceRoot: { newRoot: '$latestMessage' } },
+          ],
+          // 统计每个客户的未读消息数
+          unreadCounts: [
+            {
+              $match: {
+                sender: 'customer',
+                isRead: false,
+                isSoftDeleted: false,
+              },
+            },
+            {
+              $group: {
+                _id: '$customer',
+                unreadCount: { $sum: 1 },
+              },
+            },
+          ],
+        },
       },
-    },
-    { $replaceRoot: { newRoot: '$latestMessage' } },
-    { $skip: (+current - 1) * +pageSize },
-    { $limit: +pageSize },
-  ]).exec();
+    ]).exec();
 
-  // 填充客户和用户信息
-  const populatedChats = await Chat.populate(latestChats, [
-    { path: 'customer' },
-    { path: 'user', select: '-password' },
-  ]);
+    // 合并最新消息和未读数量
+    const latestChats = latestChatsWithUnread[0].latestMessages.map(
+      (chat: any) => {
+        const unreadInfo = latestChatsWithUnread[0].unreadCounts.find(
+          (unread: any) => unread._id.toString() === chat.customer.toString(),
+        );
 
-  res.json({
-    success: true,
-    data: populatedChats,
-  });
-});
+        return {
+          ...chat,
+          unreadCount: unreadInfo ? unreadInfo.unreadCount : 0,
+        };
+      },
+    );
+
+    // 填充客户和用户信息
+    const populatedChats = await Chat.populate(latestChats, [
+      { path: 'customer' },
+      { path: 'user', select: '-password' },
+    ]);
+
+    res.json({
+      success: true,
+      data: populatedChats,
+    });
+  },
+);
 
 // 后台代理获取与客户的所有聊天记录
 const getChatUserMessagesByCustomer = handleAsync(
@@ -258,7 +299,6 @@ const addChatUserMessage = handleAsync(
       user: userId,
       message: message,
       sender: 'user',
-      isRead: false,
     });
 
     const savedChat = await newChat.save();
@@ -322,7 +362,6 @@ const addChatMessage = handleAsync(
       user: userId,
       message,
       sender: 'customer',
-      isRead: false,
     });
 
     const savedChat = await newChat.save();

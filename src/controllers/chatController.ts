@@ -42,7 +42,7 @@ const buildQuery = (queryParams: any): any => {
   return query;
 };
 
-const findCustomerUser = async (customer: ICustomer): Promise<IUser> => {
+export const findCustomerUser = async (customer: ICustomer): Promise<IUser> => {
   let user = customer.proxy as IUser;
 
   if (!user) {
@@ -234,6 +234,12 @@ const getLatestChats = handleAsync(
 const getChatUserMessagesByCustomer = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const { customerId } = req.query;
+
+    // io.emit('customer_status', {
+    //   customerId,
+    //   isOn: true,
+    //   lastOnline: new Date()
+    // });
 
     if (!customerId) {
       res.status(400);

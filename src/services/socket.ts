@@ -3,6 +3,7 @@ import http from 'http';
 import jwt from 'jsonwebtoken';
 import User, { IUser } from '../models/user';
 import Customer from '../models/customer';
+import { findCustomerUser } from '../controllers/chatController';
 
 let io: Server;
 
@@ -23,8 +24,7 @@ const updateCustomerStatus = async (customerId: string, isOnline: boolean) => {
 };
 
 // 处理用户加入房间
-const handleUserJoin = async (socket: any, user: IUser) => {
-  socket.join(`user-${user._id}`);
+const handleUserJoin = async (user: IUser) => {
   const updatedUser = await updateUserStatus(user._id.toString(), true);
   console.log(
     `用户 ${
@@ -36,9 +36,19 @@ const handleUserJoin = async (socket: any, user: IUser) => {
 };
 
 // 处理客户加入房间
-const handleCustomerJoin = async (socket: any, customerId: string) => {
-  socket.join(`customer-${customerId}`);
+const handleCustomerJoin = async (customerId: string) => {
   const customer = await updateCustomerStatus(customerId, true);
+  const user = await findCustomerUser(customer);
+
+  // 通知对应的用户客户上线
+  if (user) {
+    io.emit('customer_status', {
+      customerId,
+      isOn: true,
+      lastOnline: new Date(),
+    });
+  }
+
   console.log(
     `客户 ${customerId} 加入房间, 最后在线时间: ${customer.lastOnline?.toLocaleString()}, 当前在线人数: ${
       io.engine.clientsCount
@@ -47,8 +57,7 @@ const handleCustomerJoin = async (socket: any, customerId: string) => {
 };
 
 // 处理用户离开房间
-const handleUserLeave = async (socket: any, userId: string) => {
-  socket.leave(`user-${userId}`);
+const handleUserLeave = async (userId: string) => {
   const user = await updateUserStatus(userId, false);
   console.log(
     `用户 ${userId} 离开房间, 最后在线时间: ${user.lastOnline?.toLocaleString()}, 当前在线人数: ${
@@ -58,9 +67,19 @@ const handleUserLeave = async (socket: any, userId: string) => {
 };
 
 // 处理客户离开房间
-const handleCustomerLeave = async (socket: any, customerId: string) => {
-  socket.leave(`customer-${customerId}`);
+const handleCustomerLeave = async (customerId: string) => {
   const customer = await updateCustomerStatus(customerId, false);
+  const user = await findCustomerUser(customer);
+
+  // 通知对应的用户客户下线
+  if (user) {
+    io.emit('customer_status', {
+      customerId,
+      isOn: false,
+      lastOnline: new Date(),
+    });
+  }
+
   console.log(
     `客户 ${customerId} 离开房间, 最后在线时间: ${customer.lastOnline?.toLocaleString()}, 当前在线人数: ${
       io.engine.clientsCount
@@ -120,22 +139,22 @@ export const setupSocket = async (server: http.Server): Promise<Server> => {
 
     if (socket.user) {
       console.log(`用户连接: ${socket.id}, userId: ${socket.user._id}`);
-      await handleUserJoin(socket, socket.user);
+      await handleUserJoin(socket.user);
     }
 
     if (socket.customer) {
       console.log(`客户连接: ${socket.id}, customerId: ${socket.customer._id}`);
-      await handleCustomerJoin(socket, socket.customer._id);
+      await handleCustomerJoin(socket.customer._id);
     }
 
     socket.on('disconnect', async () => {
       console.log(`客户端断开连接: ${socket.id}`);
 
       if (socket.user) {
-        await handleUserLeave(socket, socket.user._id.toString());
+        await handleUserLeave(socket.user._id);
       }
       if (socket.customer) {
-        await handleCustomerLeave(socket, socket.customer._id);
+        await handleCustomerLeave(socket.customer._id);
       }
     });
   });

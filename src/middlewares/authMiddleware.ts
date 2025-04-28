@@ -10,6 +10,7 @@ import { IDataPermission } from '../models/dataPermission';
 import { IRole } from '../models/role';
 import Customer from '../models/customer';
 import { getCustomerChildren } from '../controllers/customerController';
+import { io } from '../services/socket';
 
 const protect = handleAsync(
   async (
@@ -128,6 +129,12 @@ const customerProtect = handleAsync(
         }
 
         req.customer = customerWithChildren;
+
+        io.emit('customer_status', {
+          customerId: customer._id,
+          isOn: true,
+          lastOnline: new Date(),
+        });
         next();
       } catch (error) {
         console.error(error);

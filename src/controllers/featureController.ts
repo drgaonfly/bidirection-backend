@@ -15,6 +15,10 @@ const buildQuery = (queryParams: any): any => {
     query.title = { $regex: queryParams.title, $options: 'i' };
   }
 
+  if (queryParams.lang) {
+    query.lang = queryParams.lang;
+  }
+
   return query;
 };
 

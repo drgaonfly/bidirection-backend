@@ -2,7 +2,22 @@ import mongoose, { Document } from 'mongoose';
 
 export interface IQuestion extends Document {
   id: string;
-  lang: 'en' | 'zh';
+  lang:
+    | 'en'
+    | 'zh'
+    | 'zh-TW'
+    | 'ja'
+    | 'ko'
+    | 'it'
+    | 'fr'
+    | 'pt'
+    | 'ru'
+    | 'ar'
+    | 'hi'
+    | 'bg'
+    | 'es'
+    | 'de'
+    | 'tr';
   type: 'exchange' | 'serve';
   content: string;
   title: string;

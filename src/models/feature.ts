@@ -4,6 +4,23 @@ export interface IFeature extends Document {
   title: string;
   text: string;
   image: string;
+  icon: string;
+  lang:
+    | 'en'
+    | 'zh'
+    | 'zh-TW'
+    | 'ja'
+    | 'ko'
+    | 'it'
+    | 'fr'
+    | 'pt'
+    | 'ru'
+    | 'ar'
+    | 'hi'
+    | 'bg'
+    | 'es'
+    | 'de'
+    | 'tr';
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -13,7 +30,29 @@ const featureSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     text: { type: String, required: true },
-    image: { type: String, required: true },
+    image: { type: String, required: false },
+    icon: { type: String, required: false },
+    lang: {
+      type: String,
+      enum: [
+        'en',
+        'zh',
+        'zh-TW',
+        'ja',
+        'ko',
+        'it',
+        'fr',
+        'pt',
+        'ru',
+        'ar',
+        'hi',
+        'bg',
+        'es',
+        'de',
+        'tr',
+      ],
+      required: false,
+    },
   },
   { timestamps: true },
 );

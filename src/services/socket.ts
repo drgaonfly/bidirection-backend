@@ -155,8 +155,9 @@ export const setupSocket = async (server: http.Server): Promise<Server> => {
     socket.on('pong', async (timestamp: number) => {
       const latency = Date.now() - timestamp;
       console.log(`客户端延迟: ${latency}ms`);
-
-      await handleCustomerJoin(socket.customer._id);
+      if (socket.customer) {
+        await handleCustomerJoin(socket.customer._id);
+      }
     });
 
     socket.on('disconnect', async () => {

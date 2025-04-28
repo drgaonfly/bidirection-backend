@@ -235,12 +235,6 @@ const getChatUserMessagesByCustomer = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const { customerId } = req.query;
 
-    // io.emit('customer_status', {
-    //   customerId,
-    //   isOn: true,
-    //   lastOnline: new Date()
-    // });
-
     if (!customerId) {
       res.status(400);
       throw new Error('客户ID是必需的');
@@ -295,7 +289,6 @@ const getChatUserMessagesByCustomer = handleAsync(
 // 后台代理添加与客户的聊天消息
 const addChatUserMessage = handleAsync(
   async (req: RequestCustom, res: Response) => {
-    console.log('req.body', req.body);
     const { customerId, message } = req.body;
 
     // 填充customer信息

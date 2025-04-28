@@ -1,10 +1,6 @@
 import { Request, Response } from 'express';
 import Feature from '../models/feature';
 import handleAsync from '../utils/handleAsync';
-import {
-  transformDocumentImage,
-  transformDocumentImages,
-} from '../utils/transformUtils';
 import { RequestCustom } from 'user';
 
 // 构建查询条件
@@ -34,14 +30,11 @@ const getFeatures = handleAsync(async (req: Request, res: Response) => {
     .limit(+pageSize)
     .exec();
 
-  // 处理图片路径
-  const processedFeatures = await transformDocumentImages(features, ['image']);
-
   const total = await Feature.countDocuments(query).exec();
 
   res.json({
     success: true,
-    data: processedFeatures,
+    data: features,
     total,
     current: +current,
     pageSize: +pageSize,
@@ -72,13 +65,10 @@ const getFeatureById = handleAsync(async (req: Request, res: Response) => {
     throw new Error('特性不存在');
   }
 
-  // 处理图片路径
-  const processedFeature = await transformDocumentImage(feature, ['image']);
-
   res.json({
     success: true,
     data: {
-      ...processedFeature,
+      ...feature,
     },
   });
 });
@@ -105,14 +95,9 @@ const updateFeature = handleAsync(async (req: Request, res: Response) => {
     runValidators: true,
   });
 
-  // 处理图片路径
-  const processedFeature = await transformDocumentImage(updatedFeature, [
-    'image',
-  ]);
-
   res.json({
     success: true,
-    data: processedFeature,
+    data: updatedFeature,
   });
 });
 

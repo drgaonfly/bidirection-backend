@@ -69,8 +69,11 @@ export const getHome = handleAsync(async (req: Request, res: Response) => {
 export const getServe = handleAsync(async (req: Request, res: Response) => {
   const { lang } = req.query;
 
-  const [faqData, videoData, partnershipData] = await Promise.all([
+  const [faqData, featureData, videoData, partnershipData] = await Promise.all([
     // Get FAQ data
+    Question.find(lang ? { lang } : {}).sort('-createdAt'),
+
+    // Get features data
     Question.find(lang ? { lang } : {}).sort('-createdAt'),
 
     // Get latest video
@@ -95,6 +98,9 @@ export const getServe = handleAsync(async (req: Request, res: Response) => {
     data: {
       faq: {
         data: faqData,
+      },
+      features: {
+        data: featureData,
       },
       video: processedVideo?.url,
       partnerships: {

@@ -3,7 +3,6 @@ import mongoose, { Document } from 'mongoose';
 export interface IFeature extends Document {
   title: string;
   text: string;
-  image: string;
   icon: string;
   lang:
     | 'en'
@@ -30,7 +29,6 @@ const featureSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     text: { type: String, required: true },
-    image: { type: String, required: false },
     icon: { type: String, required: false },
     lang: {
       type: String,

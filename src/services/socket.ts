@@ -147,8 +147,22 @@ export const setupSocket = async (server: http.Server): Promise<Server> => {
       await handleCustomerJoin(socket.customer._id);
     }
 
+    // 心跳检测
+    const heartbeatInterval = setInterval(() => {
+      socket.emit('ping', Date.now());
+    }, 30000); // 每30秒发送心跳
+
+    socket.on('pong', async (timestamp: number) => {
+      const latency = Date.now() - timestamp;
+      console.log(`客户端延迟: ${latency}ms`);
+
+      await handleCustomerJoin(socket.customer._id);
+    });
+
     socket.on('disconnect', async () => {
       console.log(`客户端断开连接: ${socket.id}`);
+
+      clearInterval(heartbeatInterval);
 
       if (socket.user) {
         await handleUserLeave(socket.user._id);

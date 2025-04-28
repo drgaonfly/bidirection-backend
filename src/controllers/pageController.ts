@@ -9,6 +9,7 @@ import Notice from '../models/notice';
 import MiningOutput from '../models/miningOutput';
 import RegulationAgency from '../models/regulationAgency';
 import Carousel from '../models/carousel';
+import Feature from '../models/feature';
 
 // 获取所有页面
 export const getHome = handleAsync(async (req: Request, res: Response) => {
@@ -74,7 +75,7 @@ export const getServe = handleAsync(async (req: Request, res: Response) => {
     Question.find(lang ? { lang } : {}).sort('-createdAt'),
 
     // Get features data
-    Question.find(lang ? { lang } : {}).sort('-createdAt'),
+    Feature.find(lang ? { lang } : {}).sort('-createdAt'),
 
     // Get latest video
     Video.findOne().sort({ createdAt: -1 }).select('url'),

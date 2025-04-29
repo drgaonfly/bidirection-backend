@@ -10,6 +10,8 @@ import { protect } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 
+router.post('/frontend', handleFileUpload, uploadFileToS3);
+
 if (process.env.FILE_STORAGE === 'aliyun') {
   router.post('/', protect, handleFileUpload, uploadFileToOSS);
   router.get('/get-credentials', protect, getOssCredentials);

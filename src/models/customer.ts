@@ -115,6 +115,7 @@ const customerSchema = new mongoose.Schema(
     depth: { type: Number, default: 1 }, //层级 弃用
     isOn: { type: Boolean, default: true }, //是否在线
     lastOnline: { type: Date }, // 最后在线时间
+    remark: { type: String, required: false }, //备注
   },
   {
     timestamps: true,

@@ -12,6 +12,7 @@ import {
   setIsVerified,
   setIsAuthorized,
   PauseIncome,
+  updateRemark,
 } from '../controllers/customerController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 import { customerProtect } from '../middlewares/authMiddleware';
@@ -45,6 +46,9 @@ router.route('/:id/authorized').put(protect, checkPermission, setIsAuthorized);
 
 //更新客户是否暂停收益
 router.route('/:id/pause-income').put(protect, checkPermission, PauseIncome);
+
+// 更新客户备注
+router.route('/:id/remark').put(protect, checkPermission, updateRemark);
 
 router
   .route('/')

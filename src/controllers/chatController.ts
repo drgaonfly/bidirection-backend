@@ -375,12 +375,7 @@ const getChatMessages = handleAsync(
 const addChatMessage = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const customerId = req.customer._id;
-    const { message } = req.body;
-
-    if (!message) {
-      res.status(400);
-      throw new Error('消息内容是必需的');
-    }
+    const { message, image } = req.body;
 
     const userId = await findCustomerUser(req.customer);
 
@@ -388,6 +383,7 @@ const addChatMessage = handleAsync(
       customer: customerId,
       user: userId,
       message,
+      image,
       sender: 'customer',
     });
 

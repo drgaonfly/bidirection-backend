@@ -7,6 +7,7 @@ import User, { IUser } from '../models/user';
 import Customer, { ICustomer } from '../models/customer';
 import { isProxy } from '../middlewares/authMiddleware';
 import {
+  transformDocumentImage,
   // transformDocumentImage,
   transformDocumentImages,
 } from '../utils/transformUtils'; // 用于处理图像路径
@@ -262,10 +263,14 @@ const getChatUserMessagesByCustomer = handleAsync(
       userId = customer.proxy;
     }
 
-    const query = {
+    const query: any = {
       customer: customerId,
       user: userId,
     };
+
+    if (!req.user.isAdmin) {
+      query.isSoftDeleted = false;
+    }
 
     // 查询数据库获取聊天记录
     const messages = await Chat.find(query)
@@ -331,11 +336,29 @@ const addChatUserMessage = handleAsync(
       .populate('customer')
       .populate('user');
 
-    io.emit('chatMessage', populatedChat);
+    const processedMessage = await transformDocumentImage(populatedChat, [
+      'image',
+    ]);
+
+    // 获取该客户与用户之间的未读消息数
+    const unreadCount = await Chat.countDocuments({
+      customer: customerId,
+      user: userId,
+      sender: 'user',
+      isRead: false,
+      isSoftDeleted: false,
+    });
+
+    const chat = {
+      ...processedMessage.toObject(),
+      unreadCount,
+    };
+
+    io.emit('chatMessage', chat);
 
     res.json({
       success: true,
-      data: populatedChat,
+      data: chat,
     });
   },
 );
@@ -396,11 +419,29 @@ const addChatMessage = handleAsync(
       .populate('customer')
       .populate('user', '-password');
 
-    io.emit('chatMessage', populatedChat);
+    const processedMessage = await transformDocumentImage(populatedChat, [
+      'image',
+    ]);
+
+    // 获取该客户与用户之间的未读消息数
+    const unreadCount = await Chat.countDocuments({
+      customer: customerId,
+      user: userId,
+      sender: 'customer',
+      isRead: false,
+      isSoftDeleted: false,
+    });
+
+    const chat = {
+      ...processedMessage.toObject(),
+      unreadCount,
+    };
+
+    io.emit('chatMessage', chat);
 
     res.json({
       success: true,
-      data: populatedChat,
+      data: chat,
     });
   },
 );

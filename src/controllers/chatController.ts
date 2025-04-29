@@ -274,10 +274,14 @@ const getChatUserMessagesByCustomer = handleAsync(
       userId = customer.proxy;
     }
 
-    const query = {
+    const query: any = {
       customer: customerId,
       user: userId,
     };
+
+    if (!req.user.isAdmin) {
+      query.isSoftDeleted = false;
+    }
 
     // 查询数据库获取聊天记录
     const messages = await Chat.find(query)

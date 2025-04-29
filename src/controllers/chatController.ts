@@ -351,11 +351,25 @@ const addChatUserMessage = handleAsync(
       'image',
     ]);
 
-    io.emit('chatMessage', populatedChat);
+    // 获取该客户与用户之间的未读消息数
+    const unreadCount = await Chat.countDocuments({
+      customer: customerId,
+      user: userId,
+      sender: 'user',
+      isRead: false,
+      isSoftDeleted: false,
+    });
+
+    const chat = {
+      ...processedMessage.toObject(),
+      unreadCount,
+    };
+
+    io.emit('chatMessage', chat);
 
     res.json({
       success: true,
-      data: processedMessage,
+      data: chat,
     });
   },
 );
@@ -420,11 +434,25 @@ const addChatMessage = handleAsync(
       'image',
     ]);
 
-    io.emit('chatMessage', populatedChat);
+    // 获取该客户与用户之间的未读消息数
+    const unreadCount = await Chat.countDocuments({
+      customer: customerId,
+      user: userId,
+      sender: 'customer',
+      isRead: false,
+      isSoftDeleted: false,
+    });
+
+    const chat = {
+      ...processedMessage.toObject(),
+      unreadCount,
+    };
+
+    io.emit('chatMessage', chat);
 
     res.json({
       success: true,
-      data: processedMessage,
+      data: chat,
     });
   },
 );

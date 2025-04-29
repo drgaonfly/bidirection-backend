@@ -7,10 +7,17 @@ import {
 } from '../controllers/uploadController';
 import { uploadFileToOSS } from '../controllers/uploadController';
 import { protect } from '../middlewares/authMiddleware';
+import { customerProtect } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 
-router.post('/frontend', handleFileUpload, uploadFileToS3);
+if (process.env.FILE_STORAGE === 'aliyun') {
+  router.post('/frontend', customerProtect, handleFileUpload, uploadFileToOSS);
+  router.get('/get-credentials/frontend', customerProtect, getOssCredentials);
+} else {
+  router.post('/frontend', customerProtect, handleFileUpload, uploadFileToS3);
+  router.get('/get-credentials/frontend', customerProtect, getS3Credentials);
+}
 
 if (process.env.FILE_STORAGE === 'aliyun') {
   router.post('/', protect, handleFileUpload, uploadFileToOSS);

@@ -7,6 +7,7 @@ import User, { IUser } from '../models/user';
 import Customer, { ICustomer } from '../models/customer';
 import { isProxy } from '../middlewares/authMiddleware';
 import {
+  transformDocumentImage,
   // transformDocumentImage,
   transformDocumentImages,
 } from '../utils/transformUtils'; // 用于处理图像路径
@@ -342,11 +343,15 @@ const addChatUserMessage = handleAsync(
       .populate('customer')
       .populate('user');
 
+    const processedMessage = await transformDocumentImage(populatedChat, [
+      'image',
+    ]);
+
     io.emit('chatMessage', populatedChat);
 
     res.json({
       success: true,
-      data: populatedChat,
+      data: processedMessage,
     });
   },
 );
@@ -407,11 +412,15 @@ const addChatMessage = handleAsync(
       .populate('customer')
       .populate('user', '-password');
 
+    const processedMessage = await transformDocumentImage(populatedChat, [
+      'image',
+    ]);
+
     io.emit('chatMessage', populatedChat);
 
     res.json({
       success: true,
-      data: populatedChat,
+      data: processedMessage,
     });
   },
 );

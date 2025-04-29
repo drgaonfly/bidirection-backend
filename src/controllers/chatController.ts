@@ -6,6 +6,10 @@ import { io } from '../services/socket';
 import User, { IUser } from '../models/user';
 import Customer, { ICustomer } from '../models/customer';
 import { isProxy } from '../middlewares/authMiddleware';
+import {
+  // transformDocumentImage,
+  transformDocumentImages,
+} from '../utils/transformUtils'; // 用于处理图像路径
 
 // Build query based on query parameters
 const buildQuery = (queryParams: any): any => {
@@ -364,9 +368,14 @@ const getChatMessages = handleAsync(
       .populate('user', '-password')
       .exec();
 
+    // 处理消息中的图片路径
+    const processedMessages = await transformDocumentImages(messages, [
+      'image',
+    ]);
+
     res.json({
       success: true,
-      data: messages,
+      data: processedMessages,
     });
   },
 );

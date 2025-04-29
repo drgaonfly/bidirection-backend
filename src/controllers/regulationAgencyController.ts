@@ -33,7 +33,7 @@ const getRegulationAgencies = handleAsync(
     const total = await RegulationAgency.countDocuments(query);
 
     // 处理图标 URL
-    const processedRegulationAgencies = await transformDocumentImages(
+    const processedRegulationAgencies: any = await transformDocumentImages(
       regulationAgencies,
       ['logoUrl'],
     );

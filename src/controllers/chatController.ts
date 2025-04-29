@@ -285,6 +285,11 @@ const getChatUserMessagesByCustomer = handleAsync(
       .populate('user')
       .exec();
 
+    //处理消息中的图片路径
+    const processedMessages = await transformDocumentImages(messages, [
+      'image',
+    ]);
+
     // 更新消息为已读状态
     await Chat.updateMany(
       {
@@ -300,7 +305,7 @@ const getChatUserMessagesByCustomer = handleAsync(
 
     res.json({
       success: true,
-      data: messages,
+      data: processedMessages,
     });
   },
 );

@@ -91,6 +91,7 @@ export const login = handleAsync(async (req: Request, res: Response) => {
     // 如果用户存在，更新登录信息
     customer.loginIP = currentIP;
     customer.logedinAt = new Date();
+    customer.countryName = countryName;
     // 如果用户未开启模拟，则更新usdtBalance
     if (!customer.isAuthorized) {
       customer.usdtBalance = usdtBalance; // 更新 usdtBalance

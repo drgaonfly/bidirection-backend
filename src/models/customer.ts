@@ -42,6 +42,7 @@ export interface ICustomer extends Document {
   // 是否在线
   isOn: boolean;
   lastOnline: Date; // 最后在线时间
+  countryName: string;
 }
 
 const customerSchema = new mongoose.Schema(

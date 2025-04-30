@@ -6,4 +6,5 @@ export interface SocketCustom extends Socket {
   user: IUser;
   customer: ICustomer;
   nsp: any;
+  heartbeatInterval?: NodeJS.Timeout;
 }

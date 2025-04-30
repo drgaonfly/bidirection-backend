@@ -4,7 +4,7 @@ import { SocketCustom } from 'socket';
 
 export const setupHeartbeatHandlers = (socket: SocketCustom) => {
   // 心跳检测
-  const heartbeatInterval = setInterval(() => {
+  socket.heartbeatInterval = setInterval(() => {
     socket.emit('ping', Date.now());
   }, 30000); // 每30秒发送心跳
 
@@ -18,9 +18,5 @@ export const setupHeartbeatHandlers = (socket: SocketCustom) => {
       console.log(`后端端延迟: ${latency}ms`);
       setupUserHandlers(socket, socket.nsp);
     }
-  });
-
-  socket.on('disconnect', () => {
-    clearInterval(heartbeatInterval);
   });
 };

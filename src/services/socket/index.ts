@@ -4,8 +4,8 @@ import jwt from 'jsonwebtoken';
 import User from '../../models/user';
 import Customer from '../../models/customer';
 // 导入用户处理程序
-import { setupUserHandlers } from './user';
-import { setupCustomerHandlers } from './customer';
+import { handleUserLeave, setupUserHandlers } from './user';
+import { handleCustomerLeave, setupCustomerHandlers } from './customer';
 import { setupHeartbeatHandlers } from './heartbeat';
 import { setupMessageHandlers } from './message';
 import { SocketCustom } from 'socket';
@@ -67,11 +67,24 @@ export const setupSocket = async (server: http.Server): Promise<Server> => {
     setupHeartbeatHandlers(socket);
     setupMessageHandlers(socket, io);
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async () => {
       console.log(`客户端断开连接: ${socket.id}`);
-    });
 
-    console.log(socket.listenerCount('disconnect'));
+      // 清理心跳检测定时器
+      if (socket.heartbeatInterval) {
+        clearInterval(socket.heartbeatInterval);
+      }
+
+      // 处理用户断开连接
+      if (socket.user) {
+        await handleUserLeave(socket.user._id, io);
+      }
+
+      // 处理客户断开连接
+      if (socket.customer) {
+        await handleCustomerLeave(socket.customer._id, io);
+      }
+    });
   });
 
   return io;

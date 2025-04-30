@@ -32,7 +32,7 @@ const handleCustomerJoin = async (customerId: string, io: Server) => {
 };
 
 // 处理客户离开房间
-const handleCustomerLeave = async (customerId: string, io: Server) => {
+export const handleCustomerLeave = async (customerId: string, io: Server) => {
   const customer = await updateCustomerStatus(customerId, false);
   const user = await findCustomerUser(customer);
 
@@ -55,9 +55,5 @@ export const setupCustomerHandlers = (socket: SocketCustom, io: Server) => {
   if (socket.customer) {
     console.log(`客户连接: ${socket.id}, customerId: ${socket.customer._id}`);
     handleCustomerJoin(socket.customer._id, io);
-
-    socket.on('disconnect', async () => {
-      await handleCustomerLeave(socket.customer._id, io);
-    });
   }
 };

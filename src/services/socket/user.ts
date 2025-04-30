@@ -22,7 +22,7 @@ const handleUserJoin = async (user: IUser, io: Server) => {
 };
 
 // 处理用户离开房间
-const handleUserLeave = async (userId: string, io: Server) => {
+export const handleUserLeave = async (userId: string, io: Server) => {
   const user = await updateUserStatus(userId, false);
   console.log(
     `用户 ${userId} 离开房间, 最后在线时间: ${user.lastOnline?.toLocaleString()}, 当前在线人数: ${io
@@ -34,9 +34,5 @@ export const setupUserHandlers = (socket: SocketCustom, io: Server) => {
   if (socket.user) {
     console.log(`用户连接: ${socket.id}, userId: ${socket.user._id}`);
     handleUserJoin(socket.user, io);
-
-    socket.on('disconnect', async () => {
-      await handleUserLeave(socket.user._id, io);
-    });
   }
 };

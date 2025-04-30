@@ -167,32 +167,21 @@ export const setupSocket = async (server: http.Server): Promise<Server> => {
       }
     });
 
-    socket.on('user-message-read', async (data: any) => {
+    // 后台读取了客户消息或客户读取了消息
+    socket.on('mark-read', async (data: any) => {
       try {
-        const { customerId, userId } = data;
-        await updateMessagesToRead(customerId, userId, 'user');
-        io.emit('chatMessageRead', {
-          customerId,
-          userId,
-          sender: 'user',
-        });
-        console.log(`客户 ${userId} 已读消息来自用户 ${customerId}`);
-      } catch (error) {
-        console.error('Error updating messages to read:', error);
-      }
-    });
-
-    // 后台读取了客户消息
-    socket.on('customer-message-read', async (data: any) => {
-      try {
-        const { customerId, userId } = data;
-        console.log(`用户 ${userId} 已读消息来自客户 ${customerId}`);
+        const { customerId, userId, sender } = data;
+        // 如果customerId或userId为空则直接返回
+        if (!customerId || !userId) {
+          return;
+        }
         await updateMessagesToRead(customerId, userId, 'customer');
         io.emit('chatMessageRead', {
           customerId,
           userId,
-          sender: 'customer',
+          sender,
         });
+        console.log(`后台读取了客户消息或客户读取了消息: ${socket.id}`);
       } catch (error) {
         console.error('Error updating messages to read:', error);
       }

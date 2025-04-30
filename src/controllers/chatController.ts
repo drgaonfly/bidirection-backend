@@ -237,6 +237,10 @@ const getLatestChats = handleAsync(
           }
           return customer;
         },
+        populate: {
+          path: 'proxy',
+          select: '-password', // 排除密码字段
+        },
       },
       { path: 'user', select: '-password' },
     ]);

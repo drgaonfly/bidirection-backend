@@ -12,13 +12,16 @@ import {
   transformDocumentImages,
 } from '../utils/transformUtils'; // 用于处理图像路径
 import { formatUSDT } from '../services/format';
+import {
+  notifyCustomerUnreadCount,
+  notifyUserUnreadCount,
+} from '../services/socket/messageCount';
 
 // Build query based on query parameters
 const buildQuery = async (queryParams: any): Promise<any> => {
   const query: any = {};
 
   if (queryParams.address) {
-    console.log('address+++++++++++++++++', queryParams.address);
     // 修改查询方式，找到所有匹配的 customer
     const customerQuery = {
       address: { $regex: queryParams.address, $options: 'i' },
@@ -28,13 +31,6 @@ const buildQuery = async (queryParams: any): Promise<any> => {
       query.customer = { $in: customers.map((c) => c._id) };
     }
   }
-
-  console.log('Generated Query:', query);
-
-  // if (queryParams.customer) {
-
-  //   query['customer.address'] = queryParams.customer;
-  // }
 
   return query;
 };
@@ -385,6 +381,8 @@ const addChatUserMessage = handleAsync(
     };
 
     io.emit('chatMessage', chat);
+    // 通知客户有消息数量改变
+    await notifyCustomerUnreadCount(customerId, io);
 
     res.json({
       success: true,
@@ -442,7 +440,8 @@ const addChatMessage = handleAsync(
     const customerId = req.customer._id;
     const { message, image } = req.body;
 
-    const userId = await findCustomerUser(req.customer);
+    const user = await findCustomerUser(req.customer);
+    const userId = user._id; // 替换为实际的用户 ID，例如从 req.user 中获取
 
     const newChat = new Chat({
       customer: customerId,
@@ -477,6 +476,8 @@ const addChatMessage = handleAsync(
     };
 
     io.emit('chatMessage', chat);
+    // 通知代理有消息数量改变
+    await notifyUserUnreadCount(userId, io);
 
     res.json({
       success: true,

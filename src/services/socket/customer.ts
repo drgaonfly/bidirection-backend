@@ -1,6 +1,7 @@
 import { Server } from 'socket.io';
 import Customer from '../../models/customer';
 import { findCustomerUser } from '../../controllers/chatController';
+import { SocketCustom } from 'socket';
 
 // 更新客户在线状态和最后在线时间
 const updateCustomerStatus = async (customerId: string, isOnline: boolean) => {
@@ -50,7 +51,7 @@ const handleCustomerLeave = async (customerId: string, io: Server) => {
   );
 };
 
-export const setupCustomerHandlers = (socket: any, io: Server) => {
+export const setupCustomerHandlers = (socket: SocketCustom, io: Server) => {
   if (socket.customer) {
     console.log(`客户连接: ${socket.id}, customerId: ${socket.customer._id}`);
     handleCustomerJoin(socket.customer._id, io);

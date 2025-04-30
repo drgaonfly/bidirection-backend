@@ -1,8 +1,8 @@
-import { Socket } from 'socket.io';
 import { setupUserHandlers } from './user';
 import { setupCustomerHandlers } from './customer';
+import { SocketCustom } from 'socket';
 
-export const setupHeartbeatHandlers = (socket: any) => {
+export const setupHeartbeatHandlers = (socket: SocketCustom) => {
   // 心跳检测
   const heartbeatInterval = setInterval(() => {
     socket.emit('ping', Date.now());

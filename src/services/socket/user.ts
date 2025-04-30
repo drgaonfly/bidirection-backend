@@ -1,5 +1,6 @@
 import { Server } from 'socket.io';
 import User, { IUser } from '../../models/user';
+import { SocketCustom } from 'socket';
 
 // 更新用户在线状态和最后在线时间
 const updateUserStatus = async (userId: string, isOnline: boolean) => {
@@ -29,7 +30,7 @@ const handleUserLeave = async (userId: string, io: Server) => {
   );
 };
 
-export const setupUserHandlers = (socket: any, io: Server) => {
+export const setupUserHandlers = (socket: SocketCustom, io: Server) => {
   if (socket.user) {
     console.log(`用户连接: ${socket.id}, userId: ${socket.user._id}`);
     handleUserJoin(socket.user, io);

@@ -8,6 +8,7 @@ import { setupUserHandlers } from './user';
 import { setupCustomerHandlers } from './customer';
 import { setupHeartbeatHandlers } from './heartbeat';
 import { setupMessageHandlers } from './message';
+import { SocketCustom } from 'socket';
 
 let io: Server;
 
@@ -57,7 +58,7 @@ export const setupSocket = async (server: http.Server): Promise<Server> => {
     next();
   });
 
-  io.on('connection', async (socket: any) => {
+  io.on('connection', async (socket: SocketCustom) => {
     console.log(`连接: ${socket.id} ${socket.handshake.auth.token}`);
 
     // 设置各个模块的处理器
@@ -69,6 +70,8 @@ export const setupSocket = async (server: http.Server): Promise<Server> => {
     socket.on('disconnect', () => {
       console.log(`客户端断开连接: ${socket.id}`);
     });
+
+    console.log(socket.listenerCount('disconnect'));
   });
 
   return io;

@@ -18,7 +18,7 @@ export const setupMessageHandlers = (socket: Socket, io: Server) => {
       });
       console.log(`后台读取了客户消息或客户读取了消息: ${socket.id}`);
     } catch (error) {
-      console.error('Error updating messages to read:', error);
+      console.error('更新消息已读状态时发生错误:', error);
     }
   });
 };

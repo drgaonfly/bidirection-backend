@@ -241,6 +241,26 @@ const getLatestChats = handleAsync(
     });
   },
 );
+
+// 更新消息为已读状态
+export const updateMessagesToRead = async (
+  customerId: string,
+  userId: string,
+  sender: string,
+) => {
+  await Chat.updateMany(
+    {
+      customer: customerId,
+      user: userId,
+      sender,
+      isRead: false,
+    },
+    {
+      $set: { isRead: true },
+    },
+  ).exec();
+};
+
 // 后台代理获取与客户的所有聊天记录
 const getChatUserMessagesByCustomer = handleAsync(
   async (req: RequestCustom, res: Response) => {
@@ -287,17 +307,7 @@ const getChatUserMessagesByCustomer = handleAsync(
     ]);
 
     // 更新消息为已读状态
-    await Chat.updateMany(
-      {
-        customer: customerId,
-        user: userId,
-        sender: 'customer',
-        isRead: false,
-      },
-      {
-        $set: { isRead: true },
-      },
-    ).exec();
+    await updateMessagesToRead(customer._id, userId, 'customer');
 
     // emit 一个消息已读
     io.emit('chatMessageRead', {
@@ -372,17 +382,17 @@ const addChatUserMessage = handleAsync(
   },
 );
 
-// 前端客户获取与客户的聊天记录
+// 前端客户获取与用户的聊天记录
 const getChatMessages = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const { current = '1', pageSize = '100' } = req.query;
 
     const customerId = req.customer._id;
-    const userId = await findCustomerUser(req.customer);
+    const user = await findCustomerUser(req.customer);
 
     const query = {
       customer: customerId,
-      user: userId,
+      user: user._id,
     };
 
     // 查询数据库获取聊天记录
@@ -399,10 +409,12 @@ const getChatMessages = handleAsync(
       'image',
     ]);
 
+    await updateMessagesToRead(customerId, user._id, 'user');
+
     // emit 一个消息已读
     io.emit('chatMessageRead', {
       customerId,
-      userId,
+      userId: user._id,
       sender: 'user',
     });
 

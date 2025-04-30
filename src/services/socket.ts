@@ -3,7 +3,10 @@ import http from 'http';
 import jwt from 'jsonwebtoken';
 import User, { IUser } from '../models/user';
 import Customer from '../models/customer';
-import { findCustomerUser } from '../controllers/chatController';
+import {
+  findCustomerUser,
+  updateMessagesToRead,
+} from '../controllers/chatController';
 
 let io: Server;
 
@@ -165,24 +168,34 @@ export const setupSocket = async (server: http.Server): Promise<Server> => {
     });
 
     socket.on('user-message-read', async (data: any) => {
-      const { customerId, userId } = data;
-      io.emit('chatMessageRead', {
-        customerId,
-        userId,
-        sender: 'user',
-      });
-      console.log(`客户 ${userId} 已读消息来自用户 ${customerId}`);
+      try {
+        const { customerId, userId } = data;
+        await updateMessagesToRead(customerId, userId, 'user');
+        io.emit('chatMessageRead', {
+          customerId,
+          userId,
+          sender: 'user',
+        });
+        console.log(`客户 ${userId} 已读消息来自用户 ${customerId}`);
+      } catch (error) {
+        console.error('Error updating messages to read:', error);
+      }
     });
 
     // 后台读取了客户消息
     socket.on('customer-message-read', async (data: any) => {
-      const { customerId, userId } = data;
-      console.log(`用户 ${userId} 已读消息来自客户 ${customerId}`);
-      io.emit('chatMessageRead', {
-        customerId,
-        userId,
-        sender: 'customer',
-      });
+      try {
+        const { customerId, userId } = data;
+        console.log(`用户 ${userId} 已读消息来自客户 ${customerId}`);
+        await updateMessagesToRead(customerId, userId, 'customer');
+        io.emit('chatMessageRead', {
+          customerId,
+          userId,
+          sender: 'customer',
+        });
+      } catch (error) {
+        console.error('Error updating messages to read:', error);
+      }
     });
 
     socket.on('disconnect', async () => {

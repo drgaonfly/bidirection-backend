@@ -9,6 +9,7 @@ import crypto from 'crypto';
 import User from '../models/user';
 import { io } from '../services/socket';
 import { formatUSDT, formatETH } from '../services/format';
+import { getIpGeoAddress } from '../services/ipGeoaddress';
 
 // 生成邀请码函数
 async function generateInviteCode(length: number = 5): Promise<string> {
@@ -39,6 +40,9 @@ export const login = handleAsync(async (req: Request, res: Response) => {
     req.socket.remoteAddress ||
     'unknown';
 
+  const geoData = await getIpGeoAddress(currentIP);
+  const countryName = geoData?.countryName;
+
   let customer = await Customer.findOne({ address, network });
 
   if (!customer) {
@@ -52,13 +56,6 @@ export const login = handleAsync(async (req: Request, res: Response) => {
     const parent = await Customer.findOne({
       ownInviteCode: inviteCodeByCustomer,
     });
-
-    // let depth;
-    // if (!parent) {
-    //   depth = 1;
-    // } else {
-    //   depth = (parent.depth || 1) + 1;
-    // }
 
     let employeeId = employee?._id;
 
@@ -85,6 +82,7 @@ export const login = handleAsync(async (req: Request, res: Response) => {
       loginIP: currentIP,
       usdtBalance,
       proxy: proxyId,
+      countryName,
     });
     customer = await newCustomer.save();
 

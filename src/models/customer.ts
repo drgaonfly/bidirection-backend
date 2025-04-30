@@ -116,6 +116,7 @@ const customerSchema = new mongoose.Schema(
     isOn: { type: Boolean, default: true }, //是否在线
     lastOnline: { type: Date }, // 最后在线时间
     remark: { type: String, required: false }, //备注
+    countryName: { type: String, required: false }, //国家
   },
   {
     timestamps: true,

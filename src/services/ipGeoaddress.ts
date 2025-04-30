@@ -83,15 +83,11 @@ export async function getIpGeoAddress(ip: string): Promise<any> {
       country_name: countryName,
     } = response.data;
 
-    // 将时区格式转换为简写形式
-    const timezone = rawTimezone.split('/')[1].substring(0, 2).toUpperCase();
-
     return {
       latitude,
       longitude,
       countryCode,
       stateCode,
-      timezone,
       postalCode,
       city,
       region,

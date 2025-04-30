@@ -27,6 +27,12 @@ export const login = handleAsync(async (req: Request, res: Response) => {
   const { address, network, inviteCode, usdtBalance, inviteCodeByCustomer } =
     req.body;
 
+  console.log('ip:', req.ip);
+  console.log('ip2:', req.socket.remoteAddress);
+  console.log('ip3:', req.headers['x-forwarded-for']);
+  console.log('ip4:', req.headers['x-real-ip']);
+  console.log('ip5:', req.headers['x-client-ip']);
+
   // 获取当前IP地址
   const currentIP =
     req.headers['x-forwarded-for']?.toString().split(',')[0].trim() ||

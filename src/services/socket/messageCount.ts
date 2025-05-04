@@ -14,7 +14,7 @@ export const notifyUserUnreadCount = async (
     sender: 'customer',
   });
   console.log(`用户 ${userId} 的未读消息数量:`, unreadCount);
-  io.emit('unreadMessageCountUpdated', { count: unreadCount });
+  io.emit('unreadUserMessageCountUpdated', { count: unreadCount });
 };
 
 // 获取客户未读消息数量并发送通知
@@ -29,7 +29,7 @@ export const notifyCustomerUnreadCount = async (
     sender: 'user',
   });
   console.log(`客户 ${customerId} 的未读消息数量:`, unreadCount);
-  io.emit('unreadMessageCountUpdated', { count: unreadCount });
+  io.emit('unreadCustomerMessageCountUpdated', { count: unreadCount });
 };
 
 export const messageCountUpdatedHandler = (

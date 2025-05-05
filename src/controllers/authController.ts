@@ -8,7 +8,6 @@ import { generateToken, generateRefreshToken } from '../utils/generateToken';
 import handleAsync from '../utils/handleAsync';
 import { exclude } from '../utils/handleData';
 import { RequestCustom } from 'user';
-import LoginHistory from '../models/loginHistory';
 import { redis } from '../utils/redis';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -40,14 +39,6 @@ const login = handleAsync(async (req: Request, res: Response) => {
 
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
-    // 创建登录历史记录
-    const loginHistory = new LoginHistory({
-      user: user._id,
-      loginAt: new Date(),
-      loginIp: ip,
-    });
-    await loginHistory.save(); // 保存登录历史记录
-
     // 更新下 lastLoginAt
     await User.findByIdAndUpdate(user._id, {
       lastLoginAt: new Date(),
@@ -74,8 +65,8 @@ export const setup2FA = handleAsync(
 
     const secret = speakeasy.generateSecret({
       length: 32,
-      name: `mev(${user.email})`,
-      issuer: 'FoodBackend', // 请替换为实际项目名称
+      name: `billingBot(${user.email})`,
+      issuer: 'BillingBotBackend', // 请替换为实际项目名称
     });
 
     await User.findByIdAndUpdate(user._id, {
@@ -269,7 +260,7 @@ const updateUserProfile = handleAsync(
         name: name || user.name,
         email: email || user.email,
         password: hashPassword,
-        serviceLink: serviceLink || user.serviceLink,
+        serviceLink: serviceLink,
       },
       { new: true },
     );

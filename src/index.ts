@@ -5,6 +5,9 @@ import { errorHandler, notFound } from './middlewares/errorMiddleware';
 import morgan from 'morgan';
 import cors from 'cors';
 import path from 'path';
+import http from 'http';
+import { setupRedis } from './utils/redis';
+import setupDB from './utils/db';
 
 import userRoutes from './routes/userRoutes';
 import roleRoutes from './routes/roleRoutes';
@@ -12,55 +15,12 @@ import authRoutes from './routes/authRoutes';
 import menuRoutes from './routes/menuRoutes';
 import permissionRoutes from './routes/permissionRoutes';
 import permissionGroupRoutes from './routes/permissionGroupRoutes';
-import setupDB from './utils/db';
-// import telegramClient from './utils/telegramClient';
 import uploadRoutes from './routes/uploadRoutes';
 import dataPermissionRoutes from './routes/dataPermissionRoutes';
 import proxyRoutes from './routes/proxyRoutes';
 import employeeRoutes from './routes/employeeRoutes';
-import noticeRoutes from './routes/noticeRoutes'; // 新增
-import incomeRoutes from './routes/incomeRoutes'; // 新增
-import activityRoutes from './routes/activityRoutes'; // 新增
-import miningDataRoutes from './routes/miningDataRoutes'; // 新增
-import stackingRoutes from './routes/stackingRoutes';
-import miningOutputRoutes from './routes/miningOutputRoutes'; // 新增
-import customerAuthRoutes from './routes/customerAuthRoutes'; // 新增
-import walletShareRoutes from './routes/walletShareRoutes'; // 新增
-import liquidityRoutes from './routes/liquidityRoutes'; // 新增
-import depthIncomeRoutes from './routes/depthIncomeRoutes'; // 新增
-import teamBenefitRoutes from './routes/teamBenefitRoutes'; // 新增
-
-// 新增的路由
-
-import http from 'http';
-import { setupSocket } from './services/socket'; // 引入 socket 服务
-import { setupRedis } from './utils/redis';
-import withdrawRoutes from './routes/withdrawRoutes';
-// import instructionRoutes from './routes/instructionRoutes';
 import customerRoutes from './routes/customerRoutes';
-import walletRoutes from './routes/walletRoutes';
-// import transactionRoutes from './routes/transactionRoutes';
-import carouselRoutes from './routes/carouselRoutes';
-import proxyCommissionRecordRoutes from './routes/proxyCommissionRecordRoutes';
-import walletDealRecordRoutes from './routes/walletDealRecordRoutes';
-import questionRoutes from './routes/questionRoutes';
-import releaseRecordRoutes from './routes/releaseRecordRoutes';
-import exchangeRoutes from './routes/exchangeRoutes';
-import transferRoutes from './routes/transferRoutes';
-import partnershipRoutes from './routes/partnershipRoutes';
-import regulationAgencyRoutes from './routes/regulationAgencyRoutes';
-import settingRoutes from './routes/settingRoutes';
-import notificationRoutes from './routes/notificationRoutes';
-// import { scheduledtasks } from './tasks';
-// import { authorized } from './tasks/authorized';
-// import { stacking } from './tasks/stacking';
-import recordRoutes from './routes/recordRoutes';
-import videoRoutes from './routes/videoRoutes';
-import pageRoutes from './routes/pageRoutes';
-import chatRoutes from './routes/chatRoutes';
-import featureRoutes from './routes/featureRoutes';
 
-// import { startWebHookBot } from './bot';
 dotenv.config();
 
 const app: Express = express();
@@ -89,44 +49,14 @@ app.use('/api/permission-groups', permissionGroupRoutes);
 app.use('/api/data-permissions', dataPermissionRoutes);
 app.use('/api/proxies', proxyRoutes);
 app.use('/api/employees', employeeRoutes);
-app.use('/api/withdraws', withdrawRoutes);
-// app.use('/api/instructions', instructionRoutes);
 app.use('/api/customers', customerRoutes);
-app.use('/api/wallets', walletRoutes);
-// app.use('/api/transactions', transactionRoutes);
-app.use('/api/notices', noticeRoutes); // 新增
-app.use('/api/incomes', incomeRoutes); // 新增
-app.use('/api/activities', activityRoutes); // 新增
-app.use('/api/carousels', carouselRoutes); // 新增
-app.use('/api/stackings', stackingRoutes);
-app.use('/api/proxy-commission-records', proxyCommissionRecordRoutes);
-app.use('/api/wallet-deal-records', walletDealRecordRoutes);
-app.use('/api/questions', questionRoutes);
-app.use('/api/release-records', releaseRecordRoutes);
+
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
-app.use('/api/transfers', transferRoutes);
-app.use('/api/exchange', exchangeRoutes);
-app.use('/api/mining-data', miningDataRoutes);
-app.use('/api/partnerships', partnershipRoutes);
-app.use('/api/mining-outputs', miningOutputRoutes);
-app.use('/api/regulation-agencies', regulationAgencyRoutes);
-app.use('/api/settings', settingRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/customer-auth', customerAuthRoutes);
-app.use('/api/wallet-shares', walletShareRoutes);
-app.use('/api/liquidity', liquidityRoutes);
-app.use('/api/records', recordRoutes);
-app.use('/api/videos', videoRoutes);
-app.use('/api/pages', pageRoutes);
-app.use('/api/chats', chatRoutes);
-app.use('/api/depth-incomes', depthIncomeRoutes);
-app.use('/api/team-benefits', teamBenefitRoutes);
-app.use('/api/features', featureRoutes);
 
 setupDB();
 setupRedis();
 // 初始化 Socket.IO
-setupSocket(server);
+
 console.log('Socket.IO server initialized');
 
 // scheduledtasks(); // 定时任务

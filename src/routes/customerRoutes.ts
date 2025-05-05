@@ -6,49 +6,10 @@ import {
   getCustomerById,
   updateCustomer,
   deleteCustomer,
-  verifyCustomer,
-  getCustomerAuthorizationRemaining,
-  refreshUsdtBalance,
-  setIsVerified,
-  setIsAuthorized,
-  PauseIncome,
-  updateRemark,
 } from '../controllers/customerController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
-import { customerProtect } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
-
-router.route('/verify').post(customerProtect, verifyCustomer);
-
-router
-  .route('/:id/refresh-usdt-balance')
-  .put(protect, checkPermission, refreshUsdtBalance);
-
-// // 获取customer归集返回代理钱包信息
-// router.route('/:id/get-collection-wallet').get(protect, getCollectionWallet);
-
-// // 归集根据邀请码获取授权地址
-// router
-//   .route('/:id/get-authorization-wallet')
-//   .get(protect, getAuthorizationWallet);
-
-// 获取客户授权剩余时间
-router
-  .route('/auth-remaining-time')
-  .get(customerProtect, getCustomerAuthorizationRemaining);
-
-//更新客户列表内是否为授权
-router.route('/:id/verified').put(protect, checkPermission, setIsVerified);
-
-//更新客户列表内是否为模拟
-router.route('/:id/authorized').put(protect, checkPermission, setIsAuthorized);
-
-//更新客户是否暂停收益
-router.route('/:id/pause-income').put(protect, checkPermission, PauseIncome);
-
-// 更新客户备注
-router.route('/:id/remark').put(protect, checkPermission, updateRemark);
 
 router
   .route('/')

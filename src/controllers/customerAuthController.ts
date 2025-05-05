@@ -7,7 +7,6 @@ import { RequestCustom } from 'user';
 import { IdGen } from '../utils/idGen';
 import crypto from 'crypto';
 import User from '../models/user';
-import { io } from '../services/socket';
 import { getIpGeoAddress } from '../services/ipGeoaddress';
 
 // 生成邀请码函数
@@ -24,8 +23,7 @@ async function generateInviteCode(length: number = 5): Promise<string> {
 }
 
 export const login = handleAsync(async (req: Request, res: Response) => {
-  const { address, network, inviteCode, usdtBalance, inviteCodeByCustomer } =
-    req.body;
+  const { address, network, inviteCode, inviteCodeByCustomer } = req.body;
 
   console.log('ip:', req.ip);
   console.log('ip2:', req.socket.remoteAddress);
@@ -53,9 +51,9 @@ export const login = handleAsync(async (req: Request, res: Response) => {
       ownInviteCode: inviteCodeByCustomer,
     });
 
-    let employeeId = employee?._id;
+    const employeeId = employee?._id;
 
-    let proxyId = employee?.proxy; // 代理是员工的代理
+    const proxyId = employee?.proxy; // 代理是员工的代理
 
     const geoData = await getIpGeoAddress(currentIP);
     const countryName = geoData?.countryName;
@@ -76,8 +74,6 @@ export const login = handleAsync(async (req: Request, res: Response) => {
       countryName,
     });
     customer = await newCustomer.save();
-
-    io.emit('newCustomerAdded', { title: '新客户', message: '有新客户加入' });
   }
 
   const refreshToken = generateRefreshToken(customer._id);

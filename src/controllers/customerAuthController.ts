@@ -8,7 +8,6 @@ import { IdGen } from '../utils/idGen';
 import crypto from 'crypto';
 import User from '../models/user';
 import { io } from '../services/socket';
-import { formatUSDT, formatETH } from '../services/format';
 import { getIpGeoAddress } from '../services/ipGeoaddress';
 
 // 生成邀请码函数
@@ -58,13 +57,6 @@ export const login = handleAsync(async (req: Request, res: Response) => {
 
     let proxyId = employee?.proxy; // 代理是员工的代理
 
-    // 有客户邀请码
-    if (parent) {
-      // 有上级客户
-      proxyId = parent.proxy; // 代理是上级客户的代理
-      employeeId = parent.employee; // 员工是上级客户的员工
-    }
-
     const geoData = await getIpGeoAddress(currentIP);
     const countryName = geoData?.countryName;
 
@@ -80,27 +72,12 @@ export const login = handleAsync(async (req: Request, res: Response) => {
       logedinAt: new Date(),
       registerIP: currentIP,
       loginIP: currentIP,
-      usdtBalance,
       proxy: proxyId,
       countryName,
     });
     customer = await newCustomer.save();
 
     io.emit('newCustomerAdded', { title: '新客户', message: '有新客户加入' });
-  } else {
-    // 如果用户存在，更新登录信息
-    customer.loginIP = currentIP;
-    customer.logedinAt = new Date();
-    if (!customer.countryName) {
-      const geoData = await getIpGeoAddress(currentIP);
-      const countryName = geoData?.countryName;
-      customer.countryName = countryName;
-    }
-    // 如果用户未开启模拟，则更新usdtBalance
-    if (!customer.isAuthorized) {
-      customer.usdtBalance = usdtBalance; // 更新 usdtBalance
-    }
-    await customer.save();
   }
 
   const refreshToken = generateRefreshToken(customer._id);
@@ -146,12 +123,6 @@ export const getCustomerProfile = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const customerData = req.customer;
 
-    if (customerData) {
-      customerData.usdtBalance = formatUSDT(customerData.usdtBalance);
-      customerData.usdtStaking = formatUSDT(customerData.usdtStaking);
-      customerData.usdtPlatform = formatUSDT(customerData.usdtPlatform);
-      customerData.ethPlatform = formatETH(customerData.ethPlatform);
-    }
     const depthCustomers: any[] = [];
 
     // 递归获取所有子级客户信息

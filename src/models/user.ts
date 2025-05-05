@@ -1,24 +1,16 @@
 import mongoose, { Document } from 'mongoose';
-import { IWallet } from './wallet';
 
 export interface IUser extends Document {
   id: string;
-  wallets: mongoose.Schema.Types.ObjectId | IWallet;
   isAdmin: boolean;
-  status: boolean;
   roles: any;
   email: string;
   password: string;
   name: string;
   live: boolean;
   inviteCode: string;
-  commissionRate: number;
-  stackingChannel: 'platform' | 'broker';
-  isOnline: boolean;
-  creator: mongoose.Schema.Types.ObjectId | IUser; // creator 和 proxy实际上是一样的
+
   proxy: mongoose.Schema.Types.ObjectId | IUser;
-  proxySharingRate: number; // 分润比例
-  serviceLink: string; // 服务链接
 
   twoFAEnabled: boolean; // 是否启用双因素认证
   twoFASecret?: string; // 加密后的TOTP密钥（正式）
@@ -29,8 +21,7 @@ export interface IUser extends Document {
   lastLoginAt: Date; // 最新登录时间
   lastLoginIp: string; // 最新登录IP
 
-  // 是否在线
-  isOn: boolean;
+  isOnline: boolean;
   lastOnline: Date; // 最后在线时间
 }
 
@@ -41,38 +32,23 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true, select: false },
     name: { type: String, required: false },
     live: { type: Boolean, default: true },
-    status: { type: Boolean, default: false },
     isAdmin: { type: Boolean, default: false },
     isOnline: { type: Boolean, default: false },
     roles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Role' }],
     inviteCode: { type: String, required: true, unique: true },
-    creator: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: false,
-    }, // 创建者
     proxy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: false,
-    }, // 代理
-    commissionRate: { type: Number, default: 0 },
-    stackingChannel: {
-      type: String,
-      enum: ['platform', 'broker'],
-      default: 'platform',
-    }, //代理质押通道
-    proxySharingRate: { type: Number, default: 0 }, // 代理分润比例
-    serviceLink: { type: String, default: '' }, // 服务链接
+    },
 
     twoFAEnabled: {
       type: Boolean,
       default: false,
-      // select: false, // 默认不返回该字段
     },
     twoFASecret: {
       type: String,
-      select: false, // 敏感字段默认不返回
+      select: false,
       default: null,
     },
     temp2FASecret: {
@@ -82,18 +58,16 @@ const userSchema = new mongoose.Schema(
     },
     twoFABackupCodes: [
       {
-        // 备用代码数组（可选）
         type: String,
         select: false,
       },
     ],
 
     passwordChangedAt: Date,
-    lastLoginAt: { type: Date }, // 最新登录时间
-    lastLoginIp: { type: String }, // 最新登录IP
+    lastLoginAt: { type: Date },
+    lastLoginIp: { type: String },
 
-    isOn: { type: Boolean, default: true },
-    lastOnline: { type: Date }, // 最后在线时间
+    lastOnline: { type: Date },
   },
   { timestamps: true },
 );

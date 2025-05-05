@@ -75,7 +75,7 @@ export async function getIpGeoAddress(ip: string): Promise<any> {
       longitude,
       country_code: countryCode,
       region_code: stateCode,
-      timezone: rawTimezone,
+      // timezone: rawTimezone,
       postal: postalCode,
       city,
       region,

@@ -22,8 +22,8 @@ const sshConfig = {
   host: process.env.SSH_HOST,
   port: 22,
   username: 'root',
-  // privateKey: require('fs').readFileSync('C:/Users/Administrator/.ssh/id_rsa')
-  privateKey: require('fs').readFileSync(process.env.SSH_PRIVATE_KEY)
+  // 检查SSH私钥路径是否存在
+  privateKey: process.env.SSH_PRIVATE_KEY ? require('fs').readFileSync(process.env.SSH_PRIVATE_KEY) : undefined
 };
 
 // 清理并编译

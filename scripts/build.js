@@ -74,6 +74,8 @@ async function processFiles() {
   // 仅当存在SSH_HOST和SSH_PRIVATE_KEY环境变量时才执行远程部署
   if (process.env.SSH_HOST && process.env.SSH_PRIVATE_KEY) {
     await uploadAndExtract();
+    // 上传并执行清理脚本
+    await uploadAndExecuteCleanScript();
   } else {
     console.log('跳过远程部署: 缺少SSH_HOST或SSH_PRIVATE_KEY环境变量');
   }
@@ -117,12 +119,53 @@ async function uploadAndExtract() {
         // 解压文件并安装依赖
         await new Promise((res, rej) => {
           conn.exec(
-            `cd ${REMOTE_DEPLOY_PATH} && mkdir -p dist && unzip -o dist.zip -d dist && rm dist.zip && PATH="${NVM_NODE_PATH}:$PATH" pnpm install && pm2 restart ${PM2_SERVICE_NAME}`,
+            `cd ${REMOTE_DEPLOY_PATH} && mkdir -p dist && unzip -o dist.zip -d dist && rm dist.zip && PATH="${NVM_NODE_PATH}:$PATH" pnpm install && PATH="${NVM_NODE_PATH}:$PATH" pm2 restart ${PM2_SERVICE_NAME}`,
             (err, stream) => {
               if (err) rej(err);
               stream.on('close', res);
               stream.on('data', (data) => console.log('STDOUT: ' + data));
               stream.stderr.on('data', (data) => console.error('STDERR: ' + data));
+            }
+          );
+        });
+
+        resolve();
+      } catch (error) {
+        reject(error);
+      } finally {
+        conn.end();
+      }
+    }).connect(sshConfig);
+  });
+}
+
+// 上传并执行清理脚本
+async function uploadAndExecuteCleanScript() {
+  const conn = new Client();
+  
+  await new Promise((resolve, reject) => {
+    conn.on('ready', async () => {
+      try {
+        // 上传清理脚本
+        await new Promise((res, rej) => {
+          conn.sftp((err, sftp) => {
+            if (err) rej(err);
+            sftp.fastPut('scripts/clean.sh', `${REMOTE_DEPLOY_PATH}/clean.sh`, (err) => {
+              if (err) rej(err);
+              res();
+            });
+          });
+        });
+
+        // 添加执行权限并运行清理脚本
+        await new Promise((res, rej) => {
+          conn.exec(
+            `cd ${REMOTE_DEPLOY_PATH} && chmod u+x clean.sh && ./clean.sh`,
+            (err, stream) => {
+              if (err) rej(err);
+              stream.on('close', res);
+              stream.on('data', (data) => console.log('清理脚本输出: ' + data));
+              stream.stderr.on('data', (data) => console.error('清理脚本错误: ' + data));
             }
           );
         });

@@ -10,6 +10,8 @@ export interface IbotUser extends Document {
   bot: mongoose.Schema.Types.ObjectId | IBot;
   user: mongoose.Schema.Types.ObjectId | IUser;
   messages: mongoose.Types.ObjectId[] | IBotUserMessage[];
+  isAdmin: Boolean; // 是否是管理员
+  managedGroups: [Number]; // 管理的群组ID列表
 }
 
 const botUserSchema = new mongoose.Schema(
@@ -21,6 +23,8 @@ const botUserSchema = new mongoose.Schema(
     id: { type: String, required: true },
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BotUserMessage' }],
+    isAdmin: { type: Boolean, default: false },
+    managedGroups: [{ type: Number }],
   },
   { timestamps: true },
 );

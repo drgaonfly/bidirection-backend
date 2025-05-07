@@ -22,6 +22,7 @@ import employeeRoutes from './routes/employeeRoutes';
 import customerRoutes from './routes/customerRoutes';
 import botRoutes from './routes/botRoutes';
 import botUserRoutes from './routes/botUserRoutes';
+import transactionRoutes from './routes/transactionRoutes';
 
 dotenv.config();
 
@@ -54,6 +55,7 @@ app.use('/api/employees', employeeRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/bots', botRoutes);
 app.use('/api/bot-users', botUserRoutes);
+app.use('/api/transactions', transactionRoutes);
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 

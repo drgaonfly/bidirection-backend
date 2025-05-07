@@ -17,7 +17,7 @@ const sshConfig = {
   port: 22,
   username: 'root',
   // privateKey: require('fs').readFileSync('C:/Users/Administrator/.ssh/id_rsa')
-  privateKey: require('fs').readFileSync('/root/.ssh/id_rsa')
+  privateKey: require('fs').readFileSync(process.env.SSH_PRIVATE_KEY)
 };
 
 // 清理并编译
@@ -63,8 +63,12 @@ async function processFiles() {
     archive.finalize();
   });
 
-  // 上传并解压文件到远程服务器
-  await uploadAndExtract();
+  // 仅当存在SSH_HOST和SSH_PRIVATE_KEY环境变量时才执行远程部署
+  if (process.env.SSH_HOST && process.env.SSH_PRIVATE_KEY) {
+    await uploadAndExtract();
+  } else {
+    console.log('跳过远程部署: 缺少SSH_HOST或SSH_PRIVATE_KEY环境变量');
+  }
 }
 
 // 上传并解压文件到远程服务器

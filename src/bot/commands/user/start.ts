@@ -6,7 +6,7 @@ import User from '../../../models/user';
 import createDebug from 'debug';
 import Transaction from '../../../models/transaction';
 import { IdGen } from '../../../utils/idGen';
-import { useDepositSummary } from '../../../utils/useEjsMessage';
+import { useSummary } from '../../../utils/useEjsMessage';
 
 const startCommand = new Composer<MyContext>();
 
@@ -169,13 +169,6 @@ startCommand.hears(
         return;
       }
 
-      const newAmount = Number(existing.amount) - Number(amount);
-
-      if (newAmount < 0) {
-        await ctx.reply(`扣款金额大于原有金额，无法执行`);
-        return;
-      }
-
       const transaction = new Transaction({
         id: await IdGen.next(Transaction, 'id', 6),
         bot,
@@ -189,7 +182,7 @@ startCommand.hears(
       await transaction.save();
     }
 
-    const renderSummary = useDepositSummary();
+    const renderSummary = useSummary();
 
     const depositTimes = await Transaction.countDocuments({
       bot,
@@ -218,17 +211,11 @@ startCommand.hears(
     });
 
     const message = await renderSummary({
-      title: '记账机器人',
+      title: '记账机器人', // 替换为实际的 createdA
       depositTimes: depositTimes,
       widthdrawTimes: withdrawTimes,
-      totalDeposits: totalDeposits.reduce(
-        (sum, item) => sum + (item.amount || 0),
-        0,
-      ),
-      totalWidthdraws: totalWidthdraws.reduce(
-        (sum, item) => sum + (item.amount || 0),
-        0,
-      ),
+      deposits: totalDeposits,
+      widthdraws: totalWidthdraws,
       feeRate: bot.fee_rate,
       exchangeRate: bot.exchange_rate,
     });

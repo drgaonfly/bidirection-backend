@@ -1,13 +1,13 @@
 import ejs from 'ejs';
 import path from 'path';
 
-export const useDepositSummary = () => {
+export const useSummary = () => {
   return async (data: {
     title: string;
     depositTimes: number;
     widthdrawTimes: number;
-    totalDeposits: number;
-    totalWidthdraws: number;
+    deposits: any[];
+    widthdraws: any[];
     feeRate: number;
     exchangeRate: number;
   }) => {

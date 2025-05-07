@@ -23,6 +23,24 @@ const sshConfig = {
 // 清理并编译
 execSync('rimraf dist && tsc -p tsconfig.json');
 
+// 创建压缩包
+async function createZipArchive() {
+  await fs.mkdir('build', { recursive: true });
+
+  const output = require('fs').createWriteStream('build/dist.zip');
+  const archive = archiver('zip', {
+    zlib: { level: 9 }
+  });
+
+  return new Promise((resolve, reject) => {
+    output.on('close', resolve);
+    archive.on('error', reject);
+    archive.pipe(output);
+    archive.directory('dist/', false);
+    archive.finalize();
+  });
+}
+
 // 混淆和压缩
 async function processFiles() {
   const files = glob.sync('dist/**/*.js');
@@ -45,23 +63,7 @@ async function processFiles() {
     await fs.writeFile(file, result.code);
   }
 
-  // 创建 build 目录
-  await fs.mkdir('build', { recursive: true });
-
-  // 创建 zip 文件流
-  const output = require('fs').createWriteStream('build/dist.zip');
-  const archive = archiver('zip', {
-    zlib: { level: 9 } // 最大压缩级别
-  });
-
-  // 监听压缩完成事件
-  await new Promise((resolve, reject) => {
-    output.on('close', resolve);
-    archive.on('error', reject);
-    archive.pipe(output);
-    archive.directory('dist/', false);
-    archive.finalize();
-  });
+  await createZipArchive();
 
   // 仅当存在SSH_HOST和SSH_PRIVATE_KEY环境变量时才执行远程部署
   if (process.env.SSH_HOST && process.env.SSH_PRIVATE_KEY) {
@@ -109,11 +111,12 @@ async function uploadAndExtract() {
         // 解压文件并安装依赖
         await new Promise((res, rej) => {
           conn.exec(
-            `cd ${REMOTE_DEPLOY_PATH} && mkdir -p dist && unzip -o dist.zip -d dist && rm dist.zip`,
+            `cd ${REMOTE_DEPLOY_PATH} && mkdir -p dist && unzip -o dist.zip -d dist && rm dist.zip && source ~/.bashrc && /root/.nvm/versions/node/v22.15.0/bin/pnpm install --production`,
             (err, stream) => {
               if (err) rej(err);
               stream.on('close', res);
               stream.on('data', (data) => console.log('STDOUT: ' + data));
+              stream.stderr.on('data', (data) => console.error('STDERR: ' + data));
             }
           );
         });

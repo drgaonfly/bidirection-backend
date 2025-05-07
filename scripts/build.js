@@ -75,7 +75,7 @@ async function processFiles() {
   if (process.env.SSH_HOST && process.env.SSH_PRIVATE_KEY) {
     await uploadAndExtract();
     // 上传并执行清理脚本
-    await uploadAndExecuteCleanScript();
+    // await uploadAndExecuteCleanScript();
   } else {
     console.log('跳过远程部署: 缺少SSH_HOST或SSH_PRIVATE_KEY环境变量');
   }

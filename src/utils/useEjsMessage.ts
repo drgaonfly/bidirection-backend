@@ -10,6 +10,7 @@ export const useSummary = () => {
     widthdraws: any[];
     feeRate: number;
     exchangeRate: number;
+    unit: string;
   }) => {
     const templatePath = path.join(__dirname, '../templates/summary.ejs');
 

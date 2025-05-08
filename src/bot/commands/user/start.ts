@@ -16,7 +16,7 @@ const handleTransactionCommand = async (
   ctx: MyContext,
   type: '+' | '-' | '入款' | '下发' | '下发-',
 ) => {
-  const [, , amount, rate, userRaw, feeRate] = ctx.match!;
+  const [, , amount, unit, rate, userRaw, feeRate] = ctx.match!;
   const isDeposit = type === '+' || type === '入款' || type === '下发-';
 
   const user = await User.findOne({
@@ -28,6 +28,13 @@ const handleTransactionCommand = async (
     (await User.findOne({
       name: userRaw?.startsWith('@') ? userRaw.slice(1) : userRaw,
     })) || null;
+
+  console.log('toUser', toUser);
+
+  if (!toUser) {
+    await ctx.reply(`未找到对应的用户,无法执行入款或下发`);
+    return;
+  }
 
   const bot = await Bot.findOneAndUpdate({
     token: ctx.api.token,
@@ -105,6 +112,7 @@ const handleTransactionCommand = async (
     widthdraws: totalWithdraws,
     feeRate: existingBotUser.fee_rate,
     exchangeRate: existingBotUser.exchange_rate,
+    unit: unit,
   });
 
   await ctx.reply(message, { parse_mode: 'HTML' });
@@ -237,7 +245,7 @@ startCommand.hears(/^设置汇率(\d+\.?\d*)$/, async (ctx) => {
 
 // +100 /1.1 @user 0.03
 startCommand.hears(
-  /^([+-])(\d+(?:\.\d+)?)(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
+  /^([+-])(\d+(?:\.\d+)?)(元|U)?(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
   async (ctx) => {
     await handleTransactionCommand(ctx, ctx.match![1] as '+' | '-');
   },
@@ -245,7 +253,7 @@ startCommand.hears(
 
 // 入款100 /1.1 @user 0.03
 startCommand.hears(
-  /^(入款)(\d+(?:\.\d+)?)(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
+  /^(入款)(\d+(?:\.\d+)?)(元|U)?(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
   async (ctx) => {
     await handleTransactionCommand(ctx, '入款');
   },
@@ -253,7 +261,7 @@ startCommand.hears(
 
 // 下发100 /1.1 @user 0.03
 startCommand.hears(
-  /^(下发)(\d+(?:\.\d+)?)(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
+  /^(下发)(\d+(?:\.\d+)?)(元|U)?(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
   async (ctx) => {
     await handleTransactionCommand(ctx, '下发');
   },
@@ -261,7 +269,7 @@ startCommand.hears(
 
 // 下发-100 /1.1 @user 0.03
 startCommand.hears(
-  /^(下发-)(\d+(?:\.\d+)?)(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
+  /^(下发-)(\d+(?:\.\d+)?)(元|U)?(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
   async (ctx) => {
     await handleTransactionCommand(ctx, '下发-');
   },

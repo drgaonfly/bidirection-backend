@@ -12,6 +12,104 @@ const startCommand = new Composer<MyContext>();
 
 const debug = createDebug('bot:error');
 
+const handleTransactionCommand = async (
+  ctx: MyContext,
+  type: '+' | '-' | '入款' | '下发',
+) => {
+  const [, , amount, rate, userRaw, feeRate] = ctx.match!;
+  const isDeposit = type === '+' || type === '入款';
+
+  const user = await User.findOne({
+    firstName: ctx.update.message.from.first_name,
+    lastName: ctx.update.message.from.last_name,
+  });
+
+  const toUser =
+    (await User.findOne({
+      name: userRaw?.startsWith('@') ? userRaw.slice(1) : userRaw,
+    })) || null;
+
+  const bot = await Bot.findOneAndUpdate({
+    token: ctx.api.token,
+    isOnline: true,
+  });
+
+  let existingBotUser = await BotUser.findOne({
+    id: ctx.update.message.from.id.toString(),
+  });
+
+  if (!existingBotUser) {
+    existingBotUser = new BotUser({
+      id: await IdGen.next(BotUser, 'id', 6),
+      bot,
+      user,
+      userName:
+        ctx.update.message.from.last_name + ctx.update.message.from.first_name,
+      firstName: ctx.update.message.from.first_name,
+      lastName: ctx.update.message.from.last_name,
+      fee_rate: feeRate || 0,
+      exchange_rate: rate || process.env.DEFAULT_EXCHANGE_RATE,
+    });
+
+    await existingBotUser.save();
+  }
+
+  if (isDeposit) {
+    const transaction = new Transaction({
+      id: await IdGen.next(Transaction, 'id', 6),
+      bot,
+      amount: Number(amount),
+      exchange_rate: existingBotUser.exchange_rate || 1,
+      fee_rate: existingBotUser.fee_rate || 0,
+      to_user: toUser,
+      type: 'deposit',
+    });
+
+    await transaction.save();
+  } else {
+    const existing = await Transaction.findOne({ bot, to_user: toUser });
+
+    if (!existing) {
+      await ctx.reply(`未找到对应的入款记录，无法执行减款`);
+      return;
+    }
+
+    const transaction = new Transaction({
+      id: await IdGen.next(Transaction, 'id', 6),
+      bot,
+      amount: Number(amount),
+      exchange_rate: existingBotUser.exchange_rate,
+      fee_rate: existingBotUser.fee_rate,
+      to_user: toUser,
+      type: 'withdraw',
+    });
+
+    await transaction.save();
+  }
+
+  const renderSummary = useSummary();
+
+  const [depositTimes, withdrawTimes, totalDeposits, totalWithdraws] =
+    await Promise.all([
+      Transaction.countDocuments({ bot, to_user: toUser, type: 'deposit' }),
+      Transaction.countDocuments({ bot, to_user: toUser, type: 'withdraw' }),
+      Transaction.find({ bot, to_user: toUser, type: 'deposit' }),
+      Transaction.find({ bot, to_user: toUser, type: 'withdraw' }),
+    ]);
+
+  const message = await renderSummary({
+    title: '记账机器人',
+    depositTimes,
+    widthdrawTimes: withdrawTimes,
+    deposits: totalDeposits,
+    widthdraws: totalWithdraws,
+    feeRate: existingBotUser.fee_rate,
+    exchangeRate: existingBotUser.exchange_rate,
+  });
+
+  await ctx.reply(message, { parse_mode: 'HTML' });
+};
+
 // 开始命令处理
 startCommand.command('start', async (ctx) => {
   debug('start');
@@ -122,134 +220,44 @@ startCommand.hears(/^设置汇率(\d+\.?\d*)$/, async (ctx) => {
   // 检查用户权限
   // 设置汇率
   const exchangeRate = ctx.match[1];
+
+  console.log('ctx', ctx.update.message);
+
+  await BotUser.findOneAndUpdate(
+    {
+      id: ctx.update.message.from.id.toString(),
+    },
+    {
+      exchange_rate: exchangeRate,
+    },
+  );
+
   await ctx.reply(`汇率已设置为${exchangeRate}`);
 });
 
-// 处理入款命令
+// +100 /1.1 @user 0.03
 startCommand.hears(
   /^([+-])(\d+(?:\.\d+)?)(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
   async (ctx) => {
-    // 记录入款信息
-    const [, type, amount, rate, userRaw, feeRate] = ctx.match!;
-    console.log({ type, amount, rate, userRaw, feeRate });
-
-    const toUser =
-      (await User.findOne({
-        name: userRaw?.startsWith('@') ? userRaw.slice(1) : userRaw,
-      })) || null;
-
-    const bot = await Bot.findOneAndUpdate(
-      { token: ctx.api.token, isOnline: true },
-      {
-        exchange_rate: rate,
-        fee_rate: feeRate,
-      },
-    );
-
-    const existingBotUser = await BotUser.findOne({ bot: bot, user: toUser });
-
-    if (!existingBotUser) {
-      const bot_user = new BotUser({
-        id: await IdGen.next(BotUser, 'id', 6),
-        bot: bot,
-        user: toUser,
-        userName: toUser?.name,
-        fee_rate: feeRate,
-        exchange_rate: rate,
-      });
-
-      await bot_user.save();
-    } else {
-      existingBotUser.fee_rate = Number(feeRate) || 0;
-      existingBotUser.exchange_rate = Number(rate) || 1;
-      await existingBotUser.save();
-    }
-
-    if (type === '+') {
-      const transaction = new Transaction({
-        id: await IdGen.next(Transaction, 'id', 6),
-        bot,
-        amount: Number(amount),
-        exchange_rate: existingBotUser.exchange_rate || 1,
-        fee_rate: existingBotUser.fee_rate || 0,
-        to_user: toUser,
-        type: 'deposit', // 入款
-      });
-
-      await transaction.save();
-    } else {
-      const existing = await Transaction.findOne({
-        bot: bot,
-        to_user: toUser,
-      });
-
-      if (!existing) {
-        await ctx.reply(`未找到对应的入款记录，无法执行减款`);
-        return;
-      }
-
-      const transaction = new Transaction({
-        id: await IdGen.next(Transaction, 'id', 6),
-        bot,
-        amount: Number(amount),
-        exchange_rate: existingBotUser.exchange_rate,
-        fee_rate: existingBotUser.fee_rate,
-        to_user: toUser,
-        type: 'withdraw',
-      });
-
-      await transaction.save();
-    }
-
-    const renderSummary = useSummary();
-
-    const depositTimes = await Transaction.countDocuments({
-      bot,
-      to_user: toUser,
-      type: 'deposit',
-    });
-
-    const withdrawTimes = await Transaction.countDocuments({
-      bot,
-      to_user: toUser,
-      type: 'withdraw',
-    });
-
-    // 将入款记录获取
-    const totalDeposits = await Transaction.find({
-      bot: bot,
-      to_user: toUser,
-      type: 'deposit',
-    });
-
-    // 将出款记录获取
-    const totalWidthdraws = await Transaction.find({
-      bot: bot,
-      to_user: toUser,
-      type: 'withdraw',
-    });
-
-    const message = await renderSummary({
-      title: '记账机器人', // 替换为实际的 createdA
-      depositTimes: depositTimes,
-      widthdrawTimes: withdrawTimes,
-      deposits: totalDeposits,
-      widthdraws: totalWidthdraws,
-      feeRate: existingBotUser.fee_rate,
-      exchangeRate: existingBotUser.exchange_rate,
-    });
-
-    await ctx.reply(message, {
-      parse_mode: 'HTML',
-    });
+    await handleTransactionCommand(ctx, ctx.match![1] as '+' | '-');
   },
 );
 
-// 处理下发命令
-startCommand.hears(/^下发(\d+)(U)?$/, async (ctx) => {
-  // 记录下发信息
-  await ctx.reply('下发记录已添加');
-});
+// 入款100 /1.1 @user 0.03
+startCommand.hears(
+  /^(入款)(\d+(?:\.\d+)?)(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
+  async (ctx) => {
+    await handleTransactionCommand(ctx, '入款');
+  },
+);
+
+// 下发100 /1.1 @user 0.03
+startCommand.hears(
+  /^(下发)(\d+(?:\.\d+)?)(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
+  async (ctx) => {
+    await handleTransactionCommand(ctx, '下发');
+  },
+);
 
 // 处理显示账单命令
 startCommand.hears(/^显示账单$/, async (ctx) => {

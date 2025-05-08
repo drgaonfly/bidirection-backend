@@ -19,14 +19,14 @@ const botUserSchema = new mongoose.Schema(
   {
     id: { type: String, required: true },
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    userName: { type: String, required: true },
+    userName: { type: String, required: false },
     firstName: { type: String, required: false },
     lastName: { type: String, required: false },
     bot: { type: mongoose.Schema.Types.ObjectId, ref: 'Bot', required: true },
     messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BotUserMessage' }],
     exchange_rate: {
       type: Number,
-      default: 1,
+      default: process.env.EXCHANGE_RATE,
     },
     fee_rate: {
       type: Number,

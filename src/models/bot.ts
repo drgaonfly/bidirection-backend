@@ -6,8 +6,6 @@ export interface IBot extends Document {
   botName: string;
   remark?: string;
   user: mongoose.Schema.Types.ObjectId | IUser;
-  createdAt: Date;
-  updatedAt: Date;
   message: string;
   userName: string;
   menus: IMenu[];

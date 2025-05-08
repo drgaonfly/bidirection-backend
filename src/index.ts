@@ -8,6 +8,7 @@ import path from 'path';
 import http from 'http';
 import { setupRedis } from './utils/redis';
 import setupDB from './utils/db';
+import initExecutor from 'express-command-executor';
 
 import userRoutes from './routes/userRoutes';
 import roleRoutes from './routes/roleRoutes';
@@ -22,8 +23,6 @@ import employeeRoutes from './routes/employeeRoutes';
 import customerRoutes from './routes/customerRoutes';
 import botRoutes from './routes/botRoutes';
 import botUserRoutes from './routes/botUserRoutes';
-// @ts-ignore
-import initExecutor from 'express-command-executor';
 import transactionRoutes from './routes/transactionRoutes';
 
 dotenv.config();

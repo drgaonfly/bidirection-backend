@@ -247,7 +247,7 @@ startCommand.hears(/^设置汇率(\d+\.?\d*)$/, async (ctx) => {
 
 // +100 /1.1 @user 0.03
 startCommand.hears(
-  /^([+-])(\d+(?:\.\d+)?)(元|U)?(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
+  /^([+-])\s*(\d+(?:\.\d+)?)(元|U)?(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
   async (ctx) => {
     await handleTransactionCommand(ctx, ctx.match![1] as '+' | '-');
   },
@@ -255,7 +255,7 @@ startCommand.hears(
 
 // 入款100 /1.1 @user 0.03
 startCommand.hears(
-  /^(入款)(\d+(?:\.\d+)?)(元|U)?(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
+  /^(入款)\s*(\d+(?:\.\d+)?)(元|U)?(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
   async (ctx) => {
     await handleTransactionCommand(ctx, '入款');
   },
@@ -263,7 +263,7 @@ startCommand.hears(
 
 // 下发100 /1.1 @user 0.03
 startCommand.hears(
-  /^(下发)(\d+(?:\.\d+)?)(元|U)?(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
+  /^(下发)\s*(\d+(?:\.\d+)?)(元|U)?(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
   async (ctx) => {
     await handleTransactionCommand(ctx, '下发');
   },
@@ -271,7 +271,7 @@ startCommand.hears(
 
 // 下发-100 /1.1 @user 0.03
 startCommand.hears(
-  /^(下发-)(\d+(?:\.\d+)?)(元|U)?(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
+  /^(下发-)\s*(\d+(?:\.\d+)?)(元|U)?(?:\/(\d+(?:\.\d+)?))?(?:\s+(@?\S+))?(?:\s+(\d+(?:\.\d+)?))?$/,
   async (ctx) => {
     await handleTransactionCommand(ctx, '下发-');
   },

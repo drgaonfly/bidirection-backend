@@ -79,6 +79,9 @@ async function processFiles() {
   } else {
     console.log('跳过远程部署: 缺少SSH_HOST或SSH_PRIVATE_KEY环境变量');
   }
+  
+  // 执行完成后退出进程
+  process.exit(0);
 }
 
 // 上传并解压文件到远程服务器
@@ -180,4 +183,7 @@ async function uploadAndExecuteCleanScript() {
   });
 }
 
-processFiles().catch(console.error);
+processFiles().catch(err => {
+  console.error(err);
+  process.exit(1);
+});

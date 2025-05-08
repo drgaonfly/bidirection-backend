@@ -9,7 +9,7 @@ const errorHandler: Middleware = async (ctx, next) => {
     await next();
   } catch (err) {
     debug('发生错误:', err);
-    await ctx.reply('抱歉，发生了一些错误。');
+    await ctx.reply(`抱歉，发生了一些错误: ${err}`);
   }
 };
 

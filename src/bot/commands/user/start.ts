@@ -19,6 +19,14 @@ const handleTransactionCommand = async (
   const [, , amount, unit, rate, userRaw, feeRate] = ctx.match!;
   const isDeposit = type === '+' || type === '入款' || type === '下发-';
 
+  console.log({
+    amount,
+    unit,
+    rate,
+    userRaw,
+    feeRate,
+  });
+
   const user = await User.findOne({
     firstName: ctx.update.message.from.first_name,
     lastName: ctx.update.message.from.last_name,
@@ -28,8 +36,6 @@ const handleTransactionCommand = async (
     (await User.findOne({
       name: userRaw?.startsWith('@') ? userRaw.slice(1) : userRaw,
     })) || null;
-
-  console.log('toUser', toUser);
 
   if (!toUser) {
     await ctx.reply(`未找到对应的用户,无法执行入款或下发`);
@@ -219,8 +225,18 @@ startCommand.hears(/^删除操作员\s+(.+)$/, async (ctx) => {
 startCommand.hears(/^设置费率(\d+)(%)?$/, async (ctx) => {
   // 检查用户权限
   // 设置费率
-  const rate = ctx.match[1];
-  await ctx.reply(`费率已设置为${rate}%`);
+  const feeRate = ctx.match[1];
+
+  await BotUser.findOneAndUpdate(
+    {
+      id: ctx.update.message.from.id.toString(),
+    },
+    {
+      fee_rate: feeRate,
+    },
+  );
+
+  await ctx.reply(`费率已设置为${feeRate}%`);
 });
 
 // 处理设置汇率命令
@@ -228,8 +244,6 @@ startCommand.hears(/^设置汇率(\d+\.?\d*)$/, async (ctx) => {
   // 检查用户权限
   // 设置汇率
   const exchangeRate = ctx.match[1];
-
-  console.log('ctx', ctx.update.message);
 
   await BotUser.findOneAndUpdate(
     {

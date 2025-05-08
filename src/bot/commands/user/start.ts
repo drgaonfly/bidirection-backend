@@ -23,24 +23,14 @@ const handleTransactionCommand = async (
     amount,
     unit,
     rate,
-    userRaw,
     feeRate,
+    userRaw,
   });
 
   const user = await User.findOne({
     firstName: ctx.update.message.from.first_name,
     lastName: ctx.update.message.from.last_name,
   });
-
-  const toUser =
-    (await User.findOne({
-      name: userRaw?.startsWith('@') ? userRaw.slice(1) : userRaw,
-    })) || null;
-
-  if (!toUser) {
-    await ctx.reply(`未找到对应的用户,无法执行入款或下发`);
-    return;
-  }
 
   const bot = await Bot.findOneAndUpdate({
     token: ctx.api.token,
@@ -74,13 +64,12 @@ const handleTransactionCommand = async (
       amount: Number(amount),
       exchange_rate: existingBotUser.exchange_rate || 1,
       fee_rate: existingBotUser.fee_rate || 0,
-      to_user: toUser,
       type: 'deposit',
     });
 
     await transaction.save();
   } else {
-    const existing = await Transaction.findOne({ bot, to_user: toUser });
+    const existing = await Transaction.findOne({ bot });
 
     if (!existing) {
       await ctx.reply(`未找到对应的入款记录，无法执行减款`);
@@ -93,7 +82,6 @@ const handleTransactionCommand = async (
       amount: Number(amount),
       exchange_rate: existingBotUser.exchange_rate,
       fee_rate: existingBotUser.fee_rate,
-      to_user: toUser,
       type: 'withdraw',
     });
 
@@ -104,10 +92,10 @@ const handleTransactionCommand = async (
 
   const [depositTimes, withdrawTimes, totalDeposits, totalWithdraws] =
     await Promise.all([
-      Transaction.countDocuments({ bot, to_user: toUser, type: 'deposit' }),
-      Transaction.countDocuments({ bot, to_user: toUser, type: 'withdraw' }),
-      Transaction.find({ bot, to_user: toUser, type: 'deposit' }),
-      Transaction.find({ bot, to_user: toUser, type: 'withdraw' }),
+      Transaction.countDocuments({ bot, type: 'deposit' }),
+      Transaction.countDocuments({ bot, type: 'withdraw' }),
+      Transaction.find({ bot, type: 'deposit' }),
+      Transaction.find({ bot, type: 'withdraw' }),
     ]);
 
   const message = await renderSummary({

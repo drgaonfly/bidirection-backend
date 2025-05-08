@@ -1,6 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 import { IBot } from './bot';
-import { IUser } from './user';
+// import { IUser } from './user';
 
 export interface ITransaction extends Document {
   id: string;
@@ -8,7 +8,7 @@ export interface ITransaction extends Document {
   amount: number;
   exchange_rate: number;
   fee_rate: number;
-  to_user: mongoose.Schema.Types.ObjectId | IUser;
+  // to_user: mongoose.Schema.Types.ObjectId | IUser;
   type: string;
 }
 
@@ -19,11 +19,11 @@ const transactionSchema = new mongoose.Schema(
     amount: { type: Number, required: true },
     exchange_rate: { type: Number, required: false },
     fee_rate: { type: Number, required: false },
-    to_user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: false,
-    },
+    // to_user: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: 'User',
+    //   required: false,
+    // },
     type: { type: String, required: true, enum: ['deposit', 'withdraw'] },
   },
   { timestamps: true },

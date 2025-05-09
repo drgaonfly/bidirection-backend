@@ -20,10 +20,14 @@ const debug = createDebug('bot:error');
 // 开始命令处理
 startCommand.command('start', async (ctx) => {
   debug('start');
+  const chatId = ctx.chat.id; // 获取群组 ID
+
+  debug(ctx.chat);
 
   // 判断是否在群组中
   if (ctx.chat.type !== 'private') {
     await ctx.reply('感谢您把我添加到贵群!\n下一步设置费率，请发：设置费率x%');
+    await ctx.reply(`感谢添加！本群 ID 为：${chatId}`);
     return;
   }
 

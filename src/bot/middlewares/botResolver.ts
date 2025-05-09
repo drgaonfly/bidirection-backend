@@ -14,10 +14,11 @@ const botResolver: Middleware<MyContext> = async (ctx, next) => {
     return;
   }
   // 查询数据库中的机器人
+  // 先查询机器人基本信息,避免User模型未注册的错误
   const currentBot = await Bot.findOne({
     token,
     isOnline: true,
-  }).populate('user');
+  });
 
   if (!currentBot) {
     await ctx.reply('机器人已离线或不存在');

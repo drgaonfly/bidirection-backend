@@ -1,116 +1,116 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../types';
-import BotUser from '../../../models/botUser';
-import Bot, { IMenu } from '../../../models/bot';
-import User from '../../../models/user';
+// import BotUser from '../../../models/botUser';
+import { IMenu } from '../../../models/bot';
+// import User from '../../../models/user';
 import createDebug from 'debug';
-import Transaction from '../../../models/transaction';
-import { IdGen } from '../../../utils/idGen';
-import { useSummary } from '../../../utils/useEjsMessage';
+// import Transaction from '../../../models/transaction';
+// import { IdGen } from '../../../utils/idGen';
+// import { useSummary } from '../../../utils/useEjsMessage';
 
 const startCommand = new Composer<MyContext>();
 
 const debug = createDebug('bot:error');
 
-const handleTransactionCommand = async (
-  ctx: MyContext,
-  type: '+' | '-' | '入款' | '下发' | '下发-',
-) => {
-  const [, , amount, unit, rate, userRaw, feeRate] = ctx.match!;
-  const isDeposit = type === '+' || type === '入款' || type === '下发-';
+// const handleTransactionCommand = async (
+//   ctx: MyContext,
+//   type: '+' | '-' | '入款' | '下发' | '下发-',
+// ) => {
+//   const [, , amount, unit, rate, userRaw, feeRate] = ctx.match!;
+//   const isDeposit = type === '+' || type === '入款' || type === '下发-';
 
-  console.log({
-    amount,
-    unit,
-    rate,
-    feeRate,
-    userRaw,
-  });
+//   console.log({
+//     amount,
+//     unit,
+//     rate,
+//     feeRate,
+//     userRaw,
+//   });
 
-  const user = await User.findOne({
-    firstName: ctx.update.message.from.first_name,
-    lastName: ctx.update.message.from.last_name,
-  });
+//   const user = await User.findOne({
+//     firstName: ctx.update.message.from.first_name,
+//     lastName: ctx.update.message.from.last_name,
+//   });
 
-  const bot = await Bot.findOneAndUpdate({
-    token: ctx.api.token,
-    isOnline: true,
-  });
+//   const bot = await Bot.findOneAndUpdate({
+//     token: ctx.api.token,
+//     isOnline: true,
+//   });
 
-  let existingBotUser = await BotUser.findOne({
-    id: ctx.update.message.from.id.toString(),
-  });
+//   let existingBotUser = await BotUser.findOne({
+//     id: ctx.update.message.from.id.toString(),
+//   });
 
-  if (!existingBotUser) {
-    existingBotUser = new BotUser({
-      id: await IdGen.next(BotUser, 'id', 6),
-      bot,
-      user,
-      userName:
-        ctx.update.message.from.last_name + ctx.update.message.from.first_name,
-      firstName: ctx.update.message.from.first_name,
-      lastName: ctx.update.message.from.last_name,
-      fee_rate: feeRate || 0,
-      exchange_rate: rate || 7.2,
-    });
+//   if (!existingBotUser) {
+//     existingBotUser = new BotUser({
+//       id: await IdGen.next(BotUser, 'id', 6),
+//       bot,
+//       user,
+//       userName:
+//         ctx.update.message.from.last_name + ctx.update.message.from.first_name,
+//       firstName: ctx.update.message.from.first_name,
+//       lastName: ctx.update.message.from.last_name,
+//       fee_rate: feeRate || 0,
+//       exchange_rate: rate || 7.2,
+//     });
 
-    await existingBotUser.save();
-  }
+//     await existingBotUser.save();
+//   }
 
-  if (isDeposit) {
-    const transaction = new Transaction({
-      id: await IdGen.next(Transaction, 'id', 6),
-      bot,
-      amount: Number(amount),
-      exchange_rate: existingBotUser.exchange_rate || 1,
-      fee_rate: existingBotUser.fee_rate || 0,
-      type: 'deposit',
-    });
+//   if (isDeposit) {
+//     const transaction = new Transaction({
+//       id: await IdGen.next(Transaction, 'id', 6),
+//       bot,
+//       amount: Number(amount),
+//       exchange_rate: existingBotUser.exchange_rate || 1,
+//       fee_rate: existingBotUser.fee_rate || 0,
+//       type: 'deposit',
+//     });
 
-    await transaction.save();
-  } else {
-    const existing = await Transaction.findOne({ bot });
+//     await transaction.save();
+//   } else {
+//     const existing = await Transaction.findOne({ bot });
 
-    if (!existing) {
-      await ctx.reply(`未找到对应的入款记录，无法执行减款`);
-      return;
-    }
+//     if (!existing) {
+//       await ctx.reply(`未找到对应的入款记录，无法执行减款`);
+//       return;
+//     }
 
-    const transaction = new Transaction({
-      id: await IdGen.next(Transaction, 'id', 6),
-      bot,
-      amount: Number(amount),
-      exchange_rate: existingBotUser.exchange_rate,
-      fee_rate: existingBotUser.fee_rate,
-      type: 'withdraw',
-    });
+//     const transaction = new Transaction({
+//       id: await IdGen.next(Transaction, 'id', 6),
+//       bot,
+//       amount: Number(amount),
+//       exchange_rate: existingBotUser.exchange_rate,
+//       fee_rate: existingBotUser.fee_rate,
+//       type: 'withdraw',
+//     });
 
-    await transaction.save();
-  }
+//     await transaction.save();
+//   }
 
-  const renderSummary = useSummary();
+//   const renderSummary = useSummary();
 
-  const [depositTimes, withdrawTimes, totalDeposits, totalWithdraws] =
-    await Promise.all([
-      Transaction.countDocuments({ bot, type: 'deposit' }),
-      Transaction.countDocuments({ bot, type: 'withdraw' }),
-      Transaction.find({ bot, type: 'deposit' }),
-      Transaction.find({ bot, type: 'withdraw' }),
-    ]);
+//   const [depositTimes, withdrawTimes, totalDeposits, totalWithdraws] =
+//     await Promise.all([
+//       Transaction.countDocuments({ bot, type: 'deposit' }),
+//       Transaction.countDocuments({ bot, type: 'withdraw' }),
+//       Transaction.find({ bot, type: 'deposit' }),
+//       Transaction.find({ bot, type: 'withdraw' }),
+//     ]);
 
-  const message = await renderSummary({
-    title: '记账机器人',
-    depositTimes,
-    widthdrawTimes: withdrawTimes,
-    deposits: totalDeposits,
-    widthdraws: totalWithdraws,
-    feeRate: existingBotUser.fee_rate,
-    exchangeRate: existingBotUser.exchange_rate,
-    unit: unit,
-  });
+//   const message = await renderSummary({
+//     title: '记账机器人',
+//     depositTimes,
+//     widthdrawTimes: withdrawTimes,
+//     deposits: totalDeposits,
+//     widthdraws: totalWithdraws,
+//     feeRate: existingBotUser.fee_rate,
+//     exchangeRate: existingBotUser.exchange_rate,
+//     unit: unit,
+//   });
 
-  await ctx.reply(message, { parse_mode: 'HTML' });
-};
+//   await ctx.reply(message, { parse_mode: 'HTML' });
+// };
 
 const setMenu = (menu: IMenu[]) => {
   const inlineMenu = new InlineKeyboard();

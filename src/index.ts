@@ -9,6 +9,7 @@ import http from 'http';
 import { setupRedis } from './utils/redis';
 import setupDB from './utils/db';
 import initExecutor from 'express-command-executor';
+import { startWebHookBot } from './bot';
 
 import userRoutes from './routes/userRoutes';
 import roleRoutes from './routes/roleRoutes';
@@ -24,6 +25,7 @@ import customerRoutes from './routes/customerRoutes';
 import botRoutes from './routes/botRoutes';
 import botUserRoutes from './routes/botUserRoutes';
 import transactionRoutes from './routes/transactionRoutes';
+import botWebhooksRoutes from './routes/botWebhooksRoutes';
 
 dotenv.config();
 
@@ -59,6 +61,7 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/bots', botRoutes);
 app.use('/api/bot-users', botUserRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/bot-webhooks', botWebhooksRoutes);
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 
@@ -71,6 +74,8 @@ console.log('Socket.IO server initialized');
 // scheduledtasks(); // 定时任务
 // authorized(); // 授权用户收益率生成
 // stacking(); // 质押用户收益率生成
+
+process.env.NODE_ENV === 'production' && startWebHookBot();
 
 app.use(notFound);
 app.use(errorHandler);

@@ -8,8 +8,8 @@ const debug = createDebug('bot:group');
 const groupResolver: Middleware<MyContext> = async (ctx, next) => {
   // 检查是否在群组中
   if (!ctx.chat || ctx.chat.type === 'private') {
-    await ctx.reply('请在群组中使用此命令');
-    return;
+    debug('请在群组中使用此命令');
+    return await next();
   }
 
   const chatId = ctx.chat.id;
@@ -42,7 +42,6 @@ const groupResolver: Middleware<MyContext> = async (ctx, next) => {
     ctx.currentGroup = newGroup;
 
     await ctx.reply('感谢您把我添加到贵群!\n下一步设置费率，请发：设置费率x%');
-    await ctx.reply(`感谢添加！本群 ID 为：${chatId}`);
   } else {
     // 更新群组信息
     currentGroup.title = ctx.chat.title || currentGroup.title;

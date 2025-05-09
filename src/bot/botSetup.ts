@@ -1,10 +1,10 @@
 import { Bot, GrammyError, HttpError } from 'grammy';
 import logger from './middlewares/logger';
-import adminComposer from './commands/admin';
 import userComposer from './commands/user';
 import errorHandler from './middlewares/errorHandler';
 import botResolver from './middlewares/botResolver';
 import userResolver from './middlewares/userResolver';
+import groupResolver from './middlewares/groupResolver';
 
 import { commandsList } from './commandsList';
 import { SocksProxyAgent } from 'socks-proxy-agent';
@@ -48,6 +48,7 @@ export const setupBot = (token: string) => {
 
   bot.use(botResolver);
   bot.use(userResolver);
+  bot.use(groupResolver);
   bot.use(errorHandler);
   bot.use(logger);
   bot.use(userComposer.middleware());

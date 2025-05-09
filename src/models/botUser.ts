@@ -26,7 +26,7 @@ const botUserSchema = new mongoose.Schema(
     messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BotUserMessage' }],
     exchange_rate: {
       type: Number,
-      default: process.env.EXCHANGE_RATE,
+      default: 7.2,
     },
     fee_rate: {
       type: Number,

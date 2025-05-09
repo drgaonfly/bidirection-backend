@@ -46,10 +46,10 @@ export const setupBot = (token: string) => {
     console.log('Bot 未使用代理。');
   }
 
-  bot.use(errorHandler);
-  bot.use(logger);
   bot.use(botResolver);
   bot.use(userResolver);
+  bot.use(errorHandler);
+  bot.use(logger);
   bot.use(userComposer.middleware());
   bot.use(adminComposer.middleware());
 

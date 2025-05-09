@@ -1,4 +1,5 @@
 import ejs from 'ejs';
+import path from 'path';
 
 export const useSummary = () => {
   return async (data: {
@@ -11,7 +12,9 @@ export const useSummary = () => {
     exchangeRate: number;
     unit?: string;
   }) => {
-    return await ejs.renderFile('../templates/summary.ejs', data);
+    const templatePath = path.join(__dirname, '../templates/summary.ejs');
+
+    return await ejs.renderFile(templatePath, data);
   };
 };
 
@@ -24,7 +27,8 @@ export const useDeposit = () => {
     exchangeRate: number;
     unit?: string;
   }) => {
-    return await ejs.renderFile('../templates/deposit.ejs', data);
+    const templatePath = path.join(__dirname, '../templates/deposit.ejs');
+    return await ejs.renderFile(templatePath, data);
   };
 };
 
@@ -37,6 +41,7 @@ export const useWithdraw = () => {
     exchangeRate: number;
     unit?: string;
   }) => {
-    return await ejs.renderFile('../templates/withdraw.ejs', data);
+    const templatePath = path.join(__dirname, '../templates/withdraw.ejs');
+    return await ejs.renderFile(templatePath, data);
   };
 };

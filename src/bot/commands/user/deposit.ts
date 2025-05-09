@@ -1,6 +1,5 @@
 import { Composer } from 'grammy';
 import { MyContext } from '../../types';
-import BotUser from '../../../models/botUser';
 import createDebug from 'debug';
 import Transaction from '../../../models/transaction';
 import { IdGen } from '../../../utils/idGen';
@@ -27,16 +26,14 @@ depositCommand.hears(/^(\+)\s*(\d+)$/, async (ctx) => {
 
   const bot = ctx.currentBot;
 
-  const existingBotUser = await BotUser.findOne({
-    id: ctx.update.message.from.id.toString(),
-  });
+  const botUser = ctx.botUser;
 
   const transaction = new Transaction({
     id: await IdGen.next(Transaction, 'id', 6),
     bot,
     amount: Number(amount),
-    exchange_rate: existingBotUser.exchange_rate || 1,
-    fee_rate: existingBotUser.fee_rate || 0,
+    exchange_rate: botUser.exchange_rate || 1,
+    fee_rate: botUser.fee_rate || 0,
     type: 'deposit',
   });
 
@@ -53,8 +50,8 @@ depositCommand.hears(/^(\+)\s*(\d+)$/, async (ctx) => {
     title: '记账机器人',
     depositTimes,
     deposits: totalDeposits,
-    feeRate: existingBotUser.fee_rate,
-    exchangeRate: existingBotUser.exchange_rate,
+    feeRate: botUser.fee_rate,
+    exchangeRate: botUser.exchange_rate,
     unit: '元',
   });
 

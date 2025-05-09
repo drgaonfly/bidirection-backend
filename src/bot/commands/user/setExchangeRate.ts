@@ -1,6 +1,5 @@
 import { Composer } from 'grammy';
 import { MyContext } from '../../types';
-import BotUser from '../../../models/botUser';
 import createDebug from 'debug';
 
 const setExchangeRateCommand = new Composer<MyContext>();
@@ -16,21 +15,17 @@ setExchangeRateCommand.command('ex', async (ctx) => {
 
 setExchangeRateCommand.hears(/^(\/)?设置汇率\s*(\d+\.?\d*)$/, async (ctx) => {
   const exchangeRate = ctx.match[2];
+
   if (!exchangeRate) {
     await ctx.reply(
       '请使用正确的格式：/设置汇率 <汇率>\n例如: /设置汇率 6.8 或 /汇率6.8',
     );
     return;
   }
-  await BotUser.findOneAndUpdate(
-    {
-      id: ctx.from?.id.toString(),
-    },
-    {
-      exchange_rate: exchangeRate,
-    },
-    { upsert: true },
-  );
+
+  // 更新用户的汇率设置
+  ctx.botUser.exchange_rate = Number(exchangeRate);
+  await ctx.botUser.save();
 
   await ctx.reply(`汇率已成功设置为 ${exchangeRate}%`);
 });

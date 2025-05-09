@@ -27,9 +27,7 @@ withdrawCommand.hears(/^(下发)\s*(\d+)$/, async (ctx) => {
 
   const bot = ctx.currentBot;
 
-  const existingBotUser = await BotUser.findOne({
-    id: ctx.update.message.from.id.toString(),
-  });
+  const existingBotUser = ctx.botUser;
 
   const transaction = new Transaction({
     id: await IdGen.next(Transaction, 'id', 6),

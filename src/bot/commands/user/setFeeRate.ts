@@ -1,6 +1,5 @@
 import { Composer } from 'grammy';
 import { MyContext } from '../../types';
-import BotUser from '../../../models/botUser';
 import createDebug from 'debug';
 
 const setFeeRateCommand = new Composer<MyContext>();
@@ -23,15 +22,10 @@ setFeeRateCommand.hears(/^(\/)?设置费率\s*(\d+)(%)?$/, async (ctx) => {
     );
     return;
   }
-  await BotUser.findOneAndUpdate(
-    {
-      id: ctx.from?.id.toString(),
-    },
-    {
-      fee_rate: feeRate,
-    },
-    { upsert: true },
-  );
+
+  // 更新 ctx.botUser 的费率
+  ctx.botUser.fee_rate = Number(feeRate);
+  await ctx.botUser.save();
 
   await ctx.reply(`费率已成功设置为 ${feeRate}%`);
 });

@@ -1,6 +1,5 @@
 import { Composer } from 'grammy';
 import { MyContext } from '../../types';
-import BotUser from '../../../models/botUser';
 import createDebug from 'debug';
 import Transaction from '../../../models/transaction';
 import { IdGen } from '../../../utils/idGen';

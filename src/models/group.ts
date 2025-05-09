@@ -8,6 +8,7 @@ export interface IGroup extends Document {
   type: string;
   bot: mongoose.Schema.Types.ObjectId | IBot;
   creator: mongoose.Schema.Types.ObjectId | IBotUser;
+  operators: (mongoose.Schema.Types.ObjectId | IBotUser)[]; // 操作人数组
   exchange_rate?: number;
   fee_rate?: number;
 }
@@ -41,6 +42,13 @@ const groupSchema = new mongoose.Schema(
       ref: 'BotUser',
       required: true,
     },
+    operators: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'BotUser',
+        required: false,
+      },
+    ],
     exchange_rate: {
       type: Number,
       required: false,

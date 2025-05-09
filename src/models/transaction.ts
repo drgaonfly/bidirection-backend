@@ -1,10 +1,12 @@
 import mongoose, { Document } from 'mongoose';
 import { IBot } from './bot';
 import { IGroup } from './group';
+import { IBotUser } from './botUser';
 export interface ITransaction extends Document {
   id: string;
   bot: mongoose.Schema.Types.ObjectId | IBot;
   group: mongoose.Schema.Types.ObjectId | IGroup;
+  botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   amount: number;
   exchange_rate: number;
   fee_rate: number;
@@ -18,6 +20,11 @@ const transactionSchema = new mongoose.Schema(
     group: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Group',
+      required: true,
+    },
+    botUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'BotUser',
       required: true,
     },
     amount: { type: Number, required: true },

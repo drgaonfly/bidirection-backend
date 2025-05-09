@@ -26,7 +26,7 @@ depositCommand.hears(/^(\+)\s*(\d+)$/, async (ctx) => {
 
   const bot = ctx.currentBot;
 
-  const botUser = ctx.botUser;
+  const botUser = ctx.currentBotUser;
 
   const transaction = new Transaction({
     id: await IdGen.next(Transaction, 'id', 6),

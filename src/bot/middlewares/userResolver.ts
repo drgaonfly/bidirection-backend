@@ -25,7 +25,7 @@ const userResolver: Middleware<MyContext> = async (ctx, next) => {
     { new: true, upsert: true },
   );
 
-  ctx.botUser = botUser;
+  ctx.currentBotUser = botUser;
   await next();
 };
 

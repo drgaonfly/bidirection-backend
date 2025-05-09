@@ -24,8 +24,8 @@ setExchangeRateCommand.hears(/^(\/)?设置汇率\s*(\d+\.?\d*)$/, async (ctx) =>
   }
 
   // 更新用户的汇率设置
-  ctx.botUser.exchange_rate = Number(exchangeRate);
-  await ctx.botUser.save();
+  ctx.currentBotUser.exchange_rate = Number(exchangeRate);
+  await ctx.currentBotUser.save();
 
   await ctx.reply(`汇率已成功设置为 ${exchangeRate}%`);
 });

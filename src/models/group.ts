@@ -1,12 +1,13 @@
 import mongoose, { Document } from 'mongoose';
 import { IBot } from './bot';
-
+import { IBotUser } from './botUser';
 // 群组接口定义
 export interface IGroup extends Document {
   id: number;
   title: string;
   type: string;
   bot: mongoose.Schema.Types.ObjectId | IBot;
+  creator: mongoose.Schema.Types.ObjectId | IBotUser;
   exchange_rate?: number;
   fee_rate?: number;
 }
@@ -33,6 +34,11 @@ const groupSchema = new mongoose.Schema(
     bot: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Bot',
+      required: true,
+    },
+    creator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'BotUser',
       required: true,
     },
     exchange_rate: {

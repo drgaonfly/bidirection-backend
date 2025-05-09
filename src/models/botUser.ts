@@ -3,7 +3,7 @@ import { IBot } from './bot';
 import { IUser } from './user';
 import { IBotUserMessage } from './botUserMessage';
 
-export interface IbotUser extends Document {
+export interface IBotUser extends Document {
   id: string;
   bot: mongoose.Schema.Types.ObjectId | IBot;
   user: mongoose.Schema.Types.ObjectId | IUser;
@@ -38,6 +38,6 @@ const botUserSchema = new mongoose.Schema(
 
 botUserSchema.index({ id: 1, bot: 1 }, { unique: true });
 
-const BotUser = mongoose.model<IbotUser>('BotUser', botUserSchema);
+const BotUser = mongoose.model<IBotUser>('BotUser', botUserSchema);
 
 export default BotUser;

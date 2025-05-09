@@ -1,12 +1,12 @@
 import mongoose, { Document } from 'mongoose';
 import { IBot } from './bot';
-import { IbotUser } from './botUser';
+import { IBotUser } from './botUser';
 
 export interface IBotUserMessage extends Document {
   content: string;
   type: 'sent' | 'received' | 'error';
   bot: mongoose.Schema.Types.ObjectId | IBot;
-  botUser: mongoose.Schema.Types.ObjectId | IbotUser;
+  botUser: mongoose.Schema.Types.ObjectId | IBotUser;
 }
 
 const botUserMessageSchema = new mongoose.Schema(

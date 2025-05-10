@@ -26,7 +26,7 @@ depositCommand.hears(/^(\+)\s*(\d+)$/, async (ctx) => {
 
   const bot = ctx.currentBot;
 
-  const botUser = ctx.currentBotUser;
+  // const botUser = ctx.currentBotUser;
 
   const transaction = new Transaction({
     id: await IdGen.next(Transaction, 'id', 6),
@@ -39,12 +39,12 @@ depositCommand.hears(/^(\+)\s*(\d+)$/, async (ctx) => {
 
   await transaction.save();
 
-  const renderSummary = useDeposit();
+  // const renderSummary = useDeposit();
 
-  const [depositTimes, totalDeposits] = await Promise.all([
-    Transaction.countDocuments({ bot, type: 'deposit' }),
-    Transaction.find({ bot, type: 'deposit' }),
-  ]);
+  // const [depositTimes, totalDeposits] = await Promise.all([
+  //   Transaction.countDocuments({ bot, type: 'deposit' }),
+  //   Transaction.find({ bot, type: 'deposit' }),
+  // ]);
 
   // const message = await renderSummary({
   //   title: '记账机器人',

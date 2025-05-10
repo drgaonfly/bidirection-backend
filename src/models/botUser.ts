@@ -11,8 +11,8 @@ export interface IBotUser extends Document {
   firstName: string;
   lastName: string;
   messages: mongoose.Types.ObjectId[] | IBotUserMessage[];
-  fee_rate: number;
-  exchange_rate: number;
+  // fee_rate: number;
+  // exchange_rate: number;
 }
 
 const botUserSchema = new mongoose.Schema(
@@ -24,14 +24,14 @@ const botUserSchema = new mongoose.Schema(
     lastName: { type: String, required: false },
     bot: { type: mongoose.Schema.Types.ObjectId, ref: 'Bot', required: true },
     messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BotUserMessage' }],
-    exchange_rate: {
-      type: Number,
-      default: 7.2,
-    },
-    fee_rate: {
-      type: Number,
-      default: 0,
-    },
+    // exchange_rate: {
+    //   type: Number,
+    //   default: 7.2,
+    // },
+    // fee_rate: {
+    //   type: Number,
+    //   default: 0,
+    // },
   },
   { timestamps: true },
 );

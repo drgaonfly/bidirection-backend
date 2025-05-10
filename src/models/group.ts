@@ -16,32 +16,38 @@ export interface IGroup extends Document {
 // 群组 Schema
 const groupSchema = new mongoose.Schema(
   {
+    // ID
     id: {
       type: Number,
       required: true,
       unique: true,
     },
+    // 群组名称
     title: {
       type: String,
       required: true,
       trim: true,
     },
+    // 群组类型，不用显示在后台
     type: {
       type: String,
       required: true,
       enum: ['group'],
       default: 'group',
     },
+    // 所属机器人
     bot: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Bot',
       required: true,
     },
+    // 认证者或创建者
     creator: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'BotUser',
       required: true,
     },
+    // 操作人
     operators: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -49,11 +55,13 @@ const groupSchema = new mongoose.Schema(
         required: false,
       },
     ],
+    // 汇率
     exchange_rate: {
       type: Number,
       required: false,
       default: 1, // USDT默认汇率为1
     },
+    // 费率
     fee_rate: {
       type: Number,
       required: false,

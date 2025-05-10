@@ -1,11 +1,10 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../types';
-import { IMenu } from '../../../models/bot';
 import createDebug from 'debug';
 
 const startCommand = new Composer<MyContext>();
 
-const debug = createDebug('bot:error');
+const debug = createDebug('bot:start');
 
 // const setMenu = (menu: IMenu[]) => {
 //   const inlineMenu = new InlineKeyboard();
@@ -27,7 +26,7 @@ startCommand.command('start', async (ctx) => {
   // 判断是否在群组中
   if (ctx.chat.type !== 'private') {
     await ctx.reply('感谢您把我添加到贵群!\n下一步设置费率，请发：设置费率x%');
-    await ctx.reply(`感谢添加！本群 ID 为：${chatId}`);
+    debug(`感谢添加！本群 ID 为：${chatId}`);
     return;
   }
 

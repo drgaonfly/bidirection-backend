@@ -3,7 +3,7 @@ import { MyContext } from '../../types';
 import createDebug from 'debug';
 import Transaction from '../../../models/transaction';
 import { IdGen } from '../../../utils/idGen';
-import { useDeposit } from '../../../utils/useEjsMessage';
+// import { useDeposit } from '../../../utils/useEjsMessage';
 
 const depositCommand = new Composer<MyContext>();
 

@@ -32,8 +32,8 @@ depositCommand.hears(/^(\+)\s*(\d+)$/, async (ctx) => {
     id: await IdGen.next(Transaction, 'id', 6),
     bot,
     amount: Number(amount),
-    exchange_rate: botUser.exchange_rate || 1,
-    fee_rate: botUser.fee_rate || 0,
+    // exchange_rate: botUser.exchange_rate || 1,
+    // fee_rate: botUser.fee_rate || 0,
     type: 'deposit',
   });
 
@@ -46,16 +46,16 @@ depositCommand.hears(/^(\+)\s*(\d+)$/, async (ctx) => {
     Transaction.find({ bot, type: 'deposit' }),
   ]);
 
-  const message = await renderSummary({
-    title: '记账机器人',
-    depositTimes,
-    deposits: totalDeposits,
-    feeRate: botUser.fee_rate,
-    exchangeRate: botUser.exchange_rate,
-    unit: '元',
-  });
+  // const message = await renderSummary({
+  //   title: '记账机器人',
+  //   depositTimes,
+  //   deposits: totalDeposits,
+  //   feeRate: botUser.fee_rate,
+  //   exchangeRate: botUser.exchange_rate,
+  //   unit: '元',
+  // });
 
-  await ctx.reply(message, { parse_mode: 'HTML' });
+  // await ctx.reply(message, { parse_mode: 'HTML' });
 });
 
 export default depositCommand;

@@ -2,7 +2,7 @@ import { Middleware } from 'grammy';
 import BotUser from '../../models/botUser';
 import { MyContext } from '../types';
 
-const userResolver: Middleware<MyContext> = async (ctx, next) => {
+const botUserResolver: Middleware<MyContext> = async (ctx, next) => {
   if (!ctx.currentBot) {
     await ctx.reply('请先初始化机器人');
     return;
@@ -29,4 +29,4 @@ const userResolver: Middleware<MyContext> = async (ctx, next) => {
   await next();
 };
 
-export default userResolver;
+export default botUserResolver;

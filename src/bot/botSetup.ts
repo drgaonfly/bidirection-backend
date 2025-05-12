@@ -3,7 +3,7 @@ import logger from './middlewares/logger';
 import userComposer from './commands/user';
 import errorHandler from './middlewares/errorHandler';
 import botResolver from './middlewares/botResolver';
-import userResolver from './middlewares/userResolver';
+import botUserResolver from './middlewares/botUserResolver';
 import groupResolver from './middlewares/groupResolver';
 
 import { commandsList } from './commandsList';
@@ -47,7 +47,7 @@ export const setupBot = (token: string) => {
   }
 
   bot.use(botResolver);
-  bot.use(userResolver);
+  bot.use(botUserResolver);
   bot.use(groupResolver);
   bot.use(errorHandler);
   bot.use(logger);

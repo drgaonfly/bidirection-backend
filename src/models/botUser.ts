@@ -4,7 +4,6 @@ import { IBotUserMessage } from './botUserMessage';
 
 export interface IBotUser extends Document {
   id: string;
-  bots: mongoose.Schema.Types.ObjectId[] | IBot[];
   userName: string;
   firstName: string;
   lastName: string;
@@ -17,7 +16,6 @@ const botUserSchema = new mongoose.Schema(
     userName: { type: String, required: false },
     firstName: { type: String, required: false },
     lastName: { type: String, required: false },
-    bots: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Bot' }],
     messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BotUserMessage' }],
   },
   { timestamps: true },

@@ -57,6 +57,17 @@ const groupResolver: Middleware<MyContext> = async (ctx, next) => {
     ctx.currentGroup = currentGroup;
   }
 
+  // 使用 $addToSet 将当前用户添加到群组的用户列表中，避免重复添加
+  await Group.updateOne(
+    { _id: ctx.currentGroup._id },
+    {
+      $addToSet: {
+        botUsers: ctx.currentBotUser._id,
+      },
+    },
+  );
+  debug('Added user to group botUsers:', ctx.currentBotUser._id);
+
   // 继续处理后续中间件
   await next();
 };

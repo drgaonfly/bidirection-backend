@@ -9,11 +9,14 @@ const debug = createDebug('bot:initiate');
 initiateCommand.hears(/^开始$/, async (ctx) => {
   debug('initiate');
 
-  ctx.currentGroup.isOnline = true;
-
-  await ctx.currentGroup.save();
-
-  await ctx.reply('我已在记录账单啦');
+  // 检查当前是否已经在记录
+  if (!ctx.currentGroup.isOnline) {
+    ctx.currentGroup.isOnline = true;
+    await ctx.currentGroup.save();
+    await ctx.reply('机器人开始记录今天账单');
+  } else {
+    await ctx.reply('我已在记录账单啦');
+  }
 });
 
 export default initiateCommand;

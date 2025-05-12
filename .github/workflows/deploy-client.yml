@@ -20,7 +20,7 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: 22
           script: |
-            cd /www/wwwroot/account-backend.2025fc.xyz/account-bot-backend &&
+            cd /www/wwwroot/account-backend.2025fc.xyz/account-bot-backend-remote &&
             git pull --rebase origin ${{ github.event.inputs.branch }}  # 动态读取分支
             npm install
             git checkout -f .

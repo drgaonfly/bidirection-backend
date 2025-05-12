@@ -9,22 +9,26 @@ const addOperatorCommand = new Composer<MyContext>();
 const debug = createDebug('bot:addOperator');
 
 // 匹配 "设置操作人@机器人名 @用户" 格式的命令
-addOperatorCommand.hears(/^设置操作人(@\S+\s*)+$/, async (ctx) => {
-  debug('addOperator');
+addOperatorCommand.hears(/^设置操作人/, async (ctx) => {
+  const creator = ctx.currentGroup.creator as IBotUser;
+
+  debug('当前用户ID:', ctx.currentBotUser._id);
+  debug('创建者ID:', creator._id);
+
+  if (ctx.currentBotUser._id.toString() !== creator._id.toString()) {
+    await ctx.reply(
+      `您不是当前权限人哦！此群机器人由 ${
+        creator.userName ||
+        `${creator.firstName || ''} ${creator.lastName || ''}`.trim()
+      } 首次设置.`,
+    );
+    return;
+  }
 
   const rawOperators = ctx.message.entities.filter(
-    (entity) => entity.type === 'text_mention',
+    (entity: any) => entity.user !== undefined,
   );
-  console.log('ctx.message.entities', ctx.message.entities);
-
-  //   const creator = ctx.currentGroup.creator as IBotUser;
-
-  //   if (ctx.currentBotUser._id !== creator) {
-  //     await ctx.reply(
-  //       '您不是当前权限人哦！此群机器人由<DeepPay888 Deep Pay>首次设置.',
-  //     );
-  //     return;
-  //   }
+  debug(ctx.message.entities);
 
   // 使用Promise.all并行处理所有操作人
   await Promise.all(

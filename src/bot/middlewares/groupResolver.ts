@@ -31,7 +31,7 @@ const groupResolver: Middleware<MyContext> = async (ctx, next) => {
     const newGroup = new Group({
       id: chatId,
       title: ctx.chat.title,
-      type: 'group',
+      type: ctx.chat.type,
       bot: ctx.currentBot._id, // 假设botResolver中间件已经运行并设置了currentBot
       creator: ctx.currentBotUser._id, // 假设已有用户记录
       exchange_rate: 1,
@@ -44,8 +44,15 @@ const groupResolver: Middleware<MyContext> = async (ctx, next) => {
     await ctx.reply('感谢您把我添加到贵群!\n下一步设置费率，请发：设置费率x%');
   } else {
     // 更新群组信息
-    currentGroup.title = ctx.chat.title || currentGroup.title;
-    await currentGroup.save();
+    // 只在群组标题或类型发生变化时才更新
+    if (
+      currentGroup.title !== ctx.chat.title ||
+      currentGroup.type !== ctx.chat.type
+    ) {
+      currentGroup.title = ctx.chat.title;
+      currentGroup.type = ctx.chat.type;
+      await currentGroup.save();
+    }
 
     ctx.currentGroup = currentGroup;
   }

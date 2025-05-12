@@ -3,7 +3,7 @@ import Bot from '../../models/bot';
 import { MyContext } from '../types';
 import createDebug from 'debug';
 
-const debug = createDebug('bot:error');
+const debug = createDebug('bot:Resolver');
 
 const botResolver: Middleware<MyContext> = async (ctx, next) => {
   // 从Webhook路径或消息中获取机器人token

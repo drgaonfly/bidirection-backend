@@ -33,8 +33,7 @@ const groupSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ['group'],
-      default: 'group',
+      default: 'supergroup',
     },
     // 所属机器人
     bot: {

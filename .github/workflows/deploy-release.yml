@@ -1,4 +1,4 @@
-name: remote ssh command
+name: Auto Deploy to Release Server
 on:
   push:
     branches:

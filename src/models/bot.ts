@@ -1,5 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 import { IUser } from './user';
+import { IBotUser } from './botUser';
 
 export interface IBot extends Document {
   token: string;
@@ -10,6 +11,7 @@ export interface IBot extends Document {
   userName: string;
   menus: IMenu[];
   isOnline: boolean;
+  botUsers: mongoose.Schema.Types.ObjectId[] | IBotUser[];
 }
 
 export interface IMenu extends Document {
@@ -65,6 +67,12 @@ const botSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    botUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'BotUser',
+      },
+    ],
     menus: [menuSchema],
   },
   {

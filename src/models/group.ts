@@ -12,6 +12,7 @@ export interface IGroup extends Document {
   exchange_rate?: number;
   fee_rate?: number;
   isOnline: boolean; // 是否在线，不用显示在后台
+  botUsers: (mongoose.Schema.Types.ObjectId | IBotUser)[];
 }
 
 // 群组 Schema
@@ -73,6 +74,12 @@ const groupSchema = new mongoose.Schema(
       required: false,
       default: false,
     },
+    botUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'BotUser',
+      },
+    ],
   },
   {
     timestamps: true,

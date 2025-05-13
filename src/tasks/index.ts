@@ -1,10 +1,10 @@
 import setupDB from '../utils/db';
-import { checkIsOnline } from './cron/checkIsOnline';
+// import { checkIsOnline } from './cron/checkIsOnline';
 
 const task = async () => {
   await setupDB();
 
-  await checkIsOnline();
+  // await checkIsOnline();
   process.exit(0);
 };
 

@@ -2,7 +2,8 @@ import { Middleware } from 'grammy';
 import Bot from '../../models/bot';
 import { MyContext } from '../types';
 import createDebug from 'debug';
-import { startClientAndGetSession } from '../services/gramClient';
+import { gramClient, startClientAndGetSession } from '../services/gramClient';
+import { Api } from 'telegram';
 
 const debug = createDebug('bot:Resolver');
 
@@ -12,7 +13,15 @@ const botResolver: Middleware<MyContext> = async (ctx, next) => {
 
   debug('------------------session------------------');
   const session = await startClientAndGetSession(token);
+
   debug(session);
+
+  const user = await gramClient.invoke(
+    new Api.contacts.ResolveUsername({ username: 'infoswqz' }),
+  );
+  const { id, username, firstName, lastName } = user.users[0] as any;
+  debug('用户信息:', { id, username, firstName, lastName });
+  debug('id', id.value);
 
   if (!token) {
     await ctx.reply('无效的机器人访问令牌');

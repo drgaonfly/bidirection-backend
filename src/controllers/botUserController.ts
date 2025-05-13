@@ -45,8 +45,6 @@ const getbotUsers = handleAsync(async (req: RequestCustom, res: Response) => {
   const query = await buildQuery(req.query, req);
 
   const botUsers = await BotUser.find(query)
-    .populate('user')
-    .populate('bot')
     .sort('-createdAt') // Sort by creation time in descending order
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)

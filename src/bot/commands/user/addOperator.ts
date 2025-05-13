@@ -2,7 +2,6 @@ import { Composer } from 'grammy';
 import { MyContext } from '../../types';
 import createDebug from 'debug';
 import BotUser, { IBotUser } from '../../../models/botUser';
-import { IBot } from '../../../models/bot';
 
 const addOperatorCommand = new Composer<MyContext>();
 

@@ -27,6 +27,7 @@ const getTransactions = handleAsync(async (req: Request, res: Response) => {
   const transactions = await Transaction.find(query)
     .populate('bot')
     .sort('-createdAt') // Sort by creation time in descending order
+    .populate('group')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .exec();

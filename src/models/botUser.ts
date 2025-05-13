@@ -1,5 +1,4 @@
 import mongoose, { Document } from 'mongoose';
-import { IBot } from './bot';
 import { IBotUserMessage } from './botUserMessage';
 
 export interface IBotUser extends Document {

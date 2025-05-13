@@ -3,7 +3,6 @@ import { MyContext } from '../../../types';
 import createDebug from 'debug';
 import { isOperatorOrCreator } from '../../../../bot/middlewares/checkBotUser';
 import { checkGroup } from '../../../../bot/middlewares/checkGroup';
-import { checkIsOnline } from '../../../../bot/middlewares/checkIsOnline';
 
 const setExchangeRateCommand = new Composer<MyContext>();
 
@@ -20,7 +19,6 @@ setExchangeRateCommand.hears(
   /^设置(美元)?汇率\s*(\d+\.?\d*)$/,
   checkGroup,
   isOperatorOrCreator,
-  checkIsOnline,
   async (ctx) => {
     debug('ex');
 

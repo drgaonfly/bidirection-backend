@@ -3,8 +3,9 @@ import { MyContext } from '../../../types';
 import createDebug from 'debug';
 import BotUser from '../../../../models/botUser';
 import { isGroupCreator } from '../../../middlewares/checkBotUser';
-const addOperatorCommand = new Composer<MyContext>();
 import { checkGroup } from '../../../../bot/middlewares/checkGroup';
+
+const addOperatorCommand = new Composer<MyContext>();
 
 const debug = createDebug('bot:addOperator');
 

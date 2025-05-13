@@ -3,7 +3,6 @@ import { MyContext } from '../../../types';
 import createDebug from 'debug';
 import { isGroupCreator } from '../../../middlewares/checkBotUser';
 import { checkGroup } from '../../../../bot/middlewares/checkGroup';
-import { checkIsOnline } from '../../../../bot/middlewares/checkIsOnline';
 
 const showOperatorCommand = new Composer<MyContext>();
 
@@ -14,7 +13,6 @@ showOperatorCommand.hears(
   /^显示操作人/,
   checkGroup,
   isGroupCreator,
-  checkIsOnline,
   async (ctx) => {
     debug('showOperator');
     const currentGroup = ctx.currentGroup;

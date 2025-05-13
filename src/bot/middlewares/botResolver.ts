@@ -2,12 +2,17 @@ import { Middleware } from 'grammy';
 import Bot from '../../models/bot';
 import { MyContext } from '../types';
 import createDebug from 'debug';
+import { startClientAndGetSession } from '../services/gramClient';
 
 const debug = createDebug('bot:Resolver');
 
 const botResolver: Middleware<MyContext> = async (ctx, next) => {
   // 从Webhook路径或消息中获取机器人token
   const token = ctx.api.token;
+
+  debug('------------------session------------------');
+  const session = await startClientAndGetSession(token);
+  debug(session);
 
   if (!token) {
     await ctx.reply('无效的机器人访问令牌');

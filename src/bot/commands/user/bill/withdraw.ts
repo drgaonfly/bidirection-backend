@@ -5,12 +5,13 @@ import Transaction from '../../../../models/transaction';
 import { IdGen } from '../../../../utils/idGen';
 import { useSummary } from '../../../../utils/useEjsMessage';
 import { useTransactionData } from '../../../hook/summary';
+import { isOperatorOrCreator } from '../../../../bot/middlewares/checkBotUser';
 
 const withdrawCommand = new Composer<MyContext>();
 
 const debug = createDebug('bot:withdraw');
 
-withdrawCommand.hears(/^(下发)\s*(\d+)$/, async (ctx) => {
+withdrawCommand.hears(/^(下发)\s*(\d+)$/, isOperatorOrCreator, async (ctx) => {
   debug('bot:withdraw');
 
   const amount = ctx.match[2];

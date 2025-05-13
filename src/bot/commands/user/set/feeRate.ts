@@ -1,6 +1,7 @@
 import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
 import createDebug from 'debug';
+import { isOperatorOrCreator } from '../../../../bot/middlewares/checkBotUser';
 
 const setFeeRateCommand = new Composer<MyContext>();
 
@@ -14,22 +15,26 @@ const debug = createDebug('bot:fee');
 //   await ctx.reply('输入: 设置费率3 或 设置费率 3 的格式即可设置费率');
 // });
 
-setFeeRateCommand.hears(/^(\/)?设置费率\s*(\d+\.?\d*)\s*(%)?$/, async (ctx) => {
-  debug('fee');
+setFeeRateCommand.hears(
+  /^(\/)?设置费率\s*(\d+\.?\d*)\s*(%)?$/,
+  isOperatorOrCreator,
+  async (ctx) => {
+    debug('fee');
 
-  const feeRate = ctx.match[2];
-  if (!feeRate) {
-    await ctx.reply(
-      '请使用正确的格式：/设置费率 <费率>\n例如: /设置费率 3 或 设置费率2.5',
-    );
-    return;
-  }
+    const feeRate = ctx.match[2];
+    if (!feeRate) {
+      await ctx.reply(
+        '请使用正确的格式：/设置费率 <费率>\n例如: /设置费率 3 或 设置费率2.5',
+      );
+      return;
+    }
 
-  // 更新 ctx.botUser 的费率
-  ctx.currentGroup.fee_rate = Number(feeRate);
-  await ctx.currentGroup.save();
+    // 更新 ctx.botUser 的费率
+    ctx.currentGroup.fee_rate = Number(feeRate);
+    await ctx.currentGroup.save();
 
-  await ctx.reply(`费率已成功设置为 ${feeRate}%`);
-});
+    await ctx.reply(`费率已成功设置为 ${feeRate}%`);
+  },
+);
 
 export default setFeeRateCommand;

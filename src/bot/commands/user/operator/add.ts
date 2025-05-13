@@ -2,7 +2,7 @@ import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
 import createDebug from 'debug';
 import BotUser from '../../../../models/botUser';
-import { isGroupCreator } from '../../../middlewares/isGroupCreator';
+import { isGroupCreator } from '../../../middlewares/checkBotUser';
 const addOperatorCommand = new Composer<MyContext>();
 
 const debug = createDebug('bot:addOperator');

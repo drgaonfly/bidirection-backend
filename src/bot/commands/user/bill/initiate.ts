@@ -19,7 +19,7 @@ initiateCommand.hears(
 
     // 检查当前是否已经在记录
     if (!ctx.currentGroup.isOnline) {
-      ctx.currentGroup.isOnline = true;
+      ctx.currentGroup.startAt = new Date();
       await ctx.currentGroup.save();
       await ctx.reply('机器人开始记录今天账单');
     } else {

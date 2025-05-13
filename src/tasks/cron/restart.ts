@@ -12,10 +12,7 @@ export const ResetStartAtOfGroup = async (): Promise<void> => {
     );
 
     // 清空所有群组的startAt字段
-    const groupResult = await Group.updateMany(
-      {},
-      { $unset: { startAt: '' } },
-    ).exec();
+    await Group.updateMany({}, { $unset: { startAt: '' } }).exec();
 
     console.log('----------------------------------------------------');
     console.log('状态重置完成');

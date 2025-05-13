@@ -3,12 +3,13 @@ import { Composer } from 'grammy';
 import startComposer from './start';
 import helpComposer from './help';
 import callbackComposer from './callback';
-import setExchangeRateComposer from './setExchangeRate';
-import setFeeRateComposer from './setFeeRate';
+import setExchangeRateComposer from './set/exchangeRate';
+import setFeeRateComposer from './set/feeRate';
 import setInitiateComposer from './initiate';
 import depositCommand from './deposit';
 import withdrawComposer from './withdraw';
 import operatorComposer from './operator/index';
+import setComposer from './set';
 // import depositComposer from './deposit';
 // import withdrawComposer from './withdraw';
 
@@ -17,8 +18,7 @@ const userComposer = new Composer();
 
 userComposer.use(startComposer.middleware());
 userComposer.use(helpComposer.middleware());
-userComposer.use(setExchangeRateComposer.middleware());
-userComposer.use(setFeeRateComposer.middleware());
+userComposer.use(setComposer.middleware());
 userComposer.use(callbackComposer.middleware());
 userComposer.use(setInitiateComposer.middleware());
 userComposer.use(depositCommand.middleware());

@@ -1,5 +1,5 @@
 import { Composer } from 'grammy';
-import { MyContext } from '../../types';
+import { MyContext } from '../../../types';
 import createDebug from 'debug';
 
 const setFeeRateCommand = new Composer<MyContext>();

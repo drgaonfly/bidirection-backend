@@ -1,5 +1,5 @@
 import { Composer } from 'grammy';
-import { MyContext } from '../../types';
+import { MyContext } from '../../../types';
 import createDebug from 'debug';
 
 const initiateCommand = new Composer<MyContext>();
@@ -7,7 +7,7 @@ const initiateCommand = new Composer<MyContext>();
 const debug = createDebug('bot:initiate');
 
 initiateCommand.hears(/^开始$/, async (ctx) => {
-  debug('initiate');
+  debug('bot:initiate');
 
   // 检查当前是否已经在记录
   if (!ctx.currentGroup.isOnline) {

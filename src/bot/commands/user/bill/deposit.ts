@@ -1,27 +1,28 @@
 import { Composer } from 'grammy';
-import { MyContext } from '../../types';
+import { MyContext } from '../../../types';
 import createDebug from 'debug';
-import Transaction from '../../../models/transaction';
-import { IdGen } from '../../../utils/idGen';
-import { useSummary } from '../../../utils/useEjsMessage';
-import { useTransactionData } from '../../hook/summary';
+import Transaction from '../../../../models/transaction';
+import { IdGen } from '../../../../utils/idGen';
+import { useSummary } from '../../../../utils/useEjsMessage';
+import { useTransactionData } from '../../../hook/summary';
 
-const withdrawCommand = new Composer<MyContext>();
+const depositCommand = new Composer<MyContext>();
 
-const debug = createDebug('bot:error');
+const debug = createDebug('bot:deposit');
 
-withdrawCommand.hears(/^(下发)\s*(\d+)$/, async (ctx) => {
-  debug('bot:error');
+depositCommand.hears(/^(\+)\s*(\d+)$/, async (ctx) => {
+  debug('bot:withdraw');
 
   const amount = ctx.match[2];
+
   if (!amount) {
-    await ctx.reply('请使用正确的格式：下发<金额>\n例如: 下发100 或 下发 100');
+    await ctx.reply('请使用正确的格式：+<金额>\n例如: +100 或 + 100');
     return;
   }
 
   const bot = ctx.currentBot;
 
-  // const existingBotUser = ctx.currentBotUser;
+  // const botUser = ctx.currentBotUser;
 
   const transaction = new Transaction({
     id: await IdGen.next(Transaction, 'id', 6),
@@ -29,7 +30,7 @@ withdrawCommand.hears(/^(下发)\s*(\d+)$/, async (ctx) => {
     amount: Number(amount),
     botUser: ctx.currentBotUser,
     group: ctx.currentGroup,
-    type: 'withdraw',
+    type: 'deposit',
     exchange_rate: ctx.currentGroup.exchange_rate,
     fee_rate: ctx.currentGroup.fee_rate,
   });
@@ -55,4 +56,4 @@ withdrawCommand.hears(/^(下发)\s*(\d+)$/, async (ctx) => {
   await ctx.reply(message, { parse_mode: 'HTML' });
 });
 
-export default withdrawCommand;
+export default depositCommand;

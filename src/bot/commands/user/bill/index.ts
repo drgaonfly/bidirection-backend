@@ -1,0 +1,12 @@
+// src/composers/index.ts
+import { Composer } from 'grammy';
+import depositCommand from './deposit';
+import withdrawCommand from './withdraw';
+
+// 创建一个新的 Composer 实例
+const billComposer = new Composer();
+
+billComposer.use(depositCommand.middleware());
+billComposer.use(withdrawCommand.middleware());
+
+export default billComposer;

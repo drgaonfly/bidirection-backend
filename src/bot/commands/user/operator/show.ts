@@ -14,6 +14,8 @@ showOperatorCommand.hears(/^显示操作人/, async (ctx) => {
   // 从当前群组中获取操作人列表
   const operators = currentGroup?.operators || [];
 
+  debug('operators', operators);
+
   if (!operators.length) {
     await ctx.reply('当前群组没有设置操作人');
     return;
@@ -22,11 +24,11 @@ showOperatorCommand.hears(/^显示操作人/, async (ctx) => {
   // 格式化操作人名单
   const operatorNames = operators
     .map((op: any) =>
-      op.user.username
-        ? `@${op.user.username}`
-        : `${op.user.first_name || ''} ${op.user.last_name || ''}`.trim(),
+      op.userName
+        ? `@${op.userName}`
+        : `${op.firstName || ''} ${op.lastName || ''}`.trim(),
     )
-    .join(' ');
+    .join(', ');
 
   // 发送确认消息
   await ctx.reply(`当前群组的操作人: ${operatorNames}`);

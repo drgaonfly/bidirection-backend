@@ -7,6 +7,7 @@ import { useSummary } from '../../../../utils/useEjsMessage';
 import { useTransactionData } from '../../../hook/summary';
 import { isOperatorOrCreator } from '../../../../bot/middlewares/checkBotUser';
 import { checkGroup } from '../../../../bot/middlewares/checkGroup';
+import { checkIsOnline } from '../../../../bot/middlewares/checkIsOnline';
 
 const withdrawCommand = new Composer<MyContext>();
 
@@ -16,6 +17,7 @@ withdrawCommand.hears(
   /^(下发)\s*(\d+)$/,
   checkGroup,
   isOperatorOrCreator,
+  checkIsOnline,
   async (ctx) => {
     debug('bot:withdraw');
 

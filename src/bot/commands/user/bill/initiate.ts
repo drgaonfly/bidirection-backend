@@ -3,6 +3,8 @@ import { MyContext } from '../../../types';
 import createDebug from 'debug';
 import { isOperatorOrCreator } from '../../../../bot/middlewares/checkBotUser';
 import { checkGroup } from '../../../../bot/middlewares/checkGroup';
+import { checkIsOnline } from '../../../../bot/middlewares/checkIsOnline';
+
 const initiateCommand = new Composer<MyContext>();
 
 const debug = createDebug('bot:initiate');
@@ -11,6 +13,7 @@ initiateCommand.hears(
   /^开始$/,
   checkGroup,
   isOperatorOrCreator,
+  checkIsOnline,
   async (ctx) => {
     debug('bot:initiate');
 

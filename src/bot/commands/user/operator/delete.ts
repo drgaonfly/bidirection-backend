@@ -4,6 +4,7 @@ import createDebug from 'debug';
 import BotUser from '../../../../models/botUser';
 import { isGroupCreator } from '../../../middlewares/checkBotUser';
 import { checkGroup } from '../../../../bot/middlewares/checkGroup';
+import { checkIsOnline } from '../../../../bot/middlewares/checkIsOnline';
 
 const deleteOperatorCommand = new Composer<MyContext>();
 
@@ -14,6 +15,7 @@ deleteOperatorCommand.hears(
   /^删除操作人/,
   checkGroup,
   isGroupCreator,
+  checkIsOnline,
   async (ctx) => {
     debug('deleteOperator');
     const currentGroup = ctx.currentGroup;

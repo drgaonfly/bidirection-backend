@@ -3,6 +3,7 @@ import { MyContext } from '../../../types';
 import createDebug from 'debug';
 import { isOperatorOrCreator } from '../../../../bot/middlewares/checkBotUser';
 import { checkGroup } from '../../../../bot/middlewares/checkGroup';
+import { checkIsOnline } from '../../../../bot/middlewares/checkIsOnline';
 
 const setFeeRateCommand = new Composer<MyContext>();
 
@@ -20,6 +21,7 @@ setFeeRateCommand.hears(
   /^(\/)?设置费率\s*(\d+\.?\d*)\s*(%)?$/,
   checkGroup,
   isOperatorOrCreator,
+  checkIsOnline,
   async (ctx) => {
     debug('fee');
 

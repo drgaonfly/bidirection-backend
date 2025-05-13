@@ -17,8 +17,6 @@ export const ResetStartAtOfGroup = async (): Promise<void> => {
       { $unset: { startAt: '' } },
     ).exec();
 
-    console.log(`清空了 ${groupResult.modifiedCount} 个群组的开始时间`);
-
     console.log('----------------------------------------------------');
     console.log('状态重置完成');
   } catch (error) {

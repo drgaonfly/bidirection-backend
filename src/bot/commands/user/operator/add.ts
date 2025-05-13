@@ -64,7 +64,9 @@ addOperatorCommand.hears(
       .join(' ');
 
     // 发送确认消息
-    await ctx.reply(`已将 ${operatorNames} 设置为操作人`);
+    await ctx.reply(
+      `已将 ${operatorNames} 设置为操作人，共添加了 ${operators.length} 位操作员`,
+    );
   },
 );
 

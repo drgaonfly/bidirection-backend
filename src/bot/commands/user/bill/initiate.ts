@@ -1,12 +1,12 @@
 import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
 import createDebug from 'debug';
-
+import { isOperatorOrCreator } from '../../../../bot/middlewares/checkBotUser';
 const initiateCommand = new Composer<MyContext>();
 
 const debug = createDebug('bot:initiate');
 
-initiateCommand.hears(/^开始$/, async (ctx) => {
+initiateCommand.hears(/^开始$/, isOperatorOrCreator, async (ctx) => {
   debug('bot:initiate');
 
   // 检查当前是否已经在记录

@@ -30,6 +30,7 @@ withdrawCommand.hears(
     }
 
     const bot = ctx.currentBot;
+    const group = ctx.currentGroup;
 
     // const existingBotUser = ctx.currentBotUser;
 
@@ -50,7 +51,7 @@ withdrawCommand.hears(
 
     // 使用新的hook获取交易数据
     const { withdrawTimes, withdraws, depositTimes, deposits } =
-      await useTransactionData(bot);
+      await useTransactionData(group);
 
     const message = await renderSummary({
       depositTimes,

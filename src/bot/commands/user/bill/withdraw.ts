@@ -39,10 +39,10 @@ withdrawCommand.hears(
       bot,
       amount: Number(amount),
       botUser: ctx.currentBotUser,
-      group: ctx.currentGroup,
+      group: group,
       type: 'withdraw',
-      exchange_rate: ctx.currentGroup.exchange_rate,
-      fee_rate: ctx.currentGroup.fee_rate,
+      exchange_rate: group.exchange_rate,
+      fee_rate: group.fee_rate,
     });
 
     await transaction.save();
@@ -55,9 +55,9 @@ withdrawCommand.hears(
     const message = await renderSummary({
       deposits,
       withdraws,
-      feeRate: ctx.currentGroup.fee_rate,
-      exchangeRate: ctx.currentGroup.exchange_rate,
-      unit: 'USD',
+      feeRate: group.fee_rate,
+      exchangeRate: group.exchange_rate,
+      unit: group.unit,
     });
 
     await ctx.reply(message, { parse_mode: 'HTML' });

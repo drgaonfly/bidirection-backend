@@ -32,7 +32,7 @@ showBillCommand.hears(
       withdraws,
       feeRate: group.fee_rate,
       exchangeRate: group.exchange_rate,
-      unit: 'USD',
+      unit: group.unit,
     });
 
     await ctx.reply(message, { parse_mode: 'HTML' });

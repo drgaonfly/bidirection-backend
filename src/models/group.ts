@@ -14,6 +14,7 @@ export interface IGroup extends Document {
   isOnline: boolean; // 是否在线，不用显示在后台
   botUsers: (mongoose.Schema.Types.ObjectId | IBotUser)[];
   startAt?: Date;
+  unit?: string;
 }
 
 // 群组 Schema

@@ -56,7 +56,7 @@ depositCommand.hears(
       withdraws,
       feeRate: ctx.currentGroup.fee_rate,
       exchangeRate: ctx.currentGroup.exchange_rate,
-      unit: '元',
+      unit: 'USD',
     });
 
     await ctx.reply(message, { parse_mode: 'HTML' });

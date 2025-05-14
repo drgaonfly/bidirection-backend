@@ -13,4 +13,5 @@ export type MyContext = CustomContext & {
   currentBot?: IBot; // 当前机器人实例
   currentBotUser?: IBotUser; // 当前机器人用户
   currentGroup?: IGroup;
+  currentBotSession?: string;
 };

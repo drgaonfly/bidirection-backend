@@ -4,73 +4,112 @@ import createDebug from 'debug';
 import BotUser from '../../../../models/botUser';
 import { isGroupCreator } from '../../../middlewares/checkBotUser';
 import { checkGroup } from '../../../../bot/middlewares/checkGroup';
+import { createTelegramClient } from '../../../services/gramClient';
+import { Api } from 'telegram';
 
 const addOperatorCommand = new Composer<MyContext>();
-
 const debug = createDebug('bot:addOperator');
 
-// 匹配 "设置操作人@机器人名 @用户" 格式的命令
+// 处理两种提及类型
 addOperatorCommand.hears(
-  /.*设置为操作人.*|^设置操作人.*/,
+  /(设置操作人|设置为操作人)/,
   checkGroup,
   isGroupCreator,
   async (ctx) => {
     const currentGroup = ctx.currentGroup;
 
-    debug(ctx.message.entities);
-    const operators = ctx.message.entities.filter(
-      (entity: any) => entity.user !== undefined,
-    );
+    // 分离两种提及类型
+    const textMentions =
+      ctx.message.entities?.filter((e) => e.type === 'text_mention') || [];
+    const mentions =
+      ctx.message.entities?.filter((e) => e.type === 'mention') || [];
+    debug('textMentions:', textMentions);
+    debug('mentions:', mentions);
 
-    debug('operators');
-    debug(operators);
+    // 合并处理结果
+    const operators = [
+      ...textMentions.map((e: any) => e.user), // 直接获取 text_mention 用户
+      ...(await processUsernameMentions(ctx, mentions)), // 处理 @username 提及
+    ].filter((v, i, a) => a.findIndex((t) => t.id === v.id) === i); // 去重
 
-    // 存储新的操作人信息
+    debug('最终操作人列表:', operators);
+
+    if (operators.length === 0) {
+      await ctx.reply('未找到有效的操作人，请检查输入格式');
+      return;
+    }
+
+    // 数据库操作保持不变
     const newOperators = [];
-
-    for (const operator of operators) {
-      const {
-        user: { id, username, first_name, last_name },
-      } = operator as any;
-
+    for (const user of operators) {
       const botUser = await BotUser.findOneAndUpdate(
-        { id: id.toString() },
+        { id: user.id.toString() },
         {
           $set: {
-            userName: username,
-            firstName: first_name,
-            lastName: last_name,
+            userName: user.username,
+            firstName: user.first_name,
+            lastName: user.last_name,
           },
         },
         { new: true, upsert: true },
       );
-
       newOperators.push(botUser._id);
     }
 
-    // 将新的操作人添加到当前群组的操作人列表中
     await currentGroup.updateOne({
-      $addToSet: {
-        operators: {
-          $each: newOperators,
-        },
-      },
+      $addToSet: { operators: { $each: newOperators } },
     });
 
-    // 格式化操作人名单
     const operatorNames = operators
-      .map((op: any) =>
-        op.user.username
-          ? `@${op.user.username}`
-          : `${op.user.first_name || ''} ${op.user.last_name || ''}`.trim(),
+      .map((user) =>
+        user.username
+          ? `@${user.username}`
+          : `${user.first_name || ''} ${user.last_name || ''}`.trim(),
       )
       .join(' ');
 
-    // 发送确认消息
     await ctx.reply(
-      `已将 ${operatorNames} 设置为操作人，共添加了 ${operators.length} 位操作员`,
+      `已设置操作人：${operatorNames}，共添加 ${operators.length} 位`,
     );
   },
 );
+
+// 处理 @username 类型提及
+async function processUsernameMentions(ctx: MyContext, mentions: any[]) {
+  const resolvedUsers = [];
+
+  if (!ctx.currentBotSession) {
+    await ctx.reply('session 不存在，请先使用 /start 命令初始化 session');
+    return [];
+  }
+
+  for (const entity of mentions) {
+    const mentionText = ctx.message.text.substring(
+      entity.offset,
+      entity.offset + entity.length,
+    );
+    const mentionUsername = mentionText.replace('@', '').trim();
+
+    const gramClient = createTelegramClient(ctx.currentBotSession);
+    await gramClient.connect();
+    const user = await gramClient.invoke(
+      new Api.contacts.ResolveUsername({ username: mentionUsername }),
+    );
+    const { id, username, firstName, lastName } = user.users[0] as any;
+    debug('用户信息:', { id, username, firstName, lastName });
+    debug('id', id.value);
+
+    debug('处理 @username 提及:', username);
+
+    resolvedUsers.push({
+      id,
+      username,
+      first_name: firstName,
+      last_name: lastName,
+    }); // 直接添加到数组中，无需创建 BotUser
+  }
+
+  return resolvedUsers;
+}
 
 export default addOperatorCommand;

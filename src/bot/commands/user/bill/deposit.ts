@@ -19,7 +19,7 @@ depositCommand.hears(
   isOperatorOrCreator,
   checkIsOnline,
   async (ctx) => {
-    debug('bot:withdraw');
+    debug('bot:deposit');
 
     const amount = ctx.match[2];
 

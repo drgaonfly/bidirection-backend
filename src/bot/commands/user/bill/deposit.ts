@@ -18,26 +18,26 @@ async function handleDeposit(ctx: MyContext) {
   debug('bot:deposit');
 
   const amount = ctx.match[2];
+  const hasUsdt = ctx.match[3];
 
   if (!amount) {
-    await ctx.reply('请使用正确的格式：+<金额>\n例如: +100 或 + 100');
+    await ctx.reply('请使用正确的格式：+<金额>[u]\n例如: +100 或 +100u');
     return;
   }
 
   const bot = ctx.currentBot;
   const group = ctx.currentGroup;
 
-  // const botUser = ctx.currentBotUser;
-
   const transaction = new Transaction({
     id: await IdGen.next(Transaction, 'id', 6),
     bot,
-    amount: Number(amount),
+    amount: hasUsdt ? Number(amount) * group.exchange_rate : Number(amount),
     botUser: ctx.currentBotUser,
     group: group,
     type: 'deposit',
     exchange_rate: group.exchange_rate,
     fee_rate: group.fee_rate,
+    usdt_amount: hasUsdt ? Number(amount) : undefined,
   });
 
   await transaction.save();
@@ -59,7 +59,7 @@ async function handleDeposit(ctx: MyContext) {
 }
 
 depositCommand.hears(
-  /^(\+|入款)\s*(-?\d+\.?\d*)$/,
+  /^(\+|入款)\s*(-?\d+\.?\d*)(u|U)?$/,
   checkGroup,
   isOperatorOrCreator,
   checkIsOnline,

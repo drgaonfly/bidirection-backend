@@ -68,4 +68,14 @@ depositCommand.hears(
   },
 );
 
+depositCommand.hears(
+  /^(\-)\s*(-?\d+\.?\d*)$/,
+  checkGroup,
+  isOperatorOrCreator,
+  checkIsOnline,
+  async (ctx) => {
+    await handleDeposit(ctx);
+  },
+);
+
 export default depositCommand;

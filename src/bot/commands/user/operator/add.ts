@@ -11,7 +11,7 @@ const addOperatorCommand = new Composer<MyContext>();
 const debug = createDebug('bot:addOperator');
 
 // 通过 username 获取用户信息
-async function getUserByUsername(session: any, username: string) {
+export async function getUserByUsername(session: any, username: string) {
   debug('username', username);
   const gramClient = createTelegramClient(session);
   try {
@@ -37,7 +37,7 @@ async function getUserByUsername(session: any, username: string) {
 
 // 处理两种提及类型
 addOperatorCommand.hears(
-  /(设置操作人|设置为操作人)/,
+  /(设置操作人|设置为操作人|添加操作人|设置操作员|添加操作员|设置为操作员)/,
   checkGroup,
   isGroupCreator,
   async (ctx) => {
@@ -60,13 +60,24 @@ addOperatorCommand.hears(
     debug('从文本提取的用户名:', usernamesFromText);
 
     // 合并处理结果
-    const operators = [
+    let operators = [
       ...textMentions.map((e: any) => e.user), // 直接获取 text_mention 用户
-      ...(await processUsernameMentions(ctx, mentions)), // 处理 @username 提及
+      // ...(await processUsernameMentions(ctx, mentions)), // 处理 @username 提及
       ...(await processTextUsernames(ctx, usernamesFromText)), // 处理文本中的 @用户名
     ].filter((v, i, a) => a.findIndex((t) => t.id === v.id) === i); // 去重
 
     debug('最终操作人列表:', operators);
+
+    // 对 operators 数组进行去重，根据用户 ID 去重
+    operators = operators.reduce((acc, current) => {
+      const exists = acc.find(
+        (item) => item.id.toString() === current.id.toString(),
+      );
+      if (!exists) {
+        acc.push(current);
+      }
+      return acc;
+    }, []);
 
     if (operators.length === 0) {
       await ctx.reply('未找到有效的操作人，请使用"设置操作人 @用户名"的格式');
@@ -109,7 +120,7 @@ addOperatorCommand.hears(
 );
 
 // 处理 @username 类型提及
-async function processUsernameMentions(ctx: MyContext, mentions: any[]) {
+export async function processUsernameMentions(ctx: MyContext, mentions: any[]) {
   const resolvedUsers = [];
 
   if (!ctx.currentBotSession) {
@@ -143,7 +154,10 @@ async function processUsernameMentions(ctx: MyContext, mentions: any[]) {
 }
 
 // 处理文本中的用户名
-async function processTextUsernames(ctx: MyContext, usernames: string[]) {
+export async function processTextUsernames(
+  ctx: MyContext,
+  usernames: string[],
+) {
   const resolvedUsers = [];
 
   if (!ctx.currentBotSession) {

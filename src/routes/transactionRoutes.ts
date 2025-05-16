@@ -9,6 +9,7 @@ import {
   getSummary,
   getTransactionByDate,
   exportToExcel,
+  getAllTransactions,
 } from '../controllers/transactionController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
@@ -26,6 +27,8 @@ router
   .get(protect, checkPermission, getTransactions)
   .post(protect, checkPermission, addTransaction)
   .delete(protect, checkPermission, deleteMultipleTransactions);
+
+router.route('/all').get(protect, checkPermission, getAllTransactions);
 
 router
   .route('/:id')

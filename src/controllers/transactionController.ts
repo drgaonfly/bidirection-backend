@@ -74,6 +74,9 @@ const getTransactions = handleAsync(async (req: Request, res: Response) => {
   res.json({
     success: true,
     data: transactions,
+    total: await Transaction.countDocuments(query),
+    current: +current,
+    pageSize: +pageSize,
   });
 });
 
@@ -191,6 +194,22 @@ export const getFilteredTransactions = handleAsync(
     });
   },
 );
+
+// 获取所有交易记录
+// 获取所有交易记录
+const getAllTransactions = handleAsync(async (req: Request, res: Response) => {
+  const query = buildQuery(req.query);
+
+  const transactions = await Transaction.find(query)
+    .sort('-createdAt') // Sort by creation time in descending order
+    .exec();
+
+  res.json({
+    success: true,
+    data: transactions,
+    total: await Transaction.countDocuments(query),
+  });
+});
 
 // 根据日期获取交易记录
 const getTransactionByDate = handleAsync(
@@ -372,4 +391,5 @@ export {
   getSummary,
   getTransactionByDate,
   exportToExcel,
+  getAllTransactions,
 };

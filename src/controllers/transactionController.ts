@@ -215,6 +215,7 @@ const getTransactionByDate = handleAsync(
       ...dateCondition,
       group: group,
     })
+      .populate('botUser')
       .sort('-createdAt')
       .skip((+current - 1) * +pageSize)
       .limit(+pageSize)

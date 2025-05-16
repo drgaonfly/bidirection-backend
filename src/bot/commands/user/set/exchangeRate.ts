@@ -6,7 +6,7 @@ import { checkGroup } from '../../../../bot/middlewares/checkGroup';
 
 const setExchangeRateCommand = new Composer<MyContext>();
 
-const debug = createDebug('bot:ex');
+const debug = createDebug('bot:exchangeRate');
 
 // 处理设置汇率命令
 // setExchangeRateCommand.command('ex', async (ctx) => {
@@ -16,24 +16,27 @@ const debug = createDebug('bot:ex');
 // });
 
 setExchangeRateCommand.hears(
-  /^设置(美元)?汇率\s*(\d+\.?\d*)$/,
+  /设置(.+)?汇率\s*(\d+\.?\d*)$/,
   checkGroup,
   isOperatorOrCreator,
   async (ctx) => {
-    debug('ex');
+    debug('exchangeRate');
 
     const exchangeRate = ctx.match[2];
-    const currency = ctx.match[1] || '美元'; // 如果匹配到美元就用美元，否则默认美元
+    const currency = ctx.match[1] || 'USD'; // 如果没有指定货币单位，默认使用美元
+
+    debug('exchangeRate', exchangeRate, currency); // 输出匹配到的货币单位和汇率，用于调试和日志记录
 
     if (!exchangeRate) {
       await ctx.reply(
-        '请使用正确的格式：/设置美元汇率 <汇率>\n例如: /设置美元汇率 6.8 或 /美元汇率6.8',
+        '请使用正确的格式：设置<货币>汇率 <汇率>\n例如: 设置美元汇率 6.8 或 设置EUR汇率6.8',
       );
       return;
     }
 
-    // 更新用户的汇率设置
+    // 更新用户的汇率设置和货币单位
     ctx.currentGroup.exchange_rate = Number(exchangeRate);
+    ctx.currentGroup.unit = currency;
     await ctx.currentGroup.save();
 
     await ctx.reply(`${currency}汇率已成功设置为 ${exchangeRate}`);

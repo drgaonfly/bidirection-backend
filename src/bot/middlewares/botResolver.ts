@@ -2,6 +2,7 @@ import { Middleware } from 'grammy';
 import Bot from '../../models/bot';
 import { MyContext } from '../types';
 import createDebug from 'debug';
+// import { startClientAndGetSession } from '../services/gramClient';
 
 const debug = createDebug('bot:Resolver');
 
@@ -40,6 +41,7 @@ const botResolver: Middleware<MyContext> = async (ctx, next) => {
 
   // 附加到上下文
   ctx.currentBot = currentBot;
+  ctx.currentBotSession = currentBot.session;
 
   // 继续处理后续中间件
   await next();

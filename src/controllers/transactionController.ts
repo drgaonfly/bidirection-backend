@@ -245,18 +245,24 @@ const getSummary = handleAsync(async (req: Request, res: Response) => {
   // 构建日期过滤条件
   const dateCondition = buildDateCondition(dateFilter as string);
 
-  // 获取所有交易记录
-  const transactions = await Transaction.find({
-    ...dateCondition,
-    group: group,
-  });
+  // // 获取所有交易记录
+  // const transactions = await Transaction.find({
+  //   ...dateCondition,
+  //   group: group
+  // })
 
   // 计算汇总数据
-  const depositTransactions = transactions.filter((t) => t.type === 'deposit');
+  const depositTransactions = await Transaction.find({
+    ...dateCondition,
+    group: group,
+    type: 'deposit',
+  });
 
-  const withdrawTransactions = transactions.filter(
-    (t) => t.type === 'withdraw',
-  );
+  const withdrawTransactions = await Transaction.find({
+    ...dateCondition,
+    group: group,
+    type: 'withdraw',
+  });
 
   const totalDeposit = depositTransactions.reduce(
     (sum, t) => sum + t.amount,

@@ -246,23 +246,15 @@ const getSummary = handleAsync(async (req: Request, res: Response) => {
   const dateCondition = buildDateCondition(dateFilter as string);
 
   // 获取所有交易记录
-  const transactions = await Transaction.find(dateCondition)
-    .populate('bot')
-    .populate('botUser')
-    .populate('group')
-    .exec();
-
-  // 过滤出transactions中group.id 符合 c的记录
-  const filteredTransactions = transactions.filter(
-    (transaction) => (transaction.group as IGroup).id === group_id,
-  );
+  const transactions = await Transaction.find({
+    ...dateCondition,
+    group: group,
+  });
 
   // 计算汇总数据
-  const depositTransactions = filteredTransactions.filter(
-    (t) => t.type === 'deposit',
-  );
+  const depositTransactions = transactions.filter((t) => t.type === 'deposit');
 
-  const withdrawTransactions = filteredTransactions.filter(
+  const withdrawTransactions = transactions.filter(
     (t) => t.type === 'withdraw',
   );
 

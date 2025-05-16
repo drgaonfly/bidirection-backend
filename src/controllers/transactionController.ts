@@ -326,7 +326,7 @@ const exportToExcel = handleAsync(async (req: Request, res: Response) => {
   // 添加数据行
   filteredTransactions.forEach((transaction) => {
     worksheet.addRow({
-      time: new Date(transaction.createdAt).toLocaleString(),
+      time: new Date(transaction.createdAt).toLocaleTimeString(),
       type: transaction.type === 'deposit' ? '入款' : '下发',
       amount: transaction.amount,
       operator: `${(transaction.botUser as IBotUser).userName}`,

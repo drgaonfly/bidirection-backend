@@ -166,66 +166,66 @@ const deleteMultipleTransactions = handleAsync(
   },
 );
 
-export const getFilteredTransactions = handleAsync(
-  async (req: Request, res: Response) => {
-    const { type } = req.query;
+// export const getFilteredTransactions = handleAsync(
+//   async (req: Request, res: Response) => {
+//     const { type } = req.query;
 
-    // Build query based on type parameter
-    const query: any = {};
-    if (type === 'exchange_rate') {
-      query.exchange_rate = { $exists: true };
-    } else if (type === 'fee_rate') {
-      query.fee_rate = { $exists: true };
-    } else {
-      res.json({
-        success: true,
-        data: [],
-      });
-    }
-    // Execute query with type filter
-    const transactions = await Transaction.find(query)
-      .sort('-createdAt')
-      .lean()
-      .exec();
+//     // Build query based on type parameter
+//     const query: any = {};
+//     if (type === 'exchange_rate') {
+//       query.exchange_rate = { $exists: true };
+//     } else if (type === 'fee_rate') {
+//       query.fee_rate = { $exists: true };
+//     } else {
+//       res.json({
+//         success: true,
+//         data: [],
+//       });
+//     }
+//     // Execute query with type filter
+//     const transactions = await Transaction.find(query)
+//       .sort('-createdAt')
+//       .lean()
+//       .exec();
 
-    res.json({
-      success: true,
-      data: transactions,
-    });
-  },
-);
+//     res.json({
+//       success: true,
+//       data: transactions,
+//     });
+//   },
+// );
 
 // 根据日期获取交易记录
+
 const getTransactionByDate = handleAsync(
   async (req: Request, res: Response) => {
     const { dateFilter, current = '1', pageSize = '10', groupId } = req.query;
 
     const group_id = Number(groupId);
 
+    const group = await Group.findOne({
+      id: group_id,
+    });
+
     // 构建日期过滤条件
     const dateCondition = buildDateCondition(dateFilter as string);
 
-    // 获取总记录数
-    const total = await Transaction.countDocuments(dateCondition);
-
     // 获取过滤后的交易记录，带分页
-    const transactions = await Transaction.find(dateCondition)
-      .populate('bot')
-      .populate('botUser')
-      .populate('group')
+    const transactions = await Transaction.find({
+      ...dateCondition,
+      group: group,
+    })
       .sort('-createdAt')
       .skip((+current - 1) * +pageSize)
       .limit(+pageSize)
       .exec();
 
-    // 过滤出transactions中group.id 符合 c的记录
-    const filteredTransactions = transactions.filter(
-      (transaction) => (transaction.group as IGroup).id === group_id,
-    );
+    // 获取总记录数
+    const total = transactions.length;
 
     res.json({
       success: true,
-      data: filteredTransactions,
+      data: transactions,
       total,
       current: +current,
       pageSize: +pageSize,

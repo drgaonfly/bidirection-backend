@@ -6,10 +6,20 @@ import {
   updateTransaction,
   deleteTransaction,
   deleteMultipleTransactions,
+  getSummary,
+  getTransactionByDate,
+  exportToExcel,
 } from '../controllers/transactionController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
+
+// 前端获取
+router.get('/f/all', getTransactionByDate);
+
+router.get('/f/summary', getSummary);
+
+router.get('/f/export', exportToExcel);
 
 router
   .route('/')

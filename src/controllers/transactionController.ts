@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Transaction from '../models/transaction';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
+import * as ExcelJS from 'exceljs';
 
 // Build query based on query parameters
 const buildQuery = (queryParams: any): any => {
@@ -18,6 +19,35 @@ const buildQuery = (queryParams: any): any => {
   return query;
 };
 
+// 构建日期过滤条件
+const buildDateCondition = (dateFilter: string) => {
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  if (dateFilter === 'today') {
+    return { createdAt: { $gte: startOfDay } };
+  }
+
+  // 处理 day-1 到 day-6
+  const dayMatch = dateFilter.match(/^day-(\d+)$/);
+  if (dayMatch) {
+    const daysAgo = parseInt(dayMatch[1], 10);
+    if (daysAgo >= 1 && daysAgo <= 6) {
+      return {
+        createdAt: {
+          $gte: new Date(startOfDay.getTime() - daysAgo * 24 * 60 * 60 * 1000),
+          $lt: new Date(
+            startOfDay.getTime() - (daysAgo - 1) * 24 * 60 * 60 * 1000,
+          ),
+        },
+      };
+    }
+  }
+
+  // 默认返回空条件
+  return {};
+};
+
 // 获取所有交易记录
 const getTransactions = handleAsync(async (req: Request, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
@@ -26,6 +56,7 @@ const getTransactions = handleAsync(async (req: Request, res: Response) => {
 
   const transactions = await Transaction.find(query)
     .populate('bot')
+    .populate('botUser')
     .sort('-createdAt') // Sort by creation time in descending order
     .populate('group')
     .skip((+current - 1) * +pageSize)
@@ -153,6 +184,152 @@ export const getFilteredTransactions = handleAsync(
   },
 );
 
+// 根据日期获取交易记录
+const getTransactionByDate = handleAsync(
+  async (req: Request, res: Response) => {
+    const { dateFilter, current = '1', pageSize = '10' } = req.query;
+
+    // 构建日期过滤条件
+    const dateCondition = buildDateCondition(dateFilter as string);
+
+    // 获取总记录数
+    const total = await Transaction.countDocuments(dateCondition);
+
+    // 获取过滤后的交易记录，带分页
+    const transactions = await Transaction.find(dateCondition)
+      .populate('bot')
+      .populate('botUser')
+      .populate('group')
+      .sort('-createdAt')
+      .skip((+current - 1) * +pageSize)
+      .limit(+pageSize)
+      .exec();
+
+    res.json({
+      success: true,
+      data: transactions,
+      total,
+      current: +current,
+      pageSize: +pageSize,
+    });
+  },
+);
+
+const getSummary = handleAsync(async (req: Request, res: Response) => {
+  const { dateFilter } = req.query;
+
+  // 构建日期过滤条件
+  const dateCondition = buildDateCondition(dateFilter as string);
+
+  // 获取所有交易记录
+  const transactions = await Transaction.find(dateCondition)
+    .populate('bot')
+    .populate('botUser')
+    .populate('group')
+    .exec();
+
+  // 计算汇总数据
+  const depositTransactions = transactions.filter((t) => t.type === 'deposit');
+  const withdrawTransactions = transactions.filter(
+    (t) => t.type === 'withdraw',
+  );
+
+  const totalDeposit = depositTransactions.reduce(
+    (sum, t) => sum + t.amount,
+    0,
+  );
+  const totalWithdraw = withdrawTransactions.reduce(
+    (sum, t) => sum + t.amount,
+    0,
+  );
+
+  // 假设费率和汇率为固定值，实际应用中可能需要从配置或数据库中获取
+  const feeRate = 0.02; // 2%
+  const usdRate = 4.5; // 1 USDT = 4.5 MYR
+
+  const expectedWithdraw = totalDeposit * (1 - feeRate);
+
+  res.json({
+    success: true,
+    data: {
+      totalDeposit,
+      totalWithdraw,
+      feeRate,
+      usdRate,
+      expectedWithdraw,
+    },
+  });
+});
+
+// 导出Excel数据
+const exportToExcel = handleAsync(async (req: Request, res: Response) => {
+  const { dateFilter } = req.query;
+
+  // 构建日期过滤条件
+  const dateCondition = buildDateCondition(dateFilter as string);
+
+  // 获取过滤后的交易记录
+  const transactions = await Transaction.find(dateCondition)
+    .populate('bot')
+    .populate('botUser')
+    .populate('group')
+    .sort('-createdAt')
+    .exec();
+
+  // 创建工作簿和工作表
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('交易记录');
+
+  // 设置列头
+  worksheet.columns = [
+    { header: '时间', key: 'time', width: 20 },
+    { header: '类型', key: 'type', width: 10 },
+    { header: '金额', key: 'amount', width: 15 },
+    { header: '操作人', key: 'operator', width: 20 },
+    { header: '回复人', key: 'responder', width: 20 },
+    { header: '机器人', key: 'bot', width: 15 },
+  ];
+
+  // 添加数据行
+  transactions.forEach((transaction) => {
+    worksheet.addRow({
+      time: new Date(transaction.createdAt).toLocaleString(),
+      type: transaction.type === 'deposit' ? '入款' : '下发',
+      amount: transaction.amount,
+      operator: `${transaction.botUser.firstName} ${transaction.botUser.lastName}`,
+      responder: transaction.group.name,
+      bot: transaction.bot.botName,
+    });
+  });
+
+  // 设置样式
+  worksheet.getRow(1).font = { bold: true };
+  worksheet.eachRow((row, rowNumber) => {
+    row.eachCell((cell) => {
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      };
+    });
+  });
+
+  // 设置响应头
+  res.setHeader(
+    'Content-Type',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  );
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename=transactions-${dateFilter || 'all'}.xlsx`,
+  );
+
+  // 写入响应
+  await workbook.xlsx.write(res);
+  res.end();
+});
+
 export {
   getTransactions,
   getTransactionById,
@@ -160,4 +337,7 @@ export {
   updateTransaction,
   deleteTransaction,
   deleteMultipleTransactions,
+  getSummary,
+  getTransactionByDate,
+  exportToExcel,
 };

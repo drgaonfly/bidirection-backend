@@ -8,6 +8,7 @@ import { useTransactionData } from '../../../hook/summary';
 import { isOperatorOrCreator } from '../../../../bot/middlewares/checkBotUser';
 import { checkGroup } from '../../../../bot/middlewares/checkGroup';
 import { checkIsOnline } from '../../../../bot/middlewares/checkIsOnline';
+import { sendBillMessage } from './deposit';
 
 const withdrawCommand = new Composer<MyContext>();
 
@@ -65,23 +66,13 @@ withdrawCommand.hears(
       unit: group.unit,
     });
 
+    let needFullBill = false;
+
     if (deposits.length >= 5 || withdraws.length >= 5) {
-      await ctx.reply(message, {
-        parse_mode: 'HTML',
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: '点击跳转完整账单',
-                url: `${process.env.FRONTEND_URL}/c=${group.id}`,
-              },
-            ],
-          ],
-        },
-      });
-    } else {
-      await ctx.reply(message, { parse_mode: 'HTML' });
+      needFullBill = true;
     }
+
+    await sendBillMessage(ctx, message, group, needFullBill);
   },
 );
 

@@ -6,6 +6,7 @@ import { useTransactionData } from '../../../hook/summary';
 import { isOperatorOrCreator } from '../../../../bot/middlewares/checkBotUser';
 import { checkGroup } from '../../../../bot/middlewares/checkGroup';
 import { checkIsOnline } from '../../../../bot/middlewares/checkIsOnline';
+import { sendBillMessage } from './deposit';
 
 const showBillCommand = new Composer<MyContext>();
 
@@ -35,7 +36,13 @@ showBillCommand.hears(
       unit: group.unit,
     });
 
-    await ctx.reply(message, { parse_mode: 'HTML' });
+    let needFullBill = false;
+
+    if (deposits.length >= 5 || withdraws.length >= 5) {
+      needFullBill = true;
+    }
+
+    await sendBillMessage(ctx, message, group, needFullBill);
   },
 );
 

@@ -13,6 +13,32 @@ const depositCommand = new Composer<MyContext>();
 
 const debug = createDebug('bot:deposit');
 
+// 发送账单消息
+export async function sendBillMessage(
+  ctx: MyContext,
+  message: string,
+  group: any,
+  needFullBill: boolean,
+) {
+  if (needFullBill) {
+    await ctx.reply(message, {
+      parse_mode: 'HTML',
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: '点击跳转完整账单',
+              url: `${process.env.FRONTEND_URL}/c=${group.id}`,
+            },
+          ],
+        ],
+      },
+    });
+  } else {
+    await ctx.reply(message, { parse_mode: 'HTML' });
+  }
+}
+
 // 处理存款的主要逻辑
 async function handleDeposit(ctx: MyContext) {
   debug('bot:deposit');
@@ -55,23 +81,13 @@ async function handleDeposit(ctx: MyContext) {
     unit: group.unit,
   });
 
+  let needFullBill = false;
+
   if (deposits.length >= 5 || withdraws.length >= 5) {
-    await ctx.reply(message, {
-      parse_mode: 'HTML',
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: '点击跳转完整账单',
-              url: `${process.env.FRONTEND_URL}/c=${group.id}`,
-            },
-          ],
-        ],
-      },
-    });
-  } else {
-    await ctx.reply(message, { parse_mode: 'HTML' });
+    needFullBill = true;
   }
+
+  await sendBillMessage(ctx, message, group, needFullBill);
 }
 
 depositCommand.hears(

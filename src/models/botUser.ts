@@ -17,10 +17,20 @@ const botUserSchema = new mongoose.Schema(
     lastName: { type: String, required: false },
     messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BotUserMessage' }],
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
 );
 
 botUserSchema.index({ id: 1, bot: 1 }, { unique: true });
+
+botUserSchema.virtual('transactions', {
+  ref: 'Transaction',
+  localField: '_id',
+  foreignField: 'botUser',
+});
 
 const BotUser = mongoose.model<IBotUser>('BotUser', botUserSchema);
 

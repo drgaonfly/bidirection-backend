@@ -45,6 +45,7 @@ const getbotUsers = handleAsync(async (req: RequestCustom, res: Response) => {
   const query = await buildQuery(req.query, req);
 
   const botUsers = await BotUser.find(query)
+    .populate('transactions')
     .sort('-createdAt') // Sort by creation time in descending order
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -58,7 +59,9 @@ const getbotUsers = handleAsync(async (req: RequestCustom, res: Response) => {
 
 // 根据 ID 获取Telegram用户
 const getbotUserById = handleAsync(async (req: Request, res: Response) => {
-  const getBotUser = await BotUser.findById(req.params.id).exec();
+  const getBotUser = await BotUser.findById(req.params.id)
+    .populate('transactions')
+    .exec();
 
   if (!getBotUser) {
     res.status(404);

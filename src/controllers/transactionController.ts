@@ -195,28 +195,12 @@ export const getFilteredTransactions = handleAsync(
   },
 );
 
-// 获取所有交易记录
-// 获取所有交易记录
-const getAllTransactions = handleAsync(async (req: Request, res: Response) => {
-  const query = buildQuery(req.query);
-
-  const transactions = await Transaction.find(query)
-    .sort('-createdAt') // Sort by creation time in descending order
-    .exec();
-
-  res.json({
-    success: true,
-    data: transactions,
-    total: await Transaction.countDocuments(query),
-  });
-});
-
 // 根据日期获取交易记录
 const getTransactionByDate = handleAsync(
   async (req: Request, res: Response) => {
-    const { dateFilter, current = '1', pageSize = '10', c } = req.query;
+    const { dateFilter, current = '1', pageSize = '10', groupId } = req.query;
 
-    const group_id = Number(c);
+    const group_id = Number(groupId);
 
     // 构建日期过滤条件
     const dateCondition = buildDateCondition(dateFilter as string);
@@ -250,9 +234,13 @@ const getTransactionByDate = handleAsync(
 );
 
 const getSummary = handleAsync(async (req: Request, res: Response) => {
-  const { dateFilter, c } = req.query;
+  const { dateFilter, groupId } = req.query;
 
-  const group_id = Number(c);
+  const group_id = Number(groupId);
+
+  const group = await Group.findOne({
+    id: group_id,
+  });
 
   // 构建日期过滤条件
   const dateCondition = buildDateCondition(dateFilter as string);
@@ -288,20 +276,15 @@ const getSummary = handleAsync(async (req: Request, res: Response) => {
     0,
   );
 
-  // 假设费率和汇率为固定值，实际应用中可能需要从配置或数据库中获取
-  const feeRate = await Group.findOne({ id: group_id }).select('fee_rate');
-
-  const usdRate = await Group.findOne({ id: group_id }).select('exchange_rate');
-
-  const expectedWithdraw = totalDeposit * (1 - Number(feeRate));
+  const expectedWithdraw = totalDeposit * (1 - Number(group.fee_rate));
 
   res.json({
     success: true,
     data: {
       totalDeposit,
       totalWithdraw,
-      feeRate: feeRate.fee_rate,
-      usdRate: usdRate.exchange_rate,
+      feeRate: group.fee_rate,
+      usdRate: group.exchange_rate,
       expectedWithdraw,
     },
   });
@@ -309,9 +292,9 @@ const getSummary = handleAsync(async (req: Request, res: Response) => {
 
 // 导出Excel数据
 const exportToExcel = handleAsync(async (req: Request, res: Response) => {
-  const { dateFilter, c } = req.query;
+  const { dateFilter, groupId } = req.query;
 
-  const group_id = Number(c);
+  const group_id = Number(groupId);
 
   // 构建日期过滤条件
   const dateCondition = buildDateCondition(dateFilter as string);
@@ -391,5 +374,4 @@ export {
   getSummary,
   getTransactionByDate,
   exportToExcel,
-  getAllTransactions,
 };

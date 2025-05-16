@@ -4,7 +4,7 @@ import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
 import { IBotUser } from '../models/botUser';
 import { IBot } from '../models/bot';
-import { IGroup } from '../models/group';
+import Group, { IGroup } from '../models/group';
 import * as ExcelJS from 'exceljs';
 
 // Build query based on query parameters
@@ -270,10 +270,12 @@ const getSummary = handleAsync(async (req: Request, res: Response) => {
   );
 
   // 假设费率和汇率为固定值，实际应用中可能需要从配置或数据库中获取
-  const feeRate = 0.02; // 2%
-  const usdRate = 4.5; // 1 USDT = 4.5 MYR
+  const feeRate = await Group.findOne({ id: group_id })
+    .select('fee_rate')
+    .exec();
+  const usdRate = 4.5;
 
-  const expectedWithdraw = totalDeposit * (1 - feeRate);
+  const expectedWithdraw = totalDeposit * (1 - Number(feeRate));
 
   res.json({
     success: true,

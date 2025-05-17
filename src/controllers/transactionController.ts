@@ -223,20 +223,27 @@ const getTransactionByDate = handleAsync(
       .limit(+pageSize)
       .exec();
 
-    // 获取对应type的总记录数
-    const type_total = transactions.length;
-
     // 获取真实的总记录数
-    const total = await Transaction.countDocuments({
+    const total = transactions.length;
+
+    // 获取对应type的总记录数
+    const deposit_total = await Transaction.countDocuments({
       ...dateCondition,
       group: group,
+      type: 'deposit',
     });
-    // 如果total小于pageSize，说明是最后一页，需要获取真实的总记录数
+
+    const withdraw_total = await Transaction.countDocuments({
+      ...dateCondition,
+      group: group,
+      type: 'withdraw',
+    });
 
     res.json({
       success: true,
       data: transactions,
-      type_total,
+      deposit_total,
+      withdraw_total,
       total,
       current: +current,
       pageSize: +pageSize,

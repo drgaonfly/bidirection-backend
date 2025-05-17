@@ -31,4 +31,13 @@ export const startWebHookBot = async () => {
   }
 };
 
-startWebHookBot();
+startWebHookBot()
+  .then(() => {
+    // 执行完成后退出进程
+    process.exit(0);
+  })
+  .catch((error) => {
+    // 发生错误时打印错误并以错误状态码退出
+    console.error('启动 Webhook Bot 时发生错误:', error);
+    process.exit(1);
+  });

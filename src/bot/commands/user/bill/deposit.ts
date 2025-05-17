@@ -28,7 +28,7 @@ export async function sendBillMessage(
           [
             {
               text: '点击跳转完整账单',
-              url: `${process.env.FRONTEND_URL}/c=${group.id}`,
+              url: `${process.env.FRONTEND_URL}/${group.id}`,
             },
           ],
         ],

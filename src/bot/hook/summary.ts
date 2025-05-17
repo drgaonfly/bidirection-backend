@@ -22,9 +22,7 @@ export const useTransactionData = async (group: IGroup) => {
         $gte: today,
         $lt: tomorrow,
       },
-    })
-      .sort({ createdAt: -1 })
-      .limit(10),
+    }).sort({ createdAt: -1 }),
     Transaction.find({
       group: group._id,
       type: 'withdraw',
@@ -32,9 +30,7 @@ export const useTransactionData = async (group: IGroup) => {
         $gte: today,
         $lt: tomorrow,
       },
-    })
-      .sort({ createdAt: -1 })
-      .limit(10),
+    }).sort({ createdAt: -1 }),
   ]);
 
   // 按照创建时间正序排序

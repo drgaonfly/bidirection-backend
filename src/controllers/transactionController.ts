@@ -199,7 +199,13 @@ const deleteMultipleTransactions = handleAsync(
 
 const getTransactionByDate = handleAsync(
   async (req: Request, res: Response) => {
-    const { dateFilter, current = '1', pageSize = '10', groupId } = req.query;
+    const {
+      dateFilter,
+      current = '1',
+      pageSize = '10',
+      groupId,
+      type,
+    } = req.query;
 
     const group_id = Number(groupId);
 
@@ -214,6 +220,7 @@ const getTransactionByDate = handleAsync(
     const transactions = await Transaction.find({
       ...dateCondition,
       group: group,
+      type: type,
     })
       .populate('botUser')
       .populate('group')

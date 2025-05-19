@@ -33,14 +33,6 @@ export const useTransactionData = async (group: IGroup) => {
     }).sort({ createdAt: -1 }),
   ]);
 
-  // // 按照创建时间正序排序
-  // deposits = deposits.sort(
-  //   (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
-  // );
-  // withdraws = withdraws.sort(
-  //   (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
-  // );
-
   return {
     deposits,
     withdraws,

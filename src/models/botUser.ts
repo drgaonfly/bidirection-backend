@@ -1,12 +1,21 @@
 import mongoose, { Document } from 'mongoose';
 import { IBotUserMessage } from './botUserMessage';
 
+export enum UserStatus {
+  UNAUTHORIZED = 'unauthorized', // 未授权
+  TRIAL = 'trial', // 试用中
+  TRIAL_EXPIRED = 'trialExpired', // 试用过期
+  AUTHORIZED = 'authorized', // 已授权
+}
+
 export interface IBotUser extends Document {
   id: string;
   userName: string;
   firstName: string;
   lastName: string;
   messages: mongoose.Types.ObjectId[] | IBotUserMessage[];
+  status: UserStatus;
+  trialEndDate: Date | null;
 }
 
 const botUserSchema = new mongoose.Schema(
@@ -16,6 +25,17 @@ const botUserSchema = new mongoose.Schema(
     firstName: { type: String, required: false },
     lastName: { type: String, required: false },
     messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BotUserMessage' }],
+    status: {
+      type: String,
+      enum: Object.values(UserStatus),
+      default: UserStatus.UNAUTHORIZED,
+      required: true,
+    },
+    trialEndDate: {
+      type: Date,
+      required: false,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -23,7 +43,6 @@ const botUserSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   },
 );
-
 botUserSchema.index({ id: 1, bot: 1 }, { unique: true });
 
 botUserSchema.virtual('transactions', {

@@ -63,6 +63,14 @@ export const setupBot = (token: string) => {
   // 回复任何消息 "Hi there!"。
   // bot.on('message', (ctx) => ctx.reply('Hi there!'));
 
+  bot.callbackQuery('close', async (ctx) => {
+    log('用户点击了按钮: close');
+    // 删除原消息
+    await ctx.deleteMessage();
+    // 可选：发送反馈提示（客户端显示短暂提示）
+    await ctx.answerCallbackQuery({ text: '消息已删除' });
+  });
+
   bot.on('callback_query:data', async (ctx) => {
     log('callback_query:data');
     const data = ctx.callbackQuery?.data;

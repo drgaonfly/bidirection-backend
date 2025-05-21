@@ -6,7 +6,7 @@ import callbackComposer from './callback';
 import operatorComposer from './operator';
 import setComposer from './set';
 import billComposer from './bill';
-import contactComposer from './contact/customerService';
+import contactComposer from './contact';
 import subscriptionComposer from './subscription';
 
 // 创建一个新的 Composer 实例

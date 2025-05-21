@@ -14,3 +14,13 @@ export const useSummary = () => {
     return await ejs.renderFile(templatePath, data);
   };
 };
+
+export const useCustomerService = () => {
+  return async (data: { url: string; channel: string; group: string }) => {
+    const templatePath = path.join(
+      __dirname,
+      '../templates/customerService.ejs',
+    );
+    return await ejs.renderFile(templatePath, data);
+  };
+};

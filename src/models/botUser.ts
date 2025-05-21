@@ -1,26 +1,12 @@
 import mongoose, { Document } from 'mongoose';
 import { IBotUserMessage } from './botUserMessage';
-import { SubscriptionPlan } from './subscription';
 import { ITransaction } from './transaction';
-
-export enum UserStatus {
-  UNAUTHORIZED = 'unauthorized', // 未授权
-  TRIAL = 'trial', // 试用中
-  TRIAL_EXPIRED = 'trialExpired', // 试用过期
-  AUTHORIZED = 'authorized', // 已授权
-}
-
 export interface IBotUser extends Document {
   id: string;
   userName: string;
   firstName: string;
   lastName: string;
   messages: mongoose.Types.ObjectId[] | IBotUserMessage[];
-  status: UserStatus;
-  // trialEndDate: Date | null;
-  // subscriptionEndDate?: Date;
-  currentPlan?: SubscriptionPlan;
-  isTrailed?: boolean;
   createdAt: Date;
   updatedAt: Date;
   transactions: ITransaction[]; // 虚拟字段，指向 Transaction 模型的 _id 数组
@@ -33,32 +19,6 @@ const botUserSchema = new mongoose.Schema(
     firstName: { type: String, required: false },
     lastName: { type: String, required: false },
     messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BotUserMessage' }],
-    status: {
-      type: String,
-      enum: Object.values(UserStatus),
-      default: UserStatus.UNAUTHORIZED,
-      required: true,
-    },
-    // trialEndDate: {
-    //   type: Date,
-    //   required: false,
-    //   default: null,
-    // },
-    // subscriptionEndDate: {
-    //   type: Date,
-    //   required: false,
-    //   default: null,
-    // },
-    currentPlan: {
-      type: String,
-      enum: Object.values(SubscriptionPlan),
-      required: false,
-    },
-    isTrailed: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
   },
   {
     timestamps: true,

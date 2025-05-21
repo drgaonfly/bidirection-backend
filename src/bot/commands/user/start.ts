@@ -66,11 +66,11 @@ startCommand.command('start', async (ctx) => {
   });
 
   // 发送消息和组合后的按钮
-  await ctx.reply(bot.message || '欢迎使用机器人', {
+  await ctx.reply('欢迎使用机器人', {
     reply_markup: combinedKeyboard,
   });
 
-  await ctx.reply('start', {
+  await ctx.reply(bot.message || '欢迎使用机器人', {
     reply_markup: mainKeyboard,
   });
 });

@@ -10,6 +10,7 @@ import { commandsList } from './commandsList';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { Context } from 'grammy'; // 确保导入 Context
 import createDebug from 'debug';
+import botUserConfigResolver from './middlewares/botUserConfigResolver';
 
 const log = createDebug('bot:setup');
 
@@ -50,6 +51,7 @@ export const setupBot = (token: string) => {
 
   bot.use(botResolver);
   bot.use(botUserResolver);
+  bot.use(botUserConfigResolver);
   bot.use(groupResolver);
   bot.use(errorHandler);
   bot.use(logger);

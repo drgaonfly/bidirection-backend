@@ -23,11 +23,11 @@ userProfileCommand.hears(/个人信息/, checkInBot, async (ctx) => {
   const message = await renderUserProfile({
     userId: botUser.id,
     userName: botUser.userName,
+    nickname: `${botUser.firstName || ''} ${botUser.lastName || ''}`.trim(),
     registerDate,
     totalPurchase: 0,
-    // currentBalance: botUser,
+    currentBalance: ctx.currentBotUserConfig.balance,
   });
-
   // 添加联系客服按钮，使用url参数直接跳转到客服链接
   await ctx.reply(message, {
     parse_mode: 'HTML',

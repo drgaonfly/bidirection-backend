@@ -25,6 +25,20 @@ export const useCustomerService = () => {
   };
 };
 
+// 创建用户资料模板渲染函数
+export const useUserProfile = () => {
+  return async (data: {
+    userId: string;
+    userName: string;
+    registerDate: string;
+    totalPurchase: number;
+    // currentBalance: number;
+  }) => {
+    const templatePath = path.join(__dirname, '../templates/userProfile.ejs');
+    return await ejs.renderFile(templatePath, data);
+  };
+};
+
 export const useRenewal = () => {
   return async () => {
     const templatePath = path.join(__dirname, '../templates/renewal.ejs');

@@ -1,6 +1,7 @@
 import mongoose, { Document } from 'mongoose';
 import { IBotUserMessage } from './botUserMessage';
 import { SubscriptionPlan } from './subscription';
+import { ITransaction } from './transaction';
 
 export enum UserStatus {
   UNAUTHORIZED = 'unauthorized', // 未授权
@@ -20,6 +21,9 @@ export interface IBotUser extends Document {
   // subscriptionEndDate?: Date;
   currentPlan?: SubscriptionPlan;
   isTrailed?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  transactions: ITransaction[]; // 虚拟字段，指向 Transaction 模型的 _id 数组
 }
 
 const botUserSchema = new mongoose.Schema(

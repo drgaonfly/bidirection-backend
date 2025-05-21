@@ -1,8 +1,8 @@
 import { Composer, InlineKeyboard } from 'grammy';
-import { MyContext } from '../../types';
+import { MyContext } from '../../../types';
 import createDebug from 'debug';
-import { startClientAndGetSession } from '../../services/gramClient';
-import mainKeyboard from '../../menus/keyboards/mainKeyboard';
+import { startClientAndGetSession } from '../../../services/gramClient';
+import mainKeyboard from '../../../menus/keyboards/mainKeyboard';
 
 const startCommand = new Composer<MyContext>();
 

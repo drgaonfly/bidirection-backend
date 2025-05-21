@@ -1,5 +1,5 @@
 // src/composers/callback.ts
-import { CallbackQueryContext, Composer, Context } from 'grammy';
+import { CallbackQueryContext, Composer } from 'grammy';
 import createDebug from 'debug';
 import { sendHelpMessage } from './help';
 import { MyContext } from '../../../types';

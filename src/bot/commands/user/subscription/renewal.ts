@@ -3,10 +3,10 @@ import { MyContext } from '../../../types';
 import renewal from '../../../menus/inline/renewal';
 import { useRenewal } from '../../../../utils/useEjsMessage';
 import createDebug from 'debug';
-import Subscription, {
-  SubscriptionPlan,
-  SubscriptionStatus,
-} from '../../../../models/subscription';
+// import Subscription, {
+//   SubscriptionPlan,
+//   SubscriptionStatus,
+// } from '../../../../models/subscription';
 
 const renewalCommand = new Composer<MyContext>();
 const debug = createDebug('bot:renewal');

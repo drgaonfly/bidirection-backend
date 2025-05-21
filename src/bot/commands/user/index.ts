@@ -16,9 +16,13 @@ const userComposer = new Composer();
 
 userComposer.use(startComposer.middleware());
 userComposer.use(helpComposer.middleware());
+
+// 在群里使用的
 userComposer.use(operatorComposer.middleware());
 userComposer.use(setComposer.middleware());
 userComposer.use(billComposer.middleware());
+
+// 在机器人使用的
 userComposer.use(profileComposer.middleware());
 userComposer.use(startingComposer.middleware());
 userComposer.use(contactComposer.middleware());

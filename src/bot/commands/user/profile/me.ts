@@ -2,12 +2,13 @@ import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
 import createDebug from 'debug';
 import { useUserProfile } from '../../../../utils/useEjsMessage';
+import { checkInBot } from '../../../../bot/middlewares/checkInBot';
 
 const userProfileCommand = new Composer<MyContext>();
 const debug = createDebug('bot:user-profile');
 
 // 监听"用户中心"文本消息
-userProfileCommand.hears(/个人信息/, async (ctx) => {
+userProfileCommand.hears(/个人信息/, checkInBot, async (ctx) => {
   debug('用户中心命令被触发');
 
   // 查找用户信息

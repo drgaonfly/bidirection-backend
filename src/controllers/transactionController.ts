@@ -3,25 +3,42 @@ import Transaction from '../models/transaction';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
 import { IBotUser } from '../models/botUser';
-import { IBot } from '../models/bot';
+import Bot, { IBot } from '../models/bot';
 import Group, { IGroup } from '../models/group';
 import * as ExcelJS from 'exceljs';
 
 // Build query based on query parameters
-const buildQuery = (queryParams: any): any => {
+const buildQuery = async (queryParams: any) => {
   const query: any = {};
 
   if (queryParams.bot) {
-    query.bot = queryParams.bot;
+    const botData = await Bot.find({
+      botName: {
+        $regex: queryParams.bot,
+        $options: 'i',
+      },
+    });
+
+    if (botData && botData.length > 0) {
+      query.bot = { $in: botData.map((bot) => bot._id) };
+    }
   }
 
-  if (queryParams.to_user) {
-    query.to_user = queryParams.to_user;
+  if (queryParams.type) {
+    query.type = queryParams.type;
   }
 
-  // 添加群组过滤条件
-  if (queryParams.c) {
-    query.group = queryParams.c;
+  if (queryParams.group) {
+    const groupData = await Group.find({
+      groupName: {
+        $regex: queryParams.group,
+        $options: 'i',
+      },
+    });
+
+    if (groupData && groupData.length > 0) {
+      query.group = { $in: groupData.map((group) => group._id) };
+    }
   }
 
   return query;
@@ -60,7 +77,7 @@ const buildDateCondition = (dateFilter: string) => {
 const getTransactions = handleAsync(async (req: Request, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
-  const query = buildQuery(req.query);
+  const query = await buildQuery(req.query);
 
   const transactions = await Transaction.find(query)
     .populate('bot')

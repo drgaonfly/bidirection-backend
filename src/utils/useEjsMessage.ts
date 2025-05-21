@@ -24,3 +24,10 @@ export const useCustomerService = () => {
     return await ejs.renderFile(templatePath, data);
   };
 };
+
+export const useRenewal = () => {
+  return async () => {
+    const templatePath = path.join(__dirname, '../templates/renewal.ejs');
+    return await ejs.renderFile(templatePath);
+  };
+};

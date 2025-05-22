@@ -13,7 +13,11 @@ const buildQuery = async (queryParams: any, req: RequestCustom) => {
   const query: any = {};
 
   if (queryParams.userName) {
-    query.userName = { $regex: queryParams.userName, $options: 'i' };
+    // 如果用户名以@开头,去掉@符号
+    const processedUserName = queryParams.userName.startsWith('@')
+      ? queryParams.userName.substring(1)
+      : queryParams.userName;
+    query.userName = { $regex: processedUserName, $options: 'i' };
   }
   if (queryParams.firstName) {
     query.firstName = { $regex: queryParams.firstName, $options: 'i' };

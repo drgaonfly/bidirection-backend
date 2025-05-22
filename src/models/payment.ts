@@ -4,6 +4,8 @@ import { IWallet } from './wallet';
 import { IBot } from './bot';
 
 export interface IPayment extends Document {
+  id: string;
+  orderNumber: string;
   wallet: Schema.Types.ObjectId | IWallet;
   amount: number;
   status: 'pending' | 'paid' | 'expired';
@@ -19,6 +21,8 @@ export interface IPayment extends Document {
 
 const paymentSchema = new Schema<IPayment>(
   {
+    id: { type: String, required: true, unique: true },
+    orderNumber: { type: String, required: true },
     wallet: { type: Schema.Types.ObjectId, ref: 'Wallet', required: true },
     amount: { type: Number, required: true },
     status: {

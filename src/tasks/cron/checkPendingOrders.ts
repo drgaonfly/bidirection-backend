@@ -1,12 +1,10 @@
 import Payment from '../../models/payment';
-import Subscription, {
-  SubscriptionStatus,
-  renewalOptions,
-} from '../../models/subscription';
+import Subscription, { SubscriptionStatus } from '../../models/subscription';
 import { IBotUser } from '../../models/botUser';
 import { IBot } from '../../models/bot';
 import { setupBot } from '../../bot/botSetup';
 import { IdGen } from '../../utils/idGen';
+import BotUserConfig, { UserStatus } from '../../models/botUserConfig';
 
 /**
  * 检查所有 pending 的 payment，自动为其生成订阅记录
@@ -47,10 +45,27 @@ export async function checkPendingOrders() {
       // 生成订阅起止时间
       const now = new Date();
       const days = payment.subscriptionInfo.days;
-      const expiredAt = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
-
+      // 先查找当前 BotUserConfig，获取原有的 subscriptionEndDate
       const botUser = payment.botUser as IBotUser;
       const bot = payment.bot as IBot;
+
+      const userConfig = await BotUserConfig.findOne({
+        bot: bot._id,
+        botUser: botUser._id,
+      });
+
+      let baseDate = new Date();
+      if (
+        userConfig &&
+        userConfig.subscriptionEndDate &&
+        userConfig.subscriptionEndDate > baseDate
+      ) {
+        // 如果原有订阅还没过期，则从原有订阅结束时间顺延
+        baseDate = userConfig.subscriptionEndDate;
+      }
+      const expiredAt = new Date(
+        baseDate.getTime() + days * 24 * 60 * 60 * 1000,
+      );
 
       // 创建订阅记录
       const subscription = new Subscription({
@@ -69,6 +84,17 @@ export async function checkPendingOrders() {
       payment.subscription = subscription._id;
       payment.status = 'paid';
       await payment.save();
+
+      // 同步更新 BotUserConfig 表
+      await BotUserConfig.findOneAndUpdate(
+        { bot: bot._id, botUser: botUser._id },
+        {
+          status: UserStatus.AUTHORIZED,
+          subscriptionEndDate: expiredAt,
+          currentPlan: payment.subscriptionInfo.type,
+        },
+        { new: true },
+      );
 
       // 发送支付成功通知
       const telegramBot = setupBot(bot.token);

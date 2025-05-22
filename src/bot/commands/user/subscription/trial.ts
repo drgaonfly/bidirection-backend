@@ -56,13 +56,23 @@ trialCommand.hears(/申请试用/, checkInBot, async (ctx) => {
   // 构建回复消息
   const message =
     `恭喜您获得12小时免费试用！\n\n` +
-    `试用开始时间：${new Date().toLocaleString()}\n` +
-    `试用结束时间：${trialEndDate.toLocaleString()}\n\n` +
+    `试用开始时间：<b>${new Date().toLocaleString()}</b>\n` +
+    `试用结束时间：<b>${trialEndDate.toLocaleString()}</b>\n\n` +
     `请在试用期间体验我们的服务。如果您对服务满意，可以随时订阅以继续使用。`;
 
   // 直接回复试用链接
   await ctx.reply(message, {
     parse_mode: 'HTML',
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: '🚀 开始使用',
+            url: `https://t.me/${ctx.me.username}?startgroup=start`,
+          },
+        ],
+      ],
+    },
   });
 });
 

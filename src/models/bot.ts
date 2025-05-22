@@ -15,6 +15,7 @@ export interface IBot extends Document {
   session?: string;
   customer_service_link?: string;
   contact?: string;
+  trx20_address?: string;
 }
 
 export interface IMenu extends Document {
@@ -86,6 +87,10 @@ const botSchema = new mongoose.Schema(
       trim: true,
     },
     contact: {
+      type: String,
+      trim: true,
+    },
+    trx20_address: {
       type: String,
       trim: true,
     },

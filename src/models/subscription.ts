@@ -2,13 +2,35 @@
 import mongoose, { Document } from 'mongoose';
 import { IBotUser } from './botUser';
 
-export enum SubscriptionPlan {
-  // Half Month
-  Weekly = 'weekly',
-  Biweekly = 'biweekly',
-  Monthly = 'monthly',
-  Quarterly = 'quarterly',
+export interface RenewalOption {
+  days: number;
+  price: number;
+  type: string;
+  label: string;
 }
+
+export const renewalOptions: Record<string, RenewalOption> = {
+  biweekly: {
+    days: 15,
+    price: 60,
+    type: 'subscribe:biweekly',
+    label: '15天',
+  },
+  monthly: {
+    days: 30,
+    price: 100,
+    type: 'subscribe:monthly',
+    label: '一个月',
+  },
+  quarterly: {
+    days: 90,
+    price: 230,
+    type: 'subscribe:quarterly',
+    label: '三个月',
+  },
+};
+
+export type SubscriptionPlan = keyof typeof renewalOptions;
 
 export enum SubscriptionStatus {
   Active = 'active',
@@ -35,7 +57,7 @@ const subscriptionSchema = new mongoose.Schema(
     },
     plan: {
       type: String,
-      enum: Object.values(SubscriptionPlan),
+      enum: Object.keys(renewalOptions),
       required: true,
     },
     status: {

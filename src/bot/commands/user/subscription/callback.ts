@@ -71,15 +71,14 @@ callbackComposer.callbackQuery(
 
     // 发送支付信息给用户
     await ctx.reply(
-      `${renewalOption?.label} 订单支付信息\n\n` +
+      `<b>订单支付信息</b>\n\n` +
         `订阅类型: ${renewalOption?.label}\n` +
-        `订阅时长: ${renewalOption?.days}天\n` +
         `订单金额: ${payment.amount} USDT\n\n` +
-        `收款地址：\n${address} (点击地址可自动复制)\n\n` +
+        `trx-20 收款地址：\n<code>${address}</code> (点击地址可自动复制)\n\n` +
         `注意事项：\n` +
         `1. 请务必按指定金额转账，否则无法自动化延期。\n` +
         `2. 转账成功10秒钟左右即可自动续费成功。\n` +
-        `3. 如遇到问题，请联系 记账机器人售后客服: @xat01\n\n` +
+        `3. 如遇到问题，请联系 记账机器人售后客服: @xxx\n\n` +
         `⚠️ 订单将在15分钟后失效，请尽快完成支付`,
       {
         parse_mode: 'HTML',

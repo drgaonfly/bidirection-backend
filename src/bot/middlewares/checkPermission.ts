@@ -18,6 +18,9 @@ const checkUserPermission = (
   // 如果邀请进群的人也是授权用户
   if ((group.creator as IBotUser)?.isAuthorized) return true;
 
+  // 如果是试用过期状态，不允许使用
+  if (botUserConfig.status === UserStatus.TRIAL_EXPIRED) return false;
+
   // 检查是否在试用期内
   if (botUserConfig.status === UserStatus.TRIAL && botUserConfig.trialEndDate) {
     const now = new Date();

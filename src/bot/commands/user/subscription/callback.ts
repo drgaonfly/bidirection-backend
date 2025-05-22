@@ -84,8 +84,6 @@ callbackComposer.callbackQuery(
         parse_mode: 'HTML',
       },
     );
-
-    await ctx.reply('xxx');
   },
 );
 

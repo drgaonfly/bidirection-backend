@@ -5,6 +5,7 @@ import { handleRenewalMessage } from './renewal';
 import { MyContext } from '../../../types';
 import Payment from '../../../../models/payment';
 import { renewalOptions } from '../../../../models/subscription';
+import { IdGen } from '../../../../utils/idGen';
 
 const debug = createDebug('bot:subscription:callback');
 
@@ -43,8 +44,6 @@ callbackComposer.callbackQuery(
     });
     const address = bot.trx20_address;
 
-    const customer_service_link = bot.customer_service_link;
-
     if (!address) {
       await ctx.reply('机器人还未设置收款地址');
       return;
@@ -52,6 +51,8 @@ callbackComposer.callbackQuery(
 
     // 创建一个新的支付记录
     const payment = new Payment({
+      id: await IdGen.next(Payment, 'id', 6),
+      orderNumber: await IdGen.next(Payment, 'orderNumber', 6),
       receiveAddress: address,
       amount: renewalOption?.price, // 使用对应的价格
       status: 'pending',

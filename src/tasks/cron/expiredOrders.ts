@@ -17,27 +17,21 @@ export async function checkExpiredOrders() {
       payment.status = 'expired';
       await payment.save();
 
-      // 如果有bot实例，发送通知给用户
-      if (payment.botUser) {
-        const botUser = await BotUser.findById(payment.botUser);
-        const dbBot = payment.bot as IBot;
-        const bot = setupBot(dbBot.token);
+      const botUser = await BotUser.findById(payment.botUser);
+      const dbBot = payment.bot as IBot;
+      const bot = setupBot(dbBot.token);
 
-        if (botUser?.id) {
-          await bot.api.sendMessage(
-            botUser.id,
-            `⌛ 订单 #${payment._id} 已超时未支付，自动取消。\n` +
-              `如需重新支付请使用 /pay 命令`,
-          );
-        }
+      if (botUser?.id) {
+        await bot.api.sendMessage(
+          botUser.id,
+          `⌛ 订单 #${payment._id} 已超时未支付，自动取消。\n` +
+            `如需重新支付请使用 /pay 命令`,
+        );
       }
 
       console.log(`订单 ${payment._id} 已标记为过期`);
     }
-
-    return { processed: expiredPayments.length };
   } catch (error) {
     console.error('处理过期订单时出错:', error);
-    return { error: error.message };
   }
 }

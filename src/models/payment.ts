@@ -2,9 +2,13 @@ import mongoose, { Document, Schema } from 'mongoose';
 import { IBotUser } from './botUser';
 import { IBot } from './bot';
 import { ISubscription } from './subscription';
+import { IWallet } from './wallet';
 
 export interface IPayment extends Document {
   // wallet: Schema.Types.ObjectId | IWallet;
+  id: string;
+  orderNumber: string;
+  wallet: Schema.Types.ObjectId | IWallet;
   amount: number;
   status: 'pending' | 'paid' | 'expired';
   type: 'recharge' | 'subscription';
@@ -37,7 +41,9 @@ const subscriptionInfoSchema = new Schema(
 
 const paymentSchema = new Schema<IPayment>(
   {
-    // wallet: { type: Schema.Types.ObjectId, ref: 'Wallet', required: true },
+    id: { type: String, required: true, unique: true },
+    orderNumber: { type: String, required: true },
+    wallet: { type: Schema.Types.ObjectId, ref: 'Wallet', required: true },
     amount: { type: Number, required: true },
     status: {
       type: String,

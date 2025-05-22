@@ -52,7 +52,7 @@ callbackComposer.callbackQuery(
     // 创建一个新的支付记录
     const payment = new Payment({
       id: await IdGen.next(Payment, 'id', 6),
-      orderNumber: await IdGen.next(Payment, 'orderNumber', 6),
+      // orderNumber: await IdGen.next(Payment, 'orderNumber', 6),
       receiveAddress: address,
       amount: renewalOption?.price, // 使用对应的价格
       status: 'pending',

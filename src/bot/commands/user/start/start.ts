@@ -3,14 +3,14 @@ import { MyContext } from '../../../types';
 import createDebug from 'debug';
 import { startClientAndGetSession } from '../../../services/gramClient';
 import mainKeyboard from '../../../menus/keyboards/mainKeyboard';
-import { checkBillPermission } from '../../../../bot/middlewares/checkBillPermission';
+import { checkPermission } from '../../../middlewares/checkPermission';
 
 const startCommand = new Composer<MyContext>();
 
 const debug = createDebug('bot:start');
 
 // 开始命令处理
-startCommand.command('start', checkBillPermission, async (ctx) => {
+startCommand.command('start', checkPermission, async (ctx) => {
   debug('start');
   const chatId = ctx.chat.id; // 获取群组 ID
   const bot = ctx.currentBot;

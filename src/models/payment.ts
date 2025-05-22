@@ -17,7 +17,23 @@ export interface IPayment extends Document {
   botUser: Schema.Types.ObjectId | IBotUser;
   bot: Schema.Types.ObjectId | IBot;
   subscription: Schema.Types.ObjectId | ISubscription; // 关联的订阅记录
+  subscriptionInfo?: {
+    price: number;
+    type: string;
+    days: number;
+    label: string;
+  };
 }
+
+const subscriptionInfoSchema = new Schema(
+  {
+    price: { type: Number, required: true },
+    type: { type: String, required: true },
+    days: { type: Number, required: true },
+    label: { type: String, required: true },
+  },
+  { _id: false },
+);
 
 const paymentSchema = new Schema<IPayment>(
   {
@@ -56,7 +72,11 @@ const paymentSchema = new Schema<IPayment>(
       ref: 'Bot',
       required: true,
     }, // 订单所属的bot
-    receiveAddress: { type: String, required: false },
+    receiveAddress: { type: String, required: true },
+    subscriptionInfo: {
+      type: subscriptionInfoSchema,
+      required: false,
+    }, // 订阅信息详情
   },
   { timestamps: true },
 );

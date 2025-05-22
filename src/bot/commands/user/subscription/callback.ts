@@ -4,6 +4,7 @@ import createDebug from 'debug';
 import { handleRenewalMessage } from './renewal';
 import { MyContext } from '../../../types';
 import Payment from '../../../../models/payment';
+import { renewalOptions } from '../../../../models/subscription';
 
 const debug = createDebug('bot:subscription:callback');
 
@@ -22,35 +23,68 @@ callbackComposer.callbackQuery(
 );
 
 callbackComposer.callbackQuery(
-  'subscribe:biweekly',
+  /^subscribe:/,
   async (ctx: CallbackQueryContext<MyContext>) => {
     const data = ctx.callbackQuery?.data;
+    const bot = ctx.currentBot;
 
-    debug(`用户点击了按钮: ${data}`);
+    // 从回调数据中提取订阅类型
+    const subscribeType = data?.split(':')[1];
+
+    // 获取对应的订阅选项信息
+    const renewalOption = renewalOptions[subscribeType];
+
+    debug(`用户点击了订阅按钮: ${data}`);
+    debug('订阅选项信息:', {
+      type: subscribeType,
+      days: renewalOption?.days,
+      price: renewalOption?.price,
+      label: renewalOption?.label,
+    });
+    const address = bot.trx20_address;
+
+    if (!address) {
+      await ctx.reply('机器人还未设置收款地址');
+      return;
+    }
 
     // 创建一个新的支付记录
-    // const payment = new Payment({
-    //   amount: 20, // 两周订阅费用
-    //   status: 'pending',
-    //   type: 'subscription',
-    //   expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15分钟后过期
-    //   botUser: ctx.from?.id,
-    //   bot: ctx.me.id,
-    // });
+    const payment = new Payment({
+      receiveAddress: address,
+      amount: renewalOption?.price, // 使用对应的价格
+      status: 'pending',
+      type: 'subscription',
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15分钟后过期
+      botUser: ctx.currentBotUser._id,
+      bot: bot._id,
+      // 添加订阅相关信息
+      subscriptionInfo: {
+        price: renewalOption?.price,
+        type: subscribeType,
+        days: renewalOption?.days,
+        label: renewalOption?.label,
+      },
+    });
 
-    // // 保存支付记录
-    // await payment.save();
+    // 保存支付记录
+    await payment.save();
 
-    // // 生成支付二维码或链接
-    // const paymentLink = `https://example.com/pay/${payment._id}`;
-
-    // // 发送支付信息给用户
-    // await ctx.reply(
-    //   `请在15分钟内完成支付:\n支付金额: ${payment.amount} USDT\n支付链接: ${paymentLink}`,
-    //   {
-    //     parse_mode: 'HTML',
-    //   }
-    // );
+    // 发送支付信息给用户
+    await ctx.reply(
+      `${renewalOption?.label} 订单支付信息\n\n` +
+        `订阅类型: ${renewalOption?.label}\n` +
+        `订阅时长: ${renewalOption?.days}天\n` +
+        `订单金额: ${payment.amount} USDT\n\n` +
+        `收款地址：\n${address} (点击地址可自动复制)\n\n` +
+        `注意事项：\n` +
+        `1. 请务必按指定金额转账，否则无法自动化延期。\n` +
+        `2. 转账成功10秒钟左右即可自动续费成功。\n` +
+        `3. 如遇到问题，请联系 记账机器人售后客服: @xat01\n\n` +
+        `⚠️ 订单将在15分钟后失效，请尽快完成支付`,
+      {
+        parse_mode: 'HTML',
+      },
+    );
 
     await ctx.reply('xxx');
   },

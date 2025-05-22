@@ -86,6 +86,8 @@ async function checkTransfers() {
   }
 }
 
+checkTransfers();
+
 console.log(`🚀 开始监控地址 ${TARGET_ADDRESS} 的USDT交易...`);
 // 立即运行一次后按间隔执行
 // checkTransfers();

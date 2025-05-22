@@ -72,3 +72,5 @@ async function checkReceipts() {
     console.log(`交易哈希：${transfer.trade_id}\n`);
   });
 }
+
+checkReceipts();

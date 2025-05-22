@@ -1,5 +1,9 @@
 import mongoose, { Document } from 'mongoose';
-import { ISubscription, SubscriptionPlan } from './subscription';
+import {
+  ISubscription,
+  SubscriptionPlan,
+  SubscriptionStatus,
+} from './subscription';
 import { IBotUser } from './botUser';
 import { IBot } from './bot';
 
@@ -51,7 +55,7 @@ const botUserConfigSchema = new mongoose.Schema(
     },
     currentPlan: {
       type: String,
-      enum: Object.values(SubscriptionPlan),
+      enum: Object.values(SubscriptionStatus),
       required: false,
     },
     subscription: {

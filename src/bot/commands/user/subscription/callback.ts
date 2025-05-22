@@ -43,7 +43,7 @@ callbackComposer.callbackQuery(
     });
     const address = bot.trx20_address;
 
-    const customer_service_link = bot.customer_service_link;
+    // const customer_service_link = bot.customer_service_link;
 
     if (!address) {
       await ctx.reply('机器人还未设置收款地址');

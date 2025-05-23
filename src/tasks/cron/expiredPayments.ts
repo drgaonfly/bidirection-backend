@@ -36,9 +36,23 @@ export async function checkExpiredPayments() {
 
       if (botUser?.id) {
         try {
+          // 构建订阅信息文本
+          let subscriptionInfoText = '';
+          if (payment.subscriptionInfo) {
+            const { label, price, days } = payment.subscriptionInfo;
+            subscriptionInfoText =
+              `\n<b>订阅类型:</b> ${label}\n` +
+              `<b>套餐时长:</b> ${days} 天\n` +
+              `<b>订单金额:</b> ${price} USDT\n`;
+          }
+
           await bot.api.sendMessage(
             botUser.id,
-            `⌛ 订单 <code>${payment.orderNumber}</code> 已超时未支付，自动取消。\n`,
+            `⌛ 订单 <code>${
+              payment.orderNumber
+            }</code> 已超时未支付，自动取消。${
+              subscriptionInfoText ? '\n' + subscriptionInfoText : ''
+            }`,
             { parse_mode: 'HTML' },
           );
           console.log(`[expiredOrders] 已通知用户 ${botUser.id} 订单过期`);

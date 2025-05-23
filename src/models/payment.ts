@@ -9,6 +9,7 @@ export interface IPayment extends Document {
   orderNumber: string;
   // wallet: Schema.Types.ObjectId | IWallet;
   amount: number;
+  paymentAmount: number; // 新增：实际支付金额
   status: 'pending' | 'paid' | 'expired';
   type: 'recharge' | 'subscription';
   txHash?: string;
@@ -45,6 +46,7 @@ const paymentSchema = new Schema<IPayment>(
     orderNumber: { type: String, required: true, unique: true },
     // wallet: { type: Schema.Types.ObjectId, ref: 'Wallet', required: true },
     amount: { type: Number, required: true },
+    paymentAmount: { type: Number, required: false }, // 新增：实际支付金额
     status: {
       type: String,
       enum: ['pending', 'paid', 'expired', 'cancelled'],

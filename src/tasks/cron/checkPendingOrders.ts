@@ -132,6 +132,7 @@ export async function checkPendingOrders() {
       payment.txHash = matchedTransfer.trade_id;
       payment.sendAddress = matchedTransfer.buyer;
       payment.transactionAt = new Date(matchedTransfer.time * 1000);
+      payment.paymentAmount = matchedTransfer.money; // 记录实际支付金额
       await payment.save();
 
       // 同步更新 BotUserConfig 表

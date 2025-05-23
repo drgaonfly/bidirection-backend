@@ -1,5 +1,5 @@
 import setupDB from '../utils/db';
-import { checkExpiredOrders } from './cron/expiredOrders';
+import { checkExpiredPayments } from './cron/expiredPayments';
 import { checkExpiredSubscriptions } from './cron/checkExpiredSubscriptions';
 import { trialExpired } from './cron/trialExpired';
 import { checkPendingOrders } from './cron/checkPendingOrders';
@@ -9,7 +9,7 @@ const task = async () => {
   console.log('当前时间:', new Date().toLocaleString());
   console.log('开始执行任务...');
   await trialExpired();
-  await checkExpiredOrders();
+  await checkExpiredPayments();
   await checkPendingOrders();
   await checkExpiredSubscriptions();
 };

@@ -26,6 +26,7 @@ export interface IPayment extends Document {
     days: number;
     label: string;
   };
+  transactionAt?: Date; // 新增：交易时间
 }
 
 const subscriptionInfoSchema = new Schema(
@@ -82,6 +83,7 @@ const paymentSchema = new Schema<IPayment>(
       type: subscriptionInfoSchema,
       required: false,
     }, // 订阅信息详情
+    transactionAt: { type: Date, required: false }, // 新增：交易时间
   },
   { timestamps: true },
 );

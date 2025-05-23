@@ -4,7 +4,7 @@ import BotUser from '../../models/botUser';
 import { IBot } from '../../models/bot';
 import { setupBot } from '../../bot/botSetup';
 
-export async function checkExpiredOrders() {
+export async function checkExpiredPayments() {
   try {
     console.log('[expiredOrders] 开始检查过期订单...');
     // 查询已过期但未处理的订单

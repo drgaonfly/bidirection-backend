@@ -5,10 +5,10 @@ import { IBot } from '../../models/bot';
 import { setupBot } from '../../bot/botSetup';
 import { IdGen } from '../../utils/idGen';
 import BotUserConfig, { UserStatus } from '../../models/botUserConfig';
+import { getUSDTTransfers } from './checkTrx';
 
 /**
- * 检查所有 pending 的 payment，自动为其生成订阅记录
- * 判断是否为续费类型（isRenewal 字段处理）
+ * 检查所有 pending 的 payment，只有当 bot.trx20_address 收到正确金额，才生成订阅
  */
 export async function checkPendingOrders() {
   try {
@@ -43,12 +43,55 @@ export async function checkPendingOrders() {
         continue;
       }
 
-      // 生成订阅起止时间
-      const days = payment.subscriptionInfo.days;
-      // 先查找当前 BotUserConfig，获取原有的 subscriptionEndDate
+      // 检查 bot 是否有 trx20_address
       const botUser = payment.botUser as IBotUser;
       const bot = payment.bot as IBot;
+      const receiveAddress = bot.trx20_address || payment.receiveAddress;
+      if (!receiveAddress) {
+        console.warn(
+          `[checkPendingOrders] 订单 ${payment.orderNumber} 的机器人未设置收款地址，跳过`,
+        );
+        continue;
+      }
 
+      // 查询该地址近15分钟的USDT转账
+      let transfers: Awaited<ReturnType<typeof getUSDTTransfers>> = [];
+      try {
+        transfers = await getUSDTTransfers(receiveAddress);
+      } catch (err) {
+        console.error(
+          `[checkPendingOrders] 获取地址 ${receiveAddress} 转账记录失败:`,
+          err,
+        );
+        continue;
+      }
+
+      // 查找是否有金额和订单匹配的转账
+      // 允许误差0.01 USDT（防止小数精度问题）
+      const AMOUNT_TOLERANCE = 0.01;
+      const matchedTransfer = transfers.find(
+        (t) => Math.abs(t.money - payment.amount) < AMOUNT_TOLERANCE,
+      );
+
+      if (!matchedTransfer) {
+        console.log(
+          `[checkPendingOrders] 订单 ${payment.orderNumber} 未检测到 ${receiveAddress} 收到 ${payment.amount} USDT 的转账，跳过`,
+        );
+        continue;
+      }
+
+      // 检查 payment 是否已经有 txHash，防止重复处理
+      if (payment.txHash && payment.txHash === matchedTransfer.trade_id) {
+        console.log(
+          `[checkPendingOrders] 订单 ${payment.orderNumber} 已处理过该转账哈希，跳过`,
+        );
+        continue;
+      }
+
+      // 生成订阅起止时间
+      const days = payment.subscriptionInfo.days;
+
+      // 先查找当前 BotUserConfig，获取原有的 subscriptionEndDate
       const userConfig = await BotUserConfig.findOne({
         bot: bot._id,
         botUser: botUser._id,
@@ -86,6 +129,9 @@ export async function checkPendingOrders() {
       // 关联 payment 和 subscription
       payment.subscription = subscription._id;
       payment.status = 'paid';
+      payment.txHash = matchedTransfer.trade_id;
+      payment.sendAddress = matchedTransfer.buyer;
+      payment.transactionAt = new Date(matchedTransfer.time * 1000);
       await payment.save();
 
       // 同步更新 BotUserConfig 表

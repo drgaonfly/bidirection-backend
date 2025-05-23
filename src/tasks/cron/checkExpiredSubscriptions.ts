@@ -1,31 +1,110 @@
-import Subscription, { SubscriptionStatus } from '../../models/subscription';
-import BotUser from '../../models/botUser';
+import BotUserConfig, { UserStatus } from '../../models/botUserConfig';
+import Subscription, {
+  SubscriptionStatus,
+  renewalOptions,
+} from '../../models/subscription';
+import { IBot } from '../../models/bot';
+import { setupBot } from '../../bot/botSetup';
+import { IBotUser } from '../../models/botUser';
 
+/**
+ * 检查所有已过期的订阅，将其状态设置为 expired。
+ * 只有当用户所有订阅都过期时，才将 BotUserConfig 状态更新为 SUBSCRIPTION_EXPIRED。
+ * 向用户发送详细的订阅过期通知。
+ */
 export async function checkExpiredSubscriptions() {
   try {
-    // 查询所有已过期的订阅
+    console.log('[checkExpiredSubscriptions] 开始检查过期订阅...');
+    // 查询所有已过期但状态仍为 active 的订阅
+    const now = new Date();
     const expiredSubscriptions = await Subscription.find({
-      expiredAt: { $lte: new Date() },
       status: SubscriptionStatus.Active,
-    });
+      expiredAt: { $lte: now },
+    })
+      .populate('botUser')
+      .populate('bot');
+
+    console.log(
+      `[checkExpiredSubscriptions] 查询到 ${expiredSubscriptions.length} 个已过期的订阅`,
+    );
 
     for (const subscription of expiredSubscriptions) {
-      // 设置订阅状态为过期
+      const botUser = subscription.botUser as IBotUser;
+      const bot = subscription.bot as IBot;
+
+      // 更新订阅状态为 expired
       subscription.status = SubscriptionStatus.Expired;
       await subscription.save();
 
-      // 获取关联的 botUser
-      const botUser = await BotUser.findById(subscription.botUser);
+      // 检查该用户在该 bot 下是否还有其他 active 且未过期的订阅
+      const stillActive = await Subscription.findOne({
+        bot: bot._id,
+        botUser: botUser._id,
+        status: SubscriptionStatus.Active,
+        expiredAt: { $gt: now },
+      });
 
-      if (botUser?.id) {
-        console.log(`用户 ${botUser.id} 的订阅已过期`);
-        // 这里可以添加通知逻辑，例如发送消息给用户
+      if (!stillActive) {
+        // 只有当没有其他有效订阅时，才更新 BotUserConfig 状态
+        await BotUserConfig.findOneAndUpdate(
+          {
+            bot: bot._id,
+            botUser: botUser._id,
+          },
+          {
+            status: UserStatus.SUBSCRIPTION_EXPIRED,
+          },
+          { new: true },
+        );
+        console.log(
+          `[checkExpiredSubscriptions] 订阅 ${subscription.id} 状态已更新为 expired，用户 ${botUser.id} 的 BotUserConfig 状态已更新为 SUBSCRIPTION_EXPIRED`,
+        );
+      } else {
+        console.log(
+          `[checkExpiredSubscriptions] 订阅 ${subscription.id} 状态已更新为 expired，用户 ${botUser.id} 仍有其他有效订阅，BotUserConfig 状态不变`,
+        );
+      }
+
+      // 发送详细的订阅过期通知
+      const telegramBot = setupBot(bot.token);
+      try {
+        // 获取订阅类型详细信息
+        let planLabel = subscription.plan;
+        if (renewalOptions[subscription.plan]) {
+          planLabel = renewalOptions[subscription.plan].label;
+        }
+        const expiredAtStr = subscription.expiredAt
+          ? subscription.expiredAt.toLocaleString('zh-CN', { hour12: false })
+          : '';
+        let msg =
+          `⚠️ 您的订阅已到期。\n\n` +
+          `订阅类型: <b>${planLabel}</b>\n` +
+          `到期时间: <code>${expiredAtStr}</code>\n` +
+          `订阅ID: <code>${subscription.id}</code>\n\n` +
+          `如需继续使用服务，请及时续费。`;
+
+        if (!stillActive) {
+          msg += `\n\n当前您已无有效订阅，部分功能将受限。`;
+        } else {
+          msg += `\n\n您仍有其他有效订阅，服务不会中断。`;
+        }
+
+        await telegramBot.api.sendMessage(botUser.id, msg, {
+          parse_mode: 'HTML',
+        });
+        console.log(
+          `[checkExpiredSubscriptions] 已通知用户 ${botUser.id} 订阅过期`,
+        );
+      } catch (msgErr) {
+        console.error(
+          `[checkExpiredSubscriptions] 通知用户 ${botUser.id} 失败:`,
+          msgErr,
+        );
       }
     }
 
-    return { processed: expiredSubscriptions.length };
+    console.log('[checkExpiredSubscriptions] 过期订阅处理完成');
   } catch (error) {
-    console.error('处理过期订阅时出错:', error);
-    return { error: error.message };
+    console.error('[checkExpiredSubscriptions] 处理过期订阅时出错:', error);
   }
 }

@@ -2,6 +2,7 @@
 import mongoose, { Document } from 'mongoose';
 import { IBotUser } from './botUser';
 import { IPayment } from './payment';
+import { IBot } from './bot';
 
 export interface RenewalOption {
   days: number;
@@ -41,6 +42,7 @@ export enum SubscriptionStatus {
 
 export interface ISubscription extends Document {
   botUser: mongoose.Types.ObjectId | IBotUser;
+  bot: mongoose.Types.ObjectId | IBot;
   createdAt: Date;
   expiredAt: Date;
   plan: SubscriptionPlan;
@@ -48,6 +50,7 @@ export interface ISubscription extends Document {
   isAutoRenew: boolean;
   id: string;
   payment: mongoose.Types.ObjectId | IPayment;
+  isRenewal?: boolean; // 是否续费类型
 }
 
 const subscriptionSchema = new mongoose.Schema(
@@ -85,6 +88,7 @@ const subscriptionSchema = new mongoose.Schema(
       ref: 'Payment',
       required: true,
     },
+    isRenewal: { type: Boolean, default: false }, // 是否续费类型，默认 false
   },
   { timestamps: true },
 );

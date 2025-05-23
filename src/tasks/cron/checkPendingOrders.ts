@@ -8,6 +8,7 @@ import BotUserConfig, { UserStatus } from '../../models/botUserConfig';
 
 /**
  * 检查所有 pending 的 payment，自动为其生成订阅记录
+ * 判断是否为续费类型（isRenewal 字段处理）
  */
 export async function checkPendingOrders() {
   try {
@@ -43,7 +44,6 @@ export async function checkPendingOrders() {
       }
 
       // 生成订阅起止时间
-      // const now = new Date();
       const days = payment.subscriptionInfo.days;
       // 先查找当前 BotUserConfig，获取原有的 subscriptionEndDate
       const botUser = payment.botUser as IBotUser;
@@ -55,6 +55,7 @@ export async function checkPendingOrders() {
       });
 
       let baseDate = new Date();
+      let isRenewal = false;
       if (
         userConfig &&
         userConfig.subscriptionEndDate &&
@@ -62,12 +63,13 @@ export async function checkPendingOrders() {
       ) {
         // 如果原有订阅还没过期，则从原有订阅结束时间顺延
         baseDate = userConfig.subscriptionEndDate;
+        isRenewal = true; // 续费类型
       }
       const expiredAt = new Date(
         baseDate.getTime() + days * 24 * 60 * 60 * 1000,
       );
 
-      // 创建订阅记录
+      // 创建订阅记录，处理 isRenewal 字段
       const subscription = new Subscription({
         id: await IdGen.next(Subscription, 'id', 6),
         botUser: botUser._id,
@@ -76,6 +78,7 @@ export async function checkPendingOrders() {
         status: SubscriptionStatus.Active,
         expiredAt,
         payment: payment._id,
+        isRenewal, // 是否续费类型
       });
 
       await subscription.save();
@@ -109,6 +112,7 @@ export async function checkPendingOrders() {
             `到期时间: ${expiredAt.toLocaleString('zh-CN', {
               hour12: false,
             })}\n\n` +
+            `本次为${isRenewal ? '续费' : '新订阅'}。\n` +
             `感谢您的订阅！`,
           { parse_mode: 'HTML' },
         );
@@ -121,7 +125,7 @@ export async function checkPendingOrders() {
       }
 
       console.log(
-        `[checkPendingOrders] 已为订单 ${payment.orderNumber} 生成订阅记录，订阅ID: ${subscription.id}`,
+        `[checkPendingOrders] 已为订单 ${payment.orderNumber} 生成订阅记录，订阅ID: ${subscription.id}，isRenewal: ${isRenewal}`,
       );
     }
 

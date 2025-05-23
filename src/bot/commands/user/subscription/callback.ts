@@ -84,11 +84,15 @@ callbackComposer.callbackQuery(
     const orderNumber = await generateOrderNumber();
 
     // 创建一个新的支付记录
+    const baseAmount = renewalOption?.price || 0;
+    const randomDecimal = Math.floor(Math.random() * 1000); // 生成0-999的随机数
+    const amount = baseAmount - 1 + randomDecimal / 1000; // 例如: 60 -> 59.234
+
     const payment = new Payment({
       id: await IdGen.next(Payment, 'id', 6),
       orderNumber,
       receiveAddress: address,
-      amount: renewalOption?.price, // 使用对应的价格
+      amount, // 使用计算后的随机金额
       status: 'pending',
       type: 'subscription',
       expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15分钟后过期
@@ -96,7 +100,7 @@ callbackComposer.callbackQuery(
       bot: bot._id,
       // 添加订阅相关信息
       subscriptionInfo: {
-        price: renewalOption?.price,
+        price: renewalOption?.price, // 保持原始价格不变
         type: subscribeType,
         days: renewalOption?.days,
         label: renewalOption?.label,

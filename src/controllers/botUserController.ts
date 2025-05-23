@@ -28,6 +28,10 @@ const buildQuery = async (queryParams: any, req: RequestCustom) => {
   if (queryParams.bot) {
     query.bot = queryParams.bot;
   }
+  // isAuthorized
+  if (queryParams.isAuthorized) {
+    query.isAuthorized = queryParams.isAuthorized;
+  }
 
   if (isProxy(req.user)) {
     const employees = await User.find({ proxy: req.user._id });

@@ -12,6 +12,11 @@ const buildQuery = (queryParams: any): any => {
     query.title = queryParams.title;
   }
 
+  // isOnline
+  if (queryParams.isOnline) {
+    query.isOnline = queryParams.isOnline;
+  }
+
   return query;
 };
 

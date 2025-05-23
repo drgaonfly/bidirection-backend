@@ -18,6 +18,18 @@ const checkUserPermission = (
   // 如果邀请进群的人也是授权用户
   if ((group.creator as IBotUser)?.isAuthorized) return true;
 
+  // 如果是授权订阅，允许使用
+  if (
+    botUserConfig.status === UserStatus.AUTHORIZED &&
+    botUserConfig.subscriptionEndDate &&
+    new Date() < new Date(botUserConfig.subscriptionEndDate)
+  ) {
+    return true;
+  }
+
+  // 如果是授权过期状态，不允许使用
+  if (botUserConfig.status === UserStatus.SUBSCRIPTION_EXPIRED) return false;
+
   // 如果是试用过期状态，不允许使用
   if (botUserConfig.status === UserStatus.TRIAL_EXPIRED) return false;
 

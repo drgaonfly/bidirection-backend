@@ -16,7 +16,7 @@ const withdrawCommand = new Composer<MyContext>();
 const debug = createDebug('bot:withdraw');
 
 withdrawCommand.hears(
-  /^(下发|-)\s*(\d+\.?\d*)\s*(u|U)?$/,
+  /^(下发|-)\s*(-?\d+\.?\d*)\s*(u|U)?$/,
   checkGroup,
   checkPermission,
   isOperatorOrCreator,

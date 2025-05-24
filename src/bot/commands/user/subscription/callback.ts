@@ -159,7 +159,7 @@ callbackComposer.callbackQuery(
       : '未知';
 
     const keyboard = new InlineKeyboard()
-      .url('📞 联系客服', bot.contact || 'https://t.me/example')
+      .url('📞 联系客服', bot.customer_service_link || 'https://t.me/example')
       .row()
       .text('🔄 重新选择套餐', 'renewal:select');
 

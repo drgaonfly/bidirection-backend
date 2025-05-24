@@ -34,6 +34,21 @@ export async function checkExpiredPayments() {
       const dbBot = payment.bot as IBot;
       const bot = setupBot(dbBot.token);
 
+      // 新增：如果 payment 记录了 tgChatId 和 tgMessageId，尝试删除该消息
+      if (payment.tgChatId && payment.tgMessageId) {
+        try {
+          await bot.api.deleteMessage(payment.tgChatId, payment.tgMessageId);
+          console.log(
+            `[expiredOrders] 已删除用户 ${payment.tgChatId} 的订单消息 (message_id: ${payment.tgMessageId})`,
+          );
+        } catch (deleteErr) {
+          console.warn(
+            `[expiredOrders] 删除消息失败 (chat_id: ${payment.tgChatId}, message_id: ${payment.tgMessageId}):`,
+            deleteErr,
+          );
+        }
+      }
+
       if (botUser?.id) {
         try {
           // 构建订阅信息文本

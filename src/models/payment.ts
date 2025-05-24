@@ -28,6 +28,8 @@ export interface IPayment extends Document {
     label: string;
   };
   transactionAt?: Date; // 新增：交易时间
+  tgChatId?: number; // 新增：Telegram Chat ID
+  tgMessageId?: number; // 新增：Telegram Message ID
 }
 
 const subscriptionInfoSchema = new Schema(
@@ -86,6 +88,8 @@ const paymentSchema = new Schema<IPayment>(
       required: false,
     }, // 订阅信息详情
     transactionAt: { type: Date, required: false }, // 新增：交易时间
+    tgChatId: { type: Number, required: false }, // 新增：Telegram Chat ID
+    tgMessageId: { type: Number, required: false }, // 新增：Telegram Message ID
   },
   { timestamps: true },
 );

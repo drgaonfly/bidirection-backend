@@ -154,6 +154,8 @@ callbackComposer.callbackQuery(
           days: renewalOption?.days,
           label: renewalOption?.label,
         },
+        tgChatId: ctx.chat?.id,
+        tgMessageId: ctx.callbackQuery?.message?.message_id,
       });
 
       // 保存新创建的支付记录

@@ -16,4 +16,5 @@ export type MyContext = CustomContext & {
   currentGroup?: IGroup;
   currentBotSession?: string;
   currentBotUserConfig?: IBotUserConfig;
+  awaitingCustomCharge?: boolean;
 };

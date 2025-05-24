@@ -10,13 +10,20 @@ import createDebug from 'debug';
 const userProfileCommand = new Composer<MyContext>();
 const debug = createDebug('bot:user-profile');
 
+userProfileCommand.command('profile', checkInBot, async (ctx) => {
+  debug('用户中心命令被触发');
+  await sendUserProfile(ctx);
+});
+
 // 监听"用户中心"文本消息
 userProfileCommand.hears(/个人信息/, checkInBot, async (ctx) => {
   debug('用户中心命令被触发');
+  await sendUserProfile(ctx);
+});
 
+async function sendUserProfile(ctx: MyContext) {
   // 查找用户信息
   const botUser = ctx.currentBotUser;
-
   const botUserConfig = ctx.currentBotUserConfig;
 
   // 格式化注册日期
@@ -46,6 +53,6 @@ userProfileCommand.hears(/个人信息/, checkInBot, async (ctx) => {
     parse_mode: 'HTML',
     reply_markup: profile,
   });
-});
+}
 
 export default userProfileCommand;

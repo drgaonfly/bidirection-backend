@@ -64,4 +64,11 @@ callbackComposer.callbackQuery(
   },
 );
 
+// 处理“自定义充值金额”按钮点击
+callbackComposer.hears(/^\d+(\.\d{1,2})?$/, async (ctx) => {
+  debug('ctx.awaitingCustomCharge', ctx.awaitingCustomCharge);
+  const amount = ctx.message.text;
+  debug(amount);
+});
+
 export default callbackComposer;

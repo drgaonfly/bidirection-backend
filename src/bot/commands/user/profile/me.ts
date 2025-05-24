@@ -1,9 +1,11 @@
 import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
-import createDebug from 'debug';
 import { useUserProfile } from '../../../../utils/useEjsMessage';
 import { checkInBot } from '../../../../bot/middlewares/checkInBot';
 import { renewalOptions } from '../../../../models/subscription';
+import dayjs from 'dayjs';
+import profile from '../../../menus/inline/profile';
+import createDebug from 'debug';
 
 const userProfileCommand = new Composer<MyContext>();
 const debug = createDebug('bot:user-profile');
@@ -18,10 +20,7 @@ userProfileCommand.hears(/个人信息/, checkInBot, async (ctx) => {
   const botUserConfig = ctx.currentBotUserConfig;
 
   // 格式化注册日期
-  const registerDate = botUserConfig.createdAt
-    ? botUserConfig.createdAt.toISOString().replace('T', ' ').substring(0, 19)
-    : '';
-
+  const registerDate = dayjs(botUser.createdAt).format('YYYY-MM-DD HH:mm:ss');
   // 渲染用户资料模板
   const renderUserProfile = useUserProfile();
 
@@ -45,30 +44,7 @@ userProfileCommand.hears(/个人信息/, checkInBot, async (ctx) => {
   // 添加联系客服按钮，使用url参数直接跳转到客服链接
   await ctx.reply(message, {
     parse_mode: 'HTML',
-    reply_markup: {
-      inline_keyboard: [
-        [
-          {
-            text: '💰 立即充值',
-            callback_data: 'recharge',
-          },
-          {
-            text: '🔄 自助续费',
-            callback_data: 'auto_renew',
-          },
-        ],
-        [
-          {
-            text: '❌ 关闭',
-            callback_data: 'close',
-          },
-          {
-            text: '📞 联系客服',
-            url: ctx.currentBot.customer_service_link || 'https://t.me/example',
-          },
-        ],
-      ],
-    },
+    reply_markup: profile,
   });
 });
 

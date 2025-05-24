@@ -1,0 +1,28 @@
+<b>📋 您的订阅历史记录</b>
+
+<% if (subscriptions.length === 0) { %>
+您目前没有任何订阅记录。
+<% } else { %>
+  <% 
+  // 按创建时间排序，最新的在前面
+  const sortedSubs = [...subscriptions].sort((a, b) => 
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+  
+  sortedSubs.forEach((sub, index) => {
+    const status = sub.status === 'active' ? '✅ 有效' : '❌ 已过期';
+    const autoRenew = sub.isAutoRenew ? '🔄 自动续费' : '❌ 不自动续费';
+    const isRenewal = sub.isRenewal ? '(续费)' : '(首次)';
+    
+    // 格式化日期
+    const createdDate = new Date(sub.createdAt).toLocaleDateString('zh-CN');
+    const expiredDate = new Date(sub.expiredAt).toLocaleDateString('zh-CN');
+  %>
+<b>订阅 #<%= sub.id %></b> <%= isRenewal %>
+📆 创建时间: <%= createdDate %>
+⏱ 到期时间: <%= expiredDate %>
+📌 状态: <%= status %>
+🔄 续费设置: <%= autoRenew %><% if (index < sortedSubs.length - 1) { %>
+—————————————<% } %>
+  <% }); %>
+<% } %>

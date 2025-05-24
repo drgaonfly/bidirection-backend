@@ -1,6 +1,8 @@
 import mongoose, { Document } from 'mongoose';
 import { IBotUserMessage } from './botUserMessage';
 import { ITransaction } from './transaction';
+import { ISubscription } from './subscription';
+
 export interface IBotUser extends Document {
   id: string;
   userName: string;
@@ -10,6 +12,7 @@ export interface IBotUser extends Document {
   createdAt: Date;
   updatedAt: Date;
   transactions: ITransaction[]; // 虚拟字段，指向 Transaction 模型的 _id 数组
+  subscriptions: ISubscription[]; // 虚拟字段，指向 Subscription 模型的 _id 数组
   isAuthorized: boolean; // 用户是否已授权
 }
 
@@ -39,6 +42,12 @@ botUserSchema.virtual('transactions', {
 
 botUserSchema.virtual('payments', {
   ref: 'Payment',
+  localField: '_id',
+  foreignField: 'botUser',
+});
+
+botUserSchema.virtual('subscriptions', {
+  ref: 'Subscription',
   localField: '_id',
   foreignField: 'botUser',
 });

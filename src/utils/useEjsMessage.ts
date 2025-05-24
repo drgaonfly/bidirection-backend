@@ -48,3 +48,13 @@ export const useRenewal = () => {
     return await ejs.renderFile(templatePath);
   };
 };
+
+export const useSubscriptionHistory = () => {
+  return async (data: { subscriptions: any[] }) => {
+    const templatePath = path.join(
+      __dirname,
+      '../templates/subscriptionHistory.ejs',
+    );
+    return await ejs.renderFile(templatePath, data);
+  };
+};

@@ -13,7 +13,6 @@ export interface IBot extends Document {
   isOnline: boolean;
   botUsers: mongoose.Schema.Types.ObjectId[] | IBotUser[];
   session?: string;
-  customer_service_link?: string;
   contact?: string;
   trx20_address?: string;
 }
@@ -79,10 +78,6 @@ const botSchema = new mongoose.Schema(
     ],
     menus: [menuSchema],
     session: {
-      type: String,
-      trim: true,
-    },
-    customer_service_link: {
       type: String,
       trim: true,
     },

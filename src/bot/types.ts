@@ -1,10 +1,14 @@
-import { Context as GrammyContext } from 'grammy';
-import { SessionData } from './sessions';
-import { SessionFlavor } from 'grammy';
+import { Context as GrammyContext, SessionFlavor } from 'grammy';
 import { IBot } from '../models/bot';
 import { IBotUser } from '../models/botUser';
 import { IGroup } from '../models/group';
 import { IBotUserConfig } from '../models/botUserConfig';
+
+// 直接在这里定义 SessionData，和 botSetup.ts 保持一致
+export interface SessionData {
+  awaitingCustomCharge?: boolean;
+  // 你可以在这里添加更多 session 字段
+}
 
 export interface CustomContext
   extends GrammyContext,

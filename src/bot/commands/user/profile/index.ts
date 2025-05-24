@@ -2,15 +2,13 @@
 import { Composer } from 'grammy';
 import meCommand from './me';
 import subscriptionHistoryCallback from './subscriptionHistory';
-import closeCallback from './close';
-import contact from './contact';
+import callback from './callback';
 
 // 创建一个新的 Composer 实例
 const profileComposer = new Composer();
 
 profileComposer.use(meCommand.middleware());
-profileComposer.use(contact.middleware());
-profileComposer.use(closeCallback.middleware());
 profileComposer.use(subscriptionHistoryCallback.middleware());
+profileComposer.use(callback.middleware());
 
 export default profileComposer;

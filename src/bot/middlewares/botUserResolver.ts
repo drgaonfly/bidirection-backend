@@ -11,6 +11,7 @@ const botUserResolver: Middleware<MyContext> = async (ctx, next) => {
   const { id, username, first_name, last_name } = ctx.from!;
 
   // 查找或创建关联用户
+  // 查找或创建关联用户，并填充 subscriptions 字段
   const botUser = await BotUser.findOneAndUpdate(
     { id: id.toString() },
     {
@@ -21,7 +22,7 @@ const botUserResolver: Middleware<MyContext> = async (ctx, next) => {
       },
     },
     { new: true, upsert: true },
-  );
+  ).populate('subscriptions');
 
   // 将当前用户添加到机器人的用户列表中
   await ctx.currentBot.updateOne({

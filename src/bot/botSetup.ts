@@ -1,4 +1,4 @@
-import { Bot, GrammyError, HttpError } from 'grammy';
+import { Bot, GrammyError, HttpError, session } from 'grammy';
 import logger from './middlewares/logger';
 import userComposer from './commands/user';
 import errorHandler from './middlewares/errorHandler';
@@ -8,9 +8,9 @@ import groupResolver from './middlewares/groupResolver';
 
 import { commandsList } from './commandsList';
 import { SocksProxyAgent } from 'socks-proxy-agent';
-import { Context } from 'grammy'; // 确保导入 Context
 import createDebug from 'debug';
 import botUserConfigResolver from './middlewares/botUserConfigResolver';
+import { MyContext } from './types'; // 引入你的 MyContext 类型
 
 const log = createDebug('bot:setup');
 
@@ -26,14 +26,14 @@ export const setupBot = (token: string) => {
   const SOCKS_PROXY_URL = process.env.SOCKS_PROXY_URL; // SOCKS 代理 URL，例如 'socks5://username:password@host:port'
 
   // 定义 bot 变量
-  let bot: Bot;
+  let bot: Bot<MyContext>;
 
   if (SOCKS_PROXY_URL) {
     // 创建 SOCKS 代理代理
     const socksAgent = new SocksProxyAgent(process.env.SOCKS_PROXY_URL);
 
     // 使用代理初始化 Bot
-    bot = new Bot(token, {
+    bot = new Bot<MyContext>(token, {
       client: {
         baseFetchConfig: {
           agent: socksAgent,
@@ -45,10 +45,21 @@ export const setupBot = (token: string) => {
     log('Bot 正在使用 SOCKS 代理：', SOCKS_PROXY_URL);
   } else {
     // 未设置代理，正常初始化 Bot
-    bot = new Bot<Context>(token);
+    bot = new Bot<MyContext>(token);
     log('Bot 未使用代理。');
   }
 
+  // 使用 session 中间件
+  // bot.use(
+  //   session({
+  //     initial: () => ({
+  //       awaitingCustomCharge: false,
+  //     }),
+  //   })
+  // );
+
+  // 由于 session 已经合并到 context，后续中间件类型也要兼容 MyContext
+  // 需要确保所有中间件都用 MyContext 类型
   bot.use(botResolver);
   bot.use(botUserResolver);
   bot.use(botUserConfigResolver);

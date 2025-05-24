@@ -2,7 +2,7 @@
 import { InlineKeyboard } from 'grammy';
 
 const profile = new InlineKeyboard()
-  .text('💰 立即充值', 'recharge')
+  .text('💰 立即充值', 'recharge:select')
   .text('🔄 自助续费', 'auto_renew')
   .row()
   .text('❌ 关闭', 'close')

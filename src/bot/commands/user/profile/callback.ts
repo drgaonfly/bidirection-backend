@@ -27,7 +27,7 @@ callbackComposer.callbackQuery(
   'charge_custom',
   async (ctx: CallbackQueryContext<MyContext>) => {
     debug('charge_custom');
-    debug(ctx.awaitingCustomCharge);
+    debug(ctx.session.awaitingCustomCharge);
     await ctx.reply(
       '请输入您想要充值的金额（单位：元）：\n\n⚠️ 请确保输入格式正确，例如：10.00\n\n如需取消，请发送“取消”或点击下方按钮。',
       {
@@ -46,7 +46,7 @@ callbackComposer.callbackQuery(
     // 可选：确认回调（防止客户端加载动画）
     await ctx.answerCallbackQuery();
     // 设置会话状态，等待用户输入自定义金额
-    ctx.awaitingCustomCharge = true;
+    ctx.session.awaitingCustomCharge = true;
   },
 );
 
@@ -55,7 +55,7 @@ callbackComposer.callbackQuery(
   'charge_cancel',
   async (ctx: CallbackQueryContext<MyContext>) => {
     debug('charge_cancel');
-    ctx.awaitingCustomCharge = false;
+    ctx.session.awaitingCustomCharge = false;
     // 删除原消息，不回复文本
     if (ctx.callbackQuery.message) {
       await ctx.deleteMessage();
@@ -66,7 +66,7 @@ callbackComposer.callbackQuery(
 
 // 处理“自定义充值金额”按钮点击
 callbackComposer.hears(/^\d+(\.\d{1,2})?$/, async (ctx) => {
-  debug('ctx.awaitingCustomCharge', ctx.awaitingCustomCharge);
+  debug('ctx.awaitingCustomCharge', ctx.session.awaitingCustomCharge);
   const amount = ctx.message.text;
   debug(amount);
 });

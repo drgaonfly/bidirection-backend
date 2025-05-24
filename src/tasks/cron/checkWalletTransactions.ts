@@ -27,7 +27,7 @@ async function fetchTransfersLast4Days(): Promise<Trc20Transfer[]> {
   const startTimestamp = now - FOUR_DAYS_MS;
   const limit = 100; // 每页最大100
   let offset = 0;
-  let allTransfers: Trc20Transfer[] = [];
+  const allTransfers: Trc20Transfer[] = [];
   let hasMore = true;
 
   while (hasMore) {

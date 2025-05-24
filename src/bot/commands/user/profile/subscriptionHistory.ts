@@ -1,6 +1,5 @@
 import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
-import Subscription from '../../../../models/subscription';
 import createDebug from 'debug';
 import { useSubscriptionHistory } from '../../../../utils/useEjsMessage';
 
@@ -13,15 +12,11 @@ subscriptionHistoryCallback.callbackQuery(
   async (ctx) => {
     debug('订单历史记录回调被触发');
 
-    // const subs = ctx.currentBotUser.subscriptions;
-
-    const subs = await Subscription.find({
-      botUser: '68218512ca3fc50b90089ac4',
-    });
+    const subscriptions = ctx.currentBotUser.subscriptions;
 
     // 使用EJS模板渲染订阅历史记录
     const renderSubscriptionHistory = useSubscriptionHistory();
-    const message = await renderSubscriptionHistory({ subscriptions: subs });
+    const message = await renderSubscriptionHistory({ subscriptions });
 
     // 发送消息
     await ctx.reply(message, { parse_mode: 'HTML' });

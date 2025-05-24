@@ -14,12 +14,15 @@ trialCommand.hears(/申请试用/, checkInBot, async (ctx) => {
 
   const botUserConfig = ctx.currentBotUserConfig;
 
-  // 检查用户是否已经在试用中或已订阅
-  if (
-    botUserConfig.status === UserStatus.TRIAL ||
-    botUserConfig.status === UserStatus.AUTHORIZED
-  ) {
-    await ctx.reply('您已经在使用中，无需重复申请试用');
+  // 分开处理
+  // 检查用户是否已经在试用中
+  if (botUserConfig.status === UserStatus.TRIAL) {
+    await ctx.reply('您当前正在试用中，无需重复申请。');
+    return;
+  }
+  // 检查用户是否已订阅
+  if (botUserConfig.status === UserStatus.AUTHORIZED) {
+    await ctx.reply('您已经是正式用户，无需申请试用。');
     return;
   }
 

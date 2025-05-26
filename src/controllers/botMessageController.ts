@@ -16,6 +16,11 @@ const buildQuery = (queryParams: any): any => {
     query.group = queryParams.group;
   }
 
+  // botUser
+  if (queryParams.botUser) {
+    query.botUser = queryParams.botUser;
+  }
+
   return query;
 };
 

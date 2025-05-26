@@ -10,46 +10,48 @@ const debug = createDebug('bot:logger');
 // 定义一个日志中间件
 const logger: Middleware = async (ctx: MyContext, next) => {
   debug('logger');
-  debug(ctx.message);
+  const message = ctx.message;
+
+  debug(message);
   let messageType: string;
   switch (true) {
-    case !!ctx.message?.text:
+    case !!message?.text:
       messageType = 'text';
       break;
-    case !!ctx.message?.photo:
+    case !!message?.photo:
       messageType = 'photo';
       break;
-    case !!ctx.message?.video:
+    case !!message?.video:
       messageType = 'video';
       break;
-    case !!ctx.message?.voice:
+    case !!message?.voice:
       messageType = 'voice';
       break;
-    case !!ctx.message?.document:
+    case !!message?.document:
       messageType = 'document';
       break;
-    case !!ctx.message?.sticker:
+    case !!message?.sticker:
       messageType = 'sticker';
       break;
-    case !!ctx.message?.location:
+    case !!message?.location:
       messageType = 'location';
       break;
-    case !!ctx.message?.entities?.some((entity) => entity.type === 'mention'):
+    case !!message?.entities?.some((entity) => entity.type === 'mention'):
       messageType = 'mention';
       break;
     default:
       messageType = '未知消息类型';
   }
 
-  let messageContent = ctx.message?.text;
+  let messageContent = message?.text;
 
-  debug('ctx.message: ', ctx.message);
+  debug('message: ', message);
 
   if (
-    ctx.message?.photo ||
-    ctx.message?.video ||
-    ctx.message?.document ||
-    ctx.message?.animation
+    message?.photo ||
+    message?.video ||
+    message?.document ||
+    message?.animation
   ) {
     try {
       const file = await ctx.getFile();
@@ -60,12 +62,12 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   }
 
   // 如果消息包含@提及，添加被提及的用户信息
-  if (ctx.message?.entities?.some((entity) => entity.type === 'mention')) {
-    const mentions = ctx.message.entities
+  if (message?.entities?.some((entity) => entity.type === 'mention')) {
+    const mentions = message.entities
       .filter((entity) => entity.type === 'mention')
       .map(
         (entity) =>
-          ctx.message?.text?.substring(
+          message?.text?.substring(
             entity.offset,
             entity.offset + entity.length,
           ),
@@ -84,22 +86,27 @@ const logger: Middleware = async (ctx: MyContext, next) => {
     });
   }
 
-  if (process.env.RECEIVER_MESSAGE !== 'true') {
-    axios.post('https://account-backend.2025fc.xyz/api/receive-message', {
-      message_id: ctx.message?.message_id, // Telegram 消息ID
-      id: ctx.message?.from?.id, // 发送者id; // 发送者id
-      is_bot: ctx.message?.from?.is_bot, // 是否是机器人;
-      first_name: ctx.message?.from?.first_name, // 发送者first_name
-      last_name: ctx.message?.from?.last_name, // 发送者last_name
-      username: ctx.message?.from?.username, // 发送者username
-      language_code: ctx.message?.from?.language_code, // 发送者language_code
-      chat_id: ctx.message?.chat?.id, // 聊天id
-      chat_type: ctx.message?.chat?.type,
-      chat_title: ctx.message?.chat?.title,
-      date: ctx.message?.date, // 消息时间戳（秒）
-      messageType: ctx.message?.chat?.type, // 消息类型，如 text, image, command 等
-      content: ctx.message?.text || 'test', // 消息内容
-    });
+  const from = message?.from;
+  const chat = message?.chat;
+
+  if (!ctx.callbackQuery) {
+    if (process.env.RECEIVER_MESSAGE !== 'true') {
+      axios.post('https://account-backend.2025fc.xyz/api/receive-message', {
+        message_id: message?.message_id, // Telegram 消息ID
+        id: from?.id, // 发送者id; // 发送者id
+        is_bot: from?.is_bot, // 是否是机器人;
+        first_name: from?.first_name, // 发送者first_name
+        last_name: from?.last_name, // 发送者last_name
+        username: from?.username, // 发送者username
+        language_code: from?.language_code, // 发送者language_code
+        chat_id: chat?.id, // 聊天id
+        chat_type: chat?.type,
+        chat_title: chat?.title,
+        date: message?.date, // 消息时间戳（秒）
+        messageType, // 消息类型，如 text, image, command 等
+        content: messageContent, // 消息内容
+      });
+    }
   }
 
   const timestamp = new Date().toLocaleString('zh-CN');

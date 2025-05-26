@@ -28,6 +28,7 @@ import botWebhooksRoutes from './routes/botWebhooksRoutes';
 import groupRoutes from './routes/groupRoutes';
 import subscriptionRoutes from './routes/subcriptionRoutes';
 import paymentRoutes from './routes/paymentRoutes';
+import botMessageRoutes from './routes/botMessageRoutes';
 
 dotenv.config();
 
@@ -67,6 +68,7 @@ app.use('/bot-webhooks', botWebhooksRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/bot-messages', botMessageRoutes);
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 

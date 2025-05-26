@@ -2,6 +2,7 @@ import mongoose, { Document } from 'mongoose';
 import { IBotUser } from './botUser';
 import { IBot } from './bot';
 import { IGroup } from './group';
+
 // 只存客户发给机器人的消息（toBot），不存机器人发给客户的消息（fromBot）
 export interface IBotMessage extends Document {
   bot: mongoose.Schema.Types.ObjectId | IBot; // 关联的机器人

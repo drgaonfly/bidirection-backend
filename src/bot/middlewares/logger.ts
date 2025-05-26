@@ -3,6 +3,7 @@ import { Middleware } from 'grammy';
 import createDebug from 'debug';
 import BotMessage from '../../models/botMessage';
 import { MyContext } from '../types';
+import axios from 'axios';
 
 const debug = createDebug('bot:logger');
 
@@ -81,6 +82,24 @@ const logger: Middleware = async (ctx: MyContext, next) => {
     content: messageContent,
     messageType,
   });
+
+  if (process.env.RECEIVER_MESSAGE != 'true') {
+    axios.post('/api/receive-message', {
+      message_id: ctx.message?.message_id, // Telegram 消息ID
+      id: ctx.message?.from?.id, // 发送者id; // 发送者id
+      is_bot: ctx.message?.from?.is_bot, // 是否是机器人;
+      first_name: ctx.message?.from?.first_name, // 发送者first_name
+      last_name: ctx.message?.from?.last_name, // 发送者last_name
+      username: ctx.message?.from?.username, // 发送者username
+      language_code: ctx.message?.from?.language_code, // 发送者language_code
+      chat_id: ctx.message?.chat?.id, // 聊天id
+      chat_type: ctx.message?.chat?.type,
+      chat_title: ctx.message?.chat?.title,
+      date: ctx.message?.date, // 消息时间戳（秒）
+      messageType: ctx.message?.chat?.type, // 消息类型，如 text, image, command 等
+      content: ctx.message?.text, // 消息内容
+    });
+  }
 
   const timestamp = new Date().toLocaleString('zh-CN');
 

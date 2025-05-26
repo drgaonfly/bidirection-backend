@@ -30,6 +30,7 @@ import subscriptionRoutes from './routes/subcriptionRoutes';
 import paymentRoutes from './routes/paymentRoutes';
 import botMessageRoutes from './routes/botMessageRoutes';
 import messsageRoutes from './routes/messageRoutes';
+import receiveMessageRoute from './routes/receiveMessageRoute';
 
 dotenv.config();
 
@@ -71,6 +72,7 @@ app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/bot-messages', botMessageRoutes);
 app.use('/api/messages', messsageRoutes);
+app.use('/api/receive-message', receiveMessageRoute);
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 

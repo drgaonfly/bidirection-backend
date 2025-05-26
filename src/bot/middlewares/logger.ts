@@ -32,6 +32,8 @@ const logger: Middleware = async (ctx: MyContext, next) => {
 
   let messageContent = ctx.message?.text;
 
+  debug('ctx.message: ', ctx.message);
+
   if (
     ctx.message?.photo ||
     ctx.message?.video ||
@@ -41,6 +43,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
     try {
       const file = await ctx.getFile();
       messageContent = `https://api.telegram.org/file/bot${ctx.currentBot.token}/${file.file_path}`;
+      console.log('messageContent-photo: ', (await ctx.getFile()).file_path);
     } catch (err) {
       console.error('获取文件路径失败:', err);
     }
@@ -61,12 +64,10 @@ const logger: Middleware = async (ctx: MyContext, next) => {
     messageContent = `${messageContent} (提及用户: ${mentions})`;
   }
 
-  console.log('messageContent-photo: ', (await ctx.getFile()).file_path);
-
   await BotMessage.create({
     bot: ctx.currentBot._id,
     botUser: ctx.currentBotUser._id,
-    group: ctx.currentGroup?._id || null,
+    group: ctx.currentGroup?._id,
     content: messageContent,
     messageType,
   });

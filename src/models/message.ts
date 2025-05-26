@@ -1,4 +1,5 @@
 import mongoose, { Document } from 'mongoose';
+import { MessageType } from './botMessage';
 
 // 消息接口定义
 export interface IMessage extends Document {
@@ -47,7 +48,7 @@ const messageSchema = new mongoose.Schema(
     messageType: {
       type: String,
       required: true,
-      enum: ['text', 'image', 'command', 'audio', 'video', 'file', 'other'],
+      enum: Object.values(MessageType),
       default: 'text',
     },
     content: {

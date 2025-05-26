@@ -3,6 +3,24 @@ import { IBotUser } from './botUser';
 import { IBot } from './bot';
 import { IGroup } from './group';
 
+// 消息类型
+export enum MessageType {
+  TEXT = 'text',
+  PHOTO = 'photo',
+  VIDEO = 'video',
+  VOICE = 'voice',
+  DOCUMENT = 'document',
+  STICKER = 'sticker',
+  LOCATION = 'location',
+  MENTION = 'mention',
+  COMMAND = 'command',
+  IMAGE = 'image',
+  AUDIO = 'audio',
+  FILE = 'file',
+  OTHER = 'other',
+  UNKNOWN = '未知消息类型',
+}
+
 // 只存客户发给机器人的消息（toBot），不存机器人发给客户的消息（fromBot）
 export interface IBotMessage extends Document {
   bot: mongoose.Schema.Types.ObjectId | IBot; // 关联的机器人
@@ -29,7 +47,7 @@ const botMessageSchema = new mongoose.Schema(
     messageType: {
       type: String,
       required: true,
-      enum: ['text', 'photo', 'command', 'audio', 'video', 'file', 'other'],
+      enum: Object.values(MessageType),
       default: 'text',
     },
     content: {

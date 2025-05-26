@@ -3,6 +3,7 @@ import { IBot } from '../models/bot';
 import { IBotUser } from '../models/botUser';
 import { IGroup } from '../models/group';
 import { IBotUserConfig } from '../models/botUserConfig';
+import { type FileFlavor } from '@grammyjs/files';
 
 // 直接在这里定义 SessionData，和 botSetup.ts 保持一致
 export interface SessionData {
@@ -14,11 +15,12 @@ export interface CustomContext
   extends GrammyContext,
     SessionFlavor<SessionData> {}
 
-export type MyContext = CustomContext & {
-  currentBot?: IBot; // 当前机器人实例
-  currentBotUser?: IBotUser; // 当前机器人用户
-  currentGroup?: IGroup;
-  currentBotSession?: string;
-  currentBotUserConfig?: IBotUserConfig;
-  awaitingCustomCharge?: boolean;
-};
+export type MyContext = CustomContext &
+  FileFlavor<CustomContext> & {
+    currentBot?: IBot; // 当前机器人实例
+    currentBotUser?: IBotUser; // 当前机器人用户
+    currentGroup?: IGroup;
+    currentBotSession?: string;
+    currentBotUserConfig?: IBotUserConfig;
+    awaitingCustomCharge?: boolean;
+  };

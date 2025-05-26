@@ -29,7 +29,7 @@ const botMessageSchema = new mongoose.Schema(
     messageType: {
       type: String,
       required: true,
-      enum: ['text', 'image', 'command', 'audio', 'video', 'file', 'other'],
+      enum: ['text', 'photo', 'command', 'audio', 'video', 'file', 'other'],
       default: 'text',
     },
     content: {

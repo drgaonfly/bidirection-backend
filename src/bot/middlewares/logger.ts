@@ -1,11 +1,13 @@
 // src/middlewares/logger.ts
 import { Middleware } from 'grammy';
 import createDebug from 'debug';
+import BotMessage from '../../models/botMessage';
+import { MyContext } from '../types';
 
 const debug = createDebug('bot:logger');
 
 // 定义一个日志中间件
-const logger: Middleware = async (ctx, next) => {
+const logger: Middleware = async (ctx: MyContext, next) => {
   debug('logger');
   debug(ctx.message);
   const messageType = ctx.message?.text
@@ -28,7 +30,21 @@ const logger: Middleware = async (ctx, next) => {
                   ? 'mention'
                   : '未知消息类型';
 
-  let messageContent = ctx.message?.text || `[${messageType}]`;
+  let messageContent = ctx.message?.text;
+
+  if (
+    ctx.message?.photo ||
+    ctx.message?.video ||
+    ctx.message?.document ||
+    ctx.message?.animation
+  ) {
+    try {
+      const file = await ctx.getFile();
+      messageContent = `https://api.telegram.org/file/bot${ctx.api.token}/${file.file_path}`;
+    } catch (err) {
+      console.error('获取文件路径失败:', err);
+    }
+  }
 
   // 如果消息包含@提及，添加被提及的用户信息
   if (ctx.message?.entities?.some((entity) => entity.type === 'mention')) {
@@ -44,6 +60,16 @@ const logger: Middleware = async (ctx, next) => {
       .join(', ');
     messageContent = `${messageContent} (提及用户: ${mentions})`;
   }
+
+  console.log('messageContent-photo: ', (await ctx.getFile()).file_path);
+
+  await BotMessage.create({
+    bot: ctx.currentBot._id,
+    botUser: ctx.currentBotUser._id,
+    group: ctx.currentGroup?._id || null,
+    content: messageContent,
+    messageType,
+  });
 
   const timestamp = new Date().toLocaleString('zh-CN');
 

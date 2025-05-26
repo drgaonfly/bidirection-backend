@@ -5,6 +5,7 @@ import { IdGen } from '../utils/idGen';
 import { IBotUser } from '../models/botUser';
 import Bot, { IBot } from '../models/bot';
 import Group, { IGroup } from '../models/group';
+import BotUser from '../models/botUser';
 import * as ExcelJS from 'exceljs';
 
 // Build query based on query parameters
@@ -42,6 +43,22 @@ const buildQuery = async (queryParams: any) => {
       query.group = { $in: groupData.map((group) => group._id) };
     } else {
       query.group = null;
+    }
+  }
+
+  // botUser下的userName
+  if (queryParams.botUser) {
+    const botUsers = await BotUser.find({
+      userName: {
+        $regex: queryParams.botUser,
+        $options: 'i',
+      },
+    });
+
+    if (botUsers && botUsers.length > 0) {
+      query.botUser = { $in: botUsers.map((botUser) => botUser._id) };
+    } else {
+      query.botUser = null;
     }
   }
 

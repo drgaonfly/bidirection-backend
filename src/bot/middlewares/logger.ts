@@ -40,7 +40,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   ) {
     try {
       const file = await ctx.getFile();
-      messageContent = `https://api.telegram.org/file/bot${ctx.api.token}/${file.file_path}`;
+      messageContent = `https://api.telegram.org/file/bot${ctx.currentBot.token}/${file.file_path}`;
     } catch (err) {
       console.error('获取文件路径失败:', err);
     }

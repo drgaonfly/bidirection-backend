@@ -3,7 +3,7 @@ import { IBotUser } from './botUser';
 import { IBot } from './bot';
 import { IGroup } from './group';
 
-// 消息类型
+// 消息类型q1
 export enum MessageType {
   TEXT = 'text',
   PHOTO = 'photo',

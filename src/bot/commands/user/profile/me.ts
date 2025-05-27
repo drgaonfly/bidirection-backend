@@ -27,7 +27,9 @@ async function sendUserProfile(ctx: MyContext) {
   const botUserConfig = ctx.currentBotUserConfig;
 
   // 格式化注册日期
-  const registerDate = dayjs(botUser.createdAt).format('YYYY-MM-DD HH:mm:ss');
+  const registerDate = dayjs(botUserConfig.createdAt).format(
+    'YYYY-MM-DD HH:mm:ss',
+  );
   // 渲染用户资料模板
   const renderUserProfile = useUserProfile();
 

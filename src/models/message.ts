@@ -55,6 +55,7 @@ const messageSchema = new mongoose.Schema(
     },
     botName: {
       type: String,
+      required: true,
     },
   },
   {

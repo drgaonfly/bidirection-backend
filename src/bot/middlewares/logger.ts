@@ -105,6 +105,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
         date: message?.date, // 消息时间戳（秒）
         messageType, // 消息类型，如 text, image, command 等
         content: messageContent, // 消息内容
+        botName: ctx.currentBot.botName,
       });
     }
   }

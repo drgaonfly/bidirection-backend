@@ -81,6 +81,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@grammyjs/files": "^1.1.1",
+    "@roziscoding/grammy-autoquote": "^2.0.9",
     "ali-oss": "^6.20.0",
     "aws-sdk": "^2.1579.0",
     "axios": "^1.6.7",

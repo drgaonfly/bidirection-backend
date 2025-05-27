@@ -11,6 +11,7 @@ import createDebug from 'debug';
 import botUserConfigResolver from './middlewares/botUserConfigResolver';
 import { MyContext } from './types'; // 引入你的 MyContext 类型
 import { hydrateFiles } from '@grammyjs/files';
+// import { autoQuote } from "@roziscoding/grammy-autoquote";
 
 const log = createDebug('bot:setup');
 
@@ -57,6 +58,8 @@ export const setupBot = (token: string) => {
       }),
     }),
   );
+
+  // bot.use(autoQuote());
 
   // 由于 session 已经合并到 context，后续中间件类型也要兼容 MyContext
   // 需要确保所有中间件都用 MyContext 类型

@@ -21,6 +21,11 @@ const buildQuery = (queryParams: any): any => {
     query.username = queryParams.username;
   }
 
+  // botName
+  if (queryParams.botName) {
+    query.botName = queryParams.botName;
+  }
+
   return query;
 };
 

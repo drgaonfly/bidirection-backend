@@ -14,6 +14,7 @@ export interface IBotUser extends Document {
   transactions: ITransaction[]; // 虚拟字段，指向 Transaction 模型的 _id 数组
   subscriptions: ISubscription[]; // 虚拟字段，指向 Subscription 模型的 _id 数组
   isAuthorized: boolean; // 用户是否已授权
+  displayName?: string; // 虚拟属性
 }
 
 const botUserSchema = new mongoose.Schema(
@@ -50,6 +51,17 @@ botUserSchema.virtual('subscriptions', {
   ref: 'Subscription',
   localField: '_id',
   foreignField: 'botUser',
+});
+
+// 新增 displayName 虚拟属性
+botUserSchema.virtual('displayName').get(function (this: any) {
+  // 优先 userName，其次 firstName + lastName
+  if (this.userName) {
+    return this.userName;
+  }
+  const first = this.firstName || '';
+  const last = this.lastName || '';
+  return `${first} ${last}`.trim();
 });
 
 const BotUser = mongoose.model<IBotUser>('BotUser', botUserSchema);

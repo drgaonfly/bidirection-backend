@@ -19,7 +19,7 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: 22
           script: |
-            cd /www/wwwroot/account-backend.2025fc.xyz/account-bot-backend &&
+            cd /www/wwwroot/account-backend.2025fc.xyz/forwarding-backend &&
             git pull --rebase origin main &&
             /www/server/nodejs/v20.16.0/bin/pnpm install --registry=https://registry.npmjs.org &&
             git checkout -f . &&

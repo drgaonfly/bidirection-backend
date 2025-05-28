@@ -275,7 +275,10 @@ const addOwner = handleAsync(async (req: Request, res: Response) => {
     throw new Error('机器人不存在');
   }
 
-  const user = await getUserByUsername(botManager.session, req.body.owner);
+  // 一定是字符串的，去掉 req.body.owner 前面的 @（如果有）
+  const ownerUsername = req.body.owner.replace(/^@/, '');
+
+  const user = await getUserByUsername(botManager.session, ownerUsername);
 
   console.log('user', user);
 
@@ -333,7 +336,9 @@ const addAuthorizer = handleAsync(async (req: Request, res: Response) => {
     throw new Error('机器人不存在');
   }
 
-  const user = await getUserByUsername(botManager.session, req.body.authorizer);
+  // 一定是字符串的，去掉 req.body.authorizer 前面的 @（如果有）
+  const authorizerUsername = req.body.authorizer.replace(/^@/, '');
+  const user = await getUserByUsername(botManager.session, authorizerUsername);
 
   if (user) {
     await Bot.findByIdAndUpdate(

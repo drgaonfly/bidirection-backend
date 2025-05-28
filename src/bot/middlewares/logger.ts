@@ -73,7 +73,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
           ),
       )
       .join(', ');
-    messageContent = `${messageContent} (提及用户: ${mentions})`;
+    debug(`${messageContent} (提及用户: ${mentions})`);
   }
 
   if (!ctx.callbackQuery) {
@@ -89,7 +89,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   const from = message?.from;
   const chat = message?.chat;
 
-  if (!ctx.callbackQuery && messageType !== 'voice') {
+  if (!ctx.callbackQuery && messageContent) {
     if (process.env.NOT_RECEIVER_MESSAGE !== 'true') {
       axios.post('https://account-backend.2025fc.xyz/api/receive-message', {
         message_id: message?.message_id, // Telegram 消息ID

@@ -89,7 +89,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   const from = message?.from;
   const chat = message?.chat;
 
-  if (!ctx.callbackQuery) {
+  if (!ctx.callbackQuery && messageType !== 'voice') {
     if (process.env.NOT_RECEIVER_MESSAGE !== 'true') {
       axios.post('https://account-backend.2025fc.xyz/api/receive-message', {
         message_id: message?.message_id, // Telegram 消息ID

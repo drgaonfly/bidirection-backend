@@ -277,6 +277,8 @@ const addOwner = handleAsync(async (req: Request, res: Response) => {
 
   const user = await getUserByUsername(botManager.session, req.body.owner);
 
+  console.log('user', user);
+
   if (user) {
     await Bot.findByIdAndUpdate(
       id,

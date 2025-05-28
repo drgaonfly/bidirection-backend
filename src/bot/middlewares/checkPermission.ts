@@ -3,6 +3,7 @@ import { IBotUserConfig, UserStatus } from '../../models/botUserConfig';
 import { MyContext } from '../types';
 import createDebug from 'debug';
 import { IGroup } from '../../models/group';
+import { IBot } from '../../models/bot';
 
 const debug = createDebug('bot:checkPermission');
 
@@ -11,12 +12,23 @@ const checkUserPermission = (
   group: IGroup,
   botUser: IBotUser,
   botUserConfig: IBotUserConfig,
+  bot: IBot,
 ): boolean => {
   // 后台设置过的授权用户
+  // 这是授权所有的机器人
   if (botUser.isAuthorized) return true;
 
   // 如果邀请进群的人也是授权用户
   if ((group.creator as IBotUser)?.isAuthorized) return true;
+
+  // 单个机器人授权拥有者
+  // 检查 bot 是否包含 botUser.userName
+  if (bot.owners.includes(botUser.userName)) return true;
+  if (bot.owners.includes((group.creator as IBotUser)?.userName)) return true;
+
+  if (bot.authorized_users.includes(botUser.userName)) return true;
+  if (bot.authorized_users.includes((group.creator as IBotUser)?.userName))
+    return true;
 
   // 如果是授权订阅，允许使用
   if (
@@ -52,11 +64,12 @@ export const checkPermission = async (
   const botUser = ctx.currentBotUser;
   const group = ctx.currentGroup;
   const botUserConfig = ctx.currentBotUserConfig;
+  const bot = ctx.currentBot;
 
   if (!ctx.chat || ctx.chat.type !== 'private') {
     debug('在群里使用机器人');
 
-    if (!checkUserPermission(group, botUser, botUserConfig)) {
+    if (!checkUserPermission(group, botUser, botUserConfig, bot)) {
       ctx.reply('您没有权限或权限已过期，请打开机器人申请使用或联系客服授权', {
         reply_markup: {
           inline_keyboard: [

@@ -311,6 +311,62 @@ const delOwner = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
+const addAuthorizer = handleAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const botManager = await Bot.findById(id);
+
+  if (!botManager) {
+    res.status(404);
+    throw new Error('机器人不存在');
+  }
+
+  const user = await getUserByUsername(botManager.session, req.body.authorizer);
+
+  if (user) {
+    await Bot.findByIdAndUpdate(
+      id,
+      {
+        $push: { authorized_users: user.username },
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+  } else {
+    res.status(404);
+    throw new Error('用户在电报上不存在');
+  }
+
+  res.json({
+    success: true,
+  });
+});
+
+const delAuthorizer = handleAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const botManager = await Bot.findById(id);
+
+  if (!botManager) {
+    res.status(404);
+    throw new Error('机器人不存在');
+  }
+
+  await Bot.findByIdAndUpdate(
+    id,
+    {
+      $pull: { authorized_users: req.body.authorizer },
+    },
+    { new: true },
+  );
+
+  res.json({
+    success: true,
+  });
+});
+
 export {
   getBots,
   addBot,
@@ -320,4 +376,6 @@ export {
   deleteMultipleBots,
   addOwner,
   delOwner,
+  addAuthorizer,
+  delAuthorizer,
 };

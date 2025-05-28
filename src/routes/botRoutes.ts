@@ -8,6 +8,8 @@ import {
   deleteMultipleBots,
   addOwner,
   delOwner,
+  addAuthorizer,
+  delAuthorizer,
 } from '../controllers/botController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
@@ -28,5 +30,13 @@ router
 router.route('/:id/add-owner').put(protect, checkPermission, addOwner);
 
 router.route('/:id/delete-owner').put(protect, checkPermission, delOwner);
+
+router
+  .route('/:id/add-authorizer')
+  .put(protect, checkPermission, addAuthorizer);
+
+router
+  .route('/:id/delete-authorizer')
+  .put(protect, checkPermission, delAuthorizer);
 
 export default router;

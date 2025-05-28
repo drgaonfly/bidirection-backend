@@ -28,7 +28,10 @@ subscriptionHistoryCallback.command(
 async function handleSubscriptionHistoryCallback(ctx: MyContext) {
   debug('订单历史记录回调被触发');
 
-  const subscriptions = ctx.currentBotUser.subscriptions;
+  // 只保留属于当前 bot 的订阅
+  const subscriptions = ctx.currentBotUser.subscriptions.filter(
+    (sub) => sub.bot.toString() === ctx.currentBot._id.toString(),
+  );
 
   // 使用EJS模板渲染订阅历史记录
   const renderSubscriptionHistory = useSubscriptionHistory();

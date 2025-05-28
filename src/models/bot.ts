@@ -16,6 +16,8 @@ export interface IBot extends Document {
   contact?: string;
   trx20_address?: string;
   customer_service_link?: string;
+  owners?: string[]; // 拥有者
+  authorized_users?: string[]; // 授权人
 }
 
 export interface IMenu extends Document {
@@ -94,11 +96,25 @@ const botSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    owners: {
+      type: [String],
+    },
+    authorized_users: {
+      type: [String],
+    },
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
 );
+
+botSchema.virtual('groups', {
+  ref: 'Group', // 关联的模型
+  localField: '_id', // Group 的 `_id`
+  foreignField: 'bot', // Group 中的 `bot` 字段
+});
 
 const Bot = mongoose.model<IBot>('Bot', botSchema);
 

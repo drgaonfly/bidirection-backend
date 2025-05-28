@@ -288,6 +288,29 @@ const addOwner = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
+const delOwner = handleAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const botManager = await Bot.findById(id);
+
+  if (!botManager) {
+    res.status(404);
+    throw new Error('机器人不存在');
+  }
+
+  await Bot.findByIdAndUpdate(
+    id,
+    {
+      $pull: { owners: req.body.owner },
+    },
+    { new: true },
+  );
+
+  res.json({
+    success: true,
+  });
+});
+
 export {
   getBots,
   addBot,
@@ -296,4 +319,5 @@ export {
   deleteBot,
   deleteMultipleBots,
   addOwner,
+  delOwner,
 };

@@ -5,6 +5,7 @@ import User from '../models/user';
 import { printWebhookInfo, setupBot } from '../bot/botSetup';
 import { RequestCustom } from 'user';
 import { isProxy, isEmployee } from '../middlewares/authMiddleware';
+import { getUserByUsername } from '../bot/commands/user/operator/add';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -254,6 +255,39 @@ const deleteMultipleBots = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
+const addOwner = handleAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const botManager = await Bot.findById(id);
+
+  if (!botManager) {
+    res.status(404);
+    throw new Error('机器人不存在');
+  }
+
+  const user = await getUserByUsername(botManager.session, req.body.owner);
+
+  if (user) {
+    await Bot.findByIdAndUpdate(
+      id,
+      {
+        $push: { owners: user.username },
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+  } else {
+    res.status(404);
+    throw new Error('用户在电报上不存在');
+  }
+
+  res.json({
+    success: true,
+  });
+});
+
 export {
   getBots,
   addBot,
@@ -261,4 +295,5 @@ export {
   updateBot,
   deleteBot,
   deleteMultipleBots,
+  addOwner,
 };

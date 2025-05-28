@@ -6,6 +6,7 @@ import {
   updateBot,
   deleteBot,
   deleteMultipleBots,
+  addOwner,
 } from '../controllers/botController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
@@ -22,5 +23,7 @@ router
   .get(protect, checkPermission, getBotById)
   .put(protect, checkPermission, updateBot)
   .delete(protect, checkPermission, deleteBot);
+
+router.route('/:id/add-owner').put(protect, checkPermission, addOwner);
 
 export default router;

@@ -7,6 +7,7 @@ import Payment from '../../../../models/payment';
 import { renewalOptions } from '../../../../models/subscription';
 import { IdGen } from '../../../../utils/idGen';
 import crypto from 'crypto';
+import dayjs from 'dayjs';
 
 const debug = createDebug('bot:subscription:callback');
 
@@ -85,6 +86,9 @@ callbackComposer.callbackQuery(
 
     if (existingPayment) {
       debug('找到未过期的相同订阅类型订单:', existingPayment.orderNumber);
+      // 如果已存在未过期订单，顺便刷新其过期时间为15分钟后
+      existingPayment.expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15分钟后过期 更新下
+      await existingPayment.save();
       payment = existingPayment;
     } else {
       debug('未找到未过期的相同订阅类型订单，开始创建新订单');
@@ -155,7 +159,7 @@ callbackComposer.callbackQuery(
 
     // 发送支付信息给用户
     const expireTime = payment.expiresAt
-      ? payment.expiresAt.toLocaleString('zh-CN', { hour12: false })
+      ? dayjs(payment.expiresAt).format('YYYY-MM-DD HH:mm:ss')
       : '未知';
 
     const keyboard = new InlineKeyboard()

@@ -76,7 +76,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
     debug(`${messageContent} (提及用户: ${mentions})`);
   }
 
-  if (!ctx.callbackQuery) {
+  if (!ctx.callbackQuery && messageContent) {
     await BotMessage.create({
       bot: ctx.currentBot._id,
       botUser: ctx.currentBotUser._id,

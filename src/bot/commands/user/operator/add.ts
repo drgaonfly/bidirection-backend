@@ -33,6 +33,7 @@ export async function getUserByUsername(session: any, username: string) {
     };
   } catch (error) {
     debug('获取用户信息失败:', error);
+    throw error;
   }
 }
 

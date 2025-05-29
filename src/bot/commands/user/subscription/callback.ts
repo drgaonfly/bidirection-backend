@@ -7,7 +7,6 @@ import Payment from '../../../../models/payment';
 import { renewalOptions } from '../../../../models/subscription';
 import { IdGen } from '../../../../utils/idGen';
 import crypto from 'crypto';
-import dayjs from 'dayjs';
 
 const debug = createDebug('bot:subscription:callback');
 

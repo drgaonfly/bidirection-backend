@@ -17,6 +17,7 @@ export enum MessageType {
   IMAGE = 'image',
   AUDIO = 'audio',
   FILE = 'file',
+  CALLBACK_QUERY = 'callback_query', // 新增 callback_query
   OTHER = 'other',
   UNKNOWN = '未知消息类型',
 }

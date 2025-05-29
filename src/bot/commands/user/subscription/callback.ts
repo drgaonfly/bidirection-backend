@@ -159,7 +159,7 @@ callbackComposer.callbackQuery(
 
     // 发送支付信息给用户
     const expireTime = payment.expiredAt
-      ? dayjs(payment.expiredAt).format('YYYY-MM-DD HH:mm:ss')
+      ? new Date(payment.expiredAt).toLocaleString()
       : '未知';
 
     const keyboard = new InlineKeyboard()

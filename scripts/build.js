@@ -10,7 +10,7 @@ const cliProgress = require('cli-progress');
 require('dotenv').config();
 
 // 远程部署目录
-const REMOTE_DEPLOY_PATH = '/www/wwwroot/account-backend';
+const REMOTE_DEPLOY_PATH = '/www/wwwroot/account-bot-backend';
 
 // NVM Node路径
 const NVM_NODE_PATH = '/root/.nvm/versions/node/v22.15.0/bin';

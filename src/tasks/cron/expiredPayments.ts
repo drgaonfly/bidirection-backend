@@ -23,8 +23,7 @@ export async function checkExpiredPayments() {
       console.log(`[expiredOrders] 正在处理订单: ${payment.orderNumber}`);
 
       // 设置订单状态为过期
-      payment.status = 'expired';
-      await payment.save();
+      await Payment.updateOne({ _id: payment._id }, { status: 'expired' });
 
       console.log(
         `[expiredOrders] 订单 ${payment.orderNumber} 状态已更新为 expired`,

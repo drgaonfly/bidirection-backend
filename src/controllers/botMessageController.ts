@@ -78,9 +78,14 @@ const getBotMessages = handleAsync(async (req: Request, res: Response) => {
     .limit(+pageSize)
     .exec();
 
+  const total = await BotMessage.countDocuments(query).exec();
+
   res.json({
     success: true,
     data: messages,
+    total,
+    current: +current,
+    pageSize: +pageSize,
   });
 });
 

@@ -43,9 +43,14 @@ const getSubscriptions = handleAsync(async (req: Request, res: Response) => {
     .limit(+pageSize)
     .exec();
 
+  const total = await Subscription.countDocuments(query).exec();
+
   res.json({
     success: true,
     data: subscriptions,
+    total,
+    current: +current,
+    pageSize: +pageSize,
   });
 });
 

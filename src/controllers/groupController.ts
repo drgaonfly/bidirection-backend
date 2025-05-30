@@ -37,9 +37,14 @@ const getGroups = handleAsync(async (req: Request, res: Response) => {
     .limit(+pageSize)
     .exec();
 
+  const total = await Group.countDocuments(query).exec();
+
   res.json({
     success: true,
     data: groups,
+    total,
+    current: +current,
+    pageSize: +pageSize,
   });
 });
 

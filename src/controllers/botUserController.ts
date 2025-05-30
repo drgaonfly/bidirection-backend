@@ -56,14 +56,19 @@ const getbotUsers = handleAsync(async (req: RequestCustom, res: Response) => {
     .populate('transactions')
     .populate('payments')
     .populate('subscriptions')
-    .sort('-createdAt') // Sort by creation time in descending order
+    .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .exec();
 
+  const total = await BotUser.countDocuments(query).exec();
+
   res.json({
     success: true,
     data: botUsers,
+    total,
+    current: +current,
+    pageSize: +pageSize,
   });
 });
 

@@ -18,6 +18,8 @@ export interface IBot extends Document {
   customer_service_link?: string;
   owners?: string[]; // 拥有者
   authorized_users?: string[]; // 授权人
+  expireAt?: Date; // 到期时间
+  type?: 'public' | 'custom'; // 类型
 }
 
 export interface IMenu extends Document {
@@ -101,6 +103,15 @@ const botSchema = new mongoose.Schema(
     },
     authorized_users: {
       type: [String],
+    },
+    expireAt: {
+      type: Date,
+    },
+    type: {
+      type: String,
+      enum: ['public', 'custom'],
+      default: 'custom',
+      trim: true,
     },
   },
   {

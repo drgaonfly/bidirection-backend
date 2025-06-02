@@ -51,6 +51,7 @@ export interface ISubscription extends Document {
   id: string;
   payment: mongoose.Types.ObjectId | IPayment;
   isRenewal?: boolean; // 是否续费类型
+  preExpirationNotified?: boolean; // 是否已发送过期提醒
 }
 
 const subscriptionSchema = new mongoose.Schema(
@@ -89,6 +90,7 @@ const subscriptionSchema = new mongoose.Schema(
       required: true,
     },
     isRenewal: { type: Boolean, default: false }, // 是否续费类型，默认 false
+    preExpirationNotified: { type: Boolean, default: false }, // 是否已发送过期提醒，默认 false
   },
   { timestamps: true },
 );

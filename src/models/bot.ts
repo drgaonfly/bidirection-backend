@@ -21,6 +21,7 @@ export interface IBot extends Document {
   expireAt?: Date; // 到期时间
   type?: 'public' | 'custom'; // 类型
   isExpired?: boolean; // 是否过期，默认 false
+  preExpirationNotified?: boolean; // 是否已发送过期提醒，默认 false
 }
 
 export interface IMenu extends Document {
@@ -124,6 +125,10 @@ const botSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     }, // 是否过期，默认 false
+    preExpirationNotified: {
+      type: Boolean,
+      default: false,
+    }, // 是否已发送过期提醒，默认 false
   },
   {
     timestamps: true,

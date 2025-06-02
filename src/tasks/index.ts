@@ -4,6 +4,7 @@ import { checkExpiredSubscriptions } from './cron/checkExpiredSubscriptions';
 import { trialExpired } from './cron/trialExpired';
 import { checkPendingOrders } from './cron/checkPendingOrders';
 import { updateBotExpiration } from './cron/updateBotExpiration';
+import { notifyBotExpiration } from './cron/notifyBotExpiration';
 import { setupRedis } from '../utils/redis';
 
 const task = async () => {
@@ -15,6 +16,7 @@ const task = async () => {
   await checkExpiredPayments();
   await checkPendingOrders();
   await checkExpiredSubscriptions();
+  await notifyBotExpiration();
   await updateBotExpiration();
 };
 

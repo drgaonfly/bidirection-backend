@@ -14,7 +14,7 @@ export const checkBotCustom = async (
 
   const bot = ctx.currentBot;
   debug('bot', bot);
-  const userId = ctx.currentBotUser.id;
+  const userId = ctx.currentBotUser._id.toString();
 
   // 检查是否为 owner 或 authorized_user
   // 只允许 custom 类型
@@ -24,10 +24,13 @@ export const checkBotCustom = async (
     return await next();
   }
 
-  const owners: string[] = Array.isArray(bot.owners) ? bot.owners : [];
-  const authorizedUsers: string[] = Array.isArray(bot.authorized_users)
-    ? bot.authorized_users
-    : [];
+  // owners 和 authorized_users 可能是 ObjectId[] 或 IBotUser[]，需要统一取出 id 字符串
+  const owners: string[] = (bot.owners || []).map((owner: any) =>
+    owner.toString(),
+  );
+  const authorizedUsers: string[] = (bot.authorized_users || []).map(
+    (user: any) => user.toString(),
+  );
 
   if (!owners.includes(userId) && !authorizedUsers.includes(userId)) {
     debug('仅限机器人拥有者或授权用户使用');

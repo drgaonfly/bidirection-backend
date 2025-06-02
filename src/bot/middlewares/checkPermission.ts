@@ -21,14 +21,23 @@ const checkUserPermission = (
   // 如果邀请进群的人也是授权用户
   if ((group.creator as IBotUser)?.isAuthorized) return true;
 
-  // 单个机器人授权拥有者
-  // 检查 bot 是否包含 botUser.userName
-  if (bot.owners.includes(botUser.userName)) return true;
-  if (bot.owners.includes((group.creator as IBotUser)?.userName)) return true;
+  // 单个机器人授权拥有者/授权用户
+  // owners 和 authorized_users 可能是 ObjectId[] 或 IBotUser[]，需要统一取出 id 字符串
+  const owners: string[] = (bot.owners || []).map((owner: any) =>
+    owner.toString(),
+  );
+  const authorizedUsers: string[] = (bot.authorized_users || []).map(
+    (user: any) => user.toString(),
+  );
 
-  if (bot.authorized_users.includes(botUser.userName)) return true;
-  if (bot.authorized_users.includes((group.creator as IBotUser)?.userName))
-    return true;
+  const botUserId = botUser._id?.toString();
+  const groupCreatorId = (group.creator as IBotUser)?._id?.toString();
+
+  if (owners.includes(botUserId)) return true;
+  if (owners.includes(groupCreatorId)) return true;
+
+  if (authorizedUsers.includes(botUserId)) return true;
+  if (authorizedUsers.includes(groupCreatorId)) return true;
 
   // 如果是授权订阅，允许使用
   if (

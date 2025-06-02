@@ -19,7 +19,7 @@ export interface IBotUser extends Document {
 
 const botUserSchema = new mongoose.Schema(
   {
-    id: { type: String, required: true },
+    id: { type: String, required: true, unique: true },
     userName: { type: String, required: false },
     firstName: { type: String, required: false },
     lastName: { type: String, required: false },

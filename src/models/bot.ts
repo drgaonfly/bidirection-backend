@@ -16,8 +16,8 @@ export interface IBot extends Document {
   contact?: string;
   trx20_address?: string;
   customer_service_link?: string;
-  owners?: string[]; // 拥有者
-  authorized_users?: string[]; // 授权人
+  owners?: mongoose.Schema.Types.ObjectId[] | IBotUser[]; // 拥有者，存 BotUser _id 关联
+  authorized_users?: mongoose.Schema.Types.ObjectId[] | IBotUser[]; // 授权人，存 BotUser _id 关联
   expireAt?: Date; // 到期时间
   type?: 'public' | 'custom'; // 类型
 }
@@ -98,12 +98,18 @@ const botSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    owners: {
-      type: [String],
-    },
-    authorized_users: {
-      type: [String],
-    },
+    owners: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'BotUser',
+      },
+    ], // 存 BotUser _id 关联
+    authorized_users: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'BotUser',
+      },
+    ], // 存 BotUser _id 关联
     expireAt: {
       type: Date,
     },

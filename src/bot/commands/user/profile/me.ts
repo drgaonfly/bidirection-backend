@@ -6,20 +6,30 @@ import { renewalOptions } from '../../../../models/subscription';
 import dayjs from 'dayjs';
 import profile from '../../../menus/inline/profile';
 import createDebug from 'debug';
-
+import { checkBotCustom } from '../../../../bot/middlewares/checkBotCustom';
 const userProfileCommand = new Composer<MyContext>();
 const debug = createDebug('bot:user-profile');
 
-userProfileCommand.command('profile', checkInBot, async (ctx) => {
-  debug('用户中心命令被触发');
-  await sendUserProfile(ctx);
-});
+userProfileCommand.command(
+  'profile',
+  checkInBot,
+  checkBotCustom,
+  async (ctx) => {
+    debug('用户中心命令被触发');
+    await sendUserProfile(ctx);
+  },
+);
 
 // 监听"用户中心"文本消息
-userProfileCommand.hears(/个人信息/, checkInBot, async (ctx) => {
-  debug('用户中心命令被触发');
-  await sendUserProfile(ctx);
-});
+userProfileCommand.hears(
+  /个人信息/,
+  checkInBot,
+  checkBotCustom,
+  async (ctx) => {
+    debug('用户中心命令被触发');
+    await sendUserProfile(ctx);
+  },
+);
 
 async function sendUserProfile(ctx: MyContext) {
   // 查找用户信息

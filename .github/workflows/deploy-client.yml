@@ -29,4 +29,5 @@ jobs:
             git pull --rebase origin ${GITHUB_REF##*/} &&
             /www/server/nodejs/v20.16.0/bin/pnpm install &&
             git checkout -f . &&
+            npm run build &&
             npm run copy-to-remote

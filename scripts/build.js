@@ -10,13 +10,13 @@ const cliProgress = require('cli-progress');
 require('dotenv').config();
 
 // 远程部署目录
-const REMOTE_DEPLOY_PATH = '/www/wwwroot/account-bot-backend';
+const REMOTE_DEPLOY_PATH = '/www/wwwroot/swap-backend';
 
 // NVM Node路径
 const NVM_NODE_PATH = '/root/.nvm/versions/node/v22.15.0/bin';
 
 // PM2 服务名称
-const PM2_SERVICE_NAME = 'account-backend';
+const PM2_SERVICE_NAME = 'swap-backend';
 
 // 远程服务器配置
 const sshConfig = {
@@ -28,9 +28,9 @@ const sshConfig = {
 };
 
 // 清理并编译
-console.log('开始清理和编译...');
-execSync('rimraf dist && tsc -p tsconfig.json && cp -r src/templates dist/templates');
-console.log('清理和编译完成');
+// console.log('开始清理和编译...');
+// execSync('rimraf dist && tsc -p tsconfig.json && cp -r src/templates dist/templates');
+// console.log('清理和编译完成');
 
 // 创建压缩包
 async function createZipArchive() {

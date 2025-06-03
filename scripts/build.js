@@ -28,9 +28,9 @@ const sshConfig = {
 };
 
 // 清理并编译
-console.log('开始清理和编译...');
-execSync('rimraf dist && tsc -p tsconfig.json && cp -r src/templates dist/templates');
-console.log('清理和编译完成');
+// console.log('开始清理和编译...');
+// execSync('rimraf dist && tsc -p tsconfig.json && cp -r src/templates dist/templates');
+// console.log('清理和编译完成');
 
 // 创建压缩包
 async function createZipArchive() {

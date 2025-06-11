@@ -10,6 +10,7 @@ import {
   delOwner,
   addAuthorizer,
   delAuthorizer,
+  sendMessage,
 } from '../controllers/botController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
@@ -38,5 +39,7 @@ router
 router
   .route('/:id/delete-authorizer')
   .put(protect, checkPermission, delAuthorizer);
+
+router.route('/:id/send-message').post(protect, checkPermission, sendMessage);
 
 export default router;

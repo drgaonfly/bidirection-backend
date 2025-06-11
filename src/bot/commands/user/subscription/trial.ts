@@ -5,7 +5,6 @@ import createDebug from 'debug';
 import { checkInBot } from '../../../../bot/middlewares/checkInBot';
 import { UserStatus } from '../../../../models/botUserConfig';
 import { checkBotPublic } from '../../../../bot/middlewares/checkBotPublic';
-import Group from '../../../../models/group';
 
 const trialCommand = new Composer<MyContext>();
 const debug = createDebug('bot:trial');
@@ -79,23 +78,6 @@ trialCommand.hears(/申请试用/, checkInBot, checkBotPublic, async (ctx) => {
       ],
     },
   });
-
-  debug('群发');
-  const groups = await Group.find({
-    bot: ctx.currentBot._id,
-  });
-
-  for (const group of groups) {
-    await ctx.api.sendMessage(
-      group.id,
-      [`恭喜用户${ctx.currentBotUser.displayName}获得12小时免费试用！`].join(
-        '\n',
-      ),
-      {
-        parse_mode: 'HTML',
-      },
-    );
-  }
 });
 
 export default trialCommand;

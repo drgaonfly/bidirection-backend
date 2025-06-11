@@ -443,6 +443,51 @@ const delAuthorizer = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
+// send message
+const sendMessage = handleAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { message } = req.body;
+
+  const botManager = await Bot.findById(id).populate('botUsers');
+
+  if (!botManager) {
+    res.status(404);
+    throw new Error('机器人不存在');
+  }
+
+  const telegramBot = setupBot(botManager.token);
+
+  const results = await Promise.allSettled(
+    botManager.botUsers.map(async (botUser: any) => {
+      try {
+        await telegramBot.api.sendMessage(botUser.id, message);
+        return { userId: botUser.id, success: true };
+      } catch (error: any) {
+        return {
+          userId: botUser.id,
+          success: false,
+          error: error.message,
+        };
+      }
+    }),
+  );
+
+  const successful = results.filter(
+    (r) => r.status === 'fulfilled' && (r.value as any).success,
+  ).length;
+  const failed = results.filter(
+    (r) => r.status === 'rejected' || !(r.value as any).success,
+  ).length;
+
+  res.json({
+    success: true,
+    data: {
+      message: `消息发送完成：${successful} 个成功，${failed} 个失败`,
+      details: results,
+    },
+  });
+});
+
 export {
   getBots,
   addBot,
@@ -454,4 +499,5 @@ export {
   delOwner,
   addAuthorizer,
   delAuthorizer,
+  sendMessage,
 };

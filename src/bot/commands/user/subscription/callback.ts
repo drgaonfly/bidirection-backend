@@ -7,7 +7,6 @@ import Payment from '../../../../models/payment';
 import { renewalOptions } from '../../../../models/subscription';
 import { IdGen } from '../../../../utils/idGen';
 import { generateOrderNumber } from '../../../../utils/generateOrderNumber';
-import Group from '../../../../models/group';
 
 const debug = createDebug('bot:subscription:callback');
 
@@ -170,18 +169,6 @@ callbackComposer.callbackQuery(
       parse_mode: 'HTML',
       reply_markup: keyboard,
     });
-
-    debug('群发');
-
-    const groups = await Group.find({
-      bot: ctx.currentBot._id,
-    });
-
-    for (const group of groups) {
-      await ctx.api.sendMessage(group.id, paymentMessage, {
-        parse_mode: 'HTML',
-      });
-    }
   },
 );
 

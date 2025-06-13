@@ -1,5 +1,5 @@
 import { IBotUser } from '../../models/botUser';
-import { IBotUserConfig, UserStatus } from '../../models/botUserConfig';
+import { IBotUserConfig } from '../../models/botUserConfig';
 import { MyContext } from '../types';
 import createDebug from 'debug';
 import { IGroup } from '../../models/group';
@@ -14,55 +14,8 @@ const checkUserPermission = (
   botUserConfig: IBotUserConfig,
   bot: IBot,
 ): boolean => {
-  // 后台设置过的授权用户
-  // 这是授权所有的机器人
-  if (botUser.isAuthorized) return true;
-
-  // 如果邀请进群的人也是授权用户
-  if ((group.creator as IBotUser)?.isAuthorized) return true;
-
-  // 单个机器人授权拥有者/授权用户
-  // owners 和 authorized_users 可能是 ObjectId[] 或 IBotUser[]，需要统一取出 id 字符串
-  const owners: string[] = (bot.owners || []).map((owner: any) =>
-    owner.toString(),
-  );
-  const authorizedUsers: string[] = (bot.authorized_users || []).map(
-    (user: any) => user.toString(),
-  );
-
-  const botUserId = botUser._id?.toString();
-  const groupCreatorId = (group.creator as IBotUser)?._id?.toString();
-
-  if (owners.includes(botUserId)) return true;
-  if (owners.includes(groupCreatorId)) return true;
-
-  if (authorizedUsers.includes(botUserId)) return true;
-  if (authorizedUsers.includes(groupCreatorId)) return true;
-
-  // 如果是授权订阅，允许使用
-  if (
-    botUserConfig.status === UserStatus.AUTHORIZED &&
-    botUserConfig.subscriptionEndDate &&
-    new Date() < new Date(botUserConfig.subscriptionEndDate)
-  ) {
-    return true;
-  }
-
-  // 如果是授权过期状态，不允许使用
-  if (botUserConfig.status === UserStatus.SUBSCRIPTION_EXPIRED) return false;
-
-  // 如果是试用过期状态，不允许使用
-  if (botUserConfig.status === UserStatus.TRIAL_EXPIRED) return false;
-
-  // 检查是否在试用期内
-  if (botUserConfig.status === UserStatus.TRIAL && botUserConfig.trialEndDate) {
-    const now = new Date();
-    if (now < new Date(botUserConfig.trialEndDate)) {
-      return true;
-    }
-  }
-
-  return false;
+  console.log('checkUserPermission', group, botUser, botUserConfig, bot);
+  return true;
 };
 
 /**

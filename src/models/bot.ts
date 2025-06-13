@@ -18,10 +18,12 @@ export interface IBot extends Document {
   customer_service_link?: string;
   owners?: mongoose.Schema.Types.ObjectId[] | IBotUser[]; // 拥有者，存 BotUser _id 关联
   authorized_users?: mongoose.Schema.Types.ObjectId[] | IBotUser[]; // 授权人，存 BotUser _id 关联
+  creator?: mongoose.Schema.Types.ObjectId | IBotUser; // 创建者，存 BotUser _id 关联
   expireAt?: Date; // 到期时间
   type?: 'public' | 'custom'; // 类型
   isExpired?: boolean; // 是否过期，默认 false
   preExpirationNotified?: boolean; // 是否已发送过期提醒，默认 false
+  clonedFrom?: mongoose.Schema.Types.ObjectId | IBot; // 新增：从哪个机器人clone的
 }
 
 export interface IMenu extends Document {
@@ -112,6 +114,10 @@ const botSchema = new mongoose.Schema(
         ref: 'BotUser',
       },
     ], // 存 BotUser _id 关联
+    creator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'BotUser',
+    }, // 创建者，存 BotUser _id 关联
     expireAt: {
       type: Date,
     },
@@ -129,6 +135,11 @@ const botSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     }, // 是否已发送过期提醒，默认 false
+    clonedFrom: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Bot',
+      default: null,
+    }, // 新增：从哪个机器人clone的
   },
   {
     timestamps: true,

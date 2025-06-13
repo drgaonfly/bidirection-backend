@@ -1,26 +1,26 @@
 import { Context as GrammyContext, SessionFlavor } from 'grammy';
+// import { I18nFlavor } from '@grammyjs/i18n';
 import { IBot } from '../models/bot';
 import { IBotUser } from '../models/botUser';
 import { IGroup } from '../models/group';
 import { IBotUserConfig } from '../models/botUserConfig';
 import { type FileFlavor } from '@grammyjs/files';
-
-// 直接在这里定义 SessionData，和 botSetup.ts 保持一致
-export interface SessionData {
-  awaitingCustomCharge?: boolean;
-  // 你可以在这里添加更多 session 字段
-}
+import { SessionData } from './sessions';
+import { ConversationFlavor } from '@grammyjs/conversations';
 
 export interface CustomContext
   extends GrammyContext,
     SessionFlavor<SessionData> {}
 
-export type MyContext = CustomContext &
+// 基础上下文类型
+type BaseContext = CustomContext &
   FileFlavor<CustomContext> & {
-    currentBot?: IBot; // 当前机器人实例
-    currentBotUser?: IBotUser; // 当前机器人用户
+    currentBot?: IBot;
+    currentBotUser?: IBotUser;
     currentGroup?: IGroup;
     currentBotSession?: string;
     currentBotUserConfig?: IBotUserConfig;
-    awaitingCustomCharge?: boolean;
   };
+
+// 最终上下文类型
+export type MyContext = BaseContext & ConversationFlavor<BaseContext>;

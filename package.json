@@ -81,6 +81,7 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
+    "@grammyjs/conversations": "^2.1.0",
     "@grammyjs/files": "^1.1.1",
     "@grammyjs/storage-redis": "^2.5.1",
     "@roziscoding/grammy-autoquote": "^2.0.9",

@@ -116,6 +116,8 @@ const getBots = handleAsync(async (req: RequestCustom, res: Response) => {
     .populate('groups')
     .populate('owners')
     .populate('authorized_users')
+    .populate('clonedFrom')
+    .populate('creator')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)

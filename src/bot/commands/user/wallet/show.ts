@@ -1,18 +1,10 @@
 import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
+import { handleWalletListWithoutInlineMenu } from './handleWalletList';
 
 const walletShowComposer = new Composer<MyContext>();
 
 walletShowComposer.hears(/^🏦 地址监听$/, async (ctx) => {
-  const messages = [
-    '🏦 地址监听功能',
-    '',
-    '您可以在这里管理您的钱包监听地址：',
-    '• 添加新的监听地址',
-    '• 设置默认监听地址',
-    '• 删除已添加的地址',
-  ];
-
   const inlineKeyboard = {
     inline_keyboard: [
       [
@@ -24,7 +16,9 @@ walletShowComposer.hears(/^🏦 地址监听$/, async (ctx) => {
     ],
   };
 
-  await ctx.reply(messages.join('\n'), {
+  const { replyText } = await handleWalletListWithoutInlineMenu(1);
+
+  await ctx.reply(replyText, {
     parse_mode: 'HTML',
     reply_markup: inlineKeyboard,
   });

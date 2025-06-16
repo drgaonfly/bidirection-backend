@@ -55,3 +55,40 @@ export const handleWalletList = async (
 
   await ctx.reply(replyText, { reply_markup: keyboard, parse_mode: 'HTML' });
 };
+
+export const handleWalletListWithoutInlineMenu = async (
+  page = 1,
+): Promise<{ pageInfo: string; replyText: string }> => {
+  // 使用 limit/skip 进行分页
+  const skip = (page - 1) * ITEMS_PER_PAGE;
+
+  // 先查总数
+  const totalItems = await Wallet.countDocuments();
+  debug('totalItems', totalItems);
+
+  if (totalItems === 0) {
+    return;
+  }
+
+  // 分页查找
+  const wallets = await Wallet.find()
+    .sort({ weight: 1, createdAt: -1 })
+    .skip(skip)
+    .limit(ITEMS_PER_PAGE);
+
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+  const pageInfo =
+    totalPages > 1
+      ? `（第 ${page}/${totalPages} 页）, 每页 ${ITEMS_PER_PAGE} 条记录`
+      : '';
+
+  const replyText = `\n<b>🏦 您的监控地址列表：</b>\n\n${wallets
+    .map((wallet, index) => `${index + 1}. ${wallet.address}`)
+    .join('\n')}`;
+
+  return {
+    pageInfo,
+    replyText,
+  };
+};

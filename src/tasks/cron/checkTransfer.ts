@@ -74,7 +74,6 @@ export async function checkTransfer() {
         console.log(
           `[checkTransfer] 钱包 ${wallet.address} 已处理过该转账哈希，跳过`,
         );
-        continue;
       }
 
       const receipt = await Receipt.create({
@@ -86,6 +85,8 @@ export async function checkTransfer() {
         botUser: botUser._id,
         time: matchedTransfer.time,
       });
+
+      console.log('botUser', botUser);
 
       const message = [
         `🏠监听账户: ${address}`,
@@ -99,19 +100,23 @@ export async function checkTransfer() {
 
       //
 
-      telegramBot.api.sendMessage(botUser.id, message, {
-        parse_mode: 'HTML',
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: '查看详情',
-                url: `https://tronscan.org/#/transaction/${receipt.hash}`,
-              },
+      try {
+        await telegramBot.api.sendMessage(botUser.id, message, {
+          parse_mode: 'HTML',
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: '查看详情',
+                  url: `https://tronscan.org/#/transaction/${receipt.hash}`,
+                },
+              ],
             ],
-          ],
-        },
-      });
+          },
+        });
+      } catch (err) {
+        console.error(`[checkTransfer] 通知用户 ${botUser.id} 失败:`, err);
+      }
     }
 
     console.log('[checkTransfer] 转账处理完成');

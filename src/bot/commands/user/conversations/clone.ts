@@ -81,12 +81,6 @@ async function addBot(
     let bot = ctx.currentBot;
     let botUser = ctx.currentBotUser;
 
-    // 检查 bot 是否可克隆
-    if (!bot?.canBeCloned) {
-      await ctx.reply('❌ 该机器人不可克隆，请使用其他机器人。');
-      return;
-    }
-
     debug('[addBot] 入参 token:', token);
     debug('[addBot] ctx.currentBot:', bot ? bot.id || bot._id : null);
     debug(
@@ -166,6 +160,13 @@ cloneConversationComposer.use(createConversation(cloneBotConversation));
 
 // 入口按钮
 cloneConversationComposer.callbackQuery('clone_start', async (ctx) => {
+  const bot = ctx.currentBot;
+  // 检查 bot 是否可克隆
+  if (!bot?.canBeCloned) {
+    await ctx.reply('❌ 该机器人不可克隆，请使用其他机器人。');
+    return;
+  }
+
   debug('clone_start clicked');
   await ctx.conversation.exitAll();
 

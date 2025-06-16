@@ -47,8 +47,6 @@ export async function checkTransfer() {
         continue;
       }
 
-      console.log('transfers', transfers);
-
       const AMOUNT_TOLERANCE = 0.001;
       const matchedTransfer = transfers.find(
         (t) => Math.abs(t.money - wallet.balance) <= AMOUNT_TOLERANCE,

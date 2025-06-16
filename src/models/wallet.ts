@@ -7,6 +7,7 @@ export interface IWallet extends Document {
   address: string;
   balance: number;
   isOnline: boolean;
+  remark: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,6 +20,7 @@ const walletSchema = new Schema<IWallet>(
     address: { type: String, required: true, trim: true, unique: true },
     balance: { type: Number, default: 0 },
     isOnline: { type: Boolean, default: true },
+    remark: { type: String, trim: true },
   },
   { timestamps: true },
 );

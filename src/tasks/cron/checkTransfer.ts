@@ -85,8 +85,6 @@ export async function checkTransfer() {
         time: matchedTransfer.time,
       });
 
-      console.log('botUser', botUser);
-
       const message = [
         `🏠监听账户: ${address}`,
         `💸交易类型: 🟢收入`,

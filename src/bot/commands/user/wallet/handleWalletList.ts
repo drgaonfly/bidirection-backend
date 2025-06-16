@@ -25,7 +25,7 @@ export const handleWalletList = async (
 
   // 分页查找
   const wallets = await Wallet.find()
-    .sort({ weight: 1, createdAt: -1 })
+    .sort('-createdAt')
     .skip(skip)
     .limit(ITEMS_PER_PAGE);
 
@@ -67,12 +67,15 @@ export const handleWalletListWithoutInlineMenu = async (
   debug('totalItems', totalItems);
 
   if (totalItems === 0) {
-    return;
+    return {
+      pageInfo: '',
+      replyText: '暂无可用地址',
+    };
   }
 
   // 分页查找
   const wallets = await Wallet.find()
-    .sort({ createdAt: -1 })
+    .sort('-createdAt')
     .skip(skip)
     .limit(ITEMS_PER_PAGE);
 

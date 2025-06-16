@@ -4,12 +4,29 @@ import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
 import Bot from '../models/bot';
 import BotUser from '../models/botUser';
+import Wallet from '../models/wallet';
 
 const buildQuery = async (queryParams: any): Promise<any> => {
   const query: any = {};
 
   if (queryParams.hash) {
     query.hash = queryParams.hash;
+  }
+
+  // wallet
+  if (queryParams.wallet) {
+    const walletData = await Wallet.find({
+      address: {
+        $regex: queryParams.wallet,
+        $options: 'i',
+      },
+    });
+
+    if (walletData && walletData.length > 0) {
+      query.wallet = { $in: walletData.map((wallet) => wallet._id) };
+    } else {
+      query.wallet = null;
+    }
   }
 
   if (queryParams.bot) {

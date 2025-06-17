@@ -2,12 +2,12 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import axios from 'axios';
 import Wallet from '../../../../models/wallet';
-import createBug from 'debug';
+import createDebug from 'debug';
 import { getUSDTTransfers } from '../../../../tasks/cron/checkTrx';
 
 const exchangeFlashComposer = new Composer<MyContext>();
 
-const debug = createBug('bot:exchange:flash');
+const debug = createDebug('bot:exchange:flash');
 
 exchangeFlashComposer.callbackQuery('exchange_flash', async (ctx) => {
   await ctx.conversation.exitAll();
@@ -27,12 +27,14 @@ exchangeFlashComposer.callbackQuery('exchange_flash', async (ctx) => {
 
   const trx_balance = wallets.reduce((acc, wallet) => acc + wallet.balance, 0);
 
-  const transfers = await getUSDTTransfers(ctx.currentBotUser.id);
-
-  const usdt_balance = transfers.reduce(
-    (acc, transfer) => acc + transfer.money,
-    0,
+  const transfers = await Promise.all(
+    wallets.map(async (wallet) => await getUSDTTransfers(wallet.address)),
   );
+
+  // 先将所有钱包的转账记录展平，然后计算总金额
+  const usdt_balance = transfers
+    .flat()
+    .reduce((acc, transfer) => acc + transfer.money, 0);
 
   const message = [
     `💱 闪兑 💰🔛💰`,

@@ -27,11 +27,12 @@ async function trxToUsdtExchangeConversation(
   });
 
   const trx_balance = wallets.reduce((acc, wallet) => acc + wallet.balance, 0);
-  const transfers = await getUSDTTransfers(botUser.id);
-  const usdt_balance = transfers.reduce(
-    (acc, transfer) => acc + transfer.money,
-    0,
+  const transfers = await Promise.all(
+    wallets.map(async (wallet) => await getUSDTTransfers(wallet.address)),
   );
+  const usdt_balance = transfers
+    .flat()
+    .reduce((acc, transfer) => acc + transfer.money, 0);
 
   const message = [
     '请输入要兑换的TRX金额：',
@@ -64,12 +65,18 @@ async function trxToUsdtExchangeConversation(
   const amount = parseFloat(userMessage?.text || '');
 
   if (isNaN(amount) || amount <= 0) {
-    await ctx.reply('❌ 请输入有效的金额');
+    await ctx.reply('❌ 请输入有效的金额', {
+      parse_mode: 'HTML',
+      reply_markup: cancelKeyboard,
+    });
     return;
   }
 
   if (amount > trx_balance) {
-    await ctx.reply('❌ TRX余额不足');
+    await ctx.reply('❌ TRX余额不足', {
+      parse_mode: 'HTML',
+      reply_markup: cancelKeyboard,
+    });
     return;
   }
 

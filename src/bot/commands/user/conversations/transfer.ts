@@ -27,11 +27,12 @@ async function transferExchangeConversation(
   });
 
   const trx_balance = wallets.reduce((acc, wallet) => acc + wallet.balance, 0);
-  const transfers = await getUSDTTransfers(botUser.id);
-  const usdt_balance = transfers.reduce(
-    (acc, transfer) => acc + transfer.money,
-    0,
+  const transfers = await Promise.all(
+    wallets.map((wallet) => getUSDTTransfers(wallet.address)),
   );
+  const usdt_balance = transfers
+    .flat()
+    .reduce((acc, transfer) => acc + transfer.money, 0);
 
   // Step 1: 获取接收地址
   const receiveMessage = [

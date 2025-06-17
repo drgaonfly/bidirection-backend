@@ -84,9 +84,8 @@ async function showExchangeConversation(
     await ctx.reply(
       [
         `📈实时汇率`,
-        `1 USDT = ${realPrice} TRX`,
+        `💱 兑换计算:\n${usdtAmount} USDT = ${trxAmount.toFixed(2)} TRX`,
         '\n',
-        `💱 兑换计算:\n${usdtAmount} USDT ≈ ${trxAmount.toFixed(2)} TRX`,
         '<b>自动兑换地址</b>',
         `<code>${result.base_id}</code>(点击地址自动复制)`,
         '\n',

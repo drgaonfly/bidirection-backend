@@ -12,6 +12,7 @@ export interface IReceipt extends Document {
   bot: mongoose.Schema.Types.ObjectId | IBot;
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   time: number;
+  type: string; // 转入还是转出
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,6 +52,11 @@ const receiptSchema = new mongoose.Schema(
     time: {
       type: Number,
       required: true,
+    },
+    type: {
+      type: String,
+      required: true,
+      enum: ['transferIn', 'transferOut'],
     },
   },
   {

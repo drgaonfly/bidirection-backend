@@ -25,7 +25,7 @@ export interface IBot extends Document {
   preExpirationNotified?: boolean; // 是否已发送过期提醒，默认 false
   clonedFrom?: mongoose.Schema.Types.ObjectId | IBot; // 新增：从哪个机器人clone的
   canBeCloned?: boolean; // 新增：是否可克隆
-  fee: number; // 闪兑费用
+  fee: number; // 闪兑费率
   auto_exchange_address: string; // 自动兑换地址
   private_key: string; // 私钥
 }

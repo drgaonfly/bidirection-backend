@@ -2,24 +2,20 @@ import mongoose, { Document } from 'mongoose';
 import { IBot } from './bot';
 import { IBotUser } from './botUser';
 
-enum Crypto {
-  usdt = 'usdt',
-  trx = 'trx',
-}
-
 // 交易接口定义
 export interface IExchange extends Document {
   id: string;
   bot: mongoose.Schema.Types.ObjectId | IBot;
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
-  from_crypt: string; // 被兑换的币种
-  to_crypt: string; // 需兑换的币种
+  from_address: string;
+  to_address: string;
   from_amount: number; // 被兑换的金额
   to_amount: number; // 需兑换的金额
   rate: number; // 兑换时的汇率
   fee: number; // 兑换时的手续费
   status: string; // 兑换状态
   hash: string; // 兑换时的哈希
+  isTransferIntoOther: boolean; // 是否是转账到其他人
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,15 +38,13 @@ const exchangeSchema = new mongoose.Schema(
       ref: 'BotUser',
       required: true,
     },
-    from_crypt: {
+    from_address: {
       type: String,
       required: true,
-      enum: Object.values(Crypto),
     },
-    to_crypt: {
+    to_address: {
       type: String,
       required: true,
-      enum: Object.values(Crypto),
     },
     from_amount: {
       type: Number,
@@ -76,6 +70,10 @@ const exchangeSchema = new mongoose.Schema(
     hash: {
       type: String,
       required: true,
+    },
+    isTransferIntoOther: {
+      type: Boolean,
+      default: false,
     },
   },
   {

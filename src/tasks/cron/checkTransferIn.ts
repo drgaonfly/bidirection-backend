@@ -2,7 +2,7 @@ import Bot from '../../models/bot';
 import { setupBot } from '../../bot/botSetup';
 import BotUser from '../../models/botUser';
 import Wallet from '../../models/wallet';
-import { getUSDTTransfers } from './checkTrx';
+import { getUSDTTransfers } from '../../services/checkTrxIn';
 import { IdGen } from '../../utils/idGen';
 import Receipt from '../../models/receipt';
 
@@ -11,7 +11,7 @@ import Receipt from '../../models/receipt';
  * 只有当用户所有订阅都过期时，才将 BotUserConfig 状态更新为 SUBSCRIPTION_EXPIRED。
  * 向用户发送详细的订阅过期通知。
  */
-export async function checkTransfer() {
+export async function checkTransferIn() {
   try {
     console.log('[checkTransfer] 开始检查转账...');
 
@@ -69,6 +69,7 @@ export async function checkTransfer() {
 
       const receipt = await Receipt.create({
         id: await IdGen.next(Receipt, 'id', 6),
+        type: 'transferIn',
         wallet: wallet._id,
         amount: matchedTransfer.money,
         hash: matchedTransfer.trade_id,

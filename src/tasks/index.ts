@@ -6,7 +6,7 @@ import setupDB from '../utils/db';
 // import { updateBotExpiration } from './cron/updateBotExpiration';
 // import { notifyBotExpiration } from './cron/notifyBotExpiration';
 // import { notifySubscriptionExpiration } from './cron/notifySubscriptionExpiration';
-import { checkTransfer } from './cron/checkTransfer';
+import { checkTransferIn } from './cron/checkTransferIn';
 import { setupRedis } from '../utils/redis';
 
 const task = async () => {
@@ -21,7 +21,7 @@ const task = async () => {
   // await checkExpiredSubscriptions();
   // await notifyBotExpiration();
   // await updateBotExpiration();
-  await checkTransfer();
+  await checkTransferIn();
 };
 
 // 执行任务并在完成后退出进程

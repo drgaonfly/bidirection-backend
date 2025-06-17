@@ -5,7 +5,7 @@ import { IBot } from '../../models/bot';
 import { setupBot } from '../../bot/botSetup';
 import { IdGen } from '../../utils/idGen';
 import BotUserConfig, { UserStatus } from '../../models/botUserConfig';
-import { getUSDTTransfers } from './checkTrx';
+import { getUSDTTransfers } from '../../services/checkTrxIn';
 
 /**
  * 检查所有 pending 的 payment，只有当 bot.trx20_address 收到正确金额，才生成订阅

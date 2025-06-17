@@ -122,6 +122,7 @@ const getBots = handleAsync(async (req: RequestCustom, res: Response) => {
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
+    .lean()
     .exec();
 
   const botsWithPrivateKey = bots.map((bot) => {

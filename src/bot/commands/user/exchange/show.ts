@@ -16,11 +16,14 @@ const handleShow = async (ctx: MyContext) => {
 
   const result = response.data.data['0_TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'];
 
-  const trx_balance = ctx.currentBotUserConfig.trx_balance;
+  // const trx_balance = ctx.currentBotUserConfig.trx_balance;
+
+  // 显示出来的实时汇率就是扣掉了差价显示的
+  const realPrice = result.price * (1 - ctx.currentBot.fee / 100);
 
   const message = [
     `📈实时汇率`,
-    `1 USDT = ${result.price} TRX   目前库存: ${trx_balance} TRX`,
+    `1 USDT = ${realPrice} TRX`,
     '\n',
     '<b>自动兑换地址</b>',
     `<code>${result.base_id}</code>(点击地址自动复制)`,
@@ -36,9 +39,8 @@ const handleShow = async (ctx: MyContext) => {
 
   const inline_menu = new InlineKeyboard()
     .text('🔄 兑换给他人', 'exchange_to_others')
-    .text('💱 余额闪兑换', 'exchange_flash')
-    .row()
     .url('大额联系老板', ctx.currentBot.contact || 'https://t.me/aodi93');
+  // .text('💱 余额闪兑换', 'exchange_flash')
 
   await ctx.reply(message, {
     parse_mode: 'HTML',

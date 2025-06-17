@@ -43,12 +43,12 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     query.status = queryParams.status;
   }
 
-  if (queryParams.from_crypt) {
-    query.from_crypt = queryParams.from_crypt;
+  if (queryParams.from_address) {
+    query.from_address = queryParams.from_address;
   }
 
-  if (queryParams.to_crypt) {
-    query.to_crypt = queryParams.to_crypt;
+  if (queryParams.to_address) {
+    query.to_address = queryParams.to_address;
   }
 
   return query;

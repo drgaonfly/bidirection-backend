@@ -26,6 +26,8 @@ walletDeleteComposer.callbackQuery(/delete_([a-f0-9]{24})$/, async (ctx) => {
 
   await ctx.reply('✅ 删除成功');
 
+  await ctx.answerCallbackQuery('地址删除成功');
+
   await handleShow(ctx, 1);
 });
 

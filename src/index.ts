@@ -33,6 +33,7 @@ import messsageRoutes from './routes/messageRoutes';
 import receiveMessageRoute from './routes/receiveMessageRoute';
 import walletRoutes from './routes/walletRoute';
 import receiptRoutes from './routes/receiptRoutes';
+import exchangeRoutes from './routes/exchangeRoutes';
 
 dotenv.config();
 
@@ -77,6 +78,7 @@ app.use('/api/messages', messsageRoutes);
 app.use('/api/receive-message', receiveMessageRoute);
 app.use('/api/wallets', walletRoutes);
 app.use('/api/receipts', receiptRoutes);
+app.use('/api/exchanges', exchangeRoutes);
 
 app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
 

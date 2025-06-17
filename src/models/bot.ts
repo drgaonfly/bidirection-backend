@@ -25,6 +25,7 @@ export interface IBot extends Document {
   preExpirationNotified?: boolean; // 是否已发送过期提醒，默认 false
   clonedFrom?: mongoose.Schema.Types.ObjectId | IBot; // 新增：从哪个机器人clone的
   canBeCloned?: boolean; // 新增：是否可克隆
+  fee: number; // 闪兑费用
 }
 
 export interface IMenu extends Document {
@@ -145,6 +146,10 @@ const botSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     }, // 新增：是否可克隆
+    fee: {
+      type: Number,
+      default: 0,
+    }, // 闪兑费用
   },
   {
     timestamps: true,

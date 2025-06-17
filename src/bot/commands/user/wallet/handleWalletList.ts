@@ -120,8 +120,8 @@ export const handleWalletListWithoutInlineMenu = async (
 
   const replyText = `\n<b>🏦 您的监控地址列表：</b>\n\n${wallets
     .map(
-      (wallet, index) =>
-        `${index + 1}. ${wallet.address} ${
+      (wallet) =>
+        `<code>${wallet.address}</code> ${
           wallet.remark ? `[${wallet.remark}]` : ' '
         }`,
     )

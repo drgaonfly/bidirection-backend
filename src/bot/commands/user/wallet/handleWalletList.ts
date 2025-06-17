@@ -6,10 +6,12 @@ import createDebug from 'debug';
 
 const debug = createDebug('bot:wallet:handleWalletList');
 
+type WalletListMode = 'delete' | 'set' | null;
+
 export const handleWalletList = async (
   ctx: MyContext,
   page = 1,
-  isDelete = false,
+  mode: WalletListMode = null,
 ) => {
   // 使用 limit/skip 进行分页
   const skip = (page - 1) * ITEMS_PER_PAGE;
@@ -33,12 +35,21 @@ export const handleWalletList = async (
 
   const keyboard = new InlineKeyboard();
   for (const item of wallets) {
-    keyboard
-      .text(
-        `${item.address} ${item.remark ? `[${item.remark}]` : ' '}`,
-        isDelete ? `delete_${item._id}` : `set_${item._id}`,
-      )
-      .row();
+    if (mode === null) {
+      keyboard
+        .text(
+          `${item.address} ${item.remark ? `[${item.remark}]` : ' '}`,
+          'view_wallet',
+        )
+        .row();
+    } else {
+      keyboard
+        .text(
+          `${item.address} ${item.remark ? `[${item.remark}]` : ' '}`,
+          `${mode}_${item._id}`,
+        )
+        .row();
+    }
   }
 
   if (page > 1) {
@@ -49,9 +60,26 @@ export const handleWalletList = async (
   }
 
   const pageInfo = totalPages > 1 ? `（第 ${page}/${totalPages} 页）` : '';
-  const replyText = `<b>🏦选择你需要${
-    isDelete ? '删除' : '设置'
-  }的地址：</b>\n${pageInfo ? `\n\n${pageInfo}` : ''}`;
+
+  let actionText;
+
+  if (mode === 'delete') {
+    actionText = '删除';
+  } else if (mode === 'set') {
+    actionText = '设置';
+  } else {
+    actionText = '查看';
+  }
+
+  const replyText = [
+    `${
+      actionText !== '查看'
+        ? `<b>🏦选择你需要${actionText}的地址：</b>`
+        : '更新结果'
+    }`,
+    '\n',
+    `${pageInfo}`,
+  ].join('\n');
 
   await ctx.reply(replyText, { reply_markup: keyboard, parse_mode: 'HTML' });
 };

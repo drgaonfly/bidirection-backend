@@ -11,7 +11,7 @@ const debug = createDebug('bot:wallet:delete');
 walletDeleteComposer.callbackQuery('wallet_delete_address', async (ctx) => {
   debug('wallet_delete_address');
 
-  await handleWalletList(ctx, 1, true);
+  await handleWalletList(ctx, 1, 'delete');
 });
 
 walletDeleteComposer.callbackQuery(/delete_([a-f0-9]{24})$/, async (ctx) => {
@@ -19,13 +19,13 @@ walletDeleteComposer.callbackQuery(/delete_([a-f0-9]{24})$/, async (ctx) => {
 
   debug('delete_wallet', walletId);
 
-  await Wallet.findByIdAndUpdate(walletId, {
+  await Wallet.findByIdAndDelete(walletId, {
     isOnline: true,
   });
 
   await ctx.reply('✅ 删除成功');
 
-  await handleWalletList(ctx, 1, true);
+  await handleWalletList(ctx, 1, null);
 });
 
 export default walletDeleteComposer;

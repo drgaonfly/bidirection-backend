@@ -10,7 +10,7 @@ const debug = createDebug('bot:wallet:set');
 walletSetComposer.callbackQuery('wallet_set_address', async (ctx) => {
   debug('wallet_set_address');
 
-  await handleWalletList(ctx);
+  await handleWalletList(ctx, 1, 'set');
 });
 
 export default walletSetComposer;

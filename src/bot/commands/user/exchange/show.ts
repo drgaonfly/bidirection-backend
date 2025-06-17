@@ -41,8 +41,8 @@ const handleShow = async (ctx: MyContext) => {
   ].join('\n');
 
   const inline_menu = new InlineKeyboard()
-    .text('兑换给他人', 'exchange_to_others')
-    .text('余额闪兑换', 'exchange_flash')
+    .text('🔄 兑换给他人', 'exchange_to_others')
+    .text('💱 余额闪兑换', 'exchange_flash')
     .row()
     .url('大额联系老板', ctx.currentBot.contact || 'https://t.me/aodi93');
 

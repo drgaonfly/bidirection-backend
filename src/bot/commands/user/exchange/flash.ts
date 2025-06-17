@@ -10,6 +10,8 @@ const exchangeFlashComposer = new Composer<MyContext>();
 const debug = createBug('bot:exchange:flash');
 
 exchangeFlashComposer.callbackQuery('exchange_flash', async (ctx) => {
+  await ctx.conversation.exitAll();
+
   const response = await axios.get(
     'https://openapi.sun.io/v2/allpairs?page_size=1&page_num=0&token_address=TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t&orderBy=price',
   );
@@ -42,17 +44,15 @@ exchangeFlashComposer.callbackQuery('exchange_flash', async (ctx) => {
     `<code>${result.base_id}</code>(点击地址自动复制)`,
     '----------------------------------------',
     '我当前的余额信息：',
-    `💰 USDT: ${usdt_balance}`,
-    `💰 TRX: ${trx_balance}`,
+    `💰 USDT: ${usdt_balance.toFixed(4)}`,
+    `💰 TRX: ${trx_balance.toFixed(4)}`,
   ].join('\n');
 
   const inline_menu = new InlineKeyboard()
     .text('USDT兑换TRX', 'usdt_to_trx')
     .text('TRX兑换USDT', 'trx_to_usdt')
     .row()
-    .text('地址闪兑', 'exchange_show')
-    .row()
-    .text('主菜单', 'exchange_main');
+    .text('🏠 主菜单', 'exchange_show');
 
   await ctx.editMessageText(message, {
     parse_mode: 'HTML',

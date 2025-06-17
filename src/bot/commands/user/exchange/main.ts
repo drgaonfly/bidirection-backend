@@ -4,6 +4,8 @@ import Wallet from '../../../../models/wallet';
 import createBug from 'debug';
 import { getUSDTTransfers } from '../../../../tasks/cron/checkTrx';
 
+// 弃用
+
 const exchangeMainMenuComposer = new Composer<MyContext>();
 
 const debug = createBug('bot:exchange:main menu');
@@ -26,10 +28,10 @@ exchangeMainMenuComposer.callbackQuery('exchange_main', async (ctx) => {
   );
 
   const message = [
-    `💬 用户名: <code>@${ctx.currentBotUser.userName}</code>`,
+    `💬 用户名: @${ctx.currentBotUser.userName}`,
     `👤用户电报ID: <code>${ctx.currentBotUser.id}</code>`,
-    `💰 USDT: ${usdt_balance}`,
-    `💰 TRX: ${trx_balance}`,
+    `💰 USDT: <code>${usdt_balance.toFixed(4)}</code>`,
+    `💰 TRX: <code>${trx_balance.toFixed(4)}</code>`,
     '\n',
     '请绑定个人钱包，方便预支，以及接收兑换和能量等通知！',
   ].join('\n');

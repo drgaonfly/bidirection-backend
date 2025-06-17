@@ -5,6 +5,7 @@ import { InlineKeyboard } from 'grammy';
 import Wallet from '../../../../models/wallet';
 import { IBotUser } from '../../../../models/botUser';
 import { IBot } from '../../../../models/bot';
+import { handleShow } from '../wallet/show';
 import createDebug from 'debug';
 
 const walletAddComposer = new Composer<MyContext>();
@@ -73,6 +74,8 @@ async function walletAddAddressConversation(
   });
 
   await ctx.reply(`✅ 成功添加监控地址：${address}`);
+
+  await handleShow(ctx, 1);
 }
 
 walletAddComposer.use(createConversation(walletAddAddressConversation));

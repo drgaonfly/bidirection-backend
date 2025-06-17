@@ -7,9 +7,6 @@ dotenv.config();
 const algorithm = 'aes-256-cbc';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
 
-// 定义需要加密的key列表
-export const ENCRYPTEDKEYS = ['addressETHKey', 'addressBSCKey'];
-
 export const encrypt = (code: string) => {
   const iv = randomBytes(16);
   const cipher = createCipheriv(

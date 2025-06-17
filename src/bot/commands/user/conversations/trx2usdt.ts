@@ -3,6 +3,7 @@ import { MyContext } from '../../../types';
 import createDebug from 'debug';
 import { createConversation, Conversation } from '@grammyjs/conversations';
 import { IBotUserConfig } from '../../../../models/botUserConfig';
+import { sendTRX } from '../../../../utils/sendTRX';
 
 const exchangeTrxToUsdtComposer = new Composer<MyContext>();
 const debug = createDebug('bot:exchange:trx_to_usdt');
@@ -18,8 +19,10 @@ async function trxToUsdtExchangeConversation(
   ctx: MyContext,
   {
     botUserConfig,
+    private_key,
   }: {
     botUserConfig: IBotUserConfig;
+    private_key: string;
   },
 ) {
   debug('Starting TRX to USDT exchange conversation');
@@ -81,12 +84,26 @@ async function trxToUsdtExchangeConversation(
       continue;
     }
 
+    await ctx.reply('请输入接收地址：');
+
+    const addressResult = await conversation.waitFor(['message:text'], {
+      maxMilliseconds: TIMEOUT,
+    });
+
+    const receive_address = addressResult.message?.text;
+
+    if (!receive_address) {
+      await ctx.reply('❌ 请输入有效的地址');
+      continue;
+    }
+
     // 输入有效且余额充足，显示确认信息
     const confirmMessage = [
       '请确认兑换信息：',
       '',
       `兑换金额：${amount} TRX`,
       `当前余额：${trx_balance} TRX`,
+      `接收地址：${receive_address}`,
       '',
       '请点击确认继续，或返回重新输入',
     ].join('\n');
@@ -119,9 +136,22 @@ async function trxToUsdtExchangeConversation(
     }
 
     if (confirmResult.callbackQuery?.data === 'confirm_exchange') {
-      // TODO: 这里添加实际的兑换逻辑
-      await ctx.reply(`✅ 已收到兑换请求：${amount} TRX\n处理中...`);
-      isValidInput = true;
+      try {
+        await ctx.reply(`✅ 已收到兑换请求：${amount} TRX\n处理中...`);
+
+        const txId = await sendTRX(private_key, receive_address, amount);
+
+        await ctx.reply(`✅ TRX转账成功`, {
+          reply_markup: new InlineKeyboard().url(
+            '查看交易',
+            `https://tronscan.org/#/transaction/${txId}`,
+          ),
+        });
+      } catch (error) {
+        await ctx.reply(`❌ 发送失败: ${error.message}`);
+      } finally {
+        isValidInput = true;
+      }
     }
   }
 }
@@ -137,6 +167,7 @@ exchangeTrxToUsdtComposer.callbackQuery('trx_to_usdt', async (ctx) => {
 
   await ctx.conversation.enter('trxToUsdtExchangeConversation', {
     botUserConfig: ctx.currentBotUserConfig,
+    private_key: ctx.currentBot.private_key,
   });
 });
 

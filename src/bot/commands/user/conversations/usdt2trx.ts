@@ -12,7 +12,9 @@ const debug = createDebug('bot:exchange:usdt_to_trx');
 
 const TIMEOUT = 5 * 60 * 1000; // 5 minutes timeout
 
-const cancelKeyboard = new InlineKeyboard().text('返回', 'exchange_flash');
+const returnKeyboard = new InlineKeyboard().text('返回', 'exchange_flash');
+
+const cancelKeyboard = new InlineKeyboard().text('❌ 取消', 'close');
 
 async function usdtToTrxExchangeConversation(
   conversation: Conversation<MyContext>,
@@ -21,46 +23,43 @@ async function usdtToTrxExchangeConversation(
 ) {
   debug('Starting USDT to TRX exchange conversation');
 
-  let isValidInput = false;
-  while (!isValidInput) {
-    const wallets = await Wallet.find({
-      botUser: botUser._id,
-      bot: bot._id,
-    });
+  const wallets = await Wallet.find({
+    botUser: botUser._id,
+    bot: bot._id,
+  });
 
-    const trx_balance = wallets.reduce(
-      (acc, wallet) => acc + wallet.balance,
-      0,
-    );
-    const transfers = await Promise.all(
-      wallets.map(async (wallet) => await getUSDTTransfers(wallet.address)),
-    );
-    const usdt_balance = transfers
-      .flat()
-      .reduce((acc, transfer) => acc + transfer.money, 0);
+  const trx_balance = wallets.reduce((acc, wallet) => acc + wallet.balance, 0);
+  const transfers = await Promise.all(
+    wallets.map(async (wallet) => await getUSDTTransfers(wallet.address)),
+  );
+  const usdt_balance = transfers
+    .flat()
+    .reduce((acc, transfer) => acc + transfer.money, 0);
 
-    const message = [
-      '请输入要兑换的USDT金额：',
-      '',
-      `当前TRX余额：${trx_balance}`,
-      `当前USDT余额：${usdt_balance}`,
-      '',
-      '⏳ 此操作将在 5 分钟后过期',
-    ].join('\n');
+  const message = [
+    '请输入要兑换的USDT金额：',
+    '',
+    `当前TRX余额：${trx_balance}`,
+    `当前USDT余额：${usdt_balance}`,
+    '',
+    '⏳ 此操作将在 5 分钟后过期',
+  ].join('\n');
 
-    await ctx
-      .editMessageText(message, {
+  await ctx
+    .editMessageText(message, {
+      parse_mode: 'HTML',
+      reply_markup: returnKeyboard,
+    })
+    .catch(() => {
+      // 如果编辑失败（消息可能已被删除），则发送新消息
+      return ctx.reply(message, {
         parse_mode: 'HTML',
         reply_markup: cancelKeyboard,
-      })
-      .catch(() => {
-        // 如果编辑失败（消息可能已被删除），则发送新消息
-        return ctx.reply(message, {
-          parse_mode: 'HTML',
-          reply_markup: cancelKeyboard,
-        });
       });
+    });
 
+  let isValidInput = false;
+  while (!isValidInput) {
     const conversationResult = await conversation.waitFor(
       ['message:text', 'callback_query:data'],
       {
@@ -78,21 +77,15 @@ async function usdtToTrxExchangeConversation(
     const amount = parseFloat(userMessage?.text || '');
 
     if (isNaN(amount) || amount <= 0) {
-      await ctx.reply('❌ 请输入有效的金额\n请重新输入', {
-        parse_mode: 'HTML',
-        reply_markup: cancelKeyboard,
-      });
+      await ctx.reply('❌ 请输入有效的金额');
       continue;
     }
 
     if (amount > usdt_balance) {
-      await ctx.reply(
-        `❌ USDT余额不足\n当前余额：${usdt_balance} USDT\n请重新输入`,
-        {
-          parse_mode: 'HTML',
-          reply_markup: cancelKeyboard,
-        },
-      );
+      await ctx.reply('余额不足', {
+        parse_mode: 'HTML',
+        reply_markup: cancelKeyboard,
+      });
       continue;
     }
 

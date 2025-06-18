@@ -5,7 +5,7 @@ import { IBot } from '../../models/bot';
 import { setupBot } from '../../bot/botSetup';
 import { IdGen } from '../../utils/idGen';
 import BotUserConfig, { UserStatus } from '../../models/botUserConfig';
-import { getUSDTTransfers } from '../../services/checkTrxIn';
+import { getUSDTTransfersIn } from '../../services/checkTrxIn';
 
 /**
  * 检查所有 pending 的 payment，只有当 bot.trx20_address 收到正确金额，才生成订阅
@@ -55,9 +55,9 @@ export async function checkPendingOrders() {
       }
 
       // 查询该地址近15分钟的USDT转账
-      let transfers: Awaited<ReturnType<typeof getUSDTTransfers>> = [];
+      let transfers: Awaited<ReturnType<typeof getUSDTTransfersIn>> = [];
       try {
-        transfers = await getUSDTTransfers(receiveAddress);
+        transfers = await getUSDTTransfersIn(receiveAddress);
       } catch (err) {
         console.error(
           `[checkPendingOrders] 获取地址 ${receiveAddress} 转账记录失败:`,

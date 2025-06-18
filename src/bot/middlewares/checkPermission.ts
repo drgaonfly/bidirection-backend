@@ -77,7 +77,7 @@ export const checkPermission = async (
             [
               {
                 text: '📞 联系客服',
-                url: bot.customer_service_link || 'https://t.me/example',
+                url: bot.customer_service_link || 'https://t.me/@infoswqz',
               },
             ],
           ],

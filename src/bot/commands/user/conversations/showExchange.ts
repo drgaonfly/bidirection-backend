@@ -99,7 +99,7 @@ const handleShow = async (ctx: MyContext) => {
     `1 USDT = ${realPrice} TRX`,
     '\n',
     '<b>自动兑换地址</b>',
-    `<code>${result.base_id}</code>(点击地址自动复制)`,
+    `<code>${ctx.currentBot.auto_exchange_address}</code>(点击地址自动复制)`,
     '\n',
     '🚫请不要使用交易所或中心化钱包转账❗️切记‼️',
     '🏪转账即兑,全自动返,等值1U起兑，全网最高汇率',

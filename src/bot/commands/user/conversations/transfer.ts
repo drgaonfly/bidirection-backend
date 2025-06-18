@@ -37,6 +37,12 @@ async function getReceiveAddressConversation(
     },
   );
 
+  if (receiveResult.callbackQuery?.data === 'close') {
+    await ctx.deleteMessage();
+    await ctx.reply('❌ 已取消操作');
+    return;
+  }
+
   const receiveAddress = receiveResult.message?.text;
   if (!receiveAddress || !/^T[a-zA-Z0-9]{33}$/.test(receiveAddress)) {
     await ctx.reply('❌ 请输入有效的波场地址格式');
@@ -64,6 +70,12 @@ async function getPayAddressConversation(
     },
   );
 
+  if (payResult.callbackQuery?.data === 'close') {
+    await ctx.deleteMessage();
+    await ctx.reply('❌ 已取消操作');
+    return;
+  }
+
   const payAddress = payResult.message?.text;
   if (!payAddress || !/^T[a-zA-Z0-9]{33}$/.test(payAddress)) {
     await ctx.reply('❌ 请输入有效的波场地址格式');
@@ -86,6 +98,12 @@ async function getExchangeAmountConversation(
     },
   );
 
+  if (amountResult.callbackQuery?.data === 'close') {
+    await ctx.deleteMessage();
+    await ctx.reply('❌ 已取消操作');
+    return;
+  }
+
   const amountText = amountResult.message?.text;
   if (!amountText || !/^\d+(\.\d+)?$/.test(amountText)) {
     await ctx.reply('❌ 请只输入数字，例如: 20');
@@ -106,6 +124,12 @@ async function confirmAndCreateOrderConversation(
   const confirmResult = await conversation.waitFor(['callback_query:data'], {
     maxMilliseconds: TIMEOUT,
   });
+
+  if (confirmResult.callbackQuery?.data === 'close') {
+    await ctx.deleteMessage();
+    await ctx.reply('❌ 已取消操作');
+    return;
+  }
 
   if (confirmResult.callbackQuery?.data === 'confirm_transfer') {
     const exchange = await Exchange.create({
@@ -148,14 +172,15 @@ async function confirmAndCreateOrderConversation(
         parse_mode: 'HTML',
       },
     );
+  } else {
+    return confirmAndCreateOrderConversation(
+      conversation,
+      ctx,
+      state,
+      bot,
+      botUser,
+    );
   }
-  return confirmAndCreateOrderConversation(
-    conversation,
-    ctx,
-    state,
-    bot,
-    botUser,
-  );
 }
 
 // Main transfer conversation
@@ -194,6 +219,7 @@ async function transferExchangeConversation(
   });
 
   await getReceiveAddressConversation(conversation, ctx, state, botUserConfig);
+  if (!state.receiveAddress) return;
 
   // Step 2: Send pay address message
   const payMessage = [
@@ -209,6 +235,7 @@ async function transferExchangeConversation(
   });
 
   await getPayAddressConversation(conversation, ctx, state);
+  if (!state.payAddress) return;
 
   // Step 3: Send amount message
   const amountMessage = [
@@ -225,6 +252,7 @@ async function transferExchangeConversation(
   });
 
   await getExchangeAmountConversation(conversation, ctx, state);
+  if (!state.usdtAmount) return;
 
   // Step 4: Send confirm message
   const confirmMessage = [

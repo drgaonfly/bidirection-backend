@@ -1,10 +1,10 @@
-import Bot from '../../models/bot';
 import { setupBot } from '../../bot/botSetup';
-import BotUser from '../../models/botUser';
 import Wallet from '../../models/wallet';
 import { getUSDTTransfers } from '../../services/checkTrxOut';
 import { IdGen } from '../../utils/idGen';
 import Receipt from '../../models/receipt';
+import { IBotUser } from '../../models/botUser';
+import { IBot } from '../../models/bot';
 
 /**
  * 检查所有已过期的订阅，将其状态设置为 expired。
@@ -18,15 +18,15 @@ export async function checkTransferOut() {
     const wallets = await Wallet.find({
       isOnline: true,
     })
-      .populate('botUser')
-      .populate('bot');
+      .populate({ model: 'BotUser', path: 'botUser' })
+      .populate({ model: 'Bot', path: 'bot' });
 
     console.log(`[checkTransferOut] 查询到 ${wallets.length} 个在线的钱包`);
 
     for (const wallet of wallets) {
-      const botUser = await BotUser.findById(wallet.botUser);
+      const botUser = wallet.botUser as IBotUser;
 
-      const bot = await Bot.findById(wallet.bot);
+      const bot = wallet.bot as IBot;
 
       const address = wallet.address;
 

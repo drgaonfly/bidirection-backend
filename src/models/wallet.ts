@@ -1,8 +1,10 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { IBot } from './bot';
+import { IBotUser } from './botUser';
 
 export interface IWallet extends Document {
-  botUser: Schema.Types.ObjectId; // 关联的 BotUser
-  bot: Schema.Types.ObjectId; // 关联的 Bot
+  botUser: mongoose.Schema.Types.ObjectId | IBotUser; // 关联的 BotUser
+  bot: mongoose.Schema.Types.ObjectId | IBot; // 关联的 Bot
   name?: string;
   address: string;
   balance: number;

@@ -24,7 +24,7 @@ interface TransferResponse {
  * @param pageSize 每页条数（默认100，最大300）
  * @param minIntervalMs 每次请求间隔，防止频率过高（默认500ms）
  */
-export async function getUSDTTransfers(
+export async function getUSDTTransfersOut(
   address: string,
   minutes: number = process.env.NODE_ENV === 'development' ? 30 * 24 * 60 : 15,
   maxPages: number = 3,

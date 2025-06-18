@@ -2,7 +2,7 @@ import Bot from '../../models/bot';
 import { setupBot } from '../../bot/botSetup';
 import BotUser from '../../models/botUser';
 import Wallet from '../../models/wallet';
-import { getUSDTTransfers } from '../../services/checkTrxIn';
+import { getUSDTTransfersIn } from '../../services/checkTrxIn';
 import { IdGen } from '../../utils/idGen';
 import Receipt from '../../models/receipt';
 
@@ -34,9 +34,9 @@ export async function checkTransferIn() {
       const telegramBot = setupBot(bot.token);
 
       // 查询该地址近5天的USDT转账
-      let transfers: Awaited<ReturnType<typeof getUSDTTransfers>> = [];
+      let transfers: Awaited<ReturnType<typeof getUSDTTransfersIn>> = [];
       try {
-        transfers = await getUSDTTransfers(address);
+        transfers = await getUSDTTransfersIn(address);
       } catch (err) {
         console.error(
           `[checkTransferIn] 获取地址 ${address} 转账记录失败:`,

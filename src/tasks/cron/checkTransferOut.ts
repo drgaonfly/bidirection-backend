@@ -1,6 +1,6 @@
 import { setupBot } from '../../bot/botSetup';
 import Wallet from '../../models/wallet';
-import { getUSDTTransfers } from '../../services/checkTrxOut';
+import { getUSDTTransfersOut } from '../../services/checkTrxOut';
 import { IdGen } from '../../utils/idGen';
 import Receipt from '../../models/receipt';
 import { IBotUser } from '../../models/botUser';
@@ -35,9 +35,9 @@ export async function checkTransferOut() {
       // 发送详细的订阅过期通知
       const telegramBot = setupBot(bot.token);
 
-      let transfers: Awaited<ReturnType<typeof getUSDTTransfers>> = [];
+      let transfers: Awaited<ReturnType<typeof getUSDTTransfersOut>> = [];
       try {
-        transfers = await getUSDTTransfers(address);
+        transfers = await getUSDTTransfersOut(address);
       } catch (err) {
         console.error(
           `[checkTransferOut] 获取地址 ${address} 转账记录失败:`,

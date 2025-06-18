@@ -28,6 +28,7 @@ export interface IBot extends Document {
   fee: number; // 闪兑费率
   auto_exchange_address: string; // 自动兑换地址
   private_key: string; // 私钥
+  exchange_rate: number; // 闪兑汇率
 }
 
 export interface IMenu extends Document {
@@ -160,6 +161,10 @@ const botSchema = new mongoose.Schema(
       type: String,
       trim: true,
     }, // 私钥
+    exchange_rate: {
+      type: Number,
+      default: 0,
+    }, // 闪兑汇率
   },
   {
     timestamps: true,

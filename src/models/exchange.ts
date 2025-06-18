@@ -18,6 +18,7 @@ export interface IExchange extends Document {
   isTransferIntoOther: boolean; // 是否是转账到其他人
   createdAt: Date;
   updatedAt: Date;
+  expiredAt: Date;
 }
 
 // 交易 Schema
@@ -69,11 +70,15 @@ const exchangeSchema = new mongoose.Schema(
     },
     hash: {
       type: String,
-      required: true,
+      required: false,
     },
     isTransferIntoOther: {
       type: Boolean,
       default: false,
+    },
+    expiredAt: {
+      type: Date,
+      required: true,
     },
   },
   {

@@ -73,6 +73,8 @@ export async function checkTransfer() {
           bot: bot._id,
           botUser: botUser._id,
           time: transfer.time,
+          from_address: transfer.from_address,
+          to_address: transfer.to_address,
         });
 
         const message = [

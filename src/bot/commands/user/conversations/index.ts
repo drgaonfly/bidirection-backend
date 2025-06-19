@@ -5,7 +5,6 @@ import setWalletConversation from './setWallet';
 import usdtToTrxExchangeConversation from './usdt2trx';
 import trxToUsdtExchangeConversation from './trx2usdt';
 import transferExchangeConversation from './transfer';
-import showExchangeConversation from './showExchange';
 
 const conversationsComposer = new Composer();
 
@@ -15,6 +14,5 @@ conversationsComposer.use(setWalletConversation.middleware());
 conversationsComposer.use(usdtToTrxExchangeConversation.middleware());
 conversationsComposer.use(trxToUsdtExchangeConversation.middleware());
 conversationsComposer.use(transferExchangeConversation.middleware());
-conversationsComposer.use(showExchangeConversation.middleware());
 
 export default conversationsComposer;

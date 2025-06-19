@@ -15,6 +15,8 @@ import { RedisAdapter } from '@grammyjs/storage-redis';
 import { redis } from '../utils/redis';
 import { conversations } from '@grammyjs/conversations';
 import axios from 'axios';
+import Exchange from '../models/exchange';
+import { IdGen } from '../utils/idGen';
 // import { autoQuote } from "@roziscoding/grammy-autoquote";
 
 const log = createDebug('bot:setup');
@@ -133,9 +135,33 @@ export const setupBot = (token: string) => {
       return;
     }
 
+    if (!ctx.currentBot.fee) {
+      await ctx.reply('机器人没有设置手续费，请在后台设置');
+      return;
+    }
+
+    if (!ctx.currentBot.auto_exchange_address) {
+      await ctx.reply('机器人没有设置自动兑换地址，请在后台设置');
+      return;
+    }
+
     const realPrice = currentPrice * (1 - ctx.currentBot.fee / 100);
     const usdtAmount = parseFloat(match[0]);
     const trxAmount = usdtAmount * realPrice;
+
+    await Exchange.create({
+      id: await IdGen.next(Exchange, 'id', 6),
+      bot: ctx.currentBot._id,
+      botUser: ctx.currentBotUser._id,
+      from_address: ctx.currentBot.auto_exchange_address,
+      to_address: ' ',
+      from_amount: usdtAmount,
+      to_amount: trxAmount,
+      rate: realPrice,
+      fee: ctx.currentBot.fee,
+      status: 'temporary',
+      isTransferIntoOther: false,
+    });
 
     await ctx.reply(
       [

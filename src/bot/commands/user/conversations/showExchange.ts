@@ -135,7 +135,7 @@ const handleShow = async (ctx: MyContext) => {
 
   const inline_menu = new InlineKeyboard()
     .text('🔄 兑换给他人', 'exchange_to_others')
-    .url('大额联系老板', ctx.currentBot.contact || 'https://t.me/@infoswqz');
+    .url('大额联系老板', ctx.currentBot.contact || 'https://t.me/infoswqz');
 
   await ctx.reply(initialMessage, {
     parse_mode: 'HTML',

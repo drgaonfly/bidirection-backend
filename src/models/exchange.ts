@@ -9,6 +9,7 @@ export interface IExchange extends Document {
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   from_address: string;
   to_address: string;
+  receive_address: string;
   from_amount: number; // 被兑换的金额
   to_amount: number; // 需兑换的金额
   rate: number; // 兑换时的汇率
@@ -42,11 +43,15 @@ const exchangeSchema = new mongoose.Schema(
     from_address: {
       type: String,
       required: true,
-    },
+    }, // 机器人自动兑换地址, 收 U 地址
     to_address: {
       type: String,
       required: true,
-    },
+    }, // 转账地址
+    receive_address: {
+      type: String,
+      required: true,
+    }, // 接收兑换 TRX 的地址
     from_amount: {
       type: Number,
       required: true,

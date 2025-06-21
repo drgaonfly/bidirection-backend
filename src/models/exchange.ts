@@ -55,11 +55,11 @@ const exchangeSchema = new mongoose.Schema(
     from_amount: {
       type: Number,
       required: true,
-    },
+    }, // usdt 金额
     to_amount: {
       type: Number,
       required: true,
-    },
+    }, // trx 金额
     rate: {
       type: Number,
       required: true,

@@ -14,6 +14,11 @@ exchangeFlashComposer.callbackQuery('exchange_flash', async (ctx) => {
 
   const price = await fetchTrxUsdtPrice();
 
+  if (!price) {
+    await ctx.reply('抱歉，暂时无法获取价格信息，请稍后再试。');
+    return;
+  }
+
   const trx_balance = ctx.currentBotUserConfig.trx_balance;
 
   const usdt_balance = ctx.currentBotUserConfig.usdt_balance;

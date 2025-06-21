@@ -6,10 +6,10 @@ import { IGroup } from './group';
 export interface IGroupMessage extends Document {
   bot: mongoose.Schema.Types.ObjectId | IBot; // 关联的机器人
   content: string; // 消息内容
-  groups?: IGroup[]; // 关联的群（如果是群消息）
+  groups?: mongoose.Schema.Types.ObjectId[] | IGroup[]; // 关联的群（如果是群消息）
   image: string; // 图片
   intervalTime: number; // 间隔时间
-  isRealTime: boolean; // 是否实时发送
+  isRealtime: boolean; // 是否实时
 }
 
 const groupMessageSchema = new mongoose.Schema(
@@ -32,9 +32,10 @@ const groupMessageSchema = new mongoose.Schema(
       type: Number,
       required: false,
     },
-    isRealTime: {
+    isRealtime: {
       type: Boolean,
       required: false,
+      default: false,
     },
   },
   {

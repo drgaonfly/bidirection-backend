@@ -2,6 +2,7 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import axios from 'axios';
 import createDebug from 'debug';
+import { fetchTrxUsdtPrice } from './realtiem';
 
 const exchangeFlashComposer = new Composer<MyContext>();
 
@@ -11,13 +12,7 @@ const debug = createDebug('bot:exchange:flash');
 exchangeFlashComposer.callbackQuery('exchange_flash', async (ctx) => {
   await ctx.conversation.exitAll();
 
-  const response = await axios.get(
-    'https://openapi.sun.io/v2/allpairs?page_size=1&page_num=0&token_address=TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t&orderBy=price',
-  );
-
-  debug(response.data);
-
-  const result = response.data.data['0_TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'];
+  const price = await fetchTrxUsdtPrice();
 
   const trx_balance = ctx.currentBotUserConfig.trx_balance;
 
@@ -26,8 +21,8 @@ exchangeFlashComposer.callbackQuery('exchange_flash', async (ctx) => {
   const message = [
     `💱 闪兑 💰🔛💰`,
     '\n',
-    `100 USDT ≈ ${result.price * 100} TRX`,
-    `100 TRX ≈ ${100 / result.price} USDT`,
+    `100 USDT ≈ ${price * 100} TRX`,
+    `100 TRX ≈ ${100 / price} USDT`,
     '\n',
     '<b>自动兑换地址</b>',
     `<code>${

@@ -4,7 +4,7 @@ import { IBot } from './bot';
 import { IGroup } from './group';
 
 // 只存客户发给机器人的消息（toBot），不存机器人发给客户的消息（fromBot）
-export interface IBotMessage extends Document {
+export interface IGroupMessage extends Document {
   bot: mongoose.Schema.Types.ObjectId | IBot; // 关联的机器人
   botUser?: mongoose.Schema.Types.ObjectId | IBotUser; // 发送消息的 BotUser
   content: string; // 消息内容
@@ -13,7 +13,7 @@ export interface IBotMessage extends Document {
   intervalTime: number; // 间隔时间
 }
 
-const botMessageSchema = new mongoose.Schema(
+const groupMessageSchema = new mongoose.Schema(
   {
     bot: {
       type: mongoose.Schema.Types.ObjectId,
@@ -49,6 +49,9 @@ const botMessageSchema = new mongoose.Schema(
   },
 );
 
-const BotMessage = mongoose.model<IBotMessage>('BotMessage', botMessageSchema);
+const GroupMessage = mongoose.model<IGroupMessage>(
+  'GroupMessage',
+  groupMessageSchema,
+);
 
-export default BotMessage;
+export default GroupMessage;

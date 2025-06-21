@@ -53,12 +53,11 @@ exchangeRealtiemComposer.hears(/^(\d+(?:\.\d+)?)[ ]*u$/i, async (ctx) => {
     bot: ctx.currentBot._id,
     botUser: ctx.currentBotUser._id,
     from_address: ctx.currentBot.auto_exchange_address,
-    to_address: ' ',
     from_amount: usdtAmount,
     to_amount: trxAmount,
     rate: realPrice,
     fee: ctx.currentBot.fee,
-    status: 'temporary',
+    status: 'pending',
     isTransferIntoOther: false,
   });
 

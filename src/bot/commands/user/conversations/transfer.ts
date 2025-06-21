@@ -9,6 +9,7 @@ import { IdGen } from '../../../../utils/idGen';
 import { formatBeijingDate } from '../../../../utils/formatBeijingDate';
 import axios from 'axios';
 import createDebug from 'debug';
+import { fetchTrxUsdtPrice } from '../exchange/realtiem';
 
 const exchangeTransferComposer = new Composer<MyContext>();
 const debug = createDebug('bot:exchange:transfer');
@@ -282,12 +283,9 @@ exchangeTransferComposer.callbackQuery('exchange_to_others', async (ctx) => {
     return;
   }
 
-  const response = await axios.get(
-    'https://openapi.sun.io/v2/allpairs?page_size=1&page_num=0&token_address=TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t&orderBy=price',
-  );
+  const price = await fetchTrxUsdtPrice();
 
-  const result = response.data.data['0_TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'];
-  const realPrice = result.price * (1 - ctx.currentBot.fee / 100);
+  const realPrice = price * (1 - ctx.currentBot.fee / 100);
 
   await ctx.conversation.enter('transferExchangeConversation', {
     bot: ctx.currentBot,

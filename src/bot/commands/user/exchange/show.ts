@@ -2,6 +2,7 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import axios from 'axios';
 import createBug from 'debug';
+import { fetchTrxUsdtPrice } from './realtiem';
 const exchangeShowComposer = new Composer<MyContext>();
 
 const debug = createBug('bot:exchange');
@@ -17,19 +18,11 @@ const handleShow = async (ctx: MyContext) => {
     return;
   }
 
-  if (!ctx.currentBot.customer_service_link) {
-    await ctx.reply('机器人没有设置客服链接，请在后台设置');
-    return;
-  }
+  const price = await fetchTrxUsdtPrice();
 
-  const response = await axios.get(
-    'https://openapi.sun.io/v2/allpairs?page_size=1&page_num=0&token_address=TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t&orderBy=price',
-  );
+  debug(price);
 
-  debug(response.data);
-
-  const result = response.data.data['0_TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'];
-  const realPrice = result.price * (1 - ctx.currentBot.fee / 100);
+  const realPrice = price * (1 - ctx.currentBot.fee / 100);
 
   const initialMessage = [
     `📈实时汇率`,

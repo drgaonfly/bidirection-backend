@@ -9,7 +9,7 @@ const exchangeRealtiemComposer = new Composer<MyContext>();
 const debug = createBug('bot:exchange');
 
 // Add price fetching function
-async function fetchPrice() {
+export async function fetchTrxUsdtPrice() {
   try {
     const response = await axios.get(
       'https://openapi.sun.io/v2/allpairs?page_size=1&page_num=0&token_address=TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t&orderBy=price',
@@ -27,7 +27,7 @@ async function fetchPrice() {
 exchangeRealtiemComposer.hears(/^(\d+(?:\.\d+)?)[ ]*u$/i, async (ctx) => {
   const match = ctx.message?.text.split(' ');
 
-  const currentPrice = await fetchPrice();
+  const currentPrice = await fetchTrxUsdtPrice();
 
   if (!currentPrice) {
     await ctx.reply('抱歉，暂时无法获取价格信息，请稍后再试。');

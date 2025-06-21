@@ -6,20 +6,9 @@ import Exchange from '../../models/exchange';
 import { formatBeijingDate } from '../../utils/formatBeijingDate';
 import { sendTRX } from '../../utils/sendTRX';
 
-export async function checkPendingExchanges() {
+export async function checkPendingExchangesForOther() {
   try {
     console.log('[checkPendingExchanges] 开始检查所有待处理的兑换记录...');
-
-    // 先将已过期的记录状态改为expired
-    await Exchange.updateMany(
-      {
-        status: 'pending',
-        expiredAt: { $lte: new Date() },
-      },
-      {
-        status: 'expired',
-      },
-    );
 
     const pendingExchanges = await Exchange.find({
       status: 'pending',
@@ -37,7 +26,9 @@ export async function checkPendingExchanges() {
       // 检查 bot 是否有 auto_exchange_address
       const botUser = exchange.botUser as IBotUser;
       const bot = exchange.bot as IBot;
+
       const autoExchangeAddress = bot.auto_exchange_address;
+
       if (!autoExchangeAddress) {
         console.warn(
           `[checkPendingExchanges] 兑换记录 ${exchange.id} 的机器人未设置自动闪兑地址，跳过`,

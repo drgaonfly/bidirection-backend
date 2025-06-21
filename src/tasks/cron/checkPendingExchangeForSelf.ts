@@ -7,7 +7,7 @@ import { getUSDTTransfers } from '../../services/checkTrx';
 import { formatBeijingDate } from '../../utils/formatBeijingDate';
 import { sendTRX } from '../../utils/sendTRX';
 
-export async function updateExchange() {
+export async function checkPendingExchangeForSelf() {
   try {
     const bots = await Bot.find();
 

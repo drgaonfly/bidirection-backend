@@ -83,10 +83,10 @@ export async function checkTransfer() {
         const balanceChange = isIncome
           ? `+${
               transfer.money ? Number(transfer.money).toFixed(4) : '0.0000'
-            } TRX`
+            } USDT`
           : `-${
               transfer.money ? Number(transfer.money).toFixed(4) : '0.0000'
-            } TRX`;
+            } USDT`;
 
         const response = await axios.get(
           `https://apilist.tronscan.org/api/account?address=${wallet.address}`,

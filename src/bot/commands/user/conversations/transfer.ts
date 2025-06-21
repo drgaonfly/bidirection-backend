@@ -285,6 +285,11 @@ exchangeTransferComposer.callbackQuery('exchange_to_others', async (ctx) => {
 
   const price = await fetchTrxUsdtPrice();
 
+  if (!price) {
+    await ctx.reply('抱歉，暂时无法获取价格信息，请稍后再试。');
+    return;
+  }
+
   const realPrice = price * (1 - ctx.currentBot.fee / 100);
 
   await ctx.conversation.enter('transferExchangeConversation', {

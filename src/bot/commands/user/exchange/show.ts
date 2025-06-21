@@ -20,6 +20,11 @@ const handleShow = async (ctx: MyContext) => {
 
   const price = await fetchTrxUsdtPrice();
 
+  if (!price) {
+    await ctx.reply('抱歉，暂时无法获取价格信息，请稍后再试。');
+    return;
+  }
+
   debug(price);
 
   const realPrice = price * (1 - ctx.currentBot.fee / 100);

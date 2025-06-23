@@ -24,10 +24,10 @@ const task = async () => {
   // await checkExpiredSubscriptions();
   // await notifyBotExpiration();
   // await updateBotExpiration();
-  // await checkTransfer(); // 检查转账记录
-  // await checkExpiredExchanges(); // 检查过期的兑换记录
+  await checkTransfer(); // 检查转账记录
+  await checkExpiredExchanges(); // 检查过期的兑换记录
   await checkPendingExchanges(); // 为他人兑换
-  // await sendGroupMessages(); // 发送群发消息
+  await sendGroupMessages(); // 发送群发消息
 };
 
 // 执行任务并在完成后退出进程

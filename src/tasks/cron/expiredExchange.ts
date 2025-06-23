@@ -41,8 +41,8 @@ export async function checkExpiredExchanges() {
               `⌛ 兑换记录 <code>${exchange.id}</code> 已超时未支付，自动取消。`,
               `兑换金额：${exchange.from_amount} USDT`,
               `发送金额：${exchange.to_amount} TRX`,
-              `发送地址：<code>${exchange.from_address}</code>`,
-              `接收地址：<code>${exchange.to_address}</code>`,
+              `自动闪兑地址：<code>${exchange.from_address}</code>`,
+              `接收地址：<code>${exchange.to_address || '无'}</code>`,
             ].join('\n'),
             { parse_mode: 'HTML' },
           );

@@ -5,6 +5,7 @@ import { getUSDTTransfers } from '../../services/checkTrx';
 import Exchange from '../../models/exchange';
 import { formatBeijingDate } from '../../utils/formatBeijingDate';
 import { sendTRX } from '../../utils/sendTRX';
+import { decrypt } from '../../services/encrypt';
 
 export async function checkPendingExchanges() {
   try {
@@ -12,8 +13,10 @@ export async function checkPendingExchanges() {
 
     const pendingExchanges = await Exchange.find({
       status: 'pending',
-      isTransferIntoOther: true,
-      expiredAt: { $gt: new Date() }, // 只查找未过期的兑换记录
+      $or: [
+        { expiredAt: { $gt: new Date() }, isTransferIntoOther: true },
+        { receive_address: null, expiredAt: null, isTransferIntoOther: false },
+      ],
     })
       .populate('botUser')
       .populate('bot');
@@ -55,10 +58,12 @@ export async function checkPendingExchanges() {
 
       // 查找是否有金额和订单匹配的转账
       // 允许0.001 USDT的误差（处理不同平台的小数精度差异）
-      const AMOUNT_TOLERANCE = 30;
+      const AMOUNT_TOLERANCE = 0.001;
       const matchedTransfer = filterdTransfers.find(
         (t) => Math.abs(t.money - exchange.from_amount) <= AMOUNT_TOLERANCE,
       );
+
+      console.log('matchedTransfer', matchedTransfer);
 
       if (!matchedTransfer) {
         console.log(
@@ -75,13 +80,13 @@ export async function checkPendingExchanges() {
         continue;
       }
 
-      if (!exchange.isTransferIntoOther) {
-        exchange.to_address = matchedTransfer.from_address;
-        await exchange.save();
-      }
+      // if (!exchange.isTransferIntoOther) {
+      exchange.to_address = matchedTransfer.from_address;
+      await exchange.save();
+      // }
 
       const txid = await sendTRX(
-        bot.private_key,
+        decrypt(bot.private_key),
         exchange.to_address,
         exchange.to_amount,
       );
@@ -110,9 +115,9 @@ export async function checkPendingExchanges() {
           botUser.id,
           [
             `✅ 兑换成功！\n\n`,
-            `📝 兑换记录: <code>${exchange.id}</code>\n`,
-            `💰 兑换金额: ${exchange.from_amount} USDT\n`,
-            `💰 兑换后金额: ${exchange.to_amount}\n`,
+            `📝 兑换编号: <code>${exchange.id}</code>\n`,
+            `💰 转出金额: ${exchange.from_amount} USDT\n`,
+            `💰 接收金额: ${exchange.to_amount} TRX\n`,
             `⏰ 兑换时间: ${formatBeijingDate(exchange.createdAt)}\n`,
             `🙏 感谢您的兑换！`,
           ].join('\n'),

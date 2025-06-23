@@ -1,6 +1,5 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
-import axios from 'axios';
 import createDebug from 'debug';
 import { fetchTrxUsdtPrice } from './realtiem';
 
@@ -10,6 +9,8 @@ const debug = createDebug('bot:exchange:flash');
 
 // 弃用
 exchangeFlashComposer.callbackQuery('exchange_flash', async (ctx) => {
+  debug('exchange_flash');
+
   await ctx.conversation.exitAll();
 
   const price = await fetchTrxUsdtPrice();

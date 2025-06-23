@@ -1,6 +1,5 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
-import axios from 'axios';
 import createBug from 'debug';
 import { fetchTrxUsdtPrice } from './realtiem';
 const exchangeShowComposer = new Composer<MyContext>();

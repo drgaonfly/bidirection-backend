@@ -7,7 +7,6 @@ import { IBotUser } from '../../../../models/botUser';
 import Exchange from '../../../../models/exchange';
 import { IdGen } from '../../../../utils/idGen';
 import { formatBeijingDate } from '../../../../utils/formatBeijingDate';
-import axios from 'axios';
 import createDebug from 'debug';
 import { fetchTrxUsdtPrice } from '../exchange/realtiem';
 

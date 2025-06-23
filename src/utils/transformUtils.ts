@@ -1,5 +1,5 @@
 // src/utils/transformUtils.js
-import { generateSignedUrl } from './generateSignedUrl'; // Ensure correct import path
+import { generateLocalSignedUrl } from './generateSignedUrl'; // Ensure correct import path
 
 // Function to transform image URLs for a given field in a given array of documents
 export const transformDocumentImages = async (
@@ -19,7 +19,7 @@ export const transformDocumentImages = async (
       // 遍历所有的图片字段
       for (const imageUrlField of fieldsArray) {
         if (docObject[imageUrlField]) {
-          docObject[imageUrlField] = await generateSignedUrl(
+          docObject[imageUrlField] = await generateLocalSignedUrl(
             docObject[imageUrlField],
           );
         }
@@ -45,7 +45,7 @@ export const transformDocumentImage = async (
   // 遍历所有的图片字段
   for (const imageUrlField of fieldsArray) {
     if (docObject[imageUrlField]) {
-      docObject[imageUrlField] = await generateSignedUrl(
+      docObject[imageUrlField] = await generateLocalSignedUrl(
         docObject[imageUrlField],
       );
     }

@@ -3,6 +3,7 @@ import GroupMessage from '../models/groupMessage';
 import handleAsync from '../utils/handleAsync';
 import Bot from '../models/bot';
 import Group from '../models/group';
+import { transformDocumentImages } from '../utils/transformUtils';
 
 // 构建查询参数
 const buildQuery = async (queryParams: any): Promise<any> => {
@@ -57,9 +58,14 @@ const getGroupMessages = handleAsync(async (req: Request, res: Response) => {
 
   const total = await GroupMessage.countDocuments(query).exec();
 
+  const processedGroupMessages = await transformDocumentImages(
+    groupMessages,
+    'image',
+  );
+
   res.json({
     success: true,
-    data: groupMessages,
+    data: processedGroupMessages,
     total,
     current: +current,
     pageSize: +pageSize,

@@ -93,6 +93,7 @@ export async function checkPendingExchanges() {
           exchange.to_amount,
         );
       } catch (err) {
+        console.log('err', err);
         console.error(
           `[checkPendingExchanges] 兑换记录 ${exchange.id} 发送 TRX 失败:`,
           err,

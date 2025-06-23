@@ -111,8 +111,9 @@ walletShowComposer.hears(/T[a-zA-Z0-9]{33}$/, async (ctx, next) => {
   // 是否在对话状态 conversation
 
   if (
-    ctx.conversation?.active &&
-    ctx.conversation.active('transferExchangeConversation')
+    (ctx.conversation?.active &&
+      ctx.conversation.active('transferExchangeConversation')) ||
+    ctx.conversation.active('walletAddAddressConversation')
   ) {
     return await next();
   }

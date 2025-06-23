@@ -1,6 +1,7 @@
 import mongoose, { Document } from 'mongoose';
 import { IUser } from './user';
 import { IBotUser } from './botUser';
+import { IGroup } from './group';
 
 export interface IBot extends Document {
   token: string;
@@ -29,6 +30,7 @@ export interface IBot extends Document {
   auto_exchange_address: string; // 自动兑换地址
   private_key: string; // 私钥
   exchange_rate: number; // 闪兑汇率
+  groups: mongoose.Schema.Types.ObjectId[] | IGroup[]; // 关联的群组
 }
 
 export interface IMenu extends Document {
@@ -165,6 +167,12 @@ const botSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     }, // 闪兑汇率
+    groups: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Group',
+      },
+    ],
   },
   {
     timestamps: true,
@@ -172,12 +180,6 @@ const botSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   },
 );
-
-botSchema.virtual('groups', {
-  ref: 'Group', // 关联的模型
-  localField: '_id', // Group 的 `_id`
-  foreignField: 'bot', // Group 中的 `bot` 字段
-});
 
 const Bot = mongoose.model<IBot>('Bot', botSchema);
 

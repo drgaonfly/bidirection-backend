@@ -35,7 +35,6 @@ const groupMessageSchema = new mongoose.Schema(
     isRealtime: {
       type: Boolean,
       required: false,
-      default: false,
     },
   },
   {

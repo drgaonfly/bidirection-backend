@@ -6,7 +6,7 @@ import Exchange from '../../models/exchange';
 import { formatBeijingDate } from '../../utils/formatBeijingDate';
 import { sendTRX } from '../../utils/sendTRX';
 
-export async function checkPendingExchangesForOther() {
+export async function checkPendingExchanges() {
   try {
     console.log('[checkPendingExchanges] 开始检查所有待处理的兑换记录...');
 

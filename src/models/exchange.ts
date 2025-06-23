@@ -20,7 +20,7 @@ export interface IExchange extends Document {
   createdAt: Date;
   updatedAt: Date;
   expiredAt: Date;
-  txid: string;
+  txid: string; // 兑换哈希
 }
 
 // 交易 Schema

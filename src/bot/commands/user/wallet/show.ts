@@ -107,10 +107,15 @@ walletShowComposer.hears(/^🏦 地址监听$/, async (ctx) => {
   await handleShow(ctx, 1);
 });
 
-walletShowComposer.hears(/T[a-zA-Z0-9]{33}$/, async (ctx) => {
+walletShowComposer.hears(/T[a-zA-Z0-9]{33}$/, async (ctx, next) => {
   // 是否在对话状态 conversation
 
-  await ctx.conversation.exitAll();
+  if (
+    ctx.conversation?.active &&
+    ctx.conversation.active('transferExchangeConversation')
+  ) {
+    return await next();
+  }
 
   const address = ctx.match[0];
 

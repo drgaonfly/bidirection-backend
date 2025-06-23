@@ -10,6 +10,7 @@ import { checkTransfer } from './cron/checkTransfer';
 import { checkPendingExchangesForOther } from './cron/checkPendingExchangesForOther';
 import { checkExpiredExchanges } from './cron/expiredExchange';
 import { checkPendingExchangesForSelf } from './cron/checkPendingExchangesForSelf';
+import { sendGroupMessages } from './cron/groupMessager';
 import { setupRedis } from '../utils/redis';
 
 const task = async () => {
@@ -28,6 +29,7 @@ const task = async () => {
   await checkExpiredExchanges(); // 检查过期的兑换记录
   await checkPendingExchangesForOther(); // 为他人兑换
   await checkPendingExchangesForSelf(); // 检查待处理的兑换记录
+  await sendGroupMessages(); // 发送群发消息
 };
 
 // 执行任务并在完成后退出进程

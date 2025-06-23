@@ -7,7 +7,7 @@ import { printWebhookInfo, setupBot } from '../bot/botSetup';
 import { RequestCustom } from 'user';
 import { isProxy, isEmployee } from '../middlewares/authMiddleware';
 import { getUserByUsername } from '../bot/commands/user/operator/add';
-import { encrypt, decrypt } from '../services/encrypt';
+import { encrypt } from '../services/encrypt';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -120,23 +120,24 @@ const getBots = handleAsync(async (req: RequestCustom, res: Response) => {
     .populate('clonedFrom')
     .populate('creator')
     .sort('-createdAt')
+    .select('-private_key')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .lean()
     .exec();
 
-  const botsWithPrivateKey = bots.map((bot) => {
-    return {
-      ...bot,
-      private_key: bot.private_key ? decrypt(bot.private_key) : null,
-    };
-  });
+  // const botsWithPrivateKey = bots.map((bot) => {
+  //   return {
+  //     ...bot,
+  //     private_key: bot.private_key ? decrypt(bot.private_key) : null,
+  //   };
+  // });
 
   const total = await Bot.countDocuments(query).exec();
 
   res.json({
     success: true,
-    data: botsWithPrivateKey,
+    data: bots,
     total,
     current: +current,
     pageSize: +pageSize,

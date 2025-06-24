@@ -125,9 +125,11 @@ async function confirmAndCreateOrderConversation(
     return;
   }
 
+  const id = await IdGen.next(Exchange, 'id', 6);
+
   if (confirmResult.callbackQuery?.data === 'confirm_transfer') {
     const exchange = await Exchange.create({
-      id: await IdGen.next(Exchange, 'id', 6),
+      id,
       bot,
       botUser,
       from_address: bot.auto_exchange_address,
@@ -155,6 +157,10 @@ async function confirmAndCreateOrderConversation(
       ].join('\n'),
       {
         parse_mode: 'HTML',
+        reply_markup: new InlineKeyboard().text(
+          `取消订单`,
+          `cancel_exchange_${id}`,
+        ),
       },
     );
   } else {

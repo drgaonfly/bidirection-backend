@@ -72,7 +72,7 @@ const exchangeSchema = new mongoose.Schema(
     status: {
       type: String,
       required: true,
-      enum: ['pending', 'completed', 'failed', 'expired'],
+      enum: ['pending', 'completed', 'failed', 'expired', 'cancelled'],
     },
     hash: {
       type: String,

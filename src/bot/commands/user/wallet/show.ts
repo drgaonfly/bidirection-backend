@@ -113,7 +113,8 @@ walletShowComposer.hears(/T[a-zA-Z0-9]{33}$/, async (ctx, next) => {
   if (
     (ctx.conversation?.active &&
       ctx.conversation.active('transferExchangeConversation')) ||
-    ctx.conversation.active('walletAddAddressConversation')
+    ctx.conversation.active('walletAddAddressConversation') ||
+    ctx.conversation.active('walletDeleteAddressConversation')
   ) {
     return await next();
   }

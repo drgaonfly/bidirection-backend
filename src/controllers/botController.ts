@@ -10,6 +10,7 @@ import { getUserByUsername } from '../bot/commands/user/operator/add';
 import { encrypt } from '../services/encrypt';
 import { generateLocalSignedUrl } from '../utils/generateSignedUrl';
 import dotenv from 'dotenv';
+import { InputFile } from 'grammy';
 
 dotenv.config();
 
@@ -537,17 +538,29 @@ const sendGroupMessage = handleAsync(async (req: Request, res: Response) => {
 
   await Promise.all(
     processed_groups.map(async (group: any) => {
+      if (!group) {
+        console.log(`[sendGroupMessage] 群组不存在: ${group}`);
+        return;
+      }
+
       if (image) {
         const processed_image = await generateLocalSignedUrl(image);
 
         if (processed_image.includes('localhost')) {
-          res.status(400);
-          throw new Error(`必须是在线图片，而不是本地路径: ${processed_image}`);
+          await telegramBot.api.sendPhoto(
+            group.id,
+            new InputFile(`tmp/${image}`),
+            {
+              caption: content,
+              parse_mode: 'HTML',
+            },
+          );
+        } else {
+          await telegramBot.api.sendPhoto(group.id, processed_image, {
+            caption: content,
+            parse_mode: 'HTML',
+          });
         }
-        await telegramBot.api.sendPhoto(group.id, processed_image, {
-          caption: content,
-          parse_mode: 'HTML',
-        });
       } else {
         await telegramBot.api.sendMessage(group.id, content, {
           parse_mode: 'HTML',

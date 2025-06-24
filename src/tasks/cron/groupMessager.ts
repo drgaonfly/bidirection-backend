@@ -3,7 +3,6 @@ import { IBot } from '../../models/bot';
 import { IGroup } from '../../models/group';
 import { formatBeijingDate } from '../../utils/formatBeijingDate';
 import { setupBot } from '../../bot/botSetup';
-import { generateLocalSignedUrl } from '../../utils/generateSignedUrl';
 import { InputFile } from 'grammy';
 
 /**

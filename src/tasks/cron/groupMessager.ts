@@ -72,15 +72,13 @@ export async function sendGroupMessages() {
 
         // 向每个群组发送消息
         for (const group of groups) {
-          if (!group) {
-            console.log(`[sendGroupMessage] 群组不存在: ${group}`);
-            continue;
-          }
-          // 如果成功，才发送消息
-          if (message.image) {
-            const processed_image = await generateLocalSignedUrl(message.image);
-
-            if (processed_image.includes('localhost')) {
+          try {
+            if (!group) {
+              console.log(`[sendGroupMessage] 群组不存在: ${group}`);
+              continue;
+            }
+            // 如果成功，才发送消息
+            if (message.image) {
               await telegramBot.api.sendPhoto(
                 group.id,
                 new InputFile(`tmp/${message.image}`),
@@ -90,19 +88,20 @@ export async function sendGroupMessages() {
                 },
               );
             } else {
-              await telegramBot.api.sendPhoto(group.id, processed_image, {
-                caption: message.content,
+              // 发送纯文本消息
+              await telegramBot.api.sendMessage(group.id, message.content, {
                 parse_mode: 'HTML',
               });
             }
-          } else {
-            // 发送纯文本消息
-            await telegramBot.api.sendMessage(group.id, message.content, {
-              parse_mode: 'HTML',
-            });
+            sentCount++;
+            console.log(`[sendGroupMessages] 已向群组 ${group.id} 发送消息`);
+          } catch (err) {
+            console.error(
+              `[sendGroupMessages] 向群组 ${group?.id} 发送消息失败:`,
+              err,
+            );
+            continue;
           }
-          sentCount++;
-          console.log(`[sendGroupMessages] 已向群组 ${group.id} 发送消息`);
         }
 
         // 只有当消息至少发送到一个群组时才更新发送时间
@@ -125,6 +124,7 @@ export async function sendGroupMessages() {
           error,
         );
         stats.errors++;
+        continue;
       }
     }
 

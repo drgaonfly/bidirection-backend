@@ -536,6 +536,7 @@ const sendGroupMessage = handleAsync(async (req: Request, res: Response) => {
 
   const telegramBot = setupBot(botManager.token);
 
+  // 保证catch时跳过，不影响其它的
   await Promise.all(
     processed_groups.map(async (group: any) => {
       try {
@@ -559,10 +560,13 @@ const sendGroupMessage = handleAsync(async (req: Request, res: Response) => {
           });
         }
       } catch (error) {
+        // 捕获错误，输出日志，跳过本次，不影响其它群组
         console.error(
           `[sendGroupMessage] 向群组 ${group?.id} 发送消息失败:`,
           error,
         );
+        // 直接return跳过
+        return;
       }
     }),
   );

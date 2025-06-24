@@ -1,6 +1,7 @@
 import GroupMessage from '../../models/groupMessage';
 import { IBot } from '../../models/bot';
 import { IGroup } from '../../models/group';
+import { formatBeijingDate } from '../../utils/formatBeijingDate';
 import { setupBot } from '../../bot/botSetup';
 
 /**
@@ -10,9 +11,13 @@ export async function sendGroupMessages() {
   try {
     console.log('[sendGroupMessages] 开始处理群发消息...');
 
+    const currentTime = new Date();
+
+    console.log(`[当前时间] ${formatBeijingDate(currentTime)}`);
+
     // 查询所有需要发送的群发消息
     const groupMessages = await GroupMessage.find({
-      isRealtime: true, // 只处理实时发送的消息
+      isRealtime: false, // 只处理定时发送的消息
     })
       .populate('bot')
       .populate('groups');
@@ -21,56 +26,111 @@ export async function sendGroupMessages() {
       `[sendGroupMessages] 查询到 ${groupMessages.length} 条群发消息`,
     );
 
+    const stats = {
+      processed: 0,
+      sent: 0,
+      skipped: 0,
+      errors: 0,
+    };
+
     for (const message of groupMessages) {
-      const bot = message.bot as IBot;
-      const groups = message.groups as IGroup[];
+      try {
+        stats.processed++;
+        const bot = message.bot as IBot;
+        const groups = message.groups as IGroup[];
 
-      if (!groups || groups.length === 0) {
-        console.warn(
-          `[sendGroupMessages] 消息 ${message._id} 没有关联的群组，跳过`,
-        );
-        continue;
-      }
-
-      // 设置机器人
-      const telegramBot = setupBot(bot.token);
-
-      // 向每个群组发送消息
-      for (const group of groups) {
-        try {
-          // 发送消息前先验证群组
-          await telegramBot.api.getChat(group.id);
-
-          // 如果成功，才发送消息
-          if (message.image) {
-            // 发送带图片的消息
-            await telegramBot.api.sendPhoto(
-              group.id,
-              `${process.env.BACKEND_URL}/api/static/${message.image}`,
-              {
-                caption: message.content,
-                parse_mode: 'HTML',
-              },
-            );
-          } else {
-            // 发送纯文本消息
-            await telegramBot.api.sendMessage(group.id, message.content, {
-              parse_mode: 'HTML',
-            });
-          }
-          console.log(`[sendGroupMessages] 已向群组 ${group.id} 发送消息`);
-        } catch (error) {
-          console.log(`群组 ${group.id} 不存在或机器人未加入，标记为无效`);
-          // 可以更新数据库，标记此群组为无效
+        if (!groups || groups.length === 0) {
+          console.warn(
+            `[sendGroupMessages] 消息 ${message._id} 没有关联的群组，跳过`,
+          );
+          stats.skipped++;
+          continue;
         }
-      }
 
-      console.log(
-        `[sendGroupMessages] 消息 ${message._id} 已发送到 ${groups.length} 个群组`,
-      );
+        // 检查是否已达到间隔时间
+        const intervalHours = message.intervalTime || 24; // 默认为24小时
+        const lastSentTime = message.updatedAt || message.createdAt;
+        const hoursSinceLastSent =
+          (currentTime.getTime() - lastSentTime.getTime()) / (1000 * 60 * 60);
+
+        if (hoursSinceLastSent < intervalHours) {
+          console.log(
+            `[sendGroupMessages] 消息 ${message._id} 距离上次发送不足 ${intervalHours} 小时，跳过`,
+          );
+          stats.skipped++;
+          continue;
+        }
+
+        // 设置机器人
+        const telegramBot = setupBot(bot.token);
+        let sentCount = 0;
+
+        // 向每个群组发送消息
+        for (const group of groups) {
+          try {
+            // 发送消息前先验证群组
+            await telegramBot.api.getChat(group.id);
+
+            // 如果成功，才发送消息
+            if (message.image) {
+              // 发送带图片的消息
+              await telegramBot.api.sendPhoto(
+                group.id,
+                `${process.env.BACKEND_URL}/api/static/${message.image}`,
+                {
+                  caption: message.content,
+                  parse_mode: 'HTML',
+                },
+              );
+            } else {
+              // 发送纯文本消息
+              await telegramBot.api.sendMessage(group.id, message.content, {
+                parse_mode: 'HTML',
+              });
+            }
+            sentCount++;
+            console.log(`[sendGroupMessages] 已向群组 ${group.id} 发送消息`);
+          } catch (error) {
+            console.log(`群组 ${group.id} 不存在或机器人未加入，标记为无效`);
+            // 可以更新数据库，标记此群组为无效
+          }
+        }
+
+        // 只有当消息至少发送到一个群组时才更新发送时间
+        if (sentCount > 0) {
+          await GroupMessage.findByIdAndUpdate(message._id, {
+            updatedAt: currentTime,
+          });
+          stats.sent++;
+          console.log(
+            `[sendGroupMessages] 消息 ${message._id} 已成功发送到 ${sentCount}/${groups.length} 个群组`,
+          );
+        } else {
+          console.log(
+            `[sendGroupMessages] 消息 ${message._id} 没有成功发送到任何群组`,
+          );
+        }
+      } catch (error) {
+        console.error(
+          `[sendGroupMessages] 处理消息 ${message._id} 时发生错误:`,
+          error,
+        );
+        stats.errors++;
+      }
     }
 
-    console.log('[sendGroupMessages] 群发消息处理完成');
+    // 输出统计信息
+    const endTime = new Date();
+    const taskDuration = (endTime.getTime() - currentTime.getTime()) / 1000;
+
+    console.log('\n========== 群发消息任务统计 ==========');
+    console.log(`[统计信息] 总消息数: ${groupMessages.length}`);
+    console.log(`[统计信息] 处理消息数: ${stats.processed}`);
+    console.log(`[统计信息] 发送消息数: ${stats.sent}`);
+    console.log(`[统计信息] 跳过消息数: ${stats.skipped}`);
+    console.log(`[统计信息] 错误消息数: ${stats.errors}`);
+    console.log(`[统计信息] 任务总耗时: ${taskDuration.toFixed(2)}秒`);
+    console.log('========== 群发消息任务完成 ==========');
   } catch (error) {
     console.error('[sendGroupMessages] 处理群发消息时出错:', error);
   }

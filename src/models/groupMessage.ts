@@ -10,6 +10,8 @@ export interface IGroupMessage extends Document {
   image: string; // 图片
   intervalTime: number; // 间隔时间
   isRealtime: boolean; // 是否实时
+  createdAt: Date; // 创建时间
+  updatedAt: Date; // 更新时间
 }
 
 const groupMessageSchema = new mongoose.Schema(

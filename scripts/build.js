@@ -121,7 +121,7 @@ async function uploadAndExtract() {
         // 先确保远程目录存在
         await new Promise((res, rej) => {
           conn.exec(
-            `mkdir -p ${REMOTE_DEPLOY_PATH}`,
+            `mkdir -p ${REMOTE_DEPLOY_PATH} ${REMOTE_DEPLOY_PATH}/tmp ${REMOTE_DEPLOY_PATH}/logs`,
             (err, stream) => {
               if (err) return rej(err);
               stream.on('close', () => res());

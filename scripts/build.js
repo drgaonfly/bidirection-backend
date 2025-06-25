@@ -138,7 +138,8 @@ async function uploadAndExtract() {
             const uploads = [
               { src: 'build/dist.zip', dest: `${REMOTE_DEPLOY_PATH}/dist.zip` },
               { src: 'package.json', dest: `${REMOTE_DEPLOY_PATH}/package.json` },
-              { src: 'pnpm-lock.yaml', dest: `${REMOTE_DEPLOY_PATH}/pnpm-lock.yaml` }
+              { src: 'pnpm-lock.yaml', dest: `${REMOTE_DEPLOY_PATH}/pnpm-lock.yaml` },
+              { src: '.env', dest: `${REMOTE_DEPLOY_PATH}/.env` }
             ];
             
             console.log('开始上传文件...');

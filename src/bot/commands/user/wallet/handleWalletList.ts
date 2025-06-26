@@ -85,6 +85,7 @@ export const handleWalletList = async (
 };
 
 export const handleWalletListWithoutInlineMenu = async (
+  ctx: MyContext,
   page = 1,
 ): Promise<{ pageInfo: string; replyText: string }> => {
   // 使用 limit/skip 进行分页
@@ -105,6 +106,8 @@ export const handleWalletListWithoutInlineMenu = async (
 
   // 分页查找
   const wallets = await Wallet.find({
+    botUser: ctx.currentBotUser._id,
+    bot: ctx.currentBot._id,
     isOnline: true,
   })
     .sort('-createdAt')

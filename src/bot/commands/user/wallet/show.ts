@@ -20,7 +20,7 @@ export const handleShow = async (ctx: MyContext, page = 1) => {
       [{ text: '❌ 取消', callback_data: 'close' }],
     ],
   };
-  const { replyText } = await handleWalletListWithoutInlineMenu(page);
+  const { replyText } = await handleWalletListWithoutInlineMenu(ctx, page);
 
   await ctx.reply(replyText, {
     parse_mode: 'HTML',

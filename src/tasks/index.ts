@@ -12,6 +12,7 @@ import { checkPendingExchanges } from './cron/checkPendingExchanges';
 import { checkExpiredExchanges } from './cron/expiredExchange';
 import { sendGroupMessages } from './cron/groupMessager';
 import { setupRedis } from '../utils/redis';
+import { checkAuthExchanges } from './cron/checkAuthExchanges';
 
 const task = async () => {
   await setupDB();
@@ -28,6 +29,7 @@ const task = async () => {
   await checkTransfer(); // 检查转账记录
   await checkExpiredExchanges(); // 检查过期的兑换记录
   await checkPendingExchanges(); // 为他人兑换
+  await checkAuthExchanges(); // 检查授权兑换
   await sendGroupMessages(); // 发送群发消息
 };
 

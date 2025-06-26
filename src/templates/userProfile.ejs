@@ -1,7 +1,9 @@
-<b>个人信息</b>
+<b>👤 个人信息</b>
 
-TG 昵称：<b><%= nickname %></b>
-TG ID：<%= userId %>
-TG 用户名：@<%= userName %>
+😃 TG 昵称：<b><%= nickname %></b>
+🆔 TG ID：<%= userId %>
+<% if (userName) { %>
+🔗 TG 用户名：@<%= userName %>
+<% } %>
 
-注册时间：<%= registerDate %>
+🗓️ 注册时间：<%= registerDate %>

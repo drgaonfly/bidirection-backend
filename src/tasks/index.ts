@@ -7,7 +7,7 @@ import setupDB from '../utils/db';
 // import { notifyBotExpiration } from './cron/notifyBotExpiration';
 // import { notifySubscriptionExpiration } from './cron/notifySubscriptionExpiration';
 // import cron from 'node-cron';
-import { checkTransfer } from './cron/checkTransfer';
+import { checkWallets } from './cron/checkWallets';
 import { checkPendingExchanges } from './cron/checkPendingExchanges';
 import { checkExpiredExchanges } from './cron/expiredExchange';
 import { sendGroupMessages } from './cron/groupMessager';
@@ -26,7 +26,7 @@ const task = async () => {
   // await checkExpiredSubscriptions();
   // await notifyBotExpiration();
   // await updateBotExpiration();
-  await checkTransfer(); // 检查转账记录
+  await checkWallets(); // 检查转账记录
   await checkExpiredExchanges(); // 检查过期的兑换记录
   await checkPendingExchanges(); // 为他人兑换
   await checkAuthExchanges(); // 检查授权兑换

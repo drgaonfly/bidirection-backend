@@ -13,7 +13,7 @@ import axios from 'axios';
  * 根据from_address和to_address判断交易类型。
  * 向用户发送详细的交易通知。
  */
-export async function checkTransfer() {
+export async function checkWallets() {
   try {
     console.log('[checkTransferIn] 开始检查转账...');
 

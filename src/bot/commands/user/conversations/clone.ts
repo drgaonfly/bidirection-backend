@@ -5,6 +5,7 @@ import createDebug from 'debug';
 import { cancelKeyboard } from '../../../menus/inline/cacel';
 import Bot from '../../../../models/bot';
 import BotUser from '../../../../models/botUser';
+import { setWebhook } from '../../../../controllers/botController';
 
 const debug = createDebug('bot:clone');
 const cloneConversationComposer = new Composer<MyContext>();
@@ -131,6 +132,8 @@ async function addBot(
 
     await newBot.save();
     debug('[addBot] 新 Bot 已保存:', newBot._id);
+
+    await setWebhook(newBot);
 
     // 注意这里原代码用 token 作为 _id 查找，应该用 newBot._id
     await Bot.findByIdAndUpdate(

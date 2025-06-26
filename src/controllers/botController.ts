@@ -145,7 +145,7 @@ const getBots = handleAsync(async (req: RequestCustom, res: Response) => {
   });
 });
 
-const setWebhook = async (botManager: IBot) => {
+export const setWebhook = async (botManager: IBot) => {
   const bot = setupBot(botManager.token);
   await printWebhookInfo(bot);
 

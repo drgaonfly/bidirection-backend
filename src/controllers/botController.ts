@@ -162,6 +162,9 @@ export const setWebhook = async (botManager: IBot) => {
 
   console.log('修改 webhook 之后');
   await printWebhookInfo(bot);
+
+  botManager.webhook_url = `${WEBHOOK_URL}/bot-webhooks/${botManager._id}`;
+  await botManager.save();
 };
 
 const addBot = handleAsync(async (req: RequestCustom, res: Response) => {

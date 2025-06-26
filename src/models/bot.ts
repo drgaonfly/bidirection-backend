@@ -31,6 +31,7 @@ export interface IBot extends Document {
   private_key: string; // 私钥
   exchange_rate: number; // 闪兑汇率
   groups: mongoose.Schema.Types.ObjectId[] | IGroup[]; // 关联的群组
+  webhook_url: string; // webhook url
 }
 
 export interface IMenu extends Document {
@@ -173,6 +174,10 @@ const botSchema = new mongoose.Schema(
         ref: 'Group',
       },
     ],
+    webhook_url: {
+      type: String,
+      trim: true,
+    }, // 新增：webhook url
   },
   {
     timestamps: true,

@@ -29,7 +29,10 @@ export async function checkAutoExchanges() {
       console.log('filteredTransfers', filteredTransfers);
 
       // 筛选出Exchange里未有的trade_id的记录
-      const exchanges = await Exchange.find();
+      const exchanges = await Exchange.find({
+        status: 'completed',
+        hash: { $ne: null },
+      });
 
       const deepFilteredTransfers = filteredTransfers.filter((transfer) =>
         exchanges.find((exchange) => exchange.hash !== transfer.trade_id),

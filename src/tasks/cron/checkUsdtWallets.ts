@@ -82,17 +82,17 @@ export async function checkUsdtWallets() {
         // 计算余额变化
         const balanceChange = isIncome
           ? `+${
-              transfer.money ? Number(transfer.money).toFixed(4) : '0.0000'
+              transfer.money ? Number(transfer.money).toFixed(8) : '0.000000'
             } USDT`
           : `-${
-              transfer.money ? Number(transfer.money).toFixed(4) : '0.0000'
+              transfer.money ? Number(transfer.money).toFixed(8) : '0.000000'
             } USDT`;
 
         const response = await axios.get(
           `https://apilist.tronscan.org/api/account?address=${wallet.address}`,
         );
 
-        const trxBalance = (response.data.balance / 1_000_000).toFixed(6);
+        const trxBalance = (response.data.balance / 1_000_000).toFixed(8);
         const usdtToken = response.data.trc20token_balances?.find(
           (token: any) => token.tokenAbbr === 'USDT',
         );

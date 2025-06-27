@@ -72,7 +72,7 @@ export async function checkTrxWallets() {
             `https://apilist.tronscan.org/api/account?address=${wallet.address}`,
           );
 
-          const trxBalance = (response.data.balance / 1_000_000).toFixed(6);
+          const trxBalance = (response.data.balance / 1_000_000).toFixed(8);
           const usdtToken = response.data.trc20token_balances?.find(
             (token: any) => token.tokenAbbr === 'USDT',
           );
@@ -86,7 +86,7 @@ export async function checkTrxWallets() {
         }
 
         const balanceChange = `${isIncome ? '+' : '-'}${transfer.money.toFixed(
-          4,
+          8,
         )} TRX`;
 
         const message = [

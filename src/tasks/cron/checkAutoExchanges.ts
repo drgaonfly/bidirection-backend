@@ -1,10 +1,12 @@
 // src/cron/expiredExchanges.ts
 import Exchange from '../../models/exchange';
 import Bot from '../../models/bot';
+import { sendTRX } from '../../utils/sendTRX';
+import { decrypt } from '../../services/encrypt';
 import { getUSDTTransfers } from '../../services/checkUsdt';
 import { fetchTrxUsdtPrice } from '../../bot/commands/user/exchange/realtiem';
 
-export async function checkAuthExchanges() {
+export async function checkAutoExchanges() {
   const currentPrice = await fetchTrxUsdtPrice();
 
   try {
@@ -26,13 +28,20 @@ export async function checkAuthExchanges() {
 
       console.log('filteredTransfers', filteredTransfers);
 
-      for (const transfer of filteredTransfers) {
+      // 筛选出Exchange里未有的trade_id的记录
+      const exchanges = await Exchange.find();
+
+      const deepFilteredTransfers = filteredTransfers.filter((transfer) =>
+        exchanges.find((exchange) => exchange.hash !== transfer.trade_id),
+      );
+
+      for (const transfer of deepFilteredTransfers) {
         // 计算实际汇率和兑换的 TRX 数量
         const realPrice = currentPrice * (1 - bot.fee / 100);
         const trxAmount = transfer.money * realPrice;
 
         // 创建已支付的兑换记录
-        await Exchange.create({
+        const exchange = await Exchange.create({
           bot: bot._id,
           from_address: bot.auto_exchange_address,
           to_address: transfer.from_address,
@@ -41,10 +50,19 @@ export async function checkAuthExchanges() {
           to_amount: trxAmount, // 计算兑换的 TRX 数量
           rate: realPrice, // 设置实际汇率
           fee: bot.fee,
-          status: 'paid',
+          status: 'completed',
           hash: transfer.trade_id,
           isTransferIntoOther: false,
         });
+
+        const txid = await sendTRX(
+          decrypt(bot.private_key),
+          exchange.to_address,
+          exchange.to_amount,
+        );
+
+        exchange.txid = txid;
+        await exchange.save();
 
         // const telegramBot = setupBot(bot.token);
 

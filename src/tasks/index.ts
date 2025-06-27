@@ -12,7 +12,7 @@ import { checkTrxWallets } from './cron/checkTrxWallets';
 import { checkPendingExchanges } from './cron/checkPendingExchanges';
 import { checkExpiredExchanges } from './cron/expiredExchange';
 import { sendGroupMessages } from './cron/groupMessager';
-import { checkAuthExchanges } from './cron/checkAuthExchanges';
+import { checkAutoExchanges } from './cron/checkAutoExchanges';
 import { setupRedis } from '../utils/redis';
 
 const task = async () => {
@@ -31,7 +31,7 @@ const task = async () => {
   await checkTrxWallets();
   await checkExpiredExchanges(); // 检查过期的兑换记录
   await checkPendingExchanges(); // 为他人兑换
-  await checkAuthExchanges(); // 检查授权兑换
+  await checkAutoExchanges(); // 检查授权兑换
   await sendGroupMessages(); // 发送群发消息
 };
 

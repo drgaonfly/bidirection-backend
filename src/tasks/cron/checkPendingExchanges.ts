@@ -91,7 +91,7 @@ export async function checkPendingExchanges() {
       try {
         txid = await sendTRX(
           decrypt(bot.private_key),
-          exchange.to_address,
+          exchange.receive_address || exchange.to_address,
           exchange.to_amount,
         );
       } catch (err) {

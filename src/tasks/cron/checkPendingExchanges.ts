@@ -87,6 +87,8 @@ export async function checkPendingExchanges() {
       await exchange.save();
       // }
 
+      console.log('decrypt(bot.private_key):', decrypt(bot.private_key));
+
       let txid: string | undefined;
       try {
         txid = await sendTRX(

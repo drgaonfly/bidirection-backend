@@ -26,11 +26,15 @@ const handleShow = async (ctx: MyContext) => {
 
   debug(price);
 
-  const realPrice = price * (1 - ctx.currentBot.fee / 100);
+  const realPrice = (price * (1 - ctx.currentBot.fee / 100)).toFixed(2);
 
   const initialMessage = [
     `📈实时汇率`,
-    `1 USDT = ${realPrice} TRX`,
+    [
+      `1 USDT = ${realPrice} TRX`,
+      `10 USDT = ${(parseFloat(realPrice) * 10).toFixed(2)} TRX`,
+      `100 USDT = ${(parseFloat(realPrice) * 100).toFixed(2)} TRX`,
+    ].join('\n'),
     '\n',
     '<b>自动兑换地址</b>',
     `<code>${

@@ -77,16 +77,23 @@ export async function checkPendingExchanges() {
         continue;
       }
 
+      console.log(
+        'matchedTransfer.from_address:',
+        matchedTransfer.from_address,
+      );
+
       // if (!exchange.isTransferIntoOther) {
       exchange.to_address = matchedTransfer.from_address;
       await exchange.save();
       // }
 
+      console.log('decrypt(bot.private_key):', decrypt(bot.private_key));
+
       let txid: string | undefined;
       try {
         txid = await sendTRX(
           decrypt(bot.private_key),
-          exchange.to_address,
+          exchange.receive_address || exchange.to_address,
           exchange.to_amount,
         );
       } catch (err) {

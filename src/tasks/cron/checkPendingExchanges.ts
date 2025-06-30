@@ -47,10 +47,11 @@ export async function checkPendingExchanges() {
         );
         continue;
       }
-
-      // 查找不为支出的转账
+      // 只接收转入的
       const filterdTransfers = transfers.filter(
-        (t) => t.from_address !== autoExchangeAddress,
+        (t) =>
+          t.to_address === autoExchangeAddress &&
+          t.from_address !== autoExchangeAddress,
       );
 
       // 查找是否有金额和订单匹配的转账

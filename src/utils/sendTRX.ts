@@ -61,10 +61,12 @@ export async function sendTRX(
 
     // 3. 发送 TRX
     console.log('------ 开始发送 TRX...');
-    const tx = await tronWeb.trx.sendTransaction(
-      toAddress,
-      trxAmount * 1_000_000,
-    );
+    // 确保金额为整数（单位为 sun），避免浮点数精度问题
+    const amountInSun = Math.round(trxAmount * 1_000_000);
+    if (!Number.isInteger(amountInSun) || amountInSun <= 0) {
+      throw new Error('Invalid amount provided');
+    }
+    const tx = await tronWeb.trx.sendTransaction(toAddress, amountInSun);
     console.log('------ 发送交易成功:', tx.txid);
     return tx.txid;
   } catch (error) {

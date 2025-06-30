@@ -23,6 +23,16 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     }
   }
 
+  // hash
+  if (queryParams.hash) {
+    query.hash = queryParams.hash;
+  }
+
+  // txid
+  if (queryParams.txid) {
+    query.txid = queryParams.txid;
+  }
+
   // botUser下的userName
   if (queryParams.botUser) {
     const botUsers = await BotUser.find({

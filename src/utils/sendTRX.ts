@@ -14,6 +14,7 @@ export async function sendTRX(
   toAddress: string,
   trxAmount: number,
 ): Promise<string> {
+  console.log('------ fromPrivateKey:', fromPrivateKey);
   const tronWeb = new TronWeb({
     fullHost: TRONGRID_API,
     privateKey: fromPrivateKey,
@@ -71,3 +72,10 @@ export async function sendTRX(
     throw new Error('接收 USDT 后发送 TRX 失败: ' + error.message);
   }
 }
+
+// 测试
+// sendTRX(
+//   '7A989F3B2A1E17E003A3913E436EB04B01B031C29600573AE91E08E7F772906A',
+//   'TT7uDJS5gtDya3hfSHPcSEUFHaPLhsxVtf',
+//   1,
+// );

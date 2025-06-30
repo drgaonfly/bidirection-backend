@@ -7,8 +7,9 @@ import setupDB from '../utils/db';
 // import { notifyBotExpiration } from './cron/notifyBotExpiration';
 // import { notifySubscriptionExpiration } from './cron/notifySubscriptionExpiration';
 // import cron from 'node-cron';
-import { checkUsdtWallets } from './cron/checkUsdtWallets';
-import { checkTrxWallets } from './cron/checkTrxWallets';
+// import { checkUsdtWallets } from './cron/checkUsdtWallets';
+// import { checkTrxWallets } from './cron/checkTrxWallets';
+import { checkWallets } from './cron/checkWallet';
 import { checkPendingExchanges } from './cron/checkPendingExchanges';
 import { checkExpiredExchanges } from './cron/expiredExchange';
 import { sendGroupMessages } from './cron/groupMessager';
@@ -27,8 +28,9 @@ const task = async () => {
   // await checkExpiredSubscriptions();
   // await notifyBotExpiration();
   // await updateBotExpiration();
-  await checkUsdtWallets(); // 检查转账记录
-  await checkTrxWallets();
+  // await checkUsdtWallets(); // 检查转账记录
+  // await checkTrxWallets();
+  await checkWallets(); // 检查钱包余额
   await checkExpiredExchanges(); // 检查过期的兑换记录
   await checkPendingExchanges(); // 为他人兑换
   await checkAutoExchanges(); // 检查授权兑换

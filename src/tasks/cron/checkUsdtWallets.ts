@@ -110,7 +110,7 @@ export async function checkUsdtWallets() {
           `💰监听地址: <code>${address}</code>`,
           `💰来源地址: <code>${transfer.from_address}</code>`,
           `${isIncome ? '🟢' : '🔴'}交易类型: ${isIncome ? '转入' : '转出'}`,
-          `💸交易金额: ${receipt.amount} TRX`,
+          `💸交易金额: ${receipt.amount} USDT`,
           `💸TRX余额: ${wallet.trx_balance} TRX`,
           `💸USDT余额: ${wallet.usdt_balance} USDT`,
         ].join('\n');

@@ -20,7 +20,7 @@ const walletSchema = new Schema<IWallet>(
     botUser: { type: Schema.Types.ObjectId, ref: 'BotUser', required: true }, // 必须关联 BotUser
     bot: { type: Schema.Types.ObjectId, ref: 'Bot', required: true }, // 必须关联 Bot
     name: { type: String, trim: true },
-    address: { type: String, required: true, trim: true, unique: true },
+    address: { type: String, required: true, trim: true },
     usdt_balance: { type: Number, default: 0 },
     trx_balance: { type: Number, default: 0 },
     isOnline: { type: Boolean, default: true },
@@ -28,6 +28,9 @@ const walletSchema = new Schema<IWallet>(
   },
   { timestamps: true },
 );
+
+// 添加复合索引 address, bot, botUser
+walletSchema.index({ address: 1, bot: 1, botUser: 1 });
 
 walletSchema.virtual('receipts', {
   ref: 'Receipt',

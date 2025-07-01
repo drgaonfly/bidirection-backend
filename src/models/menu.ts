@@ -11,6 +11,7 @@ export interface IMenu extends Document {
   updatedAt?: Date;
   children: IMenu[];
   weight: number;
+  isOnline: boolean;
 }
 
 const menuSchema = new mongoose.Schema(
@@ -26,6 +27,7 @@ const menuSchema = new mongoose.Schema(
       required: true,
     },
     weight: { type: Number, required: false, default: 0 },
+    isOnline: { type: Boolean, required: false, default: true },
   },
   { timestamps: true },
 );

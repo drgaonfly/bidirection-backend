@@ -7,7 +7,9 @@ import { printWebhookInfo, setupBot } from '../bot/botSetup';
 import { RequestCustom } from 'user';
 import { isProxy, isEmployee } from '../middlewares/authMiddleware';
 import { getUserByUsername } from '../bot/commands/user/operator/add';
+import { encrypt } from '../services/encrypt';
 import dotenv from 'dotenv';
+import { InputFile } from 'grammy';
 
 dotenv.config();
 
@@ -116,10 +118,21 @@ const getBots = handleAsync(async (req: RequestCustom, res: Response) => {
     .populate('groups')
     .populate('owners')
     .populate('authorized_users')
+    .populate('clonedFrom')
+    .populate('creator')
     .sort('-createdAt')
+    .select('-private_key')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
+    .lean()
     .exec();
+
+  // const botsWithPrivateKey = bots.map((bot) => {
+  //   return {
+  //     ...bot,
+  //     private_key: bot.private_key ? decrypt(bot.private_key) : null,
+  //   };
+  // });
 
   const total = await Bot.countDocuments(query).exec();
 
@@ -132,7 +145,7 @@ const getBots = handleAsync(async (req: RequestCustom, res: Response) => {
   });
 });
 
-const setWebhook = async (botManager: IBot) => {
+export const setWebhook = async (botManager: IBot) => {
   const bot = setupBot(botManager.token);
   await printWebhookInfo(bot);
 
@@ -149,6 +162,9 @@ const setWebhook = async (botManager: IBot) => {
 
   console.log('修改 webhook 之后');
   await printWebhookInfo(bot);
+
+  botManager.webhook_url = `${WEBHOOK_URL}/bot-webhooks/${botManager._id}`;
+  await botManager.save();
 };
 
 const addBot = handleAsync(async (req: RequestCustom, res: Response) => {
@@ -199,8 +215,8 @@ const getBotById = handleAsync(async (req: Request, res: Response) => {
 });
 
 const updateBot = handleAsync(async (req: Request, res: Response) => {
-  console.log('WEBHOOK_URL', WEBHOOK_URL);
   const { id } = req.params;
+  const { private_key, ...restBody } = req.body;
 
   const botManager = await Bot.findById(id);
 
@@ -209,20 +225,22 @@ const updateBot = handleAsync(async (req: Request, res: Response) => {
     throw new Error('机器人不存在');
   }
 
-  const updatedBot = await Bot.findByIdAndUpdate(id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+  const updateData = {
+    ...restBody,
+  };
 
-  if (updatedBot.isOnline !== botManager.isOnline) {
-    if (updatedBot.isOnline) {
-      setWebhook(updatedBot);
-    } else {
-      // const webhookInfo = await printWebhookInfo(bot);
-      // if (webhookInfo.url) {
-      //   await bot.api.deleteWebhook();
-      // }
-    }
+  if (private_key) {
+    updateData.private_key = encrypt(private_key);
+  }
+
+  const updatedBot = await Bot.findByIdAndUpdate(
+    id,
+    { $set: updateData },
+    { new: true },
+  );
+
+  if (updatedBot.isOnline !== botManager.isOnline && updatedBot.isOnline) {
+    await setWebhook(updatedBot);
   }
 
   res.json({
@@ -443,6 +461,124 @@ const delAuthorizer = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
+// send message
+const sendMessage = handleAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { message } = req.body;
+
+  const botManager = await Bot.findById(id).populate('botUsers');
+
+  if (!botManager) {
+    res.status(404);
+    throw new Error('机器人不存在');
+  }
+
+  const telegramBot = setupBot(botManager.token);
+
+  const results = await Promise.allSettled(
+    botManager.botUsers.map(async (botUser: any) => {
+      try {
+        await telegramBot.api.sendMessage(botUser.id, message);
+        return { userId: botUser.id, success: true };
+      } catch (error: any) {
+        return {
+          userId: botUser.id,
+          success: false,
+          error: error.message,
+        };
+      }
+    }),
+  );
+
+  const successful = results.filter(
+    (r) => r.status === 'fulfilled' && (r.value as any).success,
+  ).length;
+  const failed = results.filter(
+    (r) => r.status === 'rejected' || !(r.value as any).success,
+  ).length;
+
+  res.json({
+    success: true,
+    data: {
+      message: `消息发送完成：${successful} 个成功，${failed} 个失败`,
+      details: results,
+    },
+  });
+});
+
+// group message
+// send message
+const sendGroupMessage = handleAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const { content, image } = req.body;
+
+  const botManager = await Bot.findById(id)
+    .populate('botUsers')
+    .populate('groups');
+
+  const bot_groups = botManager.groups;
+
+  const req_groups = req.body.groups;
+
+  if (req_groups.length === 0) {
+    res.status(400);
+    throw new Error('群组列表不能为空，请选择群组');
+  }
+
+  // 从bot_groups中找到req_groups中存在的group
+  const processed_groups = bot_groups.filter((group: any) =>
+    req_groups.includes(String(group._id)),
+  );
+
+  if (!botManager) {
+    res.status(404);
+    throw new Error('机器人不存在');
+  }
+
+  const telegramBot = setupBot(botManager.token);
+
+  // 保证catch时跳过，不影响其它的
+  await Promise.all(
+    processed_groups.map(async (group: any) => {
+      try {
+        if (!group) {
+          console.log(`[sendGroupMessage] 群组不存在: ${group}`);
+          return;
+        }
+
+        if (image) {
+          await telegramBot.api.sendPhoto(
+            group.id,
+            new InputFile(`tmp/${image}`),
+            {
+              caption: content,
+              parse_mode: 'HTML',
+            },
+          );
+        } else {
+          await telegramBot.api.sendMessage(group.id, content, {
+            parse_mode: 'HTML',
+          });
+        }
+      } catch (error) {
+        // 捕获错误，输出日志，跳过本次，不影响其它群组
+        console.error(
+          `[sendGroupMessage] 向群组 ${group?.id} 发送消息失败:`,
+          error,
+        );
+        // 直接return跳过
+        return;
+      }
+    }),
+  );
+
+  res.json({
+    success: true,
+    message: '群发消息成功',
+  });
+});
+
 export {
   getBots,
   addBot,
@@ -454,4 +590,6 @@ export {
   delOwner,
   addAuthorizer,
   delAuthorizer,
+  sendMessage,
+  sendGroupMessage,
 };

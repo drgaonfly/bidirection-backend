@@ -1,38 +1,43 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { IBot } from './bot';
+import { IBotUser } from './botUser';
 
 export interface IWallet extends Document {
-  address: string;
-  currency: 'USDT';
-  balance: number;
+  botUser: mongoose.Schema.Types.ObjectId | IBotUser; // 关联的 BotUser
+  bot: mongoose.Schema.Types.ObjectId | IBot; // 关联的 Bot
   name?: string;
+  address: string;
+  usdt_balance: number;
+  trx_balance: number;
   isOnline: boolean;
+  remark: string;
   createdAt: Date;
   updatedAt: Date;
-  bot?: Schema.Types.ObjectId | IBot; // 关联的机器人ID
-  network: 'ERC20' | 'TRC20' | 'BEP20'; // 区块链网络
 }
 
 const walletSchema = new Schema<IWallet>(
   {
-    address: { type: String, required: true, unique: true },
-    network: {
-      type: String,
-      enum: ['ERC20', 'TRC20', 'BEP20'], // 明确区块链网络
-      required: true,
-    },
-    currency: {
-      type: String,
-      enum: ['USDT'], // 可扩展其他稳定币
-      default: 'USDT',
-    },
-    balance: { type: Number, default: 0 },
-    name: String,
+    botUser: { type: Schema.Types.ObjectId, ref: 'BotUser', required: true }, // 必须关联 BotUser
+    bot: { type: Schema.Types.ObjectId, ref: 'Bot', required: true }, // 必须关联 Bot
+    name: { type: String, trim: true },
+    address: { type: String, required: true, trim: true },
+    usdt_balance: { type: Number, default: 0 },
+    trx_balance: { type: Number, default: 0 },
     isOnline: { type: Boolean, default: true },
-    bot: { type: Schema.Types.ObjectId, ref: 'Bot' }, // 关联到Bot集合
+    remark: { type: String, trim: true },
   },
   { timestamps: true },
 );
+
+// 添加复合索引 address, bot, botUser
+walletSchema.index({ address: 1, bot: 1, botUser: 1 });
+
+walletSchema.virtual('receipts', {
+  ref: 'Receipt',
+  localField: '_id',
+  foreignField: 'wallet',
+});
+
 const Wallet = mongoose.model<IWallet>('Wallet', walletSchema);
 
 export default Wallet;

@@ -5,7 +5,7 @@ import { IBot } from '../../models/bot';
 import { setupBot } from '../../bot/botSetup';
 import { IdGen } from '../../utils/idGen';
 import BotUserConfig, { UserStatus } from '../../models/botUserConfig';
-import { getUSDTTransfers } from './checkTrx';
+import { getUSDTTransfers } from '../../services/checkUsdt';
 
 /**
  * 检查所有 pending 的 payment，只有当 bot.trx20_address 收到正确金额，才生成订阅
@@ -66,10 +66,15 @@ export async function checkPendingOrders() {
         continue;
       }
 
+      // 查找不为支出的转账
+      const filterdTransfers = transfers.filter(
+        (t) => t.from_address !== receiveAddress,
+      );
+
       // 查找是否有金额和订单匹配的转账
       // 允许0.001 USDT的误差（处理不同平台的小数精度差异）
       const AMOUNT_TOLERANCE = 0.001;
-      const matchedTransfer = transfers.find(
+      const matchedTransfer = filterdTransfers.find(
         (t) => Math.abs(t.money - payment.amount) <= AMOUNT_TOLERANCE,
       );
 

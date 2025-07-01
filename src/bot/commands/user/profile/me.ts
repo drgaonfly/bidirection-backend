@@ -56,7 +56,7 @@ async function sendUserProfile(ctx: MyContext) {
     userName: botUser.userName,
     nickname: `${botUser.firstName || ''} ${botUser.lastName || ''}`.trim(),
     registerDate,
-    currentBalance: botUserConfig.balance,
+    currentBalance: botUserConfig.usdt_balance,
     botUserConfig,
     currentPlan: currentPlanLabel,
     bot: ctx.currentBot,

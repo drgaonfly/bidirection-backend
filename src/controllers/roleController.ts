@@ -10,6 +10,11 @@ const buildQuery = (queryParams: any): any => {
     query.name = { $regex: queryParams.name, $options: 'i' };
   }
 
+  // hash
+  if (queryParams.hash) {
+    query.hash = queryParams.hash;
+  }
+
   return query;
 };
 

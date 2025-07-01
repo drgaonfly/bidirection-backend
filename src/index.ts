@@ -4,11 +4,11 @@ import dotenv from 'dotenv';
 import { errorHandler, notFound } from './middlewares/errorMiddleware';
 import morgan from 'morgan';
 import cors from 'cors';
-import path from 'path';
 import http from 'http';
 import { setupRedis } from './utils/redis';
 import setupDB from './utils/db';
 import initExecutor from 'express-command-executor';
+// import { startTaskScheduler } from './tasks';
 
 import userRoutes from './routes/userRoutes';
 import roleRoutes from './routes/roleRoutes';
@@ -31,6 +31,10 @@ import paymentRoutes from './routes/paymentRoutes';
 import botMessageRoutes from './routes/botMessageRoutes';
 import messsageRoutes from './routes/messageRoutes';
 import receiveMessageRoute from './routes/receiveMessageRoute';
+import walletRoutes from './routes/walletRoute';
+import receiptRoutes from './routes/receiptRoutes';
+import exchangeRoutes from './routes/exchangeRoutes';
+import groupMessageRoutes from './routes/groupMessageRoutes';
 
 dotenv.config();
 
@@ -73,8 +77,12 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/bot-messages', botMessageRoutes);
 app.use('/api/messages', messsageRoutes);
 app.use('/api/receive-message', receiveMessageRoute);
+app.use('/api/wallets', walletRoutes);
+app.use('/api/receipts', receiptRoutes);
+app.use('/api/exchanges', exchangeRoutes);
+app.use('/api/group-messages', groupMessageRoutes);
 
-app.use('/api/static', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/static', express.static('tmp'));
 
 setupDB();
 setupRedis();
@@ -82,7 +90,7 @@ setupRedis();
 
 console.log('Socket.IO server initialized');
 
-// scheduledtasks(); // 定时任务
+// startTaskScheduler(); // 定时任务
 // authorized(); // 授权用户收益率生成
 // stacking(); // 质押用户收益率生成
 

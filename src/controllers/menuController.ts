@@ -25,7 +25,7 @@ const getChildren = async (parentId: string | null): Promise<IMenu[]> => {
 const fetchMenus = handleAsync(async (req: RequestCustom, res: Response) => {
   const query = buildQuery(req.query);
 
-  const menus = await Menu.find(query)
+  const menus = await Menu.find({ ...query, isOnline: true })
     .populate('parent')
     .populate('permission')
     .sort('weight');

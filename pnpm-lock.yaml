@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@grammyjs/conversations':
+        specifier: ^2.1.0
+        version: 2.1.0(grammy@1.31.3)
       '@grammyjs/files':
         specifier: ^1.1.1
         version: 1.1.1(grammy@1.31.3)
@@ -525,6 +528,12 @@ packages:
 
   '@fast-csv/parse@4.3.6':
     resolution: {integrity: sha512-uRsLYksqpbDmWaSmzvJcuApSEe38+6NQZBUsuAyMZKqHxH0g1wcJgsKUvN3WC8tewaqFjBMMGrkHmC+T7k8LvA==}
+
+  '@grammyjs/conversations@2.1.0':
+    resolution: {integrity: sha512-nYoHwFyXcQ2lkQejKReoINknkgFjeIZhyJNMBwHng5UHO/ewHKs1dV2XVaLrKkHTZ1gCZ+dKkjEp26wwHyQeGg==}
+    engines: {node: ^12.20.0 || >=14.13.1}
+    peerDependencies:
+      grammy: ^1.20.1
 
   '@grammyjs/files@1.1.1':
     resolution: {integrity: sha512-T3vJCVlj76I8d4BUI0MPDyIkfWOkG4NXyy8HDKAmG5tIb1SxMtrQHcwRYCOHeSJ1EvLWtfadFNTbRXuym+8c6Q==}
@@ -4780,6 +4789,10 @@ snapshots:
       lodash.isnil: 4.0.0
       lodash.isundefined: 3.0.1
       lodash.uniq: 4.5.0
+
+  '@grammyjs/conversations@2.1.0(grammy@1.31.3)':
+    dependencies:
+      grammy: 1.31.3
 
   '@grammyjs/files@1.1.1(grammy@1.31.3)':
     dependencies:

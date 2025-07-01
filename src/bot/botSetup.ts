@@ -13,7 +13,7 @@ import { MyContext } from './types'; // 引入你的 MyContext 类型
 import { hydrateFiles } from '@grammyjs/files';
 import { RedisAdapter } from '@grammyjs/storage-redis';
 import { redis } from '../utils/redis';
-// import { autoQuote } from "@roziscoding/grammy-autoquote";
+import { conversations } from '@grammyjs/conversations';
 
 const log = createDebug('bot:setup');
 
@@ -60,17 +60,14 @@ export const setupBot = (token: string) => {
   // 使用 session 中间件
   bot.use(
     session({
-      initial: () => ({
-        awaitingCustomCharge: false,
-      }),
+      initial: () => ({}),
       storage,
     }),
   );
 
-  // bot.use(autoQuote());
-
   // 由于 session 已经合并到 context，后续中间件类型也要兼容 MyContext
   // 需要确保所有中间件都用 MyContext 类型
+  bot.use(conversations());
   bot.use(botResolver);
   bot.use(botUserResolver);
   bot.use(botUserConfigResolver);
@@ -87,6 +84,7 @@ export const setupBot = (token: string) => {
 
   bot.callbackQuery('close', async (ctx) => {
     log('用户点击了按钮: close');
+    await ctx.conversation.exitAll();
     // 删除原消息
     await ctx.deleteMessage();
     // 可选：发送反馈提示（客户端显示短暂提示）

@@ -171,7 +171,7 @@ export async function getTrxTransfers(
               }
 
               // tokenAbbr 可能不存在，兜底用主交易的 tokenInfo 或 'TOKEN'
-              let tokenCurrency =
+              const tokenCurrency =
                 tokenTx.tokenAbbr || (tx.tokenInfo?.tokenAbbr ?? 'TOKEN');
 
               const tokenObj: Transfer = {

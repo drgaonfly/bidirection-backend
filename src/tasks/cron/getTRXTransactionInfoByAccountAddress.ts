@@ -6,7 +6,7 @@ import { formatBeijingDate } from '../../utils/formatBeijingDate';
 import { IdGen } from '../../utils/idGen';
 import Receipt from '../../models/receipt';
 import axios from 'axios';
-import { fetchTransactions } from '../../utils/fetchTransactions';
+import { fetchTrxTransactions } from '../../utils/fetchTransactions';
 import { TronWeb } from 'tronweb';
 
 const tronWeb = new TronWeb({
@@ -36,7 +36,7 @@ export async function newCheckTrxWallets() {
       try {
         console.log('address', address);
 
-        const { data } = await fetchTransactions(address);
+        const { data } = await fetchTrxTransactions(address);
 
         const rawTransfers = data as any[];
 
@@ -54,7 +54,6 @@ export async function newCheckTrxWallets() {
               to_address: tronWeb.address.fromHex(param.to_address),
               time: Math.floor(tx.block_timestamp / 1000),
               trade_id: tx.txID,
-              currency: 'TRX',
             };
           });
 

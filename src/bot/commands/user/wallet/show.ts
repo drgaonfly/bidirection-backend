@@ -3,6 +3,7 @@ import { MyContext } from '../../../types';
 import { handleWalletListWithoutInlineMenu } from './handleWalletList';
 import { formatBeijingDate } from '../../../../utils/formatBeijingDate';
 import axios, { AxiosError } from 'axios';
+import { fetchTrxTransactions } from '../../../../utils/fetchTransactions';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:wallet:show');
@@ -138,10 +139,11 @@ walletShowComposer.hears(/T[a-zA-Z0-9]{33}$/, async (ctx, next) => {
   debug('Fetching wallet info for address:', address);
 
   try {
-    const response = await axios.get(
-      `https://apilist.tronscan.org/api/account?address=${address}`,
-      { timeout: 10000 }, // 10 seconds timeout
-    );
+    const response = await fetchTrxTransactions(address);
+
+    console.log('response', response);
+
+    return;
 
     if (!response.data) {
       throw new Error('No data received from API');

@@ -10,31 +10,47 @@ const API_KEYS = [
   'd4374957-910d-4509-b195-0be07c0dfa84',
 ];
 
-function getRandomApiKey(): string {
-  const index = Math.floor(Math.random() * API_KEYS.length);
-  return API_KEYS[index];
+let lastUsedIndex = -1;
+
+function getNextApiKey(): string {
+  lastUsedIndex = (lastUsedIndex + 1) % API_KEYS.length;
+  return API_KEYS[lastUsedIndex];
 }
 
-export async function fetchTransactions(address: string) {
+async function fetchTrxTransactions(address: string) {
   const url = `https://api.trongrid.io/v1/accounts/${address}/transactions`;
-  const apiKey = getRandomApiKey();
 
-  try {
-    const response = await fetch(url, {
-      headers: {
-        Accept: 'application/json',
-        'TRON-PRO-API-KEY': apiKey,
-      },
-    });
+  const response = await fetch(url, {
+    headers: {
+      Accept: 'application/json',
+      'TRON-PRO-API-KEY': getNextApiKey(),
+    },
+  });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('Transactions:', data);
-    return data;
-  } catch (error) {
-    console.error('Error fetching transactions:', error);
+  if (!response.ok) {
+    throw new Error(`TRX fetch failed: ${response.status}`);
   }
+
+  const json = await response.json();
+  return json.data || [];
 }
+
+async function fetchTrc20Transactions(address: string) {
+  const url = `https://api.trongrid.io/v1/accounts/${address}/transactions/trc20`;
+
+  const response = await fetch(url, {
+    headers: {
+      Accept: 'application/json',
+      'TRON-PRO-API-KEY': getNextApiKey(),
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`TRC20 fetch failed: ${response.status}`);
+  }
+
+  const json = await response.json();
+  return json.data || [];
+}
+
+export { fetchTrxTransactions, fetchTrc20Transactions };

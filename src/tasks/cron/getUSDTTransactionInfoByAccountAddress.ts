@@ -5,8 +5,10 @@ import Wallet from '../../models/wallet';
 import { formatBeijingDate } from '../../utils/formatBeijingDate';
 import { IdGen } from '../../utils/idGen';
 import Receipt from '../../models/receipt';
-import axios from 'axios';
-import { fetchTrc20Transactions } from '../../utils/fetchTransactions';
+import {
+  fetchTrc20Transactions,
+  getAccountResources,
+} from '../../utils/fetchTransactions';
 
 /**
  * 检查所有钱包的USDT转账记录，包括转入和转出。
@@ -37,7 +39,7 @@ export async function newCheckUsdtWallets() {
       try {
         const response = await fetchTrc20Transactions(address);
 
-        console.log('response', response);
+        // console.log('response', response);
 
         transfers = response
           .filter((tx) => tx.token_info?.symbol === 'USDT')
@@ -99,15 +101,12 @@ export async function newCheckUsdtWallets() {
           8,
         )} USDT`;
 
-        const response = await axios.get(
-          `https://apilist.tronscan.org/api/account?address=${wallet.address}`,
-        );
+        const response = await getAccountResources(address);
 
-        const trxBalance = (response.data.balance / 1_000_000).toFixed(8);
-        const usdtToken = response.data.trc20token_balances?.find(
-          (token: any) => token.tokenAbbr === 'USDT',
-        );
-        const usdtBalance = usdtToken ? usdtToken.balance / 1_000_000 : '0';
+        console.log('余额变化', response);
+
+        const trxBalance = response.trxBalance;
+        const usdtBalance = response.usdtBalance;
 
         wallet.trx_balance = Number(trxBalance);
         wallet.usdt_balance = Number(usdtBalance);

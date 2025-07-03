@@ -5,8 +5,10 @@ import Wallet from '../../models/wallet';
 import { formatBeijingDate } from '../../utils/formatBeijingDate';
 import { IdGen } from '../../utils/idGen';
 import Receipt from '../../models/receipt';
-import axios from 'axios';
-import { fetchTrxTransactions } from '../../utils/fetchTransactions';
+import {
+  fetchTrxTransactions,
+  getAccountResources,
+} from '../../utils/fetchTransactions';
 import { TronWeb } from 'tronweb';
 
 const tronWeb = new TronWeb({
@@ -40,6 +42,8 @@ export async function newCheckTrxWallets() {
 
         const rawTransfers = data as any[];
 
+        // console.log('data',data)
+
         // 👇 提取 TRX 主币转账（TransferContract）
         transfers = rawTransfers
           .filter((tx) => {
@@ -54,10 +58,11 @@ export async function newCheckTrxWallets() {
               to_address: tronWeb.address.fromHex(param.to_address),
               time: Math.floor(tx.block_timestamp / 1000),
               trade_id: tx.txID,
+              currency: 'TRX',
             };
           });
 
-        console.log('transfers', transfers);
+        // console.log('transfers', transfers);
 
         console.log(`[checkTrxWallets] 获取地址 ${address} 的转账成功`);
         // console.log(transfers);
@@ -77,7 +82,7 @@ export async function newCheckTrxWallets() {
         }
 
         // 只处理货币类型为 TRX 的转账
-        if (transfer.currency.toUpperCase() !== 'TRX') {
+        if (transfer.currency !== 'TRX') {
           continue;
         }
 
@@ -109,18 +114,12 @@ export async function newCheckTrxWallets() {
 
         // 更新余额
         try {
-          const response = await axios.get(
-            `https://apilist.tronscan.org/api/account?address=${wallet.address}`,
-          );
+          const response = await getAccountResources(address);
 
-          const trxBalance = (response.data.balance / 1_000_000).toFixed(8);
-          const usdtToken = response.data.trc20token_balances?.find(
-            (token: any) => token.tokenAbbr === 'USDT',
-          );
-          const usdtBalance = usdtToken ? usdtToken.balance / 1_000_000 : 0;
+          // console.log('updated 余额', response)
 
-          wallet.trx_balance = Number(trxBalance);
-          wallet.usdt_balance = Number(usdtBalance);
+          wallet.trx_balance = Number(response.trxBalance);
+          wallet.usdt_balance = Number(response.usdtBalance);
           await wallet.save();
         } catch (err) {
           console.warn(`[checkTrxWallets] 获取余额失败:`, err);

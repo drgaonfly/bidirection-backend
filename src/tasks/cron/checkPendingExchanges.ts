@@ -1,7 +1,7 @@
 import { IBotUser } from '../../models/botUser';
 import { IBot } from '../../models/bot';
 import { setupBot } from '../../bot/botSetup';
-import { getUSDTTransfers } from '../../services/checkUsdt';
+import { fetchTrc20Transactions } from '../../utils/fetchTransactions';
 import Exchange from '../../models/exchange';
 import { formatBeijingDate } from '../../utils/formatBeijingDate';
 import { sendTRX } from '../../utils/sendTRX';
@@ -36,17 +36,22 @@ export async function checkPendingExchanges() {
         continue;
       }
 
-      // 查询该地址近15分钟的USDT转账
-      let transfers: Awaited<ReturnType<typeof getUSDTTransfers>> = [];
-      try {
-        transfers = await getUSDTTransfers(autoExchangeAddress);
-      } catch (err) {
-        console.error(
-          `[checkPendingExchanges] 获取地址 ${autoExchangeAddress} 转账记录失败:`,
-          err,
-        );
-        continue;
-      }
+      const response = await fetchTrc20Transactions(autoExchangeAddress);
+
+      console.log(
+        `[checkAutoExchanges] bot ${bot.id} 收到 ${response.length} 条转账记录`,
+      );
+
+      const transfers = response
+        .filter((tx) => tx.token_info?.symbol === 'USDT')
+        .map((tx) => ({
+          trade_id: tx.transaction_id,
+          from_address: tx.from,
+          to_address: tx.to,
+          money: Number(tx.value) / 1_000_000,
+          time: Math.floor(tx.block_timestamp / 1000),
+        }));
+
       // 只接收转入的
       const filterdTransfers = transfers.filter(
         (t) =>

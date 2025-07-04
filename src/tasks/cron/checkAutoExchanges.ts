@@ -3,7 +3,7 @@ import Exchange from '../../models/exchange';
 import Bot from '../../models/bot';
 import { sendTRX } from '../../utils/sendTRX';
 import { decrypt } from '../../services/encrypt';
-import { getUSDTTransfers } from '../../services/checkUsdt';
+import { fetchTrc20Transactions } from '../../utils/fetchTransactions';
 import { fetchTrxUsdtPrice } from '../../bot/commands/user/exchange/realtiem';
 import { IdGen } from '../../utils/idGen';
 
@@ -30,10 +30,23 @@ export async function checkAutoExchanges() {
           continue;
         }
 
-        const transfers = await getUSDTTransfers(bot.auto_exchange_address);
-        console.log(
-          `[checkAutoExchanges] bot ${bot.id} 收到 ${transfers.length} 条转账记录`,
+        const response = await fetchTrc20Transactions(
+          bot.auto_exchange_address,
         );
+
+        console.log(
+          `[checkAutoExchanges] bot ${bot.id} 收到 ${response.length} 条转账记录`,
+        );
+
+        const transfers = response
+          .filter((tx) => tx.token_info?.symbol === 'USDT')
+          .map((tx) => ({
+            trade_id: tx.transaction_id,
+            from_address: tx.from,
+            to_address: tx.to,
+            money: Number(tx.value) / 1_000_000,
+            time: Math.floor(tx.block_timestamp / 1000),
+          }));
 
         // 筛选出转入的交易
         // 只查入账的

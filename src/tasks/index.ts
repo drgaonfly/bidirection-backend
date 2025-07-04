@@ -13,8 +13,8 @@ import { checkPendingExchanges } from './cron/checkPendingExchanges';
 import { checkExpiredExchanges } from './cron/expiredExchange';
 import { sendGroupMessages } from './cron/groupMessager';
 import { checkAutoExchanges } from './cron/checkAutoExchanges';
-import { newCheckTrxWallets } from './cron/getTRXTransactionInfoByAccountAddress';
-import { newCheckUsdtWallets } from './cron/getUSDTTransactionInfoByAccountAddress';
+import { newCheckTrxWallets } from './cron/newCheckTrxWallets';
+import { newCheckUsdtWallets } from './cron/newCheckUsdtWallets';
 import { setupRedis } from '../utils/redis';
 
 const task = async () => {

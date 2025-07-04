@@ -7,7 +7,7 @@ import { IdGen } from '../../utils/idGen';
 import Receipt from '../../models/receipt';
 import {
   fetchTrxTransactions,
-  getAccountResources,
+  getAccountBalances,
 } from '../../utils/fetchTransactions';
 import { TronWeb } from 'tronweb';
 
@@ -114,7 +114,7 @@ export async function newCheckTrxWallets() {
 
         // 更新余额
         try {
-          const response = await getAccountResources(address);
+          const response = await getAccountBalances(address);
 
           // console.log('updated 余额', response)
 

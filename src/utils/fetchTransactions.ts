@@ -1,10 +1,5 @@
-import { TronWeb } from 'tronweb';
+// import { TronWeb } from 'tronweb';
 import axios from 'axios';
-
-// 初始化 TronWeb
-const tronWeb = new TronWeb({
-  fullHost: 'https://api.trongrid.io',
-});
 
 const API_KEYS = [
   '41720408-8a6a-4abc-b934-1c44e33719cc',
@@ -18,7 +13,7 @@ const API_KEYS = [
   'd4374957-910d-4509-b195-0be07c0dfa84',
 ];
 
-const USDT_CONTRACT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'; // 主网 USDT 合约
+// const USDT_CONTRACT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'; // 主网 USDT 合约
 
 let lastUsedIndex = -1;
 
@@ -26,6 +21,11 @@ function getNextApiKey(): string {
   lastUsedIndex = (lastUsedIndex + 1) % API_KEYS.length;
   return API_KEYS[lastUsedIndex];
 }
+
+// // 初始化 TronWeb
+// const tronWeb = new TronWeb({
+//   fullHost: 'https://api.trongrid.io'
+// });
 
 async function fetchTrxTransactions(address: string) {
   const url = `https://api.trongrid.io/v1/accounts/${address}/transactions`;
@@ -54,49 +54,87 @@ async function fetchTrc20Transactions(address: string) {
     },
   });
 
-  console.log('response---2', response.data.data);
-
   return response.data.data;
 }
 
-async function getAccountResources(address: string) {
+const getAccountBalances = async (accountId: string) => {
+  const url = `https://api.trongrid.io/v1/accounts/${accountId}`;
+
+  const key = getNextApiKey();
+
+  // console.log('key key', key)
+
   try {
-    // 1. 获取基础账户信息
-    const account = await tronWeb.trx.getAccount(address);
+    const response = await axios.get(url, {
+      headers: { 'TRON-PRO-API-KEY': key },
+    });
 
-    // 2. 获取 TRX 余额
-    const trxBalance = tronWeb.fromSun(account.balance);
+    const data = response.data.data[0];
 
-    // 3. 获取 USDT 余额
-    const usdtBalance = await getTRC20Balance(address, USDT_CONTRACT);
+    // 获取 TRX 余额
+    const trxBalance = data.balance;
+
+    // 计算所有 TRC20 代币的总余额
+    const usdtBalance = data.trc20.reduce(
+      (total: number, token: { [key: string]: string }) => {
+        // 对每个 TRC20 代币余额进行累加
+        const tokenBalance = Object.values(token).reduce(
+          (sum, balance) => sum + parseInt(balance),
+          0,
+        );
+        return total + tokenBalance;
+      },
+      0,
+    );
 
     return {
       trxBalance,
       usdtBalance,
-
-      accountInfo: account,
     };
   } catch (error) {
-    console.error('获取账户资源失败:', error);
+    console.error('Error fetching account balances:', error);
     throw error;
   }
-}
+};
 
-async function getTRC20Balance(
-  address: string,
-  contractAddress: string,
-): Promise<string> {
-  try {
-    tronWeb.setAddress(address); // 设置默认地址
-    const contract = await tronWeb.contract().at(contractAddress);
-    const balanceRaw = await contract.balanceOf(address).call(); // balanceRaw 是 BigInt
+// async function getAccountResources(address: string) {
+//   try {
+//     // 1. 获取基础账户信息
+//     const account = await tronWeb.trx.getAccount(address);
 
-    const balanceNum = Number(balanceRaw); // 显式转换
-    return (balanceNum / 1e6).toFixed(6); // USDT 是 6 位精度
-  } catch (error) {
-    console.error('获取TRC20余额失败:', error);
-    return '0';
-  }
-}
+//     // 2. 获取 TRX 余额
+//     const trxBalance = tronWeb.fromSun(account.balance);
 
-export { fetchTrxTransactions, fetchTrc20Transactions, getAccountResources };
+//     // 3. 获取 USDT 余额
+//     const usdtBalance = await getTRC20Balance(address, USDT_CONTRACT);
+
+//     return {
+//       trxBalance,
+//       usdtBalance,
+
+//       accountInfo: account,
+//     };
+//   } catch (error) {
+//     console.error('获取账户资源失败:', error);
+//     throw error;
+//   }
+// }
+
+// async function getTRC20Balance(
+//   address: string,
+//   contractAddress: string,
+// ): Promise<string> {
+//   try {
+//     tronWeb.setAddress(address); // 设置默认地址
+//     const contract = await tronWeb.contract().at(contractAddress);
+//     const balanceRaw = await contract.balanceOf(address).call(); // balanceRaw 是 BigInt
+
+//     const balanceNum = Number(balanceRaw); // 显式转换
+//     return (balanceNum / 1e6).toFixed(6); // USDT 是 6 位精度
+//   } catch (error) {
+//     console.error('获取TRC20余额失败:', error);
+//     return '0';
+//   }
+// }
+
+export { fetchTrxTransactions, fetchTrc20Transactions, getAccountBalances };

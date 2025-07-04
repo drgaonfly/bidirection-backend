@@ -7,7 +7,7 @@ import { IdGen } from '../../utils/idGen';
 import Receipt from '../../models/receipt';
 import {
   fetchTrc20Transactions,
-  getAccountResources,
+  getAccountBalances,
 } from '../../utils/fetchTransactions';
 
 /**
@@ -45,9 +45,9 @@ export async function newCheckUsdtWallets() {
           .filter((tx) => tx.token_info?.symbol === 'USDT')
           .map((tx) => ({
             hash: tx.transaction_id,
-            from: tx.from,
-            to: tx.to,
-            amount: Number(tx.value) / 1_000_000,
+            from_address: tx.from,
+            to_address: tx.to,
+            money: Number(tx.value) / 1_000_000,
             time: Math.floor(tx.block_timestamp / 1000),
           }));
       } catch (err) {
@@ -58,15 +58,17 @@ export async function newCheckUsdtWallets() {
         continue;
       }
 
+      console.log('transfers', transfers);
+
       // 检查每一笔转账
       for (const transfer of transfers) {
         if (!transfer.money) continue;
 
         // 检查是否已处理过该转账
         if (
-          transfer.trade_id &&
+          transfer.hash &&
           (await Receipt.exists({
-            hash: transfer.trade_id,
+            hash: transfer.hash,
             bot: bot._id,
             botUser: botUser._id,
           }))
@@ -78,15 +80,14 @@ export async function newCheckUsdtWallets() {
         }
 
         // 判断交易类型
-        const isIncome =
-          transfer.to_address.toLowerCase() === address.toLowerCase();
+        const isIncome = transfer.to_address === address;
 
         const receipt = await Receipt.create({
           id: await IdGen.next(Receipt, 'id', 6),
           type: isIncome ? 'transferIn' : 'transferOut',
           wallet: wallet._id,
           amount: transfer.money,
-          hash: transfer.trade_id,
+          hash: transfer.hash,
           bot: bot._id,
           botUser: botUser._id,
           time: transfer.time,
@@ -101,7 +102,7 @@ export async function newCheckUsdtWallets() {
           8,
         )} USDT`;
 
-        const response = await getAccountResources(address);
+        const response = await getAccountBalances(address);
 
         console.log('余额变化', response);
 

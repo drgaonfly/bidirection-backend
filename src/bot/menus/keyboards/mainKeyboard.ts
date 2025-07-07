@@ -6,13 +6,16 @@ async function createMainKeyboard(ctx: MyContext) {
 
   // Add default buttons (与原始键一致)
   keyboard
-    .text('▶️ 开始记账')
-    .text('🆓 免费克隆')
+    .text('🔋能量闪租')
+    .text('💹TRX闪兑')
+    .text('🆘能量预支')
     .row()
-    .text('💱 TRX 兑换')
-    .text('🏦 地址监听')
+    .text('🔥笔数套餐')
+    .text('👑飞机会员')
+    .text('🎁积分兑换')
     .row()
-    .text('💬 联系客服')
+    .text('💎靓号地址')
+    .text('🛒扩展服务')
     .text('👤 个人信息');
 
   // Add custom keyboard buttons from bot configuration

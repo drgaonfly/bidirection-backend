@@ -1,5 +1,5 @@
 import { Context as GrammyContext, SessionFlavor } from 'grammy';
-// import { I18nFlavor } from '@grammyjs/i18n';
+import { I18nFlavor } from '@grammyjs/i18n';
 import { IBot } from '../models/bot';
 import { IBotUser } from '../models/botUser';
 import { IGroup } from '../models/group';
@@ -14,6 +14,7 @@ export interface CustomContext
 
 // 基础上下文类型
 type BaseContext = CustomContext &
+  I18nFlavor &
   FileFlavor<CustomContext> & {
     currentBot?: IBot;
     currentBotUser?: IBotUser;

@@ -1,0 +1,12 @@
+<b>充值记录</b>
+<% orders.forEach(order => { %>
+订单号: <code><%= order.orderNumber %></code><br/>
+状态: <b>已支付</b><br/>
+金额: <b><%= order.paymentAmount %> USDT</b><br/>
+实付金额: <b><%= order.paymentAmount ?? '-' %> <%= order.crypto_type %></b><br/>
+发送地址: <code><%= order.sendAddress ?? '-' %></code><br/>
+接收地址: <code><%= order.receiveAddress %></code><br/>
+创建时间: <b><%= order.createdAt.toLocaleString() %></b><br/>
+交易时间: <b><%= order.transactionAt ? new Date(order.transactionAt).toLocaleString() : '-' %></b><br/>
+-------------------------------------------<br/>
+<% }); %>

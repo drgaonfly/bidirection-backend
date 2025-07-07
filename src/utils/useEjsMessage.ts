@@ -61,3 +61,14 @@ export const useSubscriptionHistory = () => {
     return await ejs.renderFile(templatePath, data);
   };
 };
+
+export const useOrderHistory = () => {
+  return async (data: {
+    type: string;
+    orders: Array<any>;
+    t: (key: string) => string;
+  }) => {
+    const templatePath = path.join(__dirname, '../templates/orderHistory.ejs');
+    return await ejs.renderFile(templatePath, data);
+  };
+};

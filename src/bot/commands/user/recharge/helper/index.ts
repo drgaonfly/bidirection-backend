@@ -21,6 +21,7 @@ const debug = createDebug('bot:recharge:callback');
 export async function handleRechargeRequest(
   ctx: MyContext,
   amount: number,
+  crypto_type: string,
 ): Promise<boolean> {
   debug('handleRechargeRequest-ctx', ctx);
 
@@ -139,6 +140,7 @@ export async function handleRechargeRequest(
         label: chargeInfo.label,
         callback: chargeInfo.callback,
       },
+      crypto_type,
     });
 
     await payment.save();
@@ -164,7 +166,7 @@ export async function handleRechargeRequest(
   const message = [
     `<b>充值订单</b>`,
     `订单号：<code>${payment.orderNumber}</code>`,
-    `充值金额：<b>${payment.amount} USDT</b>`,
+    `充值金额：<b>${payment.amount} ${crypto_type.toUpperCase()}</b>`,
     `收款地址：<code>${payment.receiveAddress}</code>`,
     `创建时间：${formatBeijingDate(payment.createdAt)}`,
     payment.expiredAt

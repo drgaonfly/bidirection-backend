@@ -4,16 +4,16 @@ import { IBot } from './bot';
 import { ISubscription } from './subscription';
 
 export const chargeOptions = [
-  { amount: 5, label: '5 USDT', callback: 'charge_5' },
-  { amount: 10, label: '10 USDT', callback: 'charge_10' },
-  { amount: 20, label: '20 USDT', callback: 'charge_20' },
-  { amount: 50, label: '50 USDT', callback: 'charge_50' },
-  { amount: 100, label: '100 USDT', callback: 'charge_100' },
-  { amount: 300, label: '300 USDT', callback: 'charge_300' },
-  { amount: 500, label: '500 USDT', callback: 'charge_500' },
-  { amount: 1000, label: '1000 USDT', callback: 'charge_1000' },
-  { amount: 2000, label: '2000 USDT', callback: 'charge_2000' },
-  { amount: null, label: '自定义金额', callback: 'charge_custom' },
+  { amount: 100, label: '100 USDT', callback: 'charge_100:usdt' },
+  { amount: 200, label: '200 USDT', callback: 'charge_200:usdt' },
+  { amount: 300, label: '300 USDT', callback: 'charge_300:usdt' },
+  { amount: 500, label: '500 USDT', callback: 'charge_500:usdt' },
+  { amount: 100, label: '100 TRX', callback: 'charge_100:trx' },
+  { amount: 200, label: '200 TRX', callback: 'charge_200:trx' },
+  { amount: 300, label: '300 TRX', callback: 'charge_300:trx' },
+  { amount: 500, label: '500 TRX', callback: 'charge_500:trx' },
+  { amount: null, label: '自定义金额【TRX】', callback: 'charge_custom_trx' },
+  { amount: null, label: '自定义金额【USDT】', callback: 'charge_custom_usdt' },
   { amount: null, label: '取消充值', callback: 'close' },
 ];
 
@@ -44,6 +44,7 @@ export interface IPayment extends Document {
   transactionAt?: Date; // 新增：交易时间
   tgChatId?: number; // 新增：Telegram Chat ID
   tgMessageId?: number; // 新增：Telegram Message ID
+  crypto_type: string; // 新增：加密货币类型
 }
 
 const subscriptionInfoSchema = new Schema(
@@ -104,6 +105,7 @@ const paymentSchema = new Schema<IPayment>(
     transactionAt: { type: Date, required: false }, // 新增：交易时间
     tgChatId: { type: Number, required: false }, // 新增：Telegram Chat ID
     tgMessageId: { type: Number, required: false }, // 新增：Telegram Message ID
+    crypto_type: { type: String, required: false, enum: ['usdt', 'trx'] }, // 新增：加密货币类型
   },
   { timestamps: true },
 );

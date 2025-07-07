@@ -14,7 +14,7 @@ const debug = createDebug('cron:checkPendingRechargeOrders');
 /**
  * 检查所有 pending 的充值订单，只有当 bot.trx20_address 收到正确金额，才为用户充值
  */
-export async function checkPendingRechargeOrders() {
+export async function checkPendingRechargeUsdtOrders() {
   try {
     console.log('[checkPendingRechargeOrders] 开始检查所有待处理的充值订单...');
 
@@ -22,6 +22,7 @@ export async function checkPendingRechargeOrders() {
     const pendingPayments = await Payment.find({
       status: 'pending',
       type: 'recharge',
+      crypto_type: 'usdt',
     })
       .populate('botUser')
       .populate('bot');
@@ -116,7 +117,7 @@ export async function checkPendingRechargeOrders() {
       // 更新 payment 状态
       payment.status = 'paid';
       payment.txHash = matchedTransfer.trade_id;
-      payment.sendAddress = matchedTransfer.buyer;
+      payment.sendAddress = matchedTransfer.from_address;
       payment.transactionAt = new Date(matchedTransfer.time * 1000);
       payment.paymentAmount = matchedTransfer.money; // 记录实际支付金额
       await payment.save();

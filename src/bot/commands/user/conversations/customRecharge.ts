@@ -23,6 +23,7 @@ const cancelKeyboard = new InlineKeyboard().text(
 async function customRechargeConversation(
   conversation: Conversation<MyContext>,
   ctx: MyContext,
+  { crypto_type }: { crypto_type: string },
 ) {
   debug('等待用户输入金额');
   debug('ctx', ctx);
@@ -55,7 +56,7 @@ async function customRechargeConversation(
     await ctx.reply('❗ 请输入正确的金额格式，例如：10.00\n', {
       reply_markup: cancelKeyboard,
     });
-    return await customRechargeConversation(conversation, ctx);
+    return await customRechargeConversation(conversation, ctx, { crypto_type });
   }
 
   const amount = parseFloat(message.text);
@@ -64,16 +65,18 @@ async function customRechargeConversation(
   // 验证金额范围
   if (amount < 1) {
     await ctx.reply('❗ 最低充值金额为 1 u，请重新输入。');
-    return await customRechargeConversation(conversation, ctx);
+    return await customRechargeConversation(conversation, ctx, { crypto_type });
   }
 
   // 发起下一步处理逻辑，如生成订单等
-  await ctx.reply(`✅ 已收到您要充值的金额：${amount} u，正在处理...`);
+  await ctx.reply(
+    `✅ 已收到您要充值的金额：${amount} ${crypto_type}，正在处理...`,
+  );
 
   const session = await conversation.external((ctx) => ctx.session);
   debug('handleRechargeRequest-session', session);
 
-  const success = await handleRechargeRequest(ctx, amount);
+  const success = await handleRechargeRequest(ctx, amount, crypto_type);
 
   if (!success) {
     debug('处理特定金额充值失败');
@@ -85,13 +88,17 @@ async function customRechargeConversation(
 customRechargeCallback.use(createConversation(customRechargeConversation));
 
 // 自定义充值按钮点击
-customRechargeCallback.callbackQuery('charge_custom', async (ctx) => {
+customRechargeCallback.callbackQuery(/^charge_custom_(\w+)$/, async (ctx) => {
   debug('charge_custom clicked');
   await ctx.conversation.exitAll();
 
+  const match = ctx.callbackQuery.data.match(/^charge_custom_(\w+)$/);
+
+  const crypto_type = match[1].trim();
+
   await ctx.reply(
     [
-      '请输入您想要充值的金额（单位：USDT）：',
+      `请输入您想要充值的金额（单位：${crypto_type.toUpperCase()}) :`,
       '',
       '⚠️ 确保输入格式正确，例如：10.00',
       '',
@@ -103,7 +110,10 @@ customRechargeCallback.callbackQuery('charge_custom', async (ctx) => {
     { reply_markup: cancelKeyboard },
   );
 
-  await ctx.conversation.enter('customRechargeConversation');
+  await ctx.conversation.enter('customRechargeConversation', {
+    crypto_type,
+  });
+
   await ctx.answerCallbackQuery();
 });
 

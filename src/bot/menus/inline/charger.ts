@@ -8,7 +8,7 @@ const charger = new InlineKeyboard();
 chargeOptions.forEach((option, idx) => {
   charger.text(option.label, option.callback);
   // 每3个一行，最后一行（自定义/取消）单独一行
-  if ((idx + 1) % 3 === 0 && idx < chargeOptions.length - 2) {
+  if ((idx + 1) % 4 === 0 && idx < chargeOptions.length - 2) {
     charger.row();
   }
 });

@@ -111,7 +111,7 @@ const formatWalletInfo = async (address: string, data: any, ctx: MyContext) => {
   }
 };
 
-walletShowComposer.hears(/^🏦 地址监听$/, async (ctx) => {
+walletShowComposer.hears(/地址监听/, async (ctx) => {
   debug('🏦 地址监听');
 
   await handleShow(ctx, 1);

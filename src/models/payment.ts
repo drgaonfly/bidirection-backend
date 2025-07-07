@@ -12,9 +12,8 @@ export const chargeOptions = [
   { amount: 200, label: '200 TRX', callback: 'charge_200:trx' },
   { amount: 300, label: '300 TRX', callback: 'charge_300:trx' },
   { amount: 500, label: '500 TRX', callback: 'charge_500:trx' },
-  { amount: null, label: '自定义金额【TRX】', callback: 'charge_custom_trx' },
-  { amount: null, label: '自定义金额【USDT】', callback: 'charge_custom_usdt' },
-  { amount: null, label: '取消充值', callback: 'close' },
+  { amount: null, label: '其他金额【TRX】', callback: 'charge_custom_trx' },
+  { amount: null, label: '其他金额【USDT】', callback: 'charge_custom_usdt' },
 ];
 
 export interface IPayment extends Document {

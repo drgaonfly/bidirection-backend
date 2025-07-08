@@ -6,6 +6,7 @@ import { generateOrderNumber } from '../../../../utils/generateOrderNumber';
 import { IBot } from '../../../../models/bot';
 import { IBotUser } from '../../../../models/botUser';
 import { getExchangeRate } from '../../../../utils/getExchange';
+// import { getAccountBalances } from '../../../../utils/fetchTransactions'
 import createDebug from 'debug';
 
 const debug = createDebug('bot:rental-sep');
@@ -97,6 +98,7 @@ async function rentalSepConversation(
   const result = await conversation.waitFor(['message:text'], {
     maxMilliseconds: TIMEOUT,
   });
+
   const trxAddress = result?.message?.text?.trim();
 
   if (!TRX_ADDRESS_REGEX.test(trxAddress || '')) {

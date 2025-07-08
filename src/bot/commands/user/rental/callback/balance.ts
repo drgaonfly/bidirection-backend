@@ -1,7 +1,8 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../../types';
-import createDebug from 'debug';
 import Rental from '../../../../../models/rental';
+import { rentEnergy } from '../../../../../utils/rentalEnergy';
+import createDebug from 'debug';
 
 const balanceRentalCommand = new Composer<MyContext>();
 const debug = createDebug('bot:confirm-rental');
@@ -59,20 +60,32 @@ balanceRentalCommand.callbackQuery(
 
     await ctx.deleteMessage();
 
-    if (rental.crypto_type === 'trx') {
-      ctx.currentBotUserConfig.trx_balance -= rental.price;
+    const result = await rentEnergy(
+      rental.from_address,
+      rental.to_address,
+      rental.amount,
+    );
+
+    if (result) {
+      if (rental.crypto_type === 'trx') {
+        ctx.currentBotUserConfig.trx_balance -= rental.price;
+      } else {
+        ctx.currentBotUserConfig.usdt_balance -= rental.price;
+      }
+
+      await ctx.currentBotUserConfig.save();
+
+      rental.status = 'completed';
+      await rental.save();
+
+      await ctx.reply(info, {
+        parse_mode: 'HTML',
+      });
     } else {
-      ctx.currentBotUserConfig.usdt_balance -= rental.price;
+      await ctx.reply('租赁失败，请稍后重试', {
+        parse_mode: 'HTML',
+      });
     }
-
-    await ctx.currentBotUserConfig.save();
-
-    rental.status = 'completed';
-    await rental.save();
-
-    await ctx.reply(info, {
-      parse_mode: 'HTML',
-    });
   },
 );
 

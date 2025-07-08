@@ -14,6 +14,8 @@ import walletComposer from './wallet';
 import exchangeComposer from './exchange';
 import conversationsComposer from './conversations';
 import rechargeComposer from './recharge';
+import rentalComposer from './rental';
+import separationComposer from './separation';
 
 // 创建一个新的 Composer 实例
 const userComposer = new Composer();
@@ -36,5 +38,7 @@ userComposer.use(walletComposer.middleware());
 userComposer.use(exchangeComposer.middleware());
 userComposer.use(conversationsComposer.middleware());
 userComposer.use(rechargeComposer.middleware());
+userComposer.use(rentalComposer.middleware());
+userComposer.use(separationComposer.middleware());
 
 export default userComposer;

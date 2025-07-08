@@ -33,6 +33,8 @@ export interface IBot extends Document {
   exchange_rate: number; // 闪兑汇率
   groups: mongoose.Schema.Types.ObjectId[] | IGroup[]; // 关联的群组
   webhook_url: string; // webhook url
+  uni_energy_amount: number; // 单笔能量数
+  uni_energy_price: number; // 能量价格，每 1 Energy 价格，单位sun
 }
 
 export interface IMenu extends Document {
@@ -190,6 +192,12 @@ const botSchema = new mongoose.Schema(
       type: String,
       trim: true,
     }, // 新增：webhook url
+    uni_energy_amount: {
+      type: Number,
+    },
+    uni_energy_price: {
+      type: Number,
+    },
   },
   {
     timestamps: true,

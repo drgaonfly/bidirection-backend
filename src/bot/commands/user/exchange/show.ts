@@ -61,7 +61,7 @@ const handleShow = async (ctx: MyContext) => {
   });
 };
 
-exchangeShowComposer.hears(/^💱 TRX 兑换$/, async (ctx) => {
+exchangeShowComposer.hears(/TRX闪兑/, async (ctx) => {
   await ctx.conversation.exitAll();
   await handleShow(ctx);
 });

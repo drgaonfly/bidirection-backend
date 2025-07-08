@@ -1,4 +1,4 @@
-import { Composer } from 'grammy';
+import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../../types';
 import createDebug from 'debug';
 import Rental from '../../../../../models/rental';
@@ -59,10 +59,13 @@ confirmRentalCommand.callbackQuery(/^confirm_rental_(.+)$/, async (ctx) => {
     '收款地址有效60分钟,超时请不要支付!!!',
   ].join('\n');
 
+  await ctx.deleteMessage();
+
   debug('使用 replyWithPhoto 发送二维码');
   await ctx.replyWithPhoto(new InputFile(qrBuffer), {
     caption: message,
     parse_mode: 'HTML',
+    reply_markup: new InlineKeyboard().text('取消', 'close'),
   });
 
   await ctx.answerCallbackQuery({ text: '订单已确认', show_alert: false });

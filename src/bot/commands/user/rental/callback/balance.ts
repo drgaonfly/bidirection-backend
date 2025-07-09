@@ -1,7 +1,7 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../../types';
 import Rental from '../../../../../models/rental';
-import { rentEnergy } from '../../../../../utils/rentalEnergy';
+import { rentEnergy } from '../../../../../utils/fetchTransactions';
 import createDebug from 'debug';
 
 const balanceRentalCommand = new Composer<MyContext>();
@@ -64,6 +64,7 @@ balanceRentalCommand.callbackQuery(
       rental.from_address,
       rental.to_address,
       rental.amount,
+      rental.crypto_type,
     );
 
     if (result) {

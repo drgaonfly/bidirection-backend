@@ -32,6 +32,8 @@ export interface IRental extends Document {
   endAt: Date; // 租赁结束时间
   expiredAt: Date; // 订单过期时间
   limit_hour: number;
+  transactionAt: Date;
+  actual_price: number;
 }
 
 const rentalSchema = new Schema<IRental>(
@@ -109,6 +111,12 @@ const rentalSchema = new Schema<IRental>(
       required: false,
     },
     limit_hour: {
+      type: Number,
+    },
+    transactionAt: {
+      type: Date,
+    },
+    actual_price: {
       type: Number,
     },
   },

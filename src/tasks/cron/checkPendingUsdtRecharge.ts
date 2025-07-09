@@ -3,24 +3,18 @@ import { IBotUser } from '../../models/botUser';
 import { IBot } from '../../models/bot';
 import { setupBot } from '../../bot/botSetup';
 import BotUserConfig from '../../models/botUserConfig';
-import { fetchTrxTransactions } from '../../utils/fetchTransactions';
+import { fetchTrc20Transactions } from '../../utils/fetchTransactions';
 import Group from '../../models/group';
 import createDebug from 'debug';
 import { formatBeijingDate } from '../../utils/formatBeijingDate';
 import { InlineKeyboard } from 'grammy';
-
-import { TronWeb } from 'tronweb';
-
-const tronWeb = new TronWeb({
-  fullHost: 'https://api.trongrid.io',
-});
 
 const debug = createDebug('cron:checkPendingRechargeOrders');
 
 /**
  * 检查所有 pending 的充值订单，只有当 bot.trx20_address 收到正确金额，才为用户充值
  */
-export async function checkPendingRechargeTrxOrders() {
+export async function checkPendingUsdtRecharge() {
   try {
     console.log('[checkPendingRechargeOrders] 开始检查所有待处理的充值订单...');
 
@@ -28,7 +22,7 @@ export async function checkPendingRechargeTrxOrders() {
     const pendingPayments = await Payment.find({
       status: 'pending',
       type: 'recharge',
-      crypto_type: 'trx',
+      crypto_type: 'usdt',
     })
       .populate('botUser')
       .populate('bot');
@@ -52,36 +46,22 @@ export async function checkPendingRechargeTrxOrders() {
       let transfers;
 
       try {
-        const { data } = await fetchTrxTransactions(receiveAddress);
+        const response = await fetchTrc20Transactions(receiveAddress);
 
-        const rawTransfers = data as any[];
+        // console.log('response', response);
 
-        // console.log('data',data)
-
-        // 👇 提取 TRX 主币转账（TransferContract）
-        transfers = rawTransfers
-          .filter((tx) => {
-            const contractType = tx.raw_data?.contract?.[0]?.type;
-            return contractType === 'TransferContract';
-          })
-          .map((tx) => {
-            const param = tx.raw_data.contract[0].parameter.value;
-            return {
-              money: param.amount / 1_000_000, // sun -> TRX
-              from_address: tronWeb.address.fromHex(param.owner_address),
-              to_address: tronWeb.address.fromHex(param.to_address),
-              time: Math.floor(tx.block_timestamp / 1000),
-              trade_id: tx.txID,
-            };
-          });
-
-        // console.log('transfers', transfers);
-
-        console.log(`[checkTrxWallets] 获取地址 ${receiveAddress} 的转账成功`);
-        // console.log(transfers);
+        transfers = response
+          .filter((tx) => tx.token_info?.symbol === 'USDT')
+          .map((tx) => ({
+            trade_id: tx.transaction_id,
+            from_address: tx.from,
+            to_address: tx.to,
+            money: Number(tx.value) / 1_000_000,
+            time: Math.floor(tx.block_timestamp / 1000),
+          }));
       } catch (err) {
         console.error(
-          `[checkTrxWallets] 获取地址 ${receiveAddress} 的转账失败:`,
+          `[checkTransferIn] 获取地址 ${receiveAddress} 转账记录失败:`,
           err,
         );
         continue;
@@ -157,8 +137,8 @@ export async function checkPendingRechargeTrxOrders() {
           botUser.id,
           `✅ 充值成功！\n\n` +
             `订单号: <code>${payment.orderNumber}</code>\n` +
-            `充值金额: <b>${payment.amount} TRX</b>\n` +
-            `实际到账: <b>${payment.paymentAmount} TRX</b>\n` +
+            `充值金额: <b>${payment.amount} USDT</b>\n` +
+            `实际到账: <b>${payment.paymentAmount} USDT</b>\n` +
             `到账余额: <b>${
               userConfig ? newBalance : payment.amount
             } USDT</b>\n` +

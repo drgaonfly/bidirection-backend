@@ -1,4 +1,5 @@
-// import { TronWeb } from 'tronweb';
+import { TronWeb } from 'tronweb';
+import { getExchangeRate } from './getExchange';
 import axios from 'axios';
 
 const API_KEYS = [
@@ -21,11 +22,6 @@ function getNextApiKey(): string {
   lastUsedIndex = (lastUsedIndex + 1) % API_KEYS.length;
   return API_KEYS[lastUsedIndex];
 }
-
-// // 初始化 TronWeb
-// const tronWeb = new TronWeb({
-//   fullHost: 'https://api.trongrid.io'
-// });
 
 async function fetchTrxTransactions(address: string) {
   const url = `https://api.trongrid.io/v1/accounts/${address}/transactions`;
@@ -137,4 +133,56 @@ const getAccountBalances = async (accountId: string) => {
 //   }
 // }
 
-export { fetchTrxTransactions, fetchTrc20Transactions, getAccountBalances };
+async function rentEnergy(
+  fromAddress: string,
+  toAddress: string,
+  amount: number,
+  cryptoType: 'trx' | 'usdt',
+): Promise<any> {
+  const key = getNextApiKey();
+
+  // 初始化 TronWeb
+  const tronWeb = new TronWeb({
+    fullHost: 'https://api.trongrid.io',
+    privateKey: key,
+  });
+
+  const USDT_TO_TRX_RATIO = 1 / (await getExchangeRate('TRX', 'USDT'));
+
+  try {
+    let amountTRX: number;
+
+    if (cryptoType === 'trx') {
+      amountTRX = amount;
+    } else if (cryptoType === 'usdt') {
+      amountTRX = amount * USDT_TO_TRX_RATIO;
+    } else {
+      throw new Error(`不支持的币种类型: ${cryptoType}`);
+    }
+
+    const amountSunStr = tronWeb.toSun(amountTRX); // 返回 string
+    const amountSun = Number(amountSunStr); // 转为 number
+
+    const transaction = await tronWeb.transactionBuilder.delegateResource(
+      amountSun,
+      toAddress,
+      'ENERGY',
+      fromAddress,
+    );
+
+    const signedTx = await tronWeb.trx.sign(transaction);
+    const result = await tronWeb.trx.sendRawTransaction(signedTx);
+
+    return result;
+  } catch (error) {
+    console.error('租赁能量失败:', error);
+    throw error;
+  }
+}
+
+export {
+  fetchTrxTransactions,
+  fetchTrc20Transactions,
+  getAccountBalances,
+  rentEnergy,
+};

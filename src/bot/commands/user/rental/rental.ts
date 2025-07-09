@@ -12,11 +12,13 @@ const debug = createDebug('bot:rental');
 export async function handleRentalCommand(ctx: MyContext) {
   debug('rental');
 
+  await ctx.conversation.exitAll();
+
   const message = [
     '【🔋能量闪租🔋】',
-    '🔸3笔 (1小时) :  9 TRX   (1小时内有效',
-    '🔸2笔 (1小时) :  6 TRX   (1小时内有效',
-    '🔸1笔 (1小时) :  3 TRX   (1小时内有效',
+    '🔸3笔 (1小时) :  9 TRX   (1小时内有效)',
+    '🔸2笔 (1小时) :  6 TRX   (1小时内有效)',
+    '🔸1笔 (1小时) :  3 TRX   (1小时内有效)',
     `\n`,
     '1.向无U地址转账, 需要双倍能量。',
     '2.请在1小时内转账, 否则过期回收。',

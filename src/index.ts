@@ -37,6 +37,7 @@ import exchangeRoutes from './routes/exchangeRoutes';
 import groupMessageRoutes from './routes/groupMessageRoutes';
 import botUserConfigRoutes from './routes/botUserConfigRoutes';
 import rentalRoutes from './routes/rentalRoutes';
+import premiumRoutes from './routes/premiumRoutes';
 
 dotenv.config();
 
@@ -85,6 +86,7 @@ app.use('/api/exchanges', exchangeRoutes);
 app.use('/api/group-messages', groupMessageRoutes);
 app.use('/api/bot-user-configs', botUserConfigRoutes);
 app.use('/api/rentals', rentalRoutes);
+app.use('/api/premiums', premiumRoutes);
 
 app.use('/api/static', express.static('tmp'));
 

@@ -114,6 +114,7 @@ export async function checkAutoExchanges() {
               status: 'completed',
               hash: transfer.trade_id,
               isTransferIntoOther: false,
+              expiredAt: new Date(Date.now() + 30 * 60 * 1000),
             });
 
             console.log(

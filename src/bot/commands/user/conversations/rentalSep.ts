@@ -128,7 +128,7 @@ async function rentalSepConversation(
     status: 'pending',
     type: 'auto',
     crypto_type: 'trx',
-    expiredAt: new Date(Date.now() + 60 * 60 * 1000),
+    expiredAt: new Date(Date.now() + 30 * 60 * 1000),
   });
 
   const sent = await ctx.reply('⏳ 正在生成订单详情...');

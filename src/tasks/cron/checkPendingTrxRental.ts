@@ -20,7 +20,7 @@ const tronWeb = new TronWeb({
 // const debug = createDebug('cron:checkPendingRental');
 
 /**
- * 检查所有 pending 的充值订单，只有当 bot.trx20_address 收到正确金额，才为用户充值
+ * 检查所有 pending 的充值订单，只有当 bot.energy_address 收到正确金额，才为用户充值
  */
 export async function checkPendingTrxRental() {
   try {
@@ -39,10 +39,10 @@ export async function checkPendingTrxRental() {
     );
 
     for (const rental of pendingRentals) {
-      // 检查 bot 是否有 trx20_address
+      // 检查 bot 是否有 energy_address
       const botUser = rental.botUser as IBotUser;
       const bot = rental.bot as IBot;
-      const receiveAddress = bot.trx20_address || rental.to_address;
+      const receiveAddress = bot.energy_address || rental.to_address;
       if (!receiveAddress) {
         console.warn(
           `[checkPendingRental] 订单 ${rental.id} 的机器人未设置收款地址，跳过`,

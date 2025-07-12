@@ -93,7 +93,7 @@ exchangeRealtiemComposer.callbackQuery(
       fee: ctx.currentBot.fee,
       status: 'pending',
       isTransferIntoOther: false,
-      expiredAt: new Date(Date.now() + 10 * 60 * 1000),
+      expiredAt: new Date(Date.now() + 30 * 60 * 1000),
     });
 
     await ctx.reply(

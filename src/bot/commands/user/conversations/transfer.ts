@@ -140,7 +140,7 @@ async function confirmAndCreateOrderConversation(
       fee: bot.fee,
       status: 'pending',
       isTransferIntoOther: true,
-      expiredAt: new Date(Date.now() + 10 * 60 * 1000),
+      expiredAt: new Date(Date.now() + 30 * 60 * 1000),
     });
 
     await ctx.reply(

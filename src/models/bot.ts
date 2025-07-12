@@ -36,6 +36,7 @@ export interface IBot extends Document {
   webhook_url: string; // webhook url
   uni_energy_amount: number; // 单笔能量数
   uni_energy_price: number; // 能量价格，每 1 Energy 价格，单位sun
+  energy_address: string; // 能量地址
 }
 
 export interface IMenu extends Document {
@@ -213,6 +214,10 @@ const botSchema = new mongoose.Schema(
     },
     uni_energy_price: {
       type: Number,
+    },
+    energy_address: {
+      type: String,
+      trim: true,
     },
   },
   {

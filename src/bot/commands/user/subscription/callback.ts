@@ -55,7 +55,7 @@ callbackComposer.callbackQuery(
     if (existingPayment) {
       debug('找到未过期的相同订阅类型订单:', existingPayment.orderNumber);
       // 如果已存在未过期订单，顺便刷新其过期时间为15分钟后
-      existingPayment.expiredAt = new Date(Date.now() + 15 * 60 * 1000); // 15分钟后过期 更新下
+      existingPayment.expiredAt = new Date(Date.now() + 30 * 60 * 1000); // 15分钟后过期 更新下
       await existingPayment.save();
       payment = existingPayment;
     } else {
@@ -107,7 +107,7 @@ callbackComposer.callbackQuery(
         amount,
         status: 'pending',
         type: 'subscription',
-        expiredAt: new Date(Date.now() + 15 * 60 * 1000), // 15分钟后过期
+        expiredAt: new Date(Date.now() + 30 * 60 * 1000), // 15分钟后过期
         botUser: ctx.currentBotUser._id,
         bot: bot._id,
         subscriptionInfo: {

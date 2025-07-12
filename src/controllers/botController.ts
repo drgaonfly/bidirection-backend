@@ -8,6 +8,7 @@ import { RequestCustom } from 'user';
 import { isProxy, isEmployee } from '../middlewares/authMiddleware';
 import { getUserByUsername } from '../bot/commands/user/operator/add';
 import { encrypt } from '../services/encrypt';
+import { createTrxWallet } from '../utils/generateWallet';
 import dotenv from 'dotenv';
 import { InputFile } from 'grammy';
 
@@ -579,6 +580,35 @@ const sendGroupMessage = handleAsync(async (req: Request, res: Response) => {
   });
 });
 
+const addTronAddress = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { id } = req.params;
+
+    const bot = await Bot.findById(id);
+
+    if (!bot) {
+      res.status(400);
+      throw new Error('bot不存在');
+    }
+
+    if (!bot.energy_address) {
+      const { address } = await createTrxWallet();
+
+      bot.energy_address = address;
+
+      await bot.save();
+
+      res.status(201).json({
+        success: true,
+        data: bot,
+      });
+    } else {
+      res.status(400);
+      throw new Error('bot已经存在能量地址');
+    }
+  },
+);
+
 export {
   getBots,
   addBot,
@@ -592,4 +622,5 @@ export {
   delAuthorizer,
   sendMessage,
   sendGroupMessage,
+  addTronAddress,
 };

@@ -80,7 +80,7 @@ export async function handleRechargeRequest(
       orderNumber: existingPayment.orderNumber,
     });
     // 刷新过期时间
-    existingPayment.expiredAt = new Date(Date.now() + 15 * 60 * 1000);
+    existingPayment.expiredAt = new Date(Date.now() + 30 * 60 * 1000);
     await existingPayment.save();
     payment = existingPayment;
   } else {
@@ -132,7 +132,7 @@ export async function handleRechargeRequest(
       receiveAddress: address,
       status: 'pending',
       type: 'recharge',
-      expiredAt: new Date(Date.now() + 15 * 60 * 1000),
+      expiredAt: new Date(Date.now() + 30 * 60 * 1000),
       tgChatId: ctx.chat?.id,
       tgMessageId: ctx.callbackQuery?.message?.message_id,
       chargeInfo: {

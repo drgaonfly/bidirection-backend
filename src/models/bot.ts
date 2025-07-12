@@ -12,6 +12,7 @@ export interface IBot extends Document {
   userName: string;
   menus: IMenu[];
   keyboards: IKeyboard[];
+  commands: ICommand[];
   isOnline: boolean;
   botUsers: mongoose.Schema.Types.ObjectId[] | IBotUser[];
   session?: string;
@@ -47,6 +48,13 @@ export interface IKeyboard extends Document {
   content: string;
 }
 
+export interface ICommand extends Document {
+  name: string;
+  content: string;
+  isStart: boolean;
+  weight: number;
+}
+
 const menuSchema = new mongoose.Schema({
   menuName: { type: String, required: true },
   url: {
@@ -64,6 +72,13 @@ const menuSchema = new mongoose.Schema({
 const keyboardSchema = new mongoose.Schema({
   command: { type: String, required: true },
   content: { type: String, required: true },
+});
+
+const commandSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  content: { type: String, required: true },
+  isStart: { type: Boolean, required: true },
+  weight: { type: Number, required: true },
 });
 
 const botSchema = new mongoose.Schema(
@@ -108,6 +123,7 @@ const botSchema = new mongoose.Schema(
     ],
     menus: [menuSchema],
     keyboards: [keyboardSchema],
+    commands: [commandSchema],
     session: {
       type: String,
       trim: true,

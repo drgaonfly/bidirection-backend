@@ -5,7 +5,7 @@ import errorHandler from './middlewares/errorHandler';
 import botResolver from './middlewares/botResolver';
 import botUserResolver from './middlewares/botUserResolver';
 import groupResolver from './middlewares/groupResolver';
-import { commandsList } from './commandsList';
+import { generateCommandsList } from './commandsList';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import createDebug from 'debug';
 import botUserConfigResolver from './middlewares/botUserConfigResolver';
@@ -111,14 +111,15 @@ export const setupBot = (token: string) => {
     }
   });
 
-  bot.api
-    .setMyCommands(commandsList)
-    .then(() => {
-      log('命令已设置成功');
-    })
-    .catch((error) => {
+  (async () => {
+    try {
+      const commands = await generateCommandsList(token);
+      await bot.api.setMyCommands(commands);
+      log('命令已根据数据库成功设置');
+    } catch (error) {
       log('设置命令时发生错误:', error);
-    });
+    }
+  })();
 
   bot.api.config.use(hydrateFiles(token));
 

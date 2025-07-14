@@ -12,11 +12,12 @@ import startingComposer from './starting';
 import cloneComposer from './clone';
 import walletComposer from './wallet';
 import exchangeComposer from './exchange';
-import conversationsComposer from './conversations';
 import rechargeComposer from './recharge';
 import rentalComposer from './rental';
 import separationComposer from './separation';
 import membershipCommand from './membership';
+
+import conversationsComposer from './conversations';
 
 // 创建一个新的 Composer 实例
 const userComposer = new Composer();
@@ -37,10 +38,10 @@ userComposer.use(subscriptionComposer.middleware());
 userComposer.use(cloneComposer.middleware());
 userComposer.use(walletComposer.middleware());
 userComposer.use(exchangeComposer.middleware());
-userComposer.use(conversationsComposer.middleware());
 userComposer.use(rechargeComposer.middleware());
 userComposer.use(rentalComposer.middleware());
 userComposer.use(separationComposer.middleware());
 userComposer.use(membershipCommand.middleware());
+userComposer.use(conversationsComposer.middleware());
 
 export default userComposer;

@@ -95,13 +95,22 @@ async function rentalSepConversation(
     { reply_markup: new InlineKeyboard().text('❌ 取消', 'close') },
   );
 
-  const result = await conversation.waitFor(['message:text'], {
-    maxMilliseconds: TIMEOUT,
-  });
+  const result = await conversation.waitFor(
+    ['message:text', 'callback_query:data'],
+    {
+      maxMilliseconds: TIMEOUT,
+    },
+  );
+
+  if (result?.callbackQuery?.data === 'close') {
+    await ctx.deleteMessage();
+    await ctx.reply('已取消');
+    return;
+  }
 
   const trxAddress = result?.message?.text?.trim();
 
-  if (!TRX_ADDRESS_REGEX.test(trxAddress || '')) {
+  if (!trxAddress || !TRX_ADDRESS_REGEX.test(trxAddress)) {
     await ctx.reply('❗ 地址格式错误，请以 T 开头并为 34 位', {
       reply_markup: new InlineKeyboard().text('❌ 取消', 'close'),
     });

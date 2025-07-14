@@ -51,6 +51,7 @@ export async function handleSeparationCommand(ctx: MyContext) {
 
 // 开始命令处理
 separationCommand.hears(/笔数套餐/, checkPermission, async (ctx) => {
+  await ctx.conversation.exitAll();
   await handleSeparationCommand(ctx);
 });
 

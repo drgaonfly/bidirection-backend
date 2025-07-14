@@ -27,6 +27,7 @@ userProfileCommand.hears(
   checkBotCustom,
   async (ctx) => {
     debug('用户中心命令被触发');
+    await ctx.conversation.exitAll();
     await sendUserProfile(ctx);
   },
 );

@@ -34,6 +34,7 @@ export async function handleMembershipCommand(ctx: MyContext) {
 
 // 开始命令处理
 membershipCommand.hears(/飞机会员/, checkPermission, async (ctx) => {
+  await ctx.conversation.exitAll();
   await handleMembershipCommand(ctx);
 });
 

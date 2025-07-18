@@ -223,6 +223,9 @@ const updateUserProfile = handleAsync(
       currentPassword,
       confirmPassword,
       serviceLink,
+      privateKey,
+      energyAddress,
+      rechargeAddress,
     } = req.body;
     const user = await User.findById(req.user._id).select('+password');
 
@@ -254,6 +257,13 @@ const updateUserProfile = handleAsync(
       hashPassword = await bcrypt.hash(password, salt);
     }
 
+    // 如果提供了新的 privateKey，则加密它
+    let encryptedPrivateKey = privateKey;
+    if (privateKey) {
+      const salt = await bcrypt.genSalt(10);
+      encryptedPrivateKey = await bcrypt.hash(privateKey, salt);
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       user._id,
       {
@@ -261,6 +271,9 @@ const updateUserProfile = handleAsync(
         email: email || user.email,
         password: hashPassword,
         serviceLink: serviceLink,
+        rechargeAddress: rechargeAddress, // 充值地址
+        energyAddress: energyAddress, // 能量发送地址
+        privateKey: encryptedPrivateKey, // 私钥
       },
       { new: true },
     );

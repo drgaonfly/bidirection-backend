@@ -12,6 +12,8 @@ export interface IUser extends Document {
 
   proxy: mongoose.Schema.Types.ObjectId | IUser;
 
+  energyReceiveAddress?: string; // 收能量地址
+
   twoFAEnabled: boolean; // 是否启用双因素认证
   twoFASecret?: string; // 加密后的TOTP密钥（正式）
   temp2FASecret?: string; // 临时存储的TOTP密钥（用于激活过程）
@@ -41,6 +43,12 @@ const userSchema = new mongoose.Schema(
       ref: 'User',
       required: false,
     },
+
+    energyReceiveAddress: { type: String, required: false }, // 能量接收地址
+
+    rechargeAddress: { type: String, required: false }, // 充值地址
+    energyAddress: { type: String, required: false }, // 能量发送地址
+    privateKey: { type: String, required: false, select: false }, // 私钥
 
     twoFAEnabled: {
       type: Boolean,

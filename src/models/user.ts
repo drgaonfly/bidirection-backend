@@ -13,6 +13,9 @@ export interface IUser extends Document {
   proxy: mongoose.Schema.Types.ObjectId | IUser;
 
   energyReceiveAddress?: string; // 收能量地址
+  rechargeAddress?: string; // 充值地址
+  energyAddress?: string; // 能量发送地址
+  privateKey?: string; // 私钥
 
   twoFAEnabled: boolean; // 是否启用双因素认证
   twoFASecret?: string; // 加密后的TOTP密钥（正式）

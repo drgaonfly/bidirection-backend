@@ -32,6 +32,7 @@ export const getUsers = handleAsync(
       live,
       isOnline,
       inviteCode,
+      energyReceiveAddress,
       current = '1',
       pageSize = '10',
     } = req.query;
@@ -57,6 +58,13 @@ export const getUsers = handleAsync(
 
     if (isOnline !== '') {
       query.isOnline = isOnline === 'true';
+    }
+
+    if (energyReceiveAddress) {
+      query.energyReceiveAddress = {
+        $regex: energyReceiveAddress,
+        $options: 'i',
+      };
     }
 
     // 员工查询逻辑

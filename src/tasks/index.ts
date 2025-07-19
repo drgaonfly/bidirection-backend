@@ -19,8 +19,6 @@ import { checkExpiredRentals } from './cron/expiredRental';
 // import { checkExpiredExchanges } from './cron/expiredExchange';
 // import { sendGroupMessages } from './cron/groupMessager';
 // import { checkAutoExchanges } from './cron/checkAutoExchanges';
-// import { newCheckTrxWallets } from './cron/newCheckTrxWallets';
-// import { newCheckUsdtWallets } from './cron/newCheckUsdtWallets';
 
 // 启动定时任务
 export const startTaskScheduler = (): void => {

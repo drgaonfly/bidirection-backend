@@ -122,9 +122,18 @@ const botSchema = new mongoose.Schema(
         ref: 'BotUser',
       },
     ],
-    menus: [menuSchema],
-    keyboards: [keyboardSchema],
-    commands: [commandSchema],
+    menus: {
+      type: [menuSchema],
+      default: [],
+    },
+    keyboards: {
+      type: [keyboardSchema],
+      default: [],
+    },
+    commands: {
+      type: [commandSchema],
+      default: [],
+    },
     session: {
       type: String,
       trim: true,

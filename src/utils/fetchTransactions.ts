@@ -3,15 +3,14 @@ import { getExchangeRate } from './getExchange';
 import axios from 'axios';
 
 const API_KEYS = [
-  '41720408-8a6a-4abc-b934-1c44e33719cc',
-  '29475d12-d3ec-4b30-b457-529b85db312d',
-  '6e526565-2246-4071-b302-6b18c3d73026',
-  'f7177de2-a93b-4098-a252-9e92b4ac947b',
-  '2c25b5d3-e66f-4e5a-98f6-07f17f26ed7f',
-  '8f549a00-5f58-425d-95f8-6347a0e3eb36',
-  'd4374957-910d-4509-b195-0be07c0dfa84',
-  'bfd9db73-3447-443e-b47c-d6926d8b5579',
-  'd4374957-910d-4509-b195-0be07c0dfa84',
+  'cfb0c541-ae6c-4a66-a6d8-3c82e3a5be81',
+  '4d4b343a-026b-4839-a15a-db80cf5f10d1',
+  '2d17ab36-84d7-4135-bb03-662a46144370',
+  '4413fdae-9b01-4f1d-9e43-64072593a19b',
+  'dccb134b-d9c8-4e17-8e37-34b3a737bbe4',
+  'a6db1a8d-6e77-4f94-823c-dfbd970a15cb',
+  '0e1d03f1-0f0e-4dfc-862b-e7325d9173d1',
+  '5cd34bde-4e8a-44de-a203-d6077cb20f5b',
 ];
 
 // const USDT_CONTRACT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'; // 主网 USDT 合约

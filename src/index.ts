@@ -8,7 +8,7 @@ import http from 'http';
 import { setupRedis } from './utils/redis';
 import setupDB from './utils/db';
 import initExecutor from 'express-command-executor';
-// import { startTaskScheduler } from './tasks';
+import { startTaskScheduler } from './tasks';
 
 import userRoutes from './routes/userRoutes';
 import roleRoutes from './routes/roleRoutes';
@@ -92,11 +92,12 @@ app.use('/api/static', express.static('tmp'));
 
 setupDB();
 setupRedis();
+// 启动定时任务调度器
+startTaskScheduler();
+
 // 初始化 Socket.IO
 
 console.log('Socket.IO server initialized');
-
-// startTaskScheduler(); // 定时任务
 // authorized(); // 授权用户收益率生成
 // stacking(); // 质押用户收益率生成
 

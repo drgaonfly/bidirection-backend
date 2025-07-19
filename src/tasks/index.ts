@@ -1,4 +1,4 @@
-import setupDB from '../utils/db';
+// import setupDB from '../utils/db';
 // import { checkExpiredPayments } from './cron/expiredPayments';
 // import { checkExpiredSubscriptions } from './cron/checkExpiredSubscriptions';
 // import { trialExpired } from './cron/trialExpired';
@@ -6,7 +6,13 @@ import setupDB from '../utils/db';
 // import { updateBotExpiration } from './cron/updateBotExpiration';
 // import { notifyBotExpiration } from './cron/notifyBotExpiration';
 // import { notifySubscriptionExpiration } from './cron/notifySubscriptionExpiration';
-// import cron from 'node-cron';
+import cron from 'node-cron';
+import { checkExpiredPayments } from './cron/expiredRecharges';
+import { checkPendingUsdtRecharge } from './cron/checkPendingUsdtRecharge';
+import { checkPendingTrxRecharge } from './cron/checkPendingTrxRecharge';
+import { checkPendingTrxRental } from './cron/checkPendingTrxRental';
+import { checkPendingUsdtRental } from './cron/checkPendingUsdtRental';
+import { checkExpiredRentals } from './cron/expiredRental';
 // import { checkUsdtWallets } from './cron/checkUsdtWallets // 检查usdt转账记录 旧的';
 // // import { checkTrxWallets } from './cron/checkTrxWallets' // 检查trx转账记录 旧的;
 // import { checkPendingExchanges } from './cron/checkPendingExchanges';
@@ -15,62 +21,27 @@ import setupDB from '../utils/db';
 // import { checkAutoExchanges } from './cron/checkAutoExchanges';
 // import { newCheckTrxWallets } from './cron/newCheckTrxWallets';
 // import { newCheckUsdtWallets } from './cron/newCheckUsdtWallets';
-import { checkPendingUsdtRecharge } from './cron/checkPendingUsdtRecharge';
-import { checkPendingTrxRecharge } from './cron/checkPendingTrxRecharge';
-import { checkExpiredPayments } from './cron/expiredRecharges';
 
-import { checkPendingTrxRental } from './cron/checkPendingTrxRental';
-import { checkPendingUsdtRental } from './cron/checkPendingUsdtRental';
-import { checkExpiredRentals } from './cron/expiredRental';
-import { setupRedis } from '../utils/redis';
-
-const task = async () => {
-  await setupDB();
-  await setupRedis();
-  console.log('当前时间:', new Date().toLocaleString());
-  console.log('开始执行任务...');
-  // await trialExpired();
-  // await checkExpiredPayments();
-  // await checkPendingOrders();
-  // await notifySubscriptionExpiration();
-  // await checkExpiredSubscriptions();
-  // await notifyBotExpiration();
-  // await updateBotExpiration();
-  // await checkUsdtWallets(); // 检查usdt转账记录 旧的
-  // await checkTrxWallets();// 检查trx转账记录 旧的
-  // await checkExpiredExchanges(); // 检查过期的兑换记录
-  // await checkPendingExchanges(); // 为他人兑换
-  // await checkAutoExchanges(); // 检查授权兑换
-  // await sendGroupMessages(); // 发送群发消息
-  // await newCheckTrxWallets();
-  // await newCheckUsdtWallets();
-  await checkExpiredPayments();
-  await checkPendingUsdtRecharge();
-  await checkPendingTrxRecharge();
-
-  await checkExpiredRentals();
-  await checkPendingTrxRental();
-  await checkPendingUsdtRental();
+// 启动定时任务
+export const startTaskScheduler = (): void => {
+  if (process.env.CRON_ENABLE === 'true') {
+    cron.schedule(
+      '*/30 * * * * *', // 每三十秒执行一次
+      () => {
+        checkExpiredPayments();
+        checkPendingUsdtRecharge();
+        checkPendingTrxRecharge();
+        checkExpiredRentals();
+        checkPendingTrxRental();
+        checkPendingUsdtRental();
+      },
+      {
+        scheduled: true,
+        timezone: 'Asia/Shanghai',
+      },
+    );
+    console.log('订单状态检查定时任务已启动 (每分钟执行)');
+  } else {
+    console.log('开发环境下，订单状态检查定时任务未启动');
+  }
 };
-
-// 执行任务并在完成后退出进程
-task()
-  .then(() => {
-    process.exit(0);
-  })
-  .catch((err) => {
-    console.error('Task failed:', err);
-    process.exit(1);
-  });
-
-// export function startTaskScheduler() {
-//   cron.schedule('* * * * *', async () => {
-//     console.log(`[定时任务] ${new Date().toLocaleString()} 开始执行`);
-//     try {
-//       await task();
-//       console.log('[定时任务] 执行完成 ✅');
-//     } catch (error) {
-//       console.error('[定时任务] 执行出错 ❌', error);
-//     }
-//   });
-// }

@@ -1,3 +1,3 @@
-interface SessionData {
-  membershipAccount?: string;
-}
+// interface SessionData {
+//   membershipAccount?: string;
+// }

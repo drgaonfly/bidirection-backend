@@ -1,5 +1,7 @@
 import { MyContext } from '../../../types';
 import { InlineKeyboard } from 'grammy';
+import { renderFile } from 'ejs';
+import { join } from 'path';
 
 const MEMBERSHIP_PRICES = {
   '3m': 15,
@@ -22,20 +24,10 @@ export async function handleBuyMembershipCommand(
 
   const inline = new InlineKeyboard().row().text('取消', 'close');
 
-  const message = `
-请发送 <b>${price}U</b> 到以下地址开通 <b>${membershipName}</b>
-
-收款地址:
-@test
-https://t.me/test
-
-多个TG账号专用:
-@username1
-@username2
-
-您选择了 ${membershipName}
-您需要支付: ${price}U
-`;
+  const message = await renderFile(
+    join(__dirname, '../../../../templates/buyMembership.ejs'),
+    { price, membershipName },
+  );
 
   await ctx.reply(message, {
     parse_mode: 'HTML',

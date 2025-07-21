@@ -10,6 +10,7 @@ export interface IMemberOrder extends Document {
   botUserConfig: Schema.Types.ObjectId | IBotUserConfig;
   status: 'pending' | 'paid' | 'expired' | 'cancelled';
   amount: number;
+  actualAmount: number; // 实际收款金额
   membershipType: string;
   startDate: Date;
   endDate: Date;
@@ -42,6 +43,7 @@ const memberOrderSchema = new Schema<IMemberOrder>(
       default: 'pending',
     }, // 订单状态
     amount: { type: Number, required: true }, // 金额
+    actualAmount: { type: Number, required: false }, // 实际收款金额
     membershipType: { type: String, required: true }, // 会员类型
     startDate: { type: Date, required: true }, // 开始日期
     endDate: { type: Date, required: true }, // 结束日期

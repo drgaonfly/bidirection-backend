@@ -3,7 +3,7 @@ import { InlineKeyboard } from 'grammy';
 import { renderFile } from 'ejs';
 import { join } from 'path';
 
-const MEMBERSHIP_PRICES = {
+export const MEMBERSHIP_PRICES = {
   '3m': 15,
   '6m': 25,
   '1y': 45,

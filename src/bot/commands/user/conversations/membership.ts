@@ -1,4 +1,7 @@
-import { handleBuyMembershipCommand } from '../membership/buyMembership';
+import {
+  handleBuyMembershipCommand,
+  MEMBERSHIP_PRICES,
+} from '../membership/buyMembership';
 import { MyContext } from '../../../types';
 import { Composer, InlineKeyboard } from 'grammy';
 import { createConversation, Conversation } from '@grammyjs/conversations';
@@ -110,7 +113,7 @@ async function membershipConversation(
         `✈️ 飞机会员: ${duration}`,
         '用户账号: @' + username,
         '用户昵称: ' + (user.first_name || username),
-        `支付金额: 3 USDT`,
+        `支付金额: ${MEMBERSHIP_PRICES[duration]} USDT`,
         '收款地址: TF6VpWQ16AdBs4NJGBHT6wqT2u',
         '',
         '❗ 请务必按全额支付，全额带小数',

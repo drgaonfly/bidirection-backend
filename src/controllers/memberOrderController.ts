@@ -11,6 +11,10 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     query.status = queryParams.status;
   }
 
+  if (queryParams.orderNumber) {
+    query.orderNumber = { $regex: queryParams.orderNumber, $options: 'i' };
+  }
+
   if (queryParams.bot) {
     const botData = await Bot.find({
       botName: {

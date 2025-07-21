@@ -9,7 +9,7 @@ export const MEMBERSHIP_PRICES = {
   '1y': 45,
 };
 
-const MEMBERSHIP_NAMES = {
+export const MEMBERSHIP_NAMES = {
   '3m': '3个月会员',
   '6m': '6个月会员',
   '1y': '1年会员',

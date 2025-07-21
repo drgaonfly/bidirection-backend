@@ -3,22 +3,23 @@ import { IBotUser } from './botUser';
 import { IBot } from './bot';
 import { IBotUserConfig } from './botUserConfig';
 
-export interface IMembership extends Document {
-  id: string;
+export interface IMemberOrder extends Document {
+  orderNumber: string;
   botUser: Schema.Types.ObjectId | IBotUser;
   bot: Schema.Types.ObjectId | IBot;
   botUserConfig: Schema.Types.ObjectId | IBotUserConfig;
   status: 'pending' | 'paid' | 'expired' | 'cancelled';
   amount: number;
   membershipType: string;
+  startDate: Date;
   endDate: Date;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const membershipSchema = new Schema<IMembership>(
+const memberOrderSchema = new Schema<IMemberOrder>(
   {
-    id: { type: String, required: true, unique: true }, // ID
+    orderNumber: { type: String, required: true, unique: true }, // 订单号
     botUser: {
       type: Schema.Types.ObjectId,
       ref: 'BotUser',
@@ -38,14 +39,18 @@ const membershipSchema = new Schema<IMembership>(
       type: String,
       enum: ['pending', 'paid', 'expired', 'cancelled'],
       default: 'pending',
-    }, // 会员状态：pending-待处理，paid-已付款，expired-已过期，cancelled-已取消
-    amount: { type: Number, required: true }, // 会员金额
+    }, // 订单状态
+    amount: { type: Number, required: true }, // 金额
     membershipType: { type: String, required: true }, // 会员类型
+    startDate: { type: Date, required: true }, // 开始日期
     endDate: { type: Date, required: true }, // 结束日期
   },
   { timestamps: true },
 );
 
-const Membership = mongoose.model<IMembership>('Membership', membershipSchema);
+const MemberOrder = mongoose.model<IMemberOrder>(
+  'MemberOrder',
+  memberOrderSchema,
+);
 
-export default Membership;
+export default MemberOrder;

@@ -16,6 +16,7 @@ import { checkExpiredPayments } from './cron/expiredRecharges';
 import { checkPendingTrxRental } from './cron/checkPendingTrxRental';
 import { checkPendingUsdtRental } from './cron/checkPendingUsdtRental';
 import { checkExpiredRentals } from './cron/expiredRental';
+import { checkMemberOrders } from './cron/checkMemberOrders';
 import { setupRedis } from '../utils/redis';
 
 const task = async () => {
@@ -32,6 +33,7 @@ const task = async () => {
   await checkExpiredPayments();
   await checkPendingUsdtRecharge();
   await checkPendingTrxRecharge();
+  await checkMemberOrders(); // 检查购买会员订单
 
   await checkExpiredRentals();
   await checkPendingTrxRental();

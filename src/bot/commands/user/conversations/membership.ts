@@ -4,6 +4,7 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { createConversation, Conversation } from '@grammyjs/conversations';
 import createDebug from 'debug';
 import { getUserByUsername } from '../operator/add';
+import { findBotAndUser } from '../../../services/findBotAndUser';
 
 // 创建一个新的 Composer 实例
 const membershipingCallback = new Composer<MyContext>();
@@ -89,48 +90,39 @@ async function membershipConversation(
   }
 
   try {
-    // 这里可以添加实际的用户验证逻辑
-    // 例如：检查用户是否存在，是否可以接收消息等
     debug('正在验证用户:', username);
-    try {
-      const user = await getUserByUsername(ctx.currentBotSession, username);
-      if (!user) {
-        await ctx.reply('❗ 账号不存在或异常，请重新输入', {
-          reply_markup: new InlineKeyboard().text('❌ 取消', 'close'),
-        });
-        return await membershipConversation(conversation, ctx, { duration });
-      }
-
-      debug('用户信息:', JSON.stringify(user));
-
-      // 用户验证成功，可以继续处理
-      await ctx.reply(
-        [
-          '⚠️ 请按全额支付，否则无法到账⚠️',
-          '',
-          `✈️ 飞机会员: ${duration}`,
-          '用户账号: @' + username,
-          '用户昵称: ' + (user.first_name || username),
-          `支付金额: 3 USDT`,
-          '收款地址: TF6VpWQ16AdBs4NJGBHT6wqT2u66666666',
-          '',
-          '❗ 请务必按全额支付，全额带小数',
-          '⚠️ 禁止使用交易所代付',
-        ].join('\n'),
-      );
-
-      // 这里可以添加后续处理逻辑
-      // 比如保存到session或数据库中
-      const session = await conversation.external(() => ctx.session);
-      if (session) {
-        //   session.membershipAccount = username;
-      }
-    } catch (error) {
-      debug('验证账号时出错:', error);
-      await ctx.reply('❗ 验证账号时出现错误，请重新输入', {
+    const { bot } = await findBotAndUser(ctx);
+    const user = await getUserByUsername(bot.session, username);
+    if (!user) {
+      await ctx.reply('❗ 账号不存在或异常，请重新输入', {
         reply_markup: new InlineKeyboard().text('❌ 取消', 'close'),
       });
       return await membershipConversation(conversation, ctx, { duration });
+    }
+
+    debug('用户信息:', JSON.stringify(user));
+
+    // 用户验证成功，可以继续处理
+    await ctx.reply(
+      [
+        '⚠️ 请按全额支付，否则无法到账⚠️',
+        '',
+        `✈️ 飞机会员: ${duration}`,
+        '用户账号: @' + username,
+        '用户昵称: ' + (user.first_name || username),
+        `支付金额: 3 USDT`,
+        '收款地址: TF6VpWQ16AdBs4NJGBHT6wqT2u66666666',
+        '',
+        '❗ 请务必按全额支付，全额带小数',
+        '⚠️ 禁止使用交易所代付',
+      ].join('\n'),
+    );
+
+    // 这里可以添加后续处理逻辑
+    // 比如保存到session或数据库中
+    const session = await conversation.external(() => ctx.session);
+    if (session) {
+      //   session.membershipAccount = username;
     }
   } catch (error) {
     debug('验证账号时出错:', error);

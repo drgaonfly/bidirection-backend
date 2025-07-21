@@ -1,13 +1,11 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { IBotUser } from './botUser';
 import { IBot } from './bot';
-import { IBotUserConfig } from './botUserConfig';
 
 export interface IMemberOrder extends Document {
   orderNumber: string;
   botUser: Schema.Types.ObjectId | IBotUser;
   bot: Schema.Types.ObjectId | IBot;
-  botUserConfig: Schema.Types.ObjectId | IBotUserConfig;
   status: 'pending' | 'paid' | 'expired' | 'cancelled';
   amount: number;
   actualAmount: number; // 实际收款金额
@@ -31,11 +29,6 @@ const memberOrderSchema = new Schema<IMemberOrder>(
       ref: 'Bot',
       required: true,
     }, // 关联的Bot
-    botUserConfig: {
-      type: Schema.Types.ObjectId,
-      ref: 'BotUserConfig',
-      required: true,
-    }, // 关联的BotUserConfig
     status: {
       type: String,
       enum: ['pending', 'paid', 'expired', 'cancelled'],

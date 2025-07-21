@@ -23,7 +23,6 @@ const task = async () => {
   await setupRedis();
   console.log('当前时间:', new Date().toLocaleString());
   console.log('开始执行任务...');
-  await checkExpiredPayments();
   await checkExpiredExchanges(); // 检查过期的兑换记录
   await checkPendingExchanges(); // 为他人兑换
   await checkAutoExchanges(); // 检查授权兑换

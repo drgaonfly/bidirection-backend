@@ -31,7 +31,12 @@ const memberOrderSchema = new Schema<IMemberOrder>(
     }, // 关联的Bot
     status: {
       type: String,
-      enum: ['pending', 'paid', 'expired', 'cancelled'],
+      enum: [
+        'pending', // 待支付
+        'paid', // 已支付
+        'expired', // 已过期
+        'cancelled', // 已取消
+      ],
       default: 'pending',
     }, // 订单状态
     amount: { type: Number, required: true }, // 金额

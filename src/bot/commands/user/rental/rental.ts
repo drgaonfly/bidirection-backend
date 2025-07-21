@@ -31,11 +31,6 @@ export async function handleRentalCommand(ctx: MyContext) {
   ].join('\n');
 
   const inline = new InlineKeyboard()
-    .text('⚡ 更多租用方式', 'more_rental_mode')
-    .row()
-    .text('⏰ 时长租用能量', 'rental_time')
-    .text('🚀 手动速冲能量', 'rental_manual')
-    .row()
     .text('💳 预支能量', 'energy_advance')
     .text('💎 充值余额', 'recharge');
 

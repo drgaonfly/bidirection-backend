@@ -31,10 +31,7 @@ export async function handleSeparationCommand(ctx: MyContext) {
   // 每行放几个按钮？
   const buttonsPerRow = 2;
 
-  const inline = new InlineKeyboard()
-    .text('查询笔数开启/关闭', 'rental_check')
-    .text('💎充值余额', 'recharge')
-    .row();
+  const inline = new InlineKeyboard();
 
   Options.forEach((opt, index) => {
     inline.text(opt.label, opt.callback);

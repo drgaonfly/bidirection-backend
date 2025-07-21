@@ -7,10 +7,6 @@ export const Options = [
   { separation: 10, label: '10笔', callback: 'rental_sep_10' },
   { separation: 20, label: '20笔', callback: 'rental_sep_20' },
   { separation: 50, label: '50笔', callback: 'rental_sep_50' },
-  { separation: 100, label: '100笔', callback: 'rental_sep_100' },
-  { separation: 200, label: '200笔', callback: 'rental_sep_200' },
-  { separation: 500, label: '500笔', callback: 'rental_sep_500' },
-  { separation: 1000, label: '1000笔', callback: 'rental_sep_1000' },
 ];
 
 // 能量租用接口定义

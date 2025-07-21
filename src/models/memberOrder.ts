@@ -12,7 +12,6 @@ export interface IMemberOrder extends Document {
   amount: number;
   actualAmount: number; // 实际收款金额
   membershipType: string;
-  startDate: Date;
   endDate: Date;
   paymentAddress: string; // 收款地址
   createdAt: Date;
@@ -45,7 +44,6 @@ const memberOrderSchema = new Schema<IMemberOrder>(
     amount: { type: Number, required: true }, // 金额
     actualAmount: { type: Number, required: false }, // 实际收款金额
     membershipType: { type: String, required: true }, // 会员类型
-    startDate: { type: Date, required: true }, // 开始日期
     endDate: { type: Date, required: true }, // 结束日期
     paymentAddress: { type: String, required: true }, // 收款地址
   },

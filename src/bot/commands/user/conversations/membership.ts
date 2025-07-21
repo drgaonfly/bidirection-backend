@@ -134,7 +134,7 @@ async function membershipConversation(
       bot: bot._id,
       status: 'pending',
       amount: MEMBERSHIP_PRICES[duration],
-      membershipType: duration,
+      membershipType: MEMBERSHIP_NAMES[duration],
       endDate,
       paymentAddress: bot.trx20_address,
     });

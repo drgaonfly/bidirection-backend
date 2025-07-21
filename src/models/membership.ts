@@ -10,6 +10,7 @@ export interface IMembership extends Document {
   botUserConfig: Schema.Types.ObjectId | IBotUserConfig;
   status: 'pending' | 'paid' | 'expired' | 'cancelled';
   amount: number;
+  membershipType: string;
   endDate: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -39,6 +40,7 @@ const membershipSchema = new Schema<IMembership>(
       default: 'pending',
     }, // 会员状态：pending-待处理，paid-已付款，expired-已过期，cancelled-已取消
     amount: { type: Number, required: true }, // 会员金额
+    membershipType: { type: String, required: true }, // 会员类型
     endDate: { type: Date, required: true }, // 结束日期
   },
   { timestamps: true },

@@ -1,25 +1,23 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { IBotUser } from './botUser';
 import { IBot } from './bot';
+import { IBotUserConfig } from './botUserConfig';
 
 export interface IMembership extends Document {
   id: string;
   botUser: Schema.Types.ObjectId | IBotUser;
   bot: Schema.Types.ObjectId | IBot;
+  botUserConfig: Schema.Types.ObjectId | IBotUserConfig;
   status: 'pending' | 'paid' | 'expired' | 'cancelled';
-  membershipType: 'basic' | 'premium' | 'vip';
-  startDate: Date;
+  amount: number;
   endDate: Date;
-  lastRenewalDate?: Date;
-  benefits: string[];
-  notes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 const membershipSchema = new Schema<IMembership>(
   {
-    id: { type: String, required: true, unique: true }, // 会员唯一ID
+    id: { type: String, required: true, unique: true }, // ID
     botUser: {
       type: Schema.Types.ObjectId,
       ref: 'BotUser',
@@ -30,16 +28,18 @@ const membershipSchema = new Schema<IMembership>(
       ref: 'Bot',
       required: true,
     }, // 关联的Bot
+    botUserConfig: {
+      type: Schema.Types.ObjectId,
+      ref: 'BotUserConfig',
+      required: true,
+    }, // 关联的BotUserConfig
     status: {
       type: String,
       enum: ['pending', 'paid', 'expired', 'cancelled'],
       default: 'pending',
     }, // 会员状态：pending-待处理，paid-已付款，expired-已过期，cancelled-已取消
-    startDate: { type: Date, required: true }, // 开始日期
+    amount: { type: Number, required: true }, // 会员金额
     endDate: { type: Date, required: true }, // 结束日期
-    lastRenewalDate: { type: Date }, // 最近续费日期
-    benefits: [{ type: String }], // 会员权益
-    notes: { type: String }, // 备注
   },
   { timestamps: true },
 );

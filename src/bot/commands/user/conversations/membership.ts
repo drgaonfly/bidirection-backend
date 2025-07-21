@@ -8,6 +8,7 @@ import { createConversation, Conversation } from '@grammyjs/conversations';
 import createDebug from 'debug';
 import { getUserByUsername } from '../operator/add';
 import { findBotAndUser } from '../../../services/findBotAndUser';
+import MemberOrder from '../../../../models/memberOrder';
 
 // 创建一个新的 Composer 实例
 const membershipingCallback = new Composer<MyContext>();
@@ -94,7 +95,7 @@ async function membershipConversation(
 
   try {
     debug('正在验证用户:', username);
-    const { bot } = await findBotAndUser(ctx);
+    const { bot, botUser } = await findBotAndUser(ctx);
     const user = await getUserByUsername(bot.session, username);
     if (!user) {
       await ctx.reply('❗ 账号不存在或异常，请重新输入', {
@@ -121,12 +122,24 @@ async function membershipConversation(
       ].join('\n'),
     );
 
-    // 这里可以添加后续处理逻辑
-    // 比如保存到session或数据库中
-    const session = await conversation.external(() => ctx.session);
-    if (session) {
-      //   session.membershipAccount = username;
-    }
+    // 创建会员订单
+    const orderNumber = `MO${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    const endDate = new Date(Date.now() + 10 * 60 * 1000); // 当前时间 + 10分钟
+
+    const memberOrder = new MemberOrder({
+      orderNumber,
+      botUser: botUser._id,
+      bot: bot._id,
+      status: 'pending',
+      amount: MEMBERSHIP_PRICES[duration],
+      membershipType: duration,
+      endDate,
+      paymentAddress: 'TF6VpWQ16AdBs4NJGBHT6wqT2u',
+    });
+
+    debug('memberOrder', JSON.stringify(memberOrder));
+
+    await memberOrder.save();
   } catch (error) {
     debug('验证账号时出错:', error);
     await ctx.reply('❗ 验证账号时出现错误，请重新输入', {

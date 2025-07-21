@@ -3,7 +3,6 @@ import { MyContext } from '../../../types';
 import { InputFile } from 'grammy';
 import createDebug from 'debug';
 import { handleBuyStarsCommand } from './buyStars';
-import { handleBuyMembershipCommand } from './buyMembership';
 
 import { checkPermission } from '../../../middlewares/checkPermission';
 
@@ -38,13 +37,6 @@ export async function handleMembershipCommand(ctx: MyContext) {
 membershipCommand.callbackQuery('buy_stars', async (ctx) => {
   await ctx.answerCallbackQuery();
   await handleBuyStarsCommand(ctx);
-});
-
-// Handle membership button clicks
-membershipCommand.callbackQuery(/^buy_membership_(.+)$/, async (ctx) => {
-  await ctx.answerCallbackQuery();
-  const duration = ctx.match[1];
-  await handleBuyMembershipCommand(ctx, duration);
 });
 
 // 开始命令处理

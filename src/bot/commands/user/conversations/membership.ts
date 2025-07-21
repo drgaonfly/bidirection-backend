@@ -1,18 +1,15 @@
+import { handleBuyMembershipCommand } from '../membership/buyMembership';
+import { MyContext } from '../../../types';
 import { Composer, InlineKeyboard } from 'grammy';
 import { createConversation, Conversation } from '@grammyjs/conversations';
-import { MyContext } from '../../../types';
 import createDebug from 'debug';
 
-const debug = createDebug('bot:membership-account');
-const membershipAccountCallback = new Composer<MyContext>();
+// 创建一个新的 Composer 实例
+const membershipingCallback = new Composer<MyContext>();
 
-// 超时时间设置为5分钟
+const debug = createDebug('bot:membership');
+
 const TIMEOUT = 5 * 60 * 1000;
-
-const cancelKeyboard = new InlineKeyboard().text(
-  '❌ 取消',
-  'cancel_membership_account',
-);
 
 // 验证TG用户名格式
 function isValidTelegramFormat(input: string): {
@@ -38,7 +35,7 @@ function isValidTelegramFormat(input: string): {
   return { isValid, username };
 }
 
-async function membershipAccountConversation(
+async function membershipConversation(
   conversation: Conversation<MyContext>,
   ctx: MyContext,
 ) {
@@ -71,10 +68,10 @@ async function membershipAccountConversation(
     await ctx.reply(
       '❗ 请输入正确的Telegram账号\n例如：@username 或 https://t.me/username',
       {
-        reply_markup: cancelKeyboard,
+        reply_markup: new InlineKeyboard().text('❌ 取消', 'close'),
       },
     );
-    return await membershipAccountConversation(conversation, ctx);
+    return await membershipConversation(conversation, ctx);
   }
 
   const { isValid, username } = isValidTelegramFormat(message.text);
@@ -83,10 +80,10 @@ async function membershipAccountConversation(
     await ctx.reply(
       '❗ 账号格式无效，请重新输入\n例如：@username 或 https://t.me/username',
       {
-        reply_markup: cancelKeyboard,
+        reply_markup: new InlineKeyboard().text('❌ 取消', 'close'),
       },
     );
-    return await membershipAccountConversation(conversation, ctx);
+    return await membershipConversation(conversation, ctx);
   }
 
   try {
@@ -97,9 +94,9 @@ async function membershipAccountConversation(
 
     if (!userExists) {
       await ctx.reply('❗ 账号不存在或异常，请重新输入', {
-        reply_markup: cancelKeyboard,
+        reply_markup: new InlineKeyboard().text('❌ 取消', 'close'),
       });
-      return await membershipAccountConversation(conversation, ctx);
+      return await membershipConversation(conversation, ctx);
     }
 
     debug('用户信息:', JSON.stringify(userExists));
@@ -109,10 +106,10 @@ async function membershipAccountConversation(
       [
         '⚠️ 请按全额支付，否则无法到账⚠️',
         '',
-        '✈️ 飞机会员: 3个月Telegram Premium会员',
+        `✈️ 飞机会员: 111`,
         '用户账号: @' + username,
         '用户昵称: ' + (userExists.first_name || username),
-        '支付金额: 15.018 USDT',
+        `支付金额: 3 USDT`,
         '收款地址: TF6VpWQ16AdBs4NJGBHT6wqT2u66666666',
         '',
         '❗ 请务必按全额支付，全额带小数',
@@ -129,53 +126,21 @@ async function membershipAccountConversation(
   } catch (error) {
     debug('验证账号时出错:', error);
     await ctx.reply('❗ 验证账号时出现错误，请重新输入', {
-      reply_markup: cancelKeyboard,
+      reply_markup: new InlineKeyboard().text('❌ 取消', 'close'),
     });
-    return await membershipAccountConversation(conversation, ctx);
+    return await membershipConversation(conversation, ctx);
   }
 }
 
-// 创建对话处理器
-membershipAccountCallback.use(
-  createConversation(membershipAccountConversation),
-);
+membershipingCallback.use(createConversation(membershipConversation));
 
-// 开始验证账号的回调处理
-membershipAccountCallback.callbackQuery(
-  'verify_membership_account',
-  async (ctx) => {
-    debug('verify_membership_account clicked');
-    await ctx.conversation.exitAll();
+// Handle membership button clicks
+membershipingCallback.callbackQuery(/^buy_membership_(.+)$/, async (ctx) => {
+  await ctx.answerCallbackQuery();
+  const duration = ctx.match[1];
+  await handleBuyMembershipCommand(ctx, duration);
 
-    await ctx.reply(
-      [
-        '请输入需要开通会员的Telegram账号:',
-        '',
-        '⚠️ 支持以下格式：',
-        '- @username',
-        '- https://t.me/username',
-        '',
-        '⏳ 此操作将在 5 分钟后过期。',
-        '',
-      ].join('\n'),
-      { reply_markup: cancelKeyboard },
-    );
+  await ctx.conversation.enter('membershipConversation');
+});
 
-    await ctx.conversation.enter('membershipAccountConversation');
-    await ctx.answerCallbackQuery();
-  },
-);
-
-// 取消操作的回调处理
-membershipAccountCallback.callbackQuery(
-  'cancel_membership_account',
-  async (ctx) => {
-    debug('cancel_membership_account clicked');
-
-    await ctx.conversation.exitAll();
-    await ctx.deleteMessage();
-    await ctx.answerCallbackQuery('已取消操作');
-  },
-);
-
-export default membershipAccountCallback;
+export default membershipingCallback;

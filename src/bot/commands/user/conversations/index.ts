@@ -7,6 +7,7 @@ import setWalletConversation from './setWallet';
 import transferExchangeConversation from './transfer';
 import customRechargeConversation from './customRecharge';
 import rentalSepCallback from './rentalSep';
+import membershipingCallback from './membership';
 
 const conversationsComposer = new Composer();
 
@@ -18,5 +19,6 @@ conversationsComposer.use(setWalletConversation.middleware());
 // conversationsComposer.use(trxToUsdtExchangeConversation.middleware());
 conversationsComposer.use(transferExchangeConversation.middleware());
 conversationsComposer.use(rentalSepCallback.middleware());
+conversationsComposer.use(membershipingCallback.middleware());
 
 export default conversationsComposer;

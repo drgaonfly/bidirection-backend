@@ -9,6 +9,7 @@ import createDebug from 'debug';
 import { getUserByUsername } from '../operator/add';
 import { findBotAndUser } from '../../../services/findBotAndUser';
 import MemberOrder from '../../../../models/memberOrder';
+import { generateOrderNumber } from '../../../../utils/generateOrderNumber';
 
 // 创建一个新的 Composer 实例
 const membershipingCallback = new Composer<MyContext>();
@@ -123,7 +124,7 @@ async function membershipConversation(
     );
 
     // 创建会员订单
-    const orderNumber = `MO${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    const orderNumber = await generateOrderNumber();
     const endDate = new Date(Date.now() + 10 * 60 * 1000); // 当前时间 + 10分钟
 
     const memberOrder = new MemberOrder({

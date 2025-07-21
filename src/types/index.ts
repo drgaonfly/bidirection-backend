@@ -1,0 +1,3 @@
+interface SessionData {
+  membershipAccount?: string;
+}

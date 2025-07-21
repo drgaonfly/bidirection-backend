@@ -26,7 +26,7 @@ export async function handleMembershipCommand(ctx: MyContext) {
     .row()
     .text('取消', 'close');
 
-  ctx.replyWithVideo(new InputFile('src/tmp/telegram_premium.mp4'), {
+  ctx.replyWithVideo(new InputFile('src/public/telegram_premium.mp4'), {
     caption: '请选择开通、购买 Telegram 产品:',
     parse_mode: 'HTML',
     reply_markup: inline,

@@ -116,7 +116,7 @@ async function membershipConversation(
         '用户账号: @' + username,
         '用户昵称: ' + (user.first_name || username),
         `支付金额: ${MEMBERSHIP_PRICES[duration]} USDT`,
-        '收款地址: TF6VpWQ16AdBs4NJGBHT6wqT2u',
+        '收款地址: ' + bot.trx20_address,
         '',
         '❗ 请务必按全额支付，全额带小数',
         '⚠️ 禁止使用交易所代付',
@@ -135,7 +135,7 @@ async function membershipConversation(
       amount: MEMBERSHIP_PRICES[duration],
       membershipType: duration,
       endDate,
-      paymentAddress: 'TF6VpWQ16AdBs4NJGBHT6wqT2u',
+      paymentAddress: bot.trx20_address,
     });
 
     debug('memberOrder', JSON.stringify(memberOrder));

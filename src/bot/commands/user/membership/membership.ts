@@ -3,6 +3,7 @@ import { MyContext } from '../../../types';
 import { InputFile } from 'grammy';
 import createDebug from 'debug';
 import { handleBuyStarsCommand } from './buyStars';
+import { handleBuyMembershipCommand } from './buyMembership';
 
 import { checkPermission } from '../../../middlewares/checkPermission';
 
@@ -18,11 +19,11 @@ export async function handleMembershipCommand(ctx: MyContext) {
     .text('🌟 购买星星', 'buy_stars')
     .text('🔒 匿名号码')
     .row()
-    .text('3月会员 售价 15U')
+    .text('3月会员 售价 15U', 'buy_membership_3m')
     .row()
-    .text('6月会员 售价 25U')
+    .text('6月会员 售价 25U', 'buy_membership_6m')
     .row()
-    .text('1年会员 售价 45U')
+    .text('1年会员 售价 45U', 'buy_membership_1y')
     .row()
     .text('取消', 'close');
 
@@ -37,6 +38,13 @@ export async function handleMembershipCommand(ctx: MyContext) {
 membershipCommand.callbackQuery('buy_stars', async (ctx) => {
   await ctx.answerCallbackQuery();
   await handleBuyStarsCommand(ctx);
+});
+
+// Handle membership button clicks
+membershipCommand.callbackQuery(/^buy_membership_(.+)$/, async (ctx) => {
+  await ctx.answerCallbackQuery();
+  const duration = ctx.match[1];
+  await handleBuyMembershipCommand(ctx, duration);
 });
 
 // 开始命令处理

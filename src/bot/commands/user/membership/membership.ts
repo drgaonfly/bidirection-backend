@@ -2,6 +2,7 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import { InputFile } from 'grammy';
 import createDebug from 'debug';
+import { handleBuyStarsCommand } from './buyStars';
 
 import { checkPermission } from '../../../middlewares/checkPermission';
 
@@ -14,7 +15,7 @@ export async function handleMembershipCommand(ctx: MyContext) {
   debug('membership');
 
   const inline = new InlineKeyboard()
-    .text('🌟 购买星星')
+    .text('🌟 购买星星', 'buy_stars')
     .text('🔒 匿名号码')
     .row()
     .text('3月会员 售价 15U')
@@ -31,6 +32,12 @@ export async function handleMembershipCommand(ctx: MyContext) {
     reply_markup: inline,
   });
 }
+
+// Handle buy stars button click
+membershipCommand.callbackQuery('buy_stars', async (ctx) => {
+  await ctx.answerCallbackQuery();
+  await handleBuyStarsCommand(ctx);
+});
 
 // 开始命令处理
 membershipCommand.hears(/飞机会员/, checkPermission, async (ctx) => {

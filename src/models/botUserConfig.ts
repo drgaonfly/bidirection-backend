@@ -27,6 +27,10 @@ export interface IBotUserConfig extends Document {
   isAutoRenew: boolean;
   usdt_balance: number; // 用户余额
   trx_balance: number; // 用户余额
+  parent: mongoose.Types.ObjectId | IBotUserConfig;
+  interger: number; // 积分
+  spread_code: string;
+  invited_counts: number; // 邀请人数
   createdAt: Date;
   updatedAt: Date;
 }
@@ -80,6 +84,25 @@ const botUserConfigSchema = new mongoose.Schema(
       required: true,
       default: 0,
       min: 0, // 余额不能小于0
+    },
+    parent: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'BotUserConfig',
+      required: false,
+    },
+    interger: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
+    spread_code: {
+      type: String,
+      unique: true,
+    },
+    invited_counts: {
+      type: Number,
+      required: true,
+      default: 0,
     },
   },
   {

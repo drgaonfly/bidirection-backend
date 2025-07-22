@@ -17,6 +17,9 @@ import { checkPendingTrxRental } from './cron/checkPendingTrxRental';
 import { checkPendingUsdtRental } from './cron/checkPendingUsdtRental';
 import { checkExpiredRentals } from './cron/expiredRental';
 import { checkMemberOrders } from './cron/checkMemberOrders';
+
+import { checkExpiredAnynoumy } from './cron/expiredAnynoumy';
+
 import { setupRedis } from '../utils/redis';
 
 const task = async () => {
@@ -38,6 +41,8 @@ const task = async () => {
   await checkExpiredRentals();
   await checkPendingTrxRental();
   await checkPendingUsdtRental();
+
+  await checkExpiredAnynoumy();
 };
 
 // 执行任务并在完成后退出进程

@@ -16,7 +16,8 @@ import rechargeComposer from './recharge';
 import rentalComposer from './rental';
 import separationComposer from './separation';
 import membershipCommand from './membership';
-import advanceCommand from './advance';
+import advanceComposer from './advance';
+import anynoumyComposer from './anynoumy';
 
 import conversationsComposer from './conversations';
 
@@ -44,6 +45,7 @@ userComposer.use(rentalComposer.middleware());
 userComposer.use(separationComposer.middleware());
 userComposer.use(membershipCommand.middleware());
 userComposer.use(conversationsComposer.middleware());
-userComposer.use(advanceCommand.middleware());
+userComposer.use(advanceComposer.middleware());
+userComposer.use(anynoumyComposer.middleware());
 
 export default userComposer;

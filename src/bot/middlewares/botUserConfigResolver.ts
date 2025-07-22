@@ -2,6 +2,8 @@ import { Middleware } from 'grammy';
 import BotUserConfig from '../../models/botUserConfig';
 import { MyContext } from '../types';
 import { generateInviteCode } from '../../utils/generateInviteCode';
+import Integer from '../../models/integer';
+import { IdGen } from '../../utils/idGen';
 
 const botUserConfigResolver: Middleware<MyContext> = async (ctx, next) => {
   if (!ctx.currentBot) {
@@ -69,6 +71,14 @@ const botUserConfigResolver: Middleware<MyContext> = async (ctx, next) => {
 
       await BotUserConfig.findByIdAndUpdate(parent._id, {
         $inc: { invited_counts: 1 },
+      });
+
+      await Integer.create({
+        id: await IdGen.next(Integer, 'id', 6),
+        botUser: ctx.currentBotUser._id,
+        bot: ctx.currentBot._id,
+        amount: 1,
+        approach: 'invitation',
       });
     }
   }

@@ -16,7 +16,9 @@ async function createMainKeyboard(ctx: MyContext) {
     .row()
     .text('💎靓号地址')
     .text('🛎地址监听')
-    .text('👤个人信息');
+    .text('👤个人信息')
+    .row()
+    .text('✈️888租用');
 
   // Add custom keyboard buttons from bot configuration
   if (ctx.currentBot?.keyboards && ctx.currentBot.keyboards.length > 0) {

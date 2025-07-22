@@ -1,5 +1,6 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
+import { InputFile } from 'grammy';
 import createDebug from 'debug';
 
 const buyStarsCommand = new Composer<MyContext>();
@@ -34,7 +35,9 @@ export async function handleBuyStarsCommand(ctx: MyContext) {
   // Add back button
   keyboard.text('« 返回', 'back_to_membership');
 
-  await ctx.reply('请选择购买星星(Telegram Stars)的数量:', {
+  await ctx.replyWithVideo(new InputFile('src/public/telegram_stars.mp4'), {
+    caption: '请选择购买星星(Telegram Stars)的数量:',
+    parse_mode: 'HTML',
     reply_markup: keyboard,
   });
 }

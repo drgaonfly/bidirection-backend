@@ -1,6 +1,9 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
+import { InputFile } from 'grammy';
 import createDebug from 'debug';
+import { renderFile } from 'ejs';
+import { join } from 'path';
 
 const buyStarsCommand = new Composer<MyContext>();
 const debug = createDebug('bot:buyStars');
@@ -32,19 +35,39 @@ export async function handleBuyStarsCommand(ctx: MyContext) {
   });
 
   // Add back button
-  keyboard.text('« 返回', 'back_to_membership');
+  keyboard.row().text('取消', 'close');
 
-  await ctx.reply('请选择购买星星(Telegram Stars)的数量:', {
+  await ctx.replyWithVideo(new InputFile('src/public/telegram_stars.mp4'), {
+    caption: '请选择购买星星(Telegram Stars)的数量:',
+    parse_mode: 'HTML',
     reply_markup: keyboard,
   });
 }
 
 // Handle the buy stars callback
 buyStarsCommand.callbackQuery(/^buy_stars_/, async (ctx) => {
-  const amount = ctx.callbackQuery.data.replace('buy_stars_', '');
+  const amount = parseInt(ctx.callbackQuery.data.replace('buy_stars_', ''));
   await ctx.answerCallbackQuery();
-  // Here you would implement the actual purchase logic
-  await ctx.reply(`您选择购买 ${amount} 颗星星，请联系客服完成购买。`);
+
+  // Calculate price (50 stars = 1U)
+  const price = (amount / 50).toFixed(2);
+
+  try {
+    const message = await renderFile(
+      join(__dirname, '../../../../templates/buyStars.ejs'),
+      {
+        membershipName: `${amount}颗星星`,
+        price: parseFloat(price),
+      },
+    );
+
+    await ctx.reply(message, {
+      parse_mode: 'HTML',
+    });
+  } catch (error) {
+    debug('Error rendering buyStars template:', error);
+    await ctx.reply('抱歉，处理您的请求时出现错误。请稍后再试。');
+  }
 });
 
 // Handle the info callbacks
@@ -63,6 +86,12 @@ buyStarsCommand.callbackQuery('back_to_membership', async (ctx) => {
   // Import and call the membership handler
   const { handleMembershipCommand } = await import('./membership');
   await handleMembershipCommand(ctx);
+});
+
+// Handle close button
+buyStarsCommand.callbackQuery('close', async (ctx) => {
+  await ctx.answerCallbackQuery();
+  await ctx.deleteMessage();
 });
 
 export default buyStarsCommand;

@@ -2,8 +2,6 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import { InputFile } from 'grammy';
 import createDebug from 'debug';
-import { renderFile } from 'ejs';
-import { join } from 'path';
 
 const buyStarsCommand = new Composer<MyContext>();
 const debug = createDebug('bot:buyStars');
@@ -45,30 +43,6 @@ export async function handleBuyStarsCommand(ctx: MyContext) {
 }
 
 // 处理购买星星的回调
-buyStarsCommand.callbackQuery(/^buy_stars_/, async (ctx) => {
-  const amount = parseInt(ctx.callbackQuery.data.replace('buy_stars_', ''));
-  await ctx.answerCallbackQuery();
-
-  // 计算价格（50星星=1U）
-  const price = (amount / 50).toFixed(2);
-
-  try {
-    const message = await renderFile(
-      join(__dirname, '../../../../templates/buyStars.ejs'),
-      {
-        membershipName: `${amount}颗星星`,
-        price: parseFloat(price),
-      },
-    );
-
-    await ctx.reply(message, {
-      parse_mode: 'HTML',
-    });
-  } catch (error) {
-    debug('渲染buyStars模板出错:', error);
-    await ctx.reply('抱歉，处理您的请求时出现错误。请稍后再试。');
-  }
-});
 
 // 处理星星价格说明的回调
 buyStarsCommand.callbackQuery(/^stars_info_/, async (ctx) => {

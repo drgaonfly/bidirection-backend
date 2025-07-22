@@ -1,4 +1,3 @@
-import { handleBuyStarsCommand } from '../membership/buyStars';
 import { MyContext } from '../../../types';
 import { Composer, InlineKeyboard } from 'grammy';
 import { createConversation, Conversation } from '@grammyjs/conversations';
@@ -7,6 +6,8 @@ import { getUserByUsername } from '../operator/add';
 import { findBotAndUser } from '../../../services/findBotAndUser';
 import TgStarsOrder from '../../../../models/tgStarsOrder';
 import { generateOrderNumber } from '../../../../utils/generateOrderNumber';
+import { renderFile } from 'ejs';
+import { join } from 'path';
 
 // 创建一个新的 Composer 实例
 const tgStarsCallback = new Composer<MyContext>();
@@ -158,12 +159,37 @@ async function tgStarsConversation(
 tgStarsCallback.use(createConversation(tgStarsConversation));
 
 // Handle stars button clicks
-tgStarsCallback.callbackQuery(/^buy_stars_(.+)$/, async (ctx) => {
-  await ctx.answerCallbackQuery();
-  const amount = parseInt(ctx.match[1]);
-  await handleBuyStarsCommand(ctx);
+// tgStarsCallback.callbackQuery(/^buy_stars_(.+)$/, async (ctx) => {
+//   await ctx.answerCallbackQuery();
+//   const amount = parseInt(ctx.match[1]);
+//   await ctx.conversation.enter('tgStarsConversation', { amount });
+// });
 
-  await ctx.conversation.enter('tgStarsConversation', { amount });
+tgStarsCallback.callbackQuery(/^buy_stars_/, async (ctx) => {
+  const amount = parseInt(ctx.callbackQuery.data.replace('buy_stars_', ''));
+  await ctx.answerCallbackQuery();
+
+  // 计算价格（50星星=1U）
+  const price = (amount / 50).toFixed(2);
+
+  try {
+    const message = await renderFile(
+      join(__dirname, '../../../../templates/buyStars.ejs'),
+      {
+        membershipName: `${amount}颗星星`,
+        price: parseFloat(price),
+      },
+    );
+
+    await ctx.reply(message, {
+      parse_mode: 'HTML',
+    });
+
+    await ctx.conversation.enter('tgStarsConversation', { amount });
+  } catch (error) {
+    debug('渲染buyStars模板出错:', error);
+    await ctx.reply('抱歉，处理您的请求时出现错误。请稍后再试。');
+  }
 });
 
 // 处理取消订单按钮点击

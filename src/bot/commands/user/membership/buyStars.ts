@@ -2,13 +2,11 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import { InputFile } from 'grammy';
 import createDebug from 'debug';
-import { renderFile } from 'ejs';
-import { join } from 'path';
 
 const buyStarsCommand = new Composer<MyContext>();
 const debug = createDebug('bot:buyStars');
 
-// Handle the buy stars button click
+// 处理购买星星按钮点击
 export async function handleBuyStarsCommand(ctx: MyContext) {
   debug('buyStars');
 
@@ -20,13 +18,13 @@ export async function handleBuyStarsCommand(ctx: MyContext) {
 
   const keyboard = new InlineKeyboard();
 
-  // Add header text
+  // 添加头部说明
   keyboard
     .text('⭐50星星=1U', 'stars_info_50')
     .text('⭐100星星=2U', 'stars_info_100')
     .row();
 
-  // Create buttons for each star option
+  // 为每个星星选项创建按钮
   starOptions.forEach((row) => {
     row.forEach((amount) => {
       keyboard.text(`${amount}`, `buy_stars_${amount}`);
@@ -34,7 +32,7 @@ export async function handleBuyStarsCommand(ctx: MyContext) {
     keyboard.row();
   });
 
-  // Add back button
+  // 添加取消按钮
   keyboard.row().text('取消', 'close');
 
   await ctx.replyWithVideo(new InputFile('src/public/telegram_stars.mp4'), {
@@ -44,33 +42,9 @@ export async function handleBuyStarsCommand(ctx: MyContext) {
   });
 }
 
-// Handle the buy stars callback
-buyStarsCommand.callbackQuery(/^buy_stars_/, async (ctx) => {
-  const amount = parseInt(ctx.callbackQuery.data.replace('buy_stars_', ''));
-  await ctx.answerCallbackQuery();
+// 处理购买星星的回调
 
-  // Calculate price (50 stars = 1U)
-  const price = (amount / 50).toFixed(2);
-
-  try {
-    const message = await renderFile(
-      join(__dirname, '../../../../templates/buyStars.ejs'),
-      {
-        membershipName: `${amount}颗星星`,
-        price: parseFloat(price),
-      },
-    );
-
-    await ctx.reply(message, {
-      parse_mode: 'HTML',
-    });
-  } catch (error) {
-    debug('Error rendering buyStars template:', error);
-    await ctx.reply('抱歉，处理您的请求时出现错误。请稍后再试。');
-  }
-});
-
-// Handle the info callbacks
+// 处理星星价格说明的回调
 buyStarsCommand.callbackQuery(/^stars_info_/, async (ctx) => {
   await ctx.answerCallbackQuery({
     text: ctx.callbackQuery.data.includes('50')
@@ -80,15 +54,7 @@ buyStarsCommand.callbackQuery(/^stars_info_/, async (ctx) => {
   });
 });
 
-// Handle back button
-buyStarsCommand.callbackQuery('back_to_membership', async (ctx) => {
-  await ctx.answerCallbackQuery();
-  // Import and call the membership handler
-  const { handleMembershipCommand } = await import('./membership');
-  await handleMembershipCommand(ctx);
-});
-
-// Handle close button
+// 处理关闭按钮
 buyStarsCommand.callbackQuery('close', async (ctx) => {
   await ctx.answerCallbackQuery();
   await ctx.deleteMessage();

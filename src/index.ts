@@ -40,6 +40,7 @@ import premiumRoutes from './routes/premiumRoutes';
 import memberOrderRoutes from './routes/memberOrderRoutes';
 import integerRoutes from './routes/integerRoutes';
 import anynoumyRoutes from './routes/anynoumyRoutes';
+import tgStarsOrderRoutes from './routes/TgStarsOrderRoutes';
 
 dotenv.config();
 
@@ -93,6 +94,7 @@ app.use('/api/member-orders', memberOrderRoutes);
 app.use('/api/integers', integerRoutes);
 app.use('/api/anynoumies', anynoumyRoutes);
 
+app.use('/api/tg-stars-orders', tgStarsOrderRoutes);
 app.use('/api/static', express.static('tmp'));
 
 setupDB();

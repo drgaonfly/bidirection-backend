@@ -38,6 +38,7 @@ import botUserConfigRoutes from './routes/botUserConfigRoutes';
 import rentalRoutes from './routes/rentalRoutes';
 import premiumRoutes from './routes/premiumRoutes';
 import memberOrderRoutes from './routes/memberOrderRoutes';
+import tgStarsOrderRoutes from './routes/TgStarsOrderRoutes';
 
 dotenv.config();
 
@@ -88,6 +89,7 @@ app.use('/api/bot-user-configs', botUserConfigRoutes);
 app.use('/api/rentals', rentalRoutes);
 app.use('/api/premiums', premiumRoutes);
 app.use('/api/member-orders', memberOrderRoutes);
+app.use('/api/tg-stars-orders', tgStarsOrderRoutes);
 app.use('/api/static', express.static('tmp'));
 
 setupDB();

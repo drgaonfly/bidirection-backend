@@ -80,14 +80,6 @@ buyStarsCommand.callbackQuery(/^stars_info_/, async (ctx) => {
   });
 });
 
-// 处理返回会员菜单按钮
-buyStarsCommand.callbackQuery('back_to_membership', async (ctx) => {
-  await ctx.answerCallbackQuery();
-  // 动态导入并调用会员菜单处理函数
-  const { handleMembershipCommand } = await import('./membership');
-  await handleMembershipCommand(ctx);
-});
-
 // 处理关闭按钮
 buyStarsCommand.callbackQuery('close', async (ctx) => {
   await ctx.answerCallbackQuery();

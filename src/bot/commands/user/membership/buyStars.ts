@@ -2,7 +2,8 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import { InputFile } from 'grammy';
 import createDebug from 'debug';
-import { useBuyStars } from '../../../../utils/useEjsMessage';
+import { renderFile } from 'ejs';
+import { join } from 'path';
 
 const buyStarsCommand = new Composer<MyContext>();
 const debug = createDebug('bot:buyStars');
@@ -52,11 +53,13 @@ buyStarsCommand.callbackQuery(/^buy_stars_/, async (ctx) => {
   const price = (amount / 50).toFixed(2);
 
   try {
-    const renderBuyStars = useBuyStars();
-    const message = await renderBuyStars({
-      membershipName: `${amount}颗星星`,
-      price: parseFloat(price),
-    });
+    const message = await renderFile(
+      join(__dirname, '../../../../templates/buyStars.ejs'),
+      {
+        membershipName: `${amount}颗星星`,
+        price: parseFloat(price),
+      },
+    );
 
     await ctx.reply(message, {
       parse_mode: 'HTML',

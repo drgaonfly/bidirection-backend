@@ -74,10 +74,3 @@ export const useOrderHistory = () => {
     return await ejs.renderFile(templatePath, data);
   };
 };
-
-export const useBuyStars = () => {
-  return async (data: { membershipName: string; price: number }) => {
-    const templatePath = path.join(__dirname, '../templates/buyStars.ejs');
-    return await ejs.renderFile(templatePath, data);
-  };
-};

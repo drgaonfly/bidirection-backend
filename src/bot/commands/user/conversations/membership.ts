@@ -121,16 +121,17 @@ async function membershipConversation(
         '用户账号: @' + username,
         '用户昵称: ' + (user.first_name || username),
         `支付金额: ${MEMBERSHIP_PRICES[duration]} USDT`,
-        '收款地址: ' + bot.trx20_address,
+        '收款地址: <code>' + bot.trx20_address + '</code> (点击地址可自动复制)',
         '',
         '❗ 请务必按全额支付，全额带小数',
         '⚠️ 禁止使用交易所代付',
       ].join('\n'),
       {
-        reply_markup: new InlineKeyboard()
-          .text('📋 点击复制收款地址', bot.trx20_address)
-          .row()
-          .text('❌ 取消订单', `cancel_order_${generatedOrderNumber}`),
+        parse_mode: 'HTML',
+        reply_markup: new InlineKeyboard().text(
+          '❌ 取消订单',
+          `cancel_order_${generatedOrderNumber}`,
+        ),
       },
     );
 

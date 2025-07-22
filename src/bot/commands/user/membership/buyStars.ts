@@ -2,6 +2,7 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import { InputFile } from 'grammy';
 import createDebug from 'debug';
+import { useBuyStars } from '../../../../utils/useEjsMessage';
 
 const buyStarsCommand = new Composer<MyContext>();
 const debug = createDebug('bot:buyStars');
@@ -44,10 +45,26 @@ export async function handleBuyStarsCommand(ctx: MyContext) {
 
 // Handle the buy stars callback
 buyStarsCommand.callbackQuery(/^buy_stars_/, async (ctx) => {
-  const amount = ctx.callbackQuery.data.replace('buy_stars_', '');
+  const amount = parseInt(ctx.callbackQuery.data.replace('buy_stars_', ''));
   await ctx.answerCallbackQuery();
-  // Here you would implement the actual purchase logic
-  await ctx.reply(`您选择购买 ${amount} 颗星星，请联系客服完成购买。`);
+
+  // Calculate price (50 stars = 1U)
+  const price = (amount / 50).toFixed(2);
+
+  try {
+    const renderBuyStars = useBuyStars();
+    const message = await renderBuyStars({
+      membershipName: `${amount}颗星星`,
+      price: parseFloat(price),
+    });
+
+    await ctx.reply(message, {
+      parse_mode: 'HTML',
+    });
+  } catch (error) {
+    debug('Error rendering buyStars template:', error);
+    await ctx.reply('抱歉，处理您的请求时出现错误。请稍后再试。');
+  }
 });
 
 // Handle the info callbacks

@@ -8,6 +8,7 @@ interface ITgStarsOrder extends Document {
   amount: number;
   starsAmount: number;
   endDate: Date;
+  actualAmount: number;
   paymentAddress: string;
   createdAt: Date;
   updatedAt: Date;
@@ -28,6 +29,7 @@ const tgStarsOrderSchema = new Schema<ITgStarsOrder>(
       default: 'pending',
     }, // 订单状态
     amount: { type: Number, required: true }, // 支付金额
+    actualAmount: { type: Number, required: false }, // 实际收款金额
     starsAmount: { type: Number, required: true }, // 星星数量
     endDate: { type: Date, required: true }, // 订单结束时间
     paymentAddress: { type: String, required: true }, // 收款地址

@@ -33,7 +33,7 @@ export async function handleBuyStarsCommand(ctx: MyContext) {
   });
 
   // Add back button
-  keyboard.text('« 返回', 'back_to_membership');
+  keyboard.row().text('取消', 'close');
 
   await ctx.replyWithVideo(new InputFile('src/public/telegram_stars.mp4'), {
     caption: '请选择购买星星(Telegram Stars)的数量:',
@@ -66,6 +66,12 @@ buyStarsCommand.callbackQuery('back_to_membership', async (ctx) => {
   // Import and call the membership handler
   const { handleMembershipCommand } = await import('./membership');
   await handleMembershipCommand(ctx);
+});
+
+// Handle close button
+buyStarsCommand.callbackQuery('close', async (ctx) => {
+  await ctx.answerCallbackQuery();
+  await ctx.deleteMessage();
 });
 
 export default buyStarsCommand;

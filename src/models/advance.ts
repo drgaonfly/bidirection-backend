@@ -9,9 +9,10 @@ export interface IAdvance extends Document {
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   from_address: string;
   to_address: string;
-  amount: number; // 预支能量数
-  price: number; // 预支价格，单位trx
   tx_id: string; // 交易哈希
+  amount: number; // 转账金额
+  consumption_energy: number; // bot代发消费的能量数 (sun)
+  consumption_integer: number; // 用户消费的积分数
   status: string;
   crypto_type: 'usdt' | 'trx';
   expiredAt: Date; // 订单过期时间
@@ -47,7 +48,11 @@ const advanceSchema = new Schema<IAdvance>(
       type: String,
       required: true,
     },
-    price: {
+    consumption_energy: {
+      type: Number,
+      required: true,
+    },
+    consumption_integer: {
       type: Number,
       required: true,
     },

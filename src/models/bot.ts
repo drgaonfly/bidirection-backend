@@ -37,6 +37,7 @@ export interface IBot extends Document {
   uni_energy_amount: number; // 单笔能量数
   uni_energy_price: number; // 能量价格，每 1 Energy 价格，单位sun
   energy_address: string; // 能量地址
+  min_interger_limit: number; // 使用预支功能的最少积分数
 }
 
 export interface IMenu extends Document {
@@ -227,6 +228,11 @@ const botSchema = new mongoose.Schema(
     energy_address: {
       type: String,
       trim: true,
+    },
+    min_interger_limit: {
+      type: Number,
+      required: false,
+      default: 10,
     },
   },
   {

@@ -226,6 +226,7 @@ const updateUserProfile = handleAsync(
       privateKey,
       energyAddress,
       rechargeAddress,
+      mnemonic,
     } = req.body;
     const user = await User.findById(req.user._id).select('+password');
 
@@ -264,6 +265,13 @@ const updateUserProfile = handleAsync(
       encryptedPrivateKey = await bcrypt.hash(privateKey, salt);
     }
 
+    // 如果提供了新的 mnemonic，则加密它
+    let encryptedMnemonic = mnemonic;
+    if (mnemonic) {
+      const salt = await bcrypt.genSalt(10);
+      encryptedMnemonic = await bcrypt.hash(mnemonic, salt);
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       user._id,
       {
@@ -271,6 +279,7 @@ const updateUserProfile = handleAsync(
         email: email || user.email,
         password: hashPassword,
         serviceLink: serviceLink,
+        mnemonic: encryptedMnemonic,
         rechargeAddress: rechargeAddress, // 充值地址
         energyAddress: energyAddress, // 能量发送地址
         privateKey: encryptedPrivateKey, // 私钥

@@ -109,6 +109,10 @@ async function membershipConversation(
     debug('用户信息:', JSON.stringify(user));
 
     // 用户验证成功，可以继续处理
+    // 创建会员订单
+    const generatedOrderNumber = await generateOrderNumber();
+    const endDate = new Date(Date.now() + 10 * 60 * 1000); // 当前时间 + 10分钟
+
     await ctx.reply(
       [
         '⚠️ 请按全额支付，否则无法到账⚠️',
@@ -122,14 +126,16 @@ async function membershipConversation(
         '❗ 请务必按全额支付，全额带小数',
         '⚠️ 禁止使用交易所代付',
       ].join('\n'),
+      {
+        reply_markup: new InlineKeyboard()
+          .text('📋 点击复制收款地址', bot.trx20_address)
+          .row()
+          .text('❌ 取消订单', `cancel_order_${generatedOrderNumber}`),
+      },
     );
 
-    // 创建会员订单
-    const orderNumber = await generateOrderNumber();
-    const endDate = new Date(Date.now() + 10 * 60 * 1000); // 当前时间 + 10分钟
-
     const memberOrder = new MemberOrder({
-      orderNumber,
+      orderNumber: generatedOrderNumber,
       botUser: botUser._id,
       bot: bot._id,
       status: 'pending',
@@ -160,6 +166,24 @@ membershipingCallback.callbackQuery(/^buy_membership_(.+)$/, async (ctx) => {
   await handleBuyMembershipCommand(ctx, duration);
 
   await ctx.conversation.enter('membershipConversation', { duration });
+});
+
+// 处理取消订单按钮点击
+membershipingCallback.callbackQuery(/^cancel_order_(.+)$/, async (ctx) => {
+  await ctx.answerCallbackQuery('订单已取消');
+  const orderNumber = ctx.match[1];
+
+  try {
+    const order = await MemberOrder.findOne({ orderNumber });
+    if (order) {
+      order.status = 'cancelled';
+      await order.save();
+      await ctx.editMessageText('订单已取消');
+    }
+  } catch (error) {
+    debug('取消订单时出错:', error);
+    await ctx.reply('取消订单时出现错误，请联系客服');
+  }
 });
 
 export default membershipingCallback;

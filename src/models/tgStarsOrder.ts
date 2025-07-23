@@ -12,6 +12,7 @@ interface ITgStarsOrder extends Document {
   paymentAddress: string;
   createdAt: Date;
   updatedAt: Date;
+  hasPurchased: boolean;
 }
 
 const tgStarsOrderSchema = new Schema<ITgStarsOrder>(
@@ -33,6 +34,7 @@ const tgStarsOrderSchema = new Schema<ITgStarsOrder>(
     starsAmount: { type: Number, required: true }, // 星星数量
     endDate: { type: Date, required: true }, // 订单结束时间
     paymentAddress: { type: String, required: true }, // 收款地址
+    hasPurchased: { type: Boolean, default: false }, // 是否已购买星星
   },
   {
     timestamps: true,

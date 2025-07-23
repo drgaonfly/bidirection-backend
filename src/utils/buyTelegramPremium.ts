@@ -86,6 +86,8 @@ export async function buyTelegramPremium(orderId: string): Promise<boolean> {
         'c300b6f8d9748ef9ab80f804619e774ec300b6e2c300bbede6c71a5db76c515d2d388', // fragment 资源 cookie，从环境变量获取
     };
 
+    console.log('env: Go 脚本所需的参数', env);
+
     // 执行 Go 脚本购买 Telegram Premium
     console.log(
       `[buyTelegramPremium] 执行订单 ${order.orderNumber} 的 premium 购买`,

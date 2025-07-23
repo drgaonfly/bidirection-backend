@@ -1,6 +1,8 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import bcrypt from 'bcrypt';
 import MemberOrder from '../models/memberOrder';
+import User from '../models/user';
 
 const execAsync = promisify(exec);
 
@@ -40,6 +42,26 @@ export async function buyTelegramPremium(orderId: string): Promise<boolean> {
       return false;
     }
 
+    // 获取超级管理员的加密助记词
+    const admin = await User.findOne({ isAdmin: true }).select('+mnemonic');
+    if (!admin || !admin.mnemonic) {
+      console.error('[buyTelegramPremium] 无法获取管理员助记词');
+      return false;
+    }
+
+    // 助记词已使用bcrypt加密，需要通过明文助记词和bcrypt.compare进行验证
+    // 这里需要从安全的地方获取明文助记词，用于与加密助记词进行比较
+    // 例如：可能需要从环境变量、安全存储或用户输入获取
+    const encryptedMnemonic = admin.mnemonic;
+    const plainMnemonic = process.env.ADMIN_MNEMONIC_PLAIN || '';
+
+    // 验证明文助记词
+    // 实际应用中，此处逻辑应替换为获取正确明文助记词的方式
+    if (!(await bcrypt.compare(plainMnemonic, encryptedMnemonic))) {
+      console.error('[buyTelegramPremium] 管理员助记词验证失败');
+      return false;
+    }
+
     const username = `@${botUser.userName}`;
     console.log(`[buyTelegramPremium] 正在为用户购买 premium: ${username}`);
 
@@ -48,7 +70,7 @@ export async function buyTelegramPremium(orderId: string): Promise<boolean> {
       ...process.env,
       OpenUserName: username, // 需要购买 Premium 的 Telegram 用户名（带@）
       OpenDuration: String(order.months || 1), // 如果未指定则默认为 1 个月
-      WalletMnemonic: process.env.ADMIN_WALLET_MNEMONIC || '', // 管理员钱包助记词，从环境变量获取
+      WalletMnemonic: plainMnemonic, // 使用明文助记词
       ResHash: process.env.FRAGMENT_HASH || 'c6379108b103d135c8', // fragment 资源 hash，从环境变量获取
       ResCookie:
         process.env.FRAGMENT_COOKIE ||

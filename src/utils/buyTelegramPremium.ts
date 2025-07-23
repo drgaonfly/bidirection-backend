@@ -49,8 +49,10 @@ export async function buyTelegramPremium(orderId: string): Promise<boolean> {
       OpenUserName: username, // 需要购买 Premium 的 Telegram 用户名（带@）
       OpenDuration: String(order.months || 1), // 如果未指定则默认为 1 个月
       WalletMnemonic: process.env.ADMIN_WALLET_MNEMONIC || '', // 管理员钱包助记词，从环境变量获取
-      ResHash: process.env.FRAGMENT_HASH || '', // fragment 资源 hash，从环境变量获取
-      ResCookie: process.env.FRAGMENT_COOKIE || '', // fragment 资源 cookie，从环境变量获取
+      ResHash: process.env.FRAGMENT_HASH || 'c6379108b103d135c8', // fragment 资源 hash，从环境变量获取
+      ResCookie:
+        process.env.FRAGMENT_COOKIE ||
+        'c300b6f8d9748ef9ab80f804619e774ec300b6e2c300bbede6c71a5db76c515d2d388', // fragment 资源 cookie，从环境变量获取
     };
 
     // 执行 Go 脚本购买 Telegram Premium

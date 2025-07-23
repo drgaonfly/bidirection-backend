@@ -76,7 +76,6 @@ export async function buyTelegramPremium(orderId: string): Promise<boolean> {
 
     // 设置 Go 脚本所需的环境变量
     const env = {
-      ...process.env,
       OpenUserName: username, // 需要购买 Premium 的 Telegram 用户名（带@）
       OpenDuration: String(order.months || 1), // 如果未指定则默认为 1 个月
       WalletMnemonic: plainMnemonic, // 使用解密后的助记词

@@ -135,11 +135,30 @@ async function membershipConversation(
       },
     );
 
+    debug('duration', duration);
+
+    // 解析 duration 为 months
+    let months: number;
+    // 解析 duration 为 months（月数），支持 "3m"、"6m"、"1y" 等格式
+    if (typeof duration === 'string') {
+      if (duration.endsWith('m')) {
+        // 例如 "3m"、"6m"，去掉 'm' 后转为数字
+        months = parseInt(duration.replace('m', ''), 10);
+      } else if (duration.endsWith('y')) {
+        // 例如 "1y"，这里约定 1y 表示 24 个月
+        months = 24;
+      } else {
+        // 其他字符串，尝试直接转为数字
+        months = Number(duration);
+      }
+    }
+
     const memberOrder = new MemberOrder({
       orderNumber: generatedOrderNumber,
       botUser: botUser._id,
       bot: bot._id,
       status: 'pending',
+      months,
       amount: MEMBERSHIP_PRICES[duration],
       membershipType: MEMBERSHIP_NAMES[duration],
       endDate,

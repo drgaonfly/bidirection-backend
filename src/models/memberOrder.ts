@@ -10,6 +10,7 @@ export interface IMemberOrder extends Document {
   amount: number;
   actualAmount: number; // 实际收款金额
   membershipType: string;
+  months: number; // 开通月数
   endDate: Date;
   paymentAddress: string; // 收款地址
   hasPurchased: boolean; // 是否已购买会员
@@ -43,6 +44,7 @@ const memberOrderSchema = new Schema<IMemberOrder>(
     amount: { type: Number, required: true }, // 金额
     actualAmount: { type: Number, required: false }, // 实际收款金额
     membershipType: { type: String, required: true }, // 会员类型
+    months: { type: Number, required: false }, // 开通月数
     endDate: { type: Date, required: true }, // 结束日期
     paymentAddress: { type: String, required: true }, // 收款地址
     hasPurchased: { type: Boolean, default: false }, // 是否已购买会员

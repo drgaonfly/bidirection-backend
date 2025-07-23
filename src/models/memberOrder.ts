@@ -12,6 +12,7 @@ export interface IMemberOrder extends Document {
   membershipType: string;
   endDate: Date;
   paymentAddress: string; // 收款地址
+  hasPurchased: boolean; // 是否已购买会员
   createdAt: Date;
   updatedAt: Date;
 }
@@ -44,6 +45,7 @@ const memberOrderSchema = new Schema<IMemberOrder>(
     membershipType: { type: String, required: true }, // 会员类型
     endDate: { type: Date, required: true }, // 结束日期
     paymentAddress: { type: String, required: true }, // 收款地址
+    hasPurchased: { type: Boolean, default: false }, // 是否已购买会员
   },
   { timestamps: true },
 );

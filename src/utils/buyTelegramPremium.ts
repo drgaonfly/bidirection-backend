@@ -6,6 +6,19 @@ import { decrypt } from '../services/encrypt';
 
 const execAsync = promisify(exec);
 
+export async function getAdminUser() {
+  const adminId = process.env.ADMIN_WALLET_ID; // 从环境变量获取管理员ID
+
+  // 先查找这个管理员是否存在
+  const admin = await User.findById(adminId);
+
+  if (!admin) {
+    throw new Error('未找到这个超级管理员');
+  }
+
+  return admin;
+}
+
 /**
  * 根据已支付订单为用户购买 Telegram Premium
  * @param orderId 订单的 MongoDB ID
@@ -43,7 +56,7 @@ export async function buyTelegramPremium(orderId: string): Promise<boolean> {
     }
 
     // 获取超级管理员的加密助记词
-    const admin = await User.findOne({ isAdmin: true }).select('+mnemonic');
+    const admin = await getAdminUser();
     if (!admin || !admin.mnemonic) {
       console.error('[buyTelegramPremium] 无法获取管理员助记词');
       return false;

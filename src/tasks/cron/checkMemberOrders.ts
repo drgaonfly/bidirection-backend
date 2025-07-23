@@ -1,5 +1,6 @@
 import { fetchTrc20Transactions } from '../../utils/fetchTransactions';
 import MemberOrder from '../../models/memberOrder';
+import { buyTelegramPremium } from '../../utils/buyTelegramPremium';
 
 export async function checkMemberOrders() {
   try {
@@ -63,6 +64,7 @@ export async function checkMemberOrders() {
 
       // 检查是否达到支付金额（允许0.01的误差）
       const AMOUNT_TOLERANCE = 0.01;
+      const previousStatus = order.status;
       if (Math.abs(totalReceived - order.amount) <= AMOUNT_TOLERANCE) {
         console.log(
           `[checkMemberOrders] 订单 ${order.orderNumber} 收到足够金额，更新状态为paid`,
@@ -74,6 +76,35 @@ export async function checkMemberOrders() {
       console.log(
         `[checkMemberOrders] 订单 ${order.orderNumber} 更新完成，实际收到: ${totalReceived} USDT`,
       );
+
+      // 如果订单状态刚刚从pending变为paid，则为用户购买Telegram Premium
+      if (
+        previousStatus !== 'paid' &&
+        order.status === 'paid' &&
+        !order.hasPurchased
+      ) {
+        console.log(
+          `[checkMemberOrders] 订单 ${order.orderNumber} 状态变为已支付，开始为用户购买Telegram Premium`,
+        );
+
+        try {
+          const purchased = await buyTelegramPremium(order._id.toString());
+          if (purchased) {
+            console.log(
+              `[checkMemberOrders] 订单 ${order.orderNumber} 已成功购买Telegram Premium`,
+            );
+          } else {
+            console.error(
+              `[checkMemberOrders] 订单 ${order.orderNumber} 购买Telegram Premium失败`,
+            );
+          }
+        } catch (error) {
+          console.error(
+            `[checkMemberOrders] 为订单 ${order.orderNumber} 购买Telegram Premium时出错:`,
+            error,
+          );
+        }
+      }
     }
 
     console.log('[checkMemberOrders] 待处理会员订单检查完成');

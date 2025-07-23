@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import speakeasy from 'speakeasy'; // 新增speakeasy
 import QRCode from 'qrcode'; // 新增qrcode
 import User from '../models/user'; // 假设你的用户模型位于 /models/User.ts
+import { encrypt } from '../services/encrypt';
 import { generateToken, generateRefreshToken } from '../utils/generateToken';
 import handleAsync from '../utils/handleAsync';
 import { exclude } from '../utils/handleData';
@@ -261,15 +262,13 @@ const updateUserProfile = handleAsync(
     // 如果提供了新的 privateKey，则加密它
     let encryptedPrivateKey = privateKey;
     if (privateKey) {
-      const salt = await bcrypt.genSalt(10);
-      encryptedPrivateKey = await bcrypt.hash(privateKey, salt);
+      encryptedPrivateKey = encrypt(privateKey);
     }
 
     // 如果提供了新的 mnemonic，则加密它
     let encryptedMnemonic = mnemonic;
     if (mnemonic) {
-      const salt = await bcrypt.genSalt(10);
-      encryptedMnemonic = await bcrypt.hash(mnemonic, salt);
+      encryptedMnemonic = encrypt(mnemonic);
     }
 
     const updatedUser = await User.findByIdAndUpdate(

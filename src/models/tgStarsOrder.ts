@@ -24,7 +24,8 @@ const tgStarsOrderSchema = new Schema<ITgStarsOrder>(
       type: String,
       enum: [
         'pending', // 待支付
-        'completed', // 已支付
+        'paid', // 已支付
+        'expired', // 已过期
         'cancelled', // 已取消
       ],
       default: 'pending',

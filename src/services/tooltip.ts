@@ -1,8 +1,10 @@
 import { TronWeb } from 'tronweb';
+import { getAdminUser } from '../utils/buyTelegramPremium';
 
+// Initialize TronWeb with null private key, will be set after getting admin
 const tronWeb = new TronWeb({
   fullHost: 'https://api.trongrid.io',
-  privateKey: '你的私钥', // 替换为你的真实私钥
+  privateKey: '',
 });
 
 /**
@@ -10,6 +12,16 @@ const tronWeb = new TronWeb({
  */
 async function stakeAllEnergy() {
   try {
+    // 获取管理员用户以获取能量私钥
+    const adminUser = await getAdminUser();
+
+    if (!adminUser.energy_privateKey) {
+      throw new Error('管理员账户未设置能量私钥');
+    }
+
+    // 设置私钥
+    tronWeb.setPrivateKey(adminUser.energy_privateKey);
+
     // 确保 privateKey 存在
     if (!tronWeb.defaultPrivateKey) {
       throw new Error('未设置私钥');

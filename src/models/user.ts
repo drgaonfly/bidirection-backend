@@ -22,6 +22,8 @@ export interface IUser extends Document {
   temp2FASecret?: string; // 临时存储的TOTP密钥（用于激活过程）
   twoFABackupCodes?: string[]; // 备用代码（可选增强）
 
+  trx_balance: number; // TRX 余额
+
   passwordChangedAt: Date;
   lastLoginAt: Date; // 最新登录时间
   lastLoginIp: string; // 最新登录IP
@@ -67,6 +69,8 @@ const userSchema = new mongoose.Schema(
       select: false,
       default: null,
     },
+
+    trx_balance: { type: Number, default: 0 }, // TRX 余额
     twoFABackupCodes: [
       {
         type: String,

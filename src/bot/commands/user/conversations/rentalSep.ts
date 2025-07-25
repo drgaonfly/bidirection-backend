@@ -5,7 +5,7 @@ import Rental from '../../../../models/rental';
 import { generateOrderNumber } from '../../../../utils/generateOrderNumber';
 import { IBot } from '../../../../models/bot';
 import { IBotUser } from '../../../../models/botUser';
-import { getExchangeRate } from '../../../../utils/getExchange';
+// import { getExchangeRate } from '../../../../utils/getExchange';
 // import { getAccountBalances } from '../../../../utils/fetchTransactions'
 import createDebug from 'debug';
 
@@ -19,21 +19,14 @@ const TRX_ADDRESS_REGEX = /^T[A-Za-z1-9]{33}$/;
 
 // 渲染订单确认信息
 async function renderOrderInfo(ctx: MyContext, rental, bot: IBot) {
-  const exchangeRate = await getExchangeRate('TRX', 'USDT');
-
-  const isUSDT = rental.crypto_type === 'usdt';
-  const unit = isUSDT ? 'usdt' : 'trx';
+  const unit = 'trx';
 
   const unitPriceTRX =
     (Number(bot.uni_energy_price) / 1_000_000) * Number(bot.uni_energy_amount);
   const totalPriceTRX = unitPriceTRX * rental.separation;
 
-  const unitPrice = isUSDT
-    ? (unitPriceTRX * exchangeRate).toFixed(6)
-    : unitPriceTRX.toFixed(6);
-  const totalPrice = isUSDT
-    ? (totalPriceTRX * exchangeRate).toFixed(6)
-    : totalPriceTRX.toFixed(6);
+  const unitPrice = unitPriceTRX.toFixed(6);
+  const totalPrice = totalPriceTRX.toFixed(6);
 
   rental.price = totalPrice;
 
@@ -48,30 +41,21 @@ async function renderOrderInfo(ctx: MyContext, rental, bot: IBot) {
     `接收地址: <code>${rental.to_address}</code>`,
   ].join('\n');
 
-  const switchBtn: [string, string] = isUSDT
-    ? ['切换TRX', `turn_to_trx_${rental.id}`]
-    : ['切换USDT', `turn_to_usdt_${rental.id}`];
-
   const msgId = rentalMessageMap.get(rental.id);
   if (!msgId) {
     return ctx.reply(info, {
       parse_mode: 'HTML',
       reply_markup: new InlineKeyboard()
-        .text(...switchBtn)
         .text('余额支付', `balance_rental_${rental.id}`)
-        .text(isUSDT ? 'USDT支付' : 'Trx支付', `confirm_rental_${rental.id}`),
+        .text('Trx支付', `confirm_rental_${rental.id}`),
     });
   }
 
   await ctx.api.editMessageText(ctx.chat!.id, msgId, info, {
     parse_mode: 'HTML',
     reply_markup: new InlineKeyboard()
-      .text(...switchBtn)
-      .text(
-        '余额支付',
-        `balance_rental_${rental.id}_${isUSDT ? 'usdt' : 'trx'}`,
-      )
-      .text(isUSDT ? 'USDT支付' : 'Trx支付', `confirm_rental_${rental.id}`),
+      .text('余额支付', `balance_rental_${rental.id}_trx`)
+      .text('Trx支付', `confirm_rental_${rental.id}`),
   });
 }
 
@@ -164,32 +148,6 @@ rentalSepCallback.callbackQuery(/^rental_sep_(\d+)$/, async (ctx) => {
     botUser: ctx.currentBotUser,
   });
 
-  await ctx.answerCallbackQuery();
-});
-
-// 切换为 USDT
-rentalSepCallback.callbackQuery(/^turn_to_usdt_(.+)$/, async (ctx) => {
-  const rentalId = ctx.match[1];
-  const rental = await Rental.findOne({ id: rentalId });
-  if (!rental)
-    return ctx.answerCallbackQuery({ text: '订单不存在', show_alert: true });
-
-  rental.crypto_type = 'usdt';
-  await rental.save();
-  await renderOrderInfo(ctx, rental, ctx.currentBot);
-  await ctx.answerCallbackQuery();
-});
-
-// 切换为 TRX
-rentalSepCallback.callbackQuery(/^turn_to_trx_(.+)$/, async (ctx) => {
-  const rentalId = ctx.match[1];
-  const rental = await Rental.findOne({ id: rentalId });
-  if (!rental)
-    return ctx.answerCallbackQuery({ text: '订单不存在', show_alert: true });
-
-  rental.crypto_type = 'trx';
-  await rental.save();
-  await renderOrderInfo(ctx, rental, ctx.currentBot);
   await ctx.answerCallbackQuery();
 });
 

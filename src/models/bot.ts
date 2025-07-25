@@ -107,7 +107,6 @@ const botSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
-    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
     // start 消息
     message: {
       type: String,

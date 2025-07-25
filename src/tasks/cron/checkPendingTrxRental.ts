@@ -22,6 +22,7 @@ const tronWeb = new TronWeb({
 /**
  * 检查所有 pending 的充值订单，只有当 bot.energy_address 收到正确金额，才为用户充值
  */
+
 export async function checkPendingTrxRental() {
   try {
     console.log('[checkPendingRental] 开始检查所有待处理的充值订单...');

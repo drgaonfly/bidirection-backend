@@ -224,8 +224,7 @@ const updateUserProfile = handleAsync(
       currentPassword,
       confirmPassword,
       serviceLink,
-      privateKey,
-      energyAddress,
+      energy_privateKey,
       rechargeAddress,
       mnemonic,
     } = req.body;
@@ -260,9 +259,9 @@ const updateUserProfile = handleAsync(
     }
 
     // 如果提供了新的 privateKey，则加密它
-    let encryptedPrivateKey = privateKey;
-    if (privateKey) {
-      encryptedPrivateKey = encrypt(privateKey);
+    let encryptedPrivateKey = energy_privateKey;
+    if (energy_privateKey) {
+      encryptedPrivateKey = encrypt(energy_privateKey);
     }
 
     // 如果提供了新的 mnemonic，则加密它
@@ -280,8 +279,7 @@ const updateUserProfile = handleAsync(
         serviceLink: serviceLink,
         mnemonic: encryptedMnemonic,
         rechargeAddress: rechargeAddress, // 充值地址
-        energyAddress: energyAddress, // 能量发送地址
-        privateKey: encryptedPrivateKey, // 私钥
+        energy_privateKey: encryptedPrivateKey, // 私钥
       },
       { new: true },
     );

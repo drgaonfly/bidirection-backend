@@ -1,6 +1,7 @@
 import { TronWeb } from 'tronweb';
 import { getExchangeRate } from './getExchange';
 import axios from 'axios';
+import { getAdminUser } from './buyTelegramPremium';
 
 const API_KEYS = [
   'cfb0c541-ae6c-4a66-a6d8-3c82e3a5be81',
@@ -138,12 +139,13 @@ async function rentEnergy(
   amount: number,
   cryptoType: 'trx' | 'usdt',
 ): Promise<any> {
-  const key = getNextApiKey();
+  // Get admin user and use their energy_privateKey
+  const admin = await getAdminUser();
 
   // 初始化 TronWeb
   const tronWeb = new TronWeb({
     fullHost: 'https://api.trongrid.io',
-    privateKey: key,
+    privateKey: admin.energy_privateKey,
   });
 
   const USDT_TO_TRX_RATIO = 1 / (await getExchangeRate('TRX', 'USDT'));

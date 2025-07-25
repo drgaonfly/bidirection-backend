@@ -11,6 +11,7 @@ export interface IUser extends Document {
   inviteCode: string;
 
   proxy: mongoose.Schema.Types.ObjectId | IUser;
+  creator: mongoose.Schema.Types.ObjectId | IUser;
 
   energyReceiveAddress?: string; // 收能量地址
   rechargeAddress?: string; // 充值地址
@@ -46,6 +47,13 @@ const userSchema = new mongoose.Schema(
 
     //创建者
     creator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
+    },
+
+    //代理
+    proxy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: false,

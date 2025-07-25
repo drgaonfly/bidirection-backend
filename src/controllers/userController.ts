@@ -100,6 +100,7 @@ export const getUsers = handleAsync(
 
     const users = await User.find(query)
       .populate('proxy')
+      .populate('creator')
       .populate('roles')
       .sort('-createdAt') // 按创建时间降序排序
       .limit(+pageSize)

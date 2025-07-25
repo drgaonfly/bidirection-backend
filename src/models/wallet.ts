@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { IBot } from './bot';
 import { IBotUser } from './botUser';
+import { IUser } from './user';
 
 export interface IWallet extends Document {
   botUser: mongoose.Schema.Types.ObjectId | IBotUser; // 关联的 BotUser
@@ -13,6 +14,7 @@ export interface IWallet extends Document {
   remark: string;
   createdAt: Date;
   updatedAt: Date;
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 const walletSchema = new Schema<IWallet>(
@@ -25,6 +27,8 @@ const walletSchema = new Schema<IWallet>(
     trx_balance: { type: Number, default: 0 },
     isOnline: { type: Boolean, default: true },
     remark: { type: String, trim: true },
+
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   { timestamps: true },
 );

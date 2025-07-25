@@ -3,6 +3,7 @@ import mongoose, { Document } from 'mongoose';
 import { IBotUser } from './botUser';
 import { IPayment } from './payment';
 import { IBot } from './bot';
+import { IUser } from './user';
 
 export interface RenewalOption {
   days: number;
@@ -52,6 +53,7 @@ export interface ISubscription extends Document {
   payment: mongoose.Types.ObjectId | IPayment;
   isRenewal?: boolean; // 是否续费类型
   preExpirationNotified?: boolean; // 是否已发送过期提醒
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 const subscriptionSchema = new mongoose.Schema(
@@ -91,6 +93,8 @@ const subscriptionSchema = new mongoose.Schema(
     },
     isRenewal: { type: Boolean, default: false }, // 是否续费类型，默认 false
     preExpirationNotified: { type: Boolean, default: false }, // 是否已发送过期提醒，默认 false
+
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   { timestamps: true },
 );

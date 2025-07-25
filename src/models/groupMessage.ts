@@ -1,6 +1,7 @@
 import mongoose, { Document } from 'mongoose';
 import { IBot } from './bot';
 import { IGroup } from './group';
+import { IUser } from './user';
 
 // 只存客户发给机器人的消息（toBot），不存机器人发给客户的消息（fromBot）
 export interface IGroupMessage extends Document {
@@ -12,6 +13,7 @@ export interface IGroupMessage extends Document {
   isRealtime: boolean; // 是否实时
   createdAt: Date; // 创建时间
   updatedAt: Date; // 更新时间
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 const groupMessageSchema = new mongoose.Schema(
@@ -38,6 +40,8 @@ const groupMessageSchema = new mongoose.Schema(
       type: Boolean,
       required: false,
     },
+
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   {
     timestamps: true,

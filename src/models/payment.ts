@@ -2,6 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 import { IBotUser } from './botUser';
 import { IBot } from './bot';
 import { ISubscription } from './subscription';
+import { IUser } from './user';
 
 export const chargeOptions = [
   { amount: 100, label: '100 USDT', callback: 'charge_100:usdt' },
@@ -44,6 +45,7 @@ export interface IPayment extends Document {
   tgChatId?: number; // 新增：Telegram Chat ID
   tgMessageId?: number; // 新增：Telegram Message ID
   crypto_type: string; // 新增：加密货币类型
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 const subscriptionInfoSchema = new Schema(
@@ -105,6 +107,8 @@ const paymentSchema = new Schema<IPayment>(
     tgChatId: { type: Number, required: false }, // 新增：Telegram Chat ID
     tgMessageId: { type: Number, required: false }, // 新增：Telegram Message ID
     crypto_type: { type: String, required: false, enum: ['usdt', 'trx'] }, // 新增：加密货币类型
+
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   { timestamps: true },
 );

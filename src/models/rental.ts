@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { IBot } from './bot';
 import { IBotUser } from './botUser';
+import { IUser } from './user';
 
 export const Options = [
   { separation: 5, label: '5笔', callback: 'rental_sep_5' },
@@ -30,6 +31,7 @@ export interface IRental extends Document {
   limit_hour: number;
   transactionAt: Date;
   actual_price: number;
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 const rentalSchema = new Schema<IRental>(
@@ -115,6 +117,8 @@ const rentalSchema = new Schema<IRental>(
     actual_price: {
       type: Number,
     },
+
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   {
     timestamps: true,

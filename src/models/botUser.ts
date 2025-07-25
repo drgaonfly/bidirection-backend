@@ -2,6 +2,7 @@ import mongoose, { Document } from 'mongoose';
 import { IBotUserMessage } from './botUserMessage';
 import { ITransaction } from './transaction';
 import { ISubscription } from './subscription';
+import { IUser } from './user';
 
 export interface IBotUser extends Document {
   id: string;
@@ -15,6 +16,7 @@ export interface IBotUser extends Document {
   subscriptions: ISubscription[]; // 虚拟字段，指向 Subscription 模型的 _id 数组
   isAuthorized: boolean; // 用户是否已授权
   displayName?: string; // 虚拟属性
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 const botUserSchema = new mongoose.Schema(
@@ -25,6 +27,7 @@ const botUserSchema = new mongoose.Schema(
     lastName: { type: String, required: false },
     messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BotUserMessage' }],
     isAuthorized: { type: Boolean, default: false }, // 默认未授权
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   {
     timestamps: true,

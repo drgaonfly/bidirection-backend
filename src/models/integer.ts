@@ -1,6 +1,7 @@
 import mongoose, { Document } from 'mongoose';
 import { IBotUser } from './botUser';
 import { IBot } from './bot';
+import { IUser } from './user';
 
 export interface IInteger extends Document {
   id: string;
@@ -8,6 +9,8 @@ export interface IInteger extends Document {
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   amount: number;
   approach: string;
+
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 const integerSchema = new mongoose.Schema(
@@ -25,6 +28,8 @@ const integerSchema = new mongoose.Schema(
       required: true,
       enum: ['invitation', 'recharge'],
     },
+
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   { timestamps: true },
 );

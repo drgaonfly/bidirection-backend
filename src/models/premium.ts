@@ -1,6 +1,7 @@
 import mongoose, { Document } from 'mongoose';
 import { IBotUser } from './botUser';
 import { IBot } from './bot';
+import { IUser } from './user';
 
 export interface IPremium extends Document {
   id: string;
@@ -13,6 +14,7 @@ export interface IPremium extends Document {
   tx_id: string;
   expiredAt: Date;
   transactionAt: Date;
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 const premiumSchema = new mongoose.Schema(
@@ -31,6 +33,8 @@ const premiumSchema = new mongoose.Schema(
     tx_id: { type: String, required: false },
     expiredAt: { type: Date, required: true },
     transactionAt: { type: Date, required: false },
+
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   { timestamps: true },
 );

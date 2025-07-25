@@ -2,6 +2,7 @@ import mongoose, { Document } from 'mongoose';
 import { IBot } from './bot';
 import { IGroup } from './group';
 import { IBotUser } from './botUser';
+import { IUser } from './user';
 
 export interface ITransaction extends Document {
   id: string;
@@ -15,6 +16,7 @@ export interface ITransaction extends Document {
   usdt_amount: number;
   createdAt: Date;
   updatedAt: Date;
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 const transactionSchema = new mongoose.Schema(
@@ -37,6 +39,8 @@ const transactionSchema = new mongoose.Schema(
     fee_rate: { type: Number, required: true },
     type: { type: String, required: true, enum: ['deposit', 'withdraw'] },
     usdt_amount: { type: Number },
+
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   { timestamps: true },
 );

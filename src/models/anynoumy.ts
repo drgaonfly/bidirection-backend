@@ -1,6 +1,7 @@
 import mongoose, { Document } from 'mongoose';
 import { IBotUser } from './botUser';
 import { IBot } from './bot';
+import { IUser } from './user';
 
 export interface IAnynoumy extends Document {
   id: string;
@@ -19,6 +20,7 @@ export interface IAnynoumy extends Document {
   endAt: Date; // 租赁结束时间
   expiredAt: Date; // 订单过期时间
   transactionAt: Date;
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 const anynoumySchema = new mongoose.Schema(
@@ -94,6 +96,8 @@ const anynoumySchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
+
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   {
     timestamps: true,

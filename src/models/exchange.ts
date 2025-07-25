@@ -1,6 +1,7 @@
 import mongoose, { Document } from 'mongoose';
 import { IBot } from './bot';
 import { IBotUser } from './botUser';
+import { IUser } from './user';
 
 // 交易接口定义
 export interface IExchange extends Document {
@@ -21,6 +22,8 @@ export interface IExchange extends Document {
   updatedAt: Date;
   expiredAt: Date;
   txid: string; // 兑换哈希
+
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 // 交易 Schema
@@ -90,6 +93,8 @@ const exchangeSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   {
     timestamps: true,

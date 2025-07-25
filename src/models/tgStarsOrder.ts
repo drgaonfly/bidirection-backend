@@ -1,4 +1,5 @@
-import { Schema, model, Document } from 'mongoose';
+import mongoose, { Schema, model, Document } from 'mongoose';
+import { IUser } from './user';
 
 interface ITgStarsOrder extends Document {
   orderNumber: string;
@@ -13,6 +14,7 @@ interface ITgStarsOrder extends Document {
   createdAt: Date;
   updatedAt: Date;
   hasPurchased: boolean;
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 const tgStarsOrderSchema = new Schema<ITgStarsOrder>(
@@ -36,6 +38,8 @@ const tgStarsOrderSchema = new Schema<ITgStarsOrder>(
     endDate: { type: Date, required: true }, // 订单结束时间
     paymentAddress: { type: String, required: true }, // 收款地址
     hasPurchased: { type: Boolean, default: false }, // 是否已购买星星
+
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   {
     timestamps: true,

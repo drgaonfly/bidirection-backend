@@ -2,6 +2,7 @@ import mongoose, { Document } from 'mongoose';
 import { IBotUser } from './botUser';
 import { IBot } from './bot';
 import { IGroup } from './group';
+import { IUser } from './user';
 
 // 消息类型q1
 export enum MessageType {
@@ -31,6 +32,7 @@ export interface IBotMessage extends Document {
   raw?: any; // 原始消息体，可选
   group?: mongoose.Schema.Types.ObjectId | IGroup; // 关联的群（如果是群消息）
   // direction 字段移除，始终为 toBot
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 const botMessageSchema = new mongoose.Schema(
@@ -63,6 +65,8 @@ const botMessageSchema = new mongoose.Schema(
       ref: 'Group',
       required: false,
     },
+
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
     // 不再存 direction 字段
   },
   {

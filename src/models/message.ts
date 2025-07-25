@@ -1,5 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 import { MessageType } from './botMessage';
+import { IUser } from './user';
 
 // 消息接口定义
 export interface IMessage extends Document {
@@ -18,6 +19,7 @@ export interface IMessage extends Document {
   content: string; // 消息内容
   raw?: any; // 原始消息体，可选
   botName?: string; // 新增 botName 字段
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 // 消息 Schema
@@ -57,6 +59,7 @@ const messageSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   {
     timestamps: true,

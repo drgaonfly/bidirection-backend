@@ -2,6 +2,7 @@ import mongoose, { Document } from 'mongoose';
 import { IWallet } from './wallet';
 import { IBot } from './bot';
 import { IBotUser } from './botUser';
+import { IUser } from './user';
 
 // 收据接口定义
 export interface IReceipt extends Document {
@@ -18,6 +19,7 @@ export interface IReceipt extends Document {
   crypto_type: string;
   createdAt: Date;
   updatedAt: Date;
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 // 收据 Schema
@@ -72,6 +74,8 @@ const receiptSchema = new mongoose.Schema(
       type: String,
       enum: ['usdt', 'trx'],
     },
+
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   {
     timestamps: true,

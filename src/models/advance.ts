@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { IBot } from './bot';
 import { IBotUser } from './botUser';
+import { IUser } from './user';
 
 // 预支（Advance）接口定义
 export interface IAdvance extends Document {
@@ -17,6 +18,7 @@ export interface IAdvance extends Document {
   crypto_type: 'usdt' | 'trx';
   expiredAt: Date; // 订单过期时间
   transactionAt: Date;
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 const advanceSchema = new Schema<IAdvance>(
@@ -78,6 +80,8 @@ const advanceSchema = new Schema<IAdvance>(
     transactionAt: {
       type: Date,
     },
+
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   {
     timestamps: true,

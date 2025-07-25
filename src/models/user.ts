@@ -43,7 +43,9 @@ const userSchema = new mongoose.Schema(
     isOnline: { type: Boolean, default: false },
     roles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Role' }],
     inviteCode: { type: String, required: true, unique: true },
-    proxy: {
+
+    //创建者
+    creator: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: false,

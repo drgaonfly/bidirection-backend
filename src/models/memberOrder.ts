@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { IBotUser } from './botUser';
 import { IBot } from './bot';
+import { IUser } from './user';
 
 export interface IMemberOrder extends Document {
   orderNumber: string;
@@ -16,6 +17,7 @@ export interface IMemberOrder extends Document {
   hasPurchased: boolean; // 是否已购买会员
   createdAt: Date;
   updatedAt: Date;
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 const memberOrderSchema = new Schema<IMemberOrder>(
@@ -48,6 +50,8 @@ const memberOrderSchema = new Schema<IMemberOrder>(
     endDate: { type: Date, required: true }, // 结束日期
     paymentAddress: { type: String, required: true }, // 收款地址
     hasPurchased: { type: Boolean, default: false }, // 是否已购买会员
+
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   { timestamps: true },
 );

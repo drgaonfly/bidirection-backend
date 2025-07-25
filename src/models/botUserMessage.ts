@@ -1,12 +1,14 @@
 import mongoose, { Document } from 'mongoose';
 import { IBot } from './bot';
 import { IBotUser } from './botUser';
+import { IUser } from './user';
 
 export interface IBotUserMessage extends Document {
   content: string;
   type: 'sent' | 'received' | 'error';
   bot: mongoose.Schema.Types.ObjectId | IBot;
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
+  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 const botUserMessageSchema = new mongoose.Schema(
@@ -28,6 +30,8 @@ const botUserMessageSchema = new mongoose.Schema(
       ref: 'BotUser',
       required: true,
     },
+
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   { timestamps: true },
 );

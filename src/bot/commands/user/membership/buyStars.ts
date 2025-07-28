@@ -1,6 +1,5 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
-import path from 'path';
 import { InputFile } from 'grammy';
 import createDebug from 'debug';
 
@@ -38,10 +37,9 @@ export async function handleBuyStarsCommand(ctx: MyContext) {
 
   const isDev = process.env.NODE_ENV === 'development' ? true : false;
 
-  const videoPath = path.resolve(
-    __dirname,
-    isDev ? '/src/public/telegram_stars.mp4' : 'dist/public/telegram_stars.mp4',
-  );
+  const videoPath = isDev
+    ? 'src/public/telegram_stars.mp4'
+    : 'dist/public/telegram_stars.mp4';
 
   await ctx.replyWithVideo(new InputFile(videoPath), {
     caption: '请选择购买星星(Telegram Stars)的数量:',

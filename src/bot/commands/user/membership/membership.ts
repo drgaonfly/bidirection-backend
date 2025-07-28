@@ -2,7 +2,6 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import { InputFile } from 'grammy';
 import { handleBuyStarsCommand } from './buyStars';
-import path from 'path';
 import createDebug from 'debug';
 
 import { checkPermission } from '../../../middlewares/checkPermission';
@@ -29,10 +28,9 @@ export async function handleMembershipCommand(ctx: MyContext) {
 
   const isDev = process.env.NODE_ENV === 'development' ? true : false;
 
-  const videoPath = path.resolve(
-    __dirname,
-    isDev ? '/src/public/telegram_stars.mp4' : 'dist/public/telegram_stars.mp4',
-  );
+  const videoPath = isDev
+    ? 'src/public/telegram_stars.mp4'
+    : 'dist/public/telegram_stars.mp4';
 
   ctx.replyWithVideo(new InputFile(videoPath), {
     caption: '请选择开通、购买 Telegram 产品:',

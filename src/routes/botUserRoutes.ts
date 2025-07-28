@@ -6,12 +6,16 @@ import {
   updatebotUser,
   deletebotUser,
   deleteMultiplebotUsers,
+  generateBoundProxy,
 } from '../controllers/botUserController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
 // 批量路由处理
+router
+  .route('/:id/generate-bound-proxy')
+  .put(protect, checkPermission, generateBoundProxy);
 
 router
   .route('/')

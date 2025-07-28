@@ -140,10 +140,11 @@ async function getGeoAddress(
  * 获取随机用户信息
  * @returns 返回用户名和电话信息
  */
-async function getRandomUser(): Promise<{
+export async function getRandomUser(): Promise<{
   firstName: string;
   lastName: string;
   phone: string;
+  password: string;
 }> {
   try {
     const response = await axios.get<RandomUserResponse>(
@@ -159,10 +160,14 @@ async function getRandomUser(): Promise<{
     const { first, last } = response.data.results[0].name;
     const { phone } = response.data.results[0];
 
+    // 随机密码
+    const password = Math.random().toString(36).substring(2, 8);
+
     return {
       firstName: first,
       lastName: last,
-      phone: phone,
+      phone,
+      password,
     };
   } catch (error) {
     console.error('获取随机用户信息失败:', error);

@@ -128,13 +128,6 @@ const getBots = handleAsync(async (req: RequestCustom, res: Response) => {
     .lean()
     .exec();
 
-  // const botsWithPrivateKey = bots.map((bot) => {
-  //   return {
-  //     ...bot,
-  //     private_key: bot.private_key ? decrypt(bot.private_key) : null,
-  //   };
-  // });
-
   const total = await Bot.countDocuments(query).exec();
 
   res.json({
@@ -182,6 +175,7 @@ const addBot = handleAsync(async (req: RequestCustom, res: Response) => {
   const botManager = new Bot({
     ...req.body,
     user: req.user._id,
+    isCreatedByAdmin: req.user.isAdmin,
   });
 
   if (isOnline) {

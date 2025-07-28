@@ -3,6 +3,7 @@ import { IBotUserMessage } from './botUserMessage';
 import { ITransaction } from './transaction';
 import { ISubscription } from './subscription';
 import { IUser } from './user';
+import { IBot } from './bot';
 
 export interface IBotUser extends Document {
   id: string;
@@ -10,13 +11,15 @@ export interface IBotUser extends Document {
   firstName: string;
   lastName: string;
   messages: mongoose.Types.ObjectId[] | IBotUserMessage[];
-  createdAt: Date;
-  updatedAt: Date;
   transactions: ITransaction[]; // 虚拟字段，指向 Transaction 模型的 _id 数组
   subscriptions: ISubscription[]; // 虚拟字段，指向 Subscription 模型的 _id 数组
   isAuthorized: boolean; // 用户是否已授权
   displayName?: string; // 虚拟属性
+  bound_proxy: mongoose.Types.ObjectId | IUser;
   proxy: mongoose.Types.ObjectId | IUser;
+  bots: mongoose.Types.ObjectId[] | IBot[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const botUserSchema = new mongoose.Schema(
@@ -27,8 +30,9 @@ const botUserSchema = new mongoose.Schema(
     lastName: { type: String, required: false },
     messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BotUserMessage' }],
     isAuthorized: { type: Boolean, default: false }, // 默认未授权
-    bingProxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 绑定的代理
+    bound_proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 绑定的代理
     proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理归属
+    bots: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Bot' }], // 用户绑定的机器人
   },
   {
     timestamps: true,

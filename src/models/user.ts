@@ -36,7 +36,7 @@ export interface IUser extends Document {
 const userSchema = new mongoose.Schema(
   {
     id: { type: String, required: true, unique: true },
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: false, unique: true },
     password: { type: String, required: true, select: false },
     name: { type: String, required: false },
     live: { type: Boolean, default: true },
@@ -93,6 +93,9 @@ const userSchema = new mongoose.Schema(
     lastLoginIp: { type: String },
 
     lastOnline: { type: Date },
+
+    energy_address: { type: String, required: false }, // TRX20 地址
+    energy_address_privateKey: { type: String, required: false, select: false }, // TRX20 地址私钥
   },
   { timestamps: true },
 );

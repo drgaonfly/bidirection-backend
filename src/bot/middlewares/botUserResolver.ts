@@ -32,6 +32,12 @@ const botUserResolver: Middleware<MyContext> = async (ctx, next) => {
     },
   });
 
+  await botUser.updateOne({
+    $addToSet: {
+      bots: ctx.currentBot._id,
+    },
+  });
+
   ctx.currentBotUser = botUser;
 
   await next();

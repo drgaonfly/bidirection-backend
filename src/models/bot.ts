@@ -38,6 +38,7 @@ export interface IBot extends Document {
   uni_energy_price: number; // 能量价格，每 1 Energy 价格，单位sun
   energy_address: string; // 能量地址
   min_interger_limit: number; // 使用预支功能的最少积分数
+  isCreatedByAdmin?: boolean; // 是否由管理员创建，由管理创建的机器人就是平台机器人
 }
 
 export interface IMenu extends Document {
@@ -233,6 +234,10 @@ const botSchema = new mongoose.Schema(
       type: Number,
       required: false,
       default: 10,
+    },
+    isCreatedByAdmin: {
+      type: Boolean,
+      default: false,
     },
   },
   {

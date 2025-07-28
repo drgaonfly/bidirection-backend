@@ -3,10 +3,13 @@ import BotUser from '../models/botUser'; // 引入botUser模型
 import handleAsync from '../utils/handleAsync';
 import { RequestCustom } from 'user';
 import { isEmployee, isProxy } from '../middlewares/authMiddleware';
-// import { IBot } from '../models/bot';
-// import { setupBot } from '../bot/botSetup';
-// import BotUserMessage from '../models/botUserMessage';
+import { generateInviteCode } from './userController';
+import bcrypt from 'bcrypt';
 import User from '../models/user';
+import Role from '../models/role';
+import { IdGen } from '../utils/idGen';
+import { createTrxWallet } from '../utils/generateWallet';
+import { getRandomUser } from '../services/ipGeoaddress';
 
 // Build query based on query parameters
 const buildQuery = async (queryParams: any, req: RequestCustom) => {
@@ -56,6 +59,7 @@ const getbotUsers = handleAsync(async (req: RequestCustom, res: Response) => {
     .populate('transactions')
     .populate('payments')
     .populate('subscriptions')
+    .populate('bound_proxy')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -78,6 +82,7 @@ const getbotUserById = handleAsync(async (req: Request, res: Response) => {
     .populate('transactions')
     .populate('payments')
     .populate('subscriptions')
+    .populate('bound_proxy')
     .exec();
 
   if (!getBotUser) {
@@ -155,6 +160,67 @@ const deleteMultiplebotUsers = handleAsync(
     res.json({
       success: true,
       message: `${ids.length} botUsers deleted successfully`,
+    });
+  },
+);
+
+export const generateBoundProxy = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { id } = req.params;
+
+    const { name, email, password } = req.body;
+
+    const userExists = await User.findOne({ email, name });
+
+    if (userExists) {
+      res.status(400);
+      throw new Error('用户已存在');
+    }
+
+    const randomUserInfo = await getRandomUser();
+
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = password
+      ? await bcrypt.hash(password, salt)
+      : await bcrypt.hash(randomUserInfo.password, salt);
+
+    const inviteCode = await generateInviteCode();
+
+    const newId = await IdGen.next(User, 'id', 6);
+
+    const has_name = name
+      ? name
+      : randomUserInfo.firstName + ' ' + randomUserInfo.lastName;
+
+    const has_email = email ? email : randomUserInfo.phone + '@gmail.com';
+
+    const { address, privateKey } = await createTrxWallet();
+
+    const proxyRole = await Role.findOne({ name: '代理' });
+
+    const newUser = new User({
+      ...req.body,
+      id: newId,
+      name: has_name,
+      email: has_email,
+      inviteCode,
+      password: hashPassword,
+      proxy: req.user._id,
+      creator: req.user._id,
+      energyReceiveAddress: address,
+      energy_privateKey: privateKey,
+      roles: [proxyRole],
+    });
+
+    await newUser.save();
+
+    const updatedbotUser = await BotUser.findByIdAndUpdate(id, {
+      bound_proxy: newUser._id,
+    }).exec();
+
+    res.json({
+      success: true,
+      data: updatedbotUser,
     });
   },
 );

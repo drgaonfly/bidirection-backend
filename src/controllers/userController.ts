@@ -12,7 +12,7 @@ import { IdGen } from '../utils/idGen';
 import Customer from '../models/customer';
 
 //user
-async function generateInviteCode(length: number = 5): Promise<string> {
+export async function generateInviteCode(length: number = 5): Promise<string> {
   let inviteCode;
   do {
     inviteCode = crypto
@@ -95,7 +95,7 @@ export const getUsers = handleAsync(
 
     // 如果是超级管理员，不能看超级管理员
     if (req.user.isAdmin && req.baseUrl + req.route.path === '/api/users/') {
-      query.isAdmin = false;
+      query.isAdmin = true;
     }
 
     const users = await User.find(query)
@@ -193,7 +193,7 @@ export const getUserById = handleAsync(async (req: Request, res: Response) => {
     roles: proxyRole._id, // Use the role ID for filtering proxies
   }).populate('roles');
 
-  // 获取客户列表
+  // 获取客户列表f
   let customers;
 
   if (isEmployee(user)) {

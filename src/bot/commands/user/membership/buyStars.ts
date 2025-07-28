@@ -36,7 +36,14 @@ export async function handleBuyStarsCommand(ctx: MyContext) {
   // 添加取消按钮
   keyboard.row().text('取消', 'close');
 
-  const videoPath = path.resolve(__dirname, '../public/telegram_stars.mp4');
+  const isDev = process.env.node_env === 'development' ? true : false;
+
+  const videoPath = path.resolve(
+    __dirname,
+    isDev
+      ? '/src/public/telegram_stars.mp4'
+      : '/dist/public/telegram_stars.mp4',
+  );
 
   await ctx.replyWithVideo(new InputFile(videoPath), {
     caption: '请选择购买星星(Telegram Stars)的数量:',

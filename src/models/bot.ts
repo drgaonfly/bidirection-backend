@@ -4,6 +4,7 @@ import { IBotUser } from './botUser';
 import { IGroup } from './group';
 
 export interface IBot extends Document {
+  id: string;
   token: string;
   botName: string;
   remark?: string;

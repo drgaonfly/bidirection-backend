@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import BotUser from '../models/botUser'; // 引入botUser模型
+import Bot from '../models/bot';
 import handleAsync from '../utils/handleAsync';
 import { RequestCustom } from 'user';
 import { isEmployee, isProxy } from '../middlewares/authMiddleware';
@@ -10,6 +11,7 @@ import Role from '../models/role';
 import { IdGen } from '../utils/idGen';
 import { createTrxWallet } from '../utils/generateWallet';
 import { getRandomUser } from '../services/ipGeoaddress';
+import { setupBot } from '../bot/botSetup';
 
 // Build query based on query parameters
 const buildQuery = async (queryParams: any, req: RequestCustom) => {
@@ -217,6 +219,37 @@ export const generateBoundProxy = handleAsync(
     const updatedbotUser = await BotUser.findByIdAndUpdate(id, {
       bound_proxy: newUser._id,
     }).exec();
+
+    const botUser = await BotUser.findById(id);
+
+    const botManager = await Bot.findOne({ botUsers: { $in: id } });
+
+    console.log('botManager', botManager);
+
+    const telegramBot = setupBot(botManager.token);
+
+    try {
+      await telegramBot.api.sendMessage(
+        botUser.id,
+        [
+          `🎉 您的代理已生成！`,
+          `\n`,
+          `🔗 后台: <a>https://admin.usudt.com/authorizations</a>`,
+          ``,
+          `👤 账号: <code>${newUser.email}</code>`,
+          ``,
+          `🔑 密码: <code>${password || randomUserInfo.password}</code>`,
+          `\n`,
+          `⚡ 能量接收地址: <code>${newUser.energyReceiveAddress}</code>`,
+        ].join('\n'),
+        {
+          parse_mode: 'HTML',
+        },
+      );
+    } catch (error) {
+      console.error('发送消息失败:', error);
+      throw new Error('发送消息失败');
+    }
 
     res.json({
       success: true,

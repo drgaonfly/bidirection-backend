@@ -40,9 +40,7 @@ export async function handleBuyStarsCommand(ctx: MyContext) {
 
   const videoPath = path.resolve(
     __dirname,
-    isDev
-      ? '/src/public/telegram_stars.mp4'
-      : '/dist/public/telegram_stars.mp4',
+    isDev ? '/src/public/telegram_stars.mp4' : 'dist/public/telegram_stars.mp4',
   );
 
   await ctx.replyWithVideo(new InputFile(videoPath), {

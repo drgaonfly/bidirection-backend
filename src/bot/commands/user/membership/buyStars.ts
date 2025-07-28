@@ -1,5 +1,6 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
+import path from 'path';
 import { InputFile } from 'grammy';
 import createDebug from 'debug';
 
@@ -35,7 +36,9 @@ export async function handleBuyStarsCommand(ctx: MyContext) {
   // 添加取消按钮
   keyboard.row().text('取消', 'close');
 
-  await ctx.replyWithVideo(new InputFile('src/public/telegram_stars.mp4'), {
+  const videoPath = path.resolve(__dirname, '../public/telegram_stars.mp4');
+
+  await ctx.replyWithVideo(new InputFile(videoPath), {
     caption: '请选择购买星星(Telegram Stars)的数量:',
     parse_mode: 'HTML',
     reply_markup: keyboard,

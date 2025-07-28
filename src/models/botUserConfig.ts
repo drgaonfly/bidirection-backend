@@ -99,7 +99,6 @@ const botUserConfigSchema = new mongoose.Schema(
     },
     spread_code: {
       type: String,
-      required: false,
       unique: true,
     },
     invited_counts: {

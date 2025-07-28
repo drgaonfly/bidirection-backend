@@ -170,11 +170,11 @@ export const generateBoundProxy = handleAsync(
 
     const { name, email, password } = req.body;
 
-    const userExists = await User.findOne({ email, name });
+    const userExists = await User.findOne({ email });
 
     if (userExists) {
       res.status(400);
-      throw new Error('用户已存在');
+      throw new Error('该邮箱已被使用');
     }
 
     const randomUserInfo = await getRandomUser();

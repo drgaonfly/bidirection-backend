@@ -36,7 +36,7 @@ export async function handleBuyStarsCommand(ctx: MyContext) {
   // 添加取消按钮
   keyboard.row().text('取消', 'close');
 
-  const isDev = process.env.node_env === 'development' ? true : false;
+  const isDev = process.env.NODE_ENV === 'development' ? true : false;
 
   const videoPath = path.resolve(
     __dirname,

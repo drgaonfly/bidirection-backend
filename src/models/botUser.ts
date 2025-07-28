@@ -27,7 +27,8 @@ const botUserSchema = new mongoose.Schema(
     lastName: { type: String, required: false },
     messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BotUserMessage' }],
     isAuthorized: { type: Boolean, default: false }, // 默认未授权
-    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
+    bingProxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 绑定的代理
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理归属
   },
   {
     timestamps: true,

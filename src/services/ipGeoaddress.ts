@@ -158,7 +158,17 @@ export async function getRandomUser(): Promise<{
     );
 
     const { first, last } = response.data.results[0].name;
-    const { phone } = response.data.results[0];
+    let { phone } = response.data.results[0];
+
+    // 处理phone为国际号码格式（不带+号），如 17782330959
+    phone = phone.replace(/[^\d]/g, ''); // 移除所有非数字字符
+    if (phone.length === 10) {
+      phone = '1' + phone;
+    } else if (phone.length === 11 && phone.startsWith('1')) {
+      // already correct
+    } else if (!phone.startsWith('1')) {
+      phone = '1' + phone; // fallback
+    }
 
     // 随机密码
     const password = Math.random().toString(36).substring(2, 8);

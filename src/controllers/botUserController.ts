@@ -258,6 +258,23 @@ export const generateBoundProxy = handleAsync(
   },
 );
 
+export const removeBoundProxy = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { id } = req.params;
+
+    const updatedbotUser = await BotUser.findByIdAndUpdate(id, {
+      bound_proxy: null,
+    }).exec();
+
+    await User.findOneAndDelete({ proxy: req.user._id }).exec();
+
+    res.json({
+      success: true,
+      data: updatedbotUser,
+    });
+  },
+);
+
 //机器人发送消息
 // const sendMessage = handleAsync(async (req: Request, res: Response) => {
 //   const { id } = req.params;

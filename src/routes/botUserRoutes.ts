@@ -7,6 +7,7 @@ import {
   deletebotUser,
   deleteMultiplebotUsers,
   generateBoundProxy,
+  removeBoundProxy,
 } from '../controllers/botUserController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
@@ -16,6 +17,10 @@ const router: Router = express.Router();
 router
   .route('/:id/generate-bound-proxy')
   .put(protect, checkPermission, generateBoundProxy);
+
+router
+  .route('/:id/remove-bound-proxy')
+  .put(protect, checkPermission, removeBoundProxy);
 
 router
   .route('/')

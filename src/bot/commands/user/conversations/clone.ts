@@ -1,11 +1,12 @@
 import { Composer } from 'grammy';
 import { createConversation, Conversation } from '@grammyjs/conversations';
 import { MyContext } from '../../../types';
-import createDebug from 'debug';
+import { checkInProxy } from '../../../middlewares/checkInProxy';
 import { cancelKeyboard } from '../../../menus/inline/cacel';
 import Bot from '../../../../models/bot';
 import BotUser from '../../../../models/botUser';
 import { setWebhook } from '../../../../controllers/botController';
+import createDebug from 'debug';
 
 const debug = createDebug('bot:clone');
 const cloneConversationComposer = new Composer<MyContext>();
@@ -162,44 +163,48 @@ async function addBot(
 cloneConversationComposer.use(createConversation(cloneBotConversation));
 
 // 入口按钮
-cloneConversationComposer.callbackQuery('clone_start', async (ctx) => {
-  const bot = ctx.currentBot;
-  // 检查 bot 是否可克隆
-  if (!bot?.canBeCloned) {
-    await ctx.reply('❌ 该机器人不可克隆，请使用其他机器人。');
-    return;
-  }
+cloneConversationComposer.callbackQuery(
+  'clone_start',
+  checkInProxy,
+  async (ctx) => {
+    const bot = ctx.currentBot;
+    // 检查 bot 是否可克隆
+    if (!bot?.canBeCloned) {
+      await ctx.reply('❌ 该机器人不可克隆，请使用其他机器人。');
+      return;
+    }
 
-  debug('clone_start clicked');
-  await ctx.conversation.exitAll();
+    debug('clone_start clicked');
+    await ctx.conversation.exitAll();
 
-  debug('开始克隆机器人对话');
-  // 发送克隆流程说明
-  await ctx.reply(
-    [
-      '🤖 <b>克隆机器人流程</b>',
-      '',
-      '1. 打开 <b>@BotFather</b>',
-      '2. 发送 <code>/newbot</code>',
-      '3. 按指引设置机器人名字（可中文）',
-      '4. 设置机器人 <b>username</b>（英文+数字，需以 <code>bot</code> 结尾）',
-      '5. 创建完成后将注册好的 <b>token</b> 发送给我',
-      '',
-      'token格式示例：',
-      '<code>6422100000:AAFMTBWko3t7gA3mN5SRYp5FuYcxxxxxxxxx</code>',
-      '',
-      '⏳ 此操作将在 5 分钟后过期。',
-      '',
-      '如需取消，请点击下方按钮。',
-    ].join('\n'),
-    {
-      parse_mode: 'HTML',
-      reply_markup: cancelKeyboard,
-    },
-  );
+    debug('开始克隆机器人对话');
+    // 发送克隆流程说明
+    await ctx.reply(
+      [
+        '🤖 <b>克隆机器人流程</b>',
+        '',
+        '1. 打开 <b>@BotFather</b>',
+        '2. 发送 <code>/newbot</code>',
+        '3. 按指引设置机器人名字（可中文）',
+        '4. 设置机器人 <b>username</b>（英文+数字，需以 <code>bot</code> 结尾）',
+        '5. 创建完成后将注册好的 <b>token</b> 发送给我',
+        '',
+        'token格式示例：',
+        '<code>6422100000:AAFMTBWko3t7gA3mN5SRYp5FuYcxxxxxxxxx</code>',
+        '',
+        '⏳ 此操作将在 5 分钟后过期。',
+        '',
+        '如需取消，请点击下方按钮。',
+      ].join('\n'),
+      {
+        parse_mode: 'HTML',
+        reply_markup: cancelKeyboard,
+      },
+    );
 
-  await ctx.conversation.enter('cloneBotConversation');
-  await ctx.answerCallbackQuery();
-});
+    await ctx.conversation.enter('cloneBotConversation');
+    await ctx.answerCallbackQuery();
+  },
+);
 
 export default cloneConversationComposer;

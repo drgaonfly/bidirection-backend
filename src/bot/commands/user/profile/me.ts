@@ -3,11 +3,13 @@ import { MyContext } from '../../../types';
 import { useUserProfile } from '../../../../utils/useEjsMessage';
 import { checkInBot } from '../../../../bot/middlewares/checkInBot';
 import { renewalOptions } from '../../../../models/subscription';
-import dayjs from 'dayjs';
-import profile from '../../../menus/inline/profile';
-import createDebug from 'debug';
 import { checkBotCustom } from '../../../../bot/middlewares/checkBotCustom';
+import profile from '../../../menus/inline/profile';
+import dayjs from 'dayjs';
+import createDebug from 'debug';
+
 const userProfileCommand = new Composer<MyContext>();
+
 const debug = createDebug('bot:user-profile');
 
 userProfileCommand.command(

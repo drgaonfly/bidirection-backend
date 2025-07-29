@@ -3,7 +3,7 @@ import { MyContext } from '../../../types';
 
 const cloneShowComposer = new Composer<MyContext>();
 
-cloneShowComposer.hears(/^🆓 免费克隆/, async (ctx) => {
+cloneShowComposer.hears(/克隆机器人/, async (ctx) => {
   const messages = [
     '🏠 你好！',
     '',

@@ -19,6 +19,7 @@ async function createMainKeyboard(ctx: MyContext) {
     .text('👤个人信息')
     .row()
     .text('✈️888租用')
+    .text('🤖克隆机器人')
     .text('🤝代理申请');
 
   // Add custom keyboard buttons from bot configuration

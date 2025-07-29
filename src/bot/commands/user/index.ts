@@ -45,9 +45,9 @@ userComposer.use(rechargeComposer.middleware());
 userComposer.use(rentalComposer.middleware());
 userComposer.use(separationComposer.middleware());
 userComposer.use(membershipCommand.middleware());
-userComposer.use(conversationsComposer.middleware());
 userComposer.use(advanceComposer.middleware());
 userComposer.use(anynoumyComposer.middleware());
 userComposer.use(application.middleware());
+userComposer.use(conversationsComposer.middleware());
 
 export default userComposer;

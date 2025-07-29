@@ -53,4 +53,8 @@ applicationCommand.hears(/代理申请/, checkInBot, async (ctx) => {
   await handleApplicationCommand(ctx);
 });
 
+applicationCommand.callbackQuery('application', checkInBot, async (ctx) => {
+  await handleApplicationCommand(ctx);
+});
+
 export default applicationCommand;

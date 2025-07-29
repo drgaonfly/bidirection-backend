@@ -1,3 +1,4 @@
+import { InlineKeyboard } from 'grammy';
 import { MyContext } from '../types';
 import createDebug from 'debug';
 
@@ -15,7 +16,12 @@ export const checkInProxy = async (
   // 绑定过代理的botUser
   if (!ctx.currentBotUser.bound_proxy) {
     debug('请在绑定过代理的botUser中使用此命令');
-    ctx.reply('您不是代理, 须先申请成为代理, 才能使用此功能');
+    ctx.reply('您不是代理, 须先申请成为代理, 才能使用此功能', {
+      parse_mode: 'HTML',
+      reply_markup: new InlineKeyboard()
+        .text('🤝代理申请 代理申请', 'application')
+        .text('💬联系客服', 'contact'),
+    });
     return;
   }
 

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import BotUser from '../models/botUser'; // 引入botUser模型
 import Bot from '../models/bot';
+import Application from '../models/application';
 import handleAsync from '../utils/handleAsync';
 import { RequestCustom } from 'user';
 import { isEmployee, isProxy } from '../middlewares/authMiddleware';
@@ -224,8 +225,6 @@ export const generateBoundProxy = handleAsync(
 
     const botManager = await Bot.findOne({ botUsers: { $in: id } });
 
-    console.log('botManager', botManager);
-
     const telegramBot = setupBot(botManager.token);
 
     try {
@@ -250,6 +249,17 @@ export const generateBoundProxy = handleAsync(
       console.error('发送消息失败:', error);
       throw new Error('发送消息失败');
     }
+
+    const app = await Application.findOneAndUpdate(
+      { botUser: botUser._id },
+      {
+        $set: {
+          status: 'approved',
+        },
+      },
+    );
+
+    console.log('app', app);
 
     res.json({
       success: true,

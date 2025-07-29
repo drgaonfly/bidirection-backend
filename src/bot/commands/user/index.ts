@@ -18,6 +18,7 @@ import separationComposer from './separation';
 import membershipCommand from './membership';
 import advanceComposer from './advance';
 import anynoumyComposer from './anynoumy';
+import application from './application';
 
 import conversationsComposer from './conversations';
 
@@ -47,5 +48,6 @@ userComposer.use(membershipCommand.middleware());
 userComposer.use(conversationsComposer.middleware());
 userComposer.use(advanceComposer.middleware());
 userComposer.use(anynoumyComposer.middleware());
+userComposer.use(application.middleware());
 
 export default userComposer;

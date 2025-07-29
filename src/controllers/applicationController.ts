@@ -34,6 +34,10 @@ const buildQuery = async (queryParams: any): Promise<any> => {
       botUsers.length > 0 ? { $in: botUsers.map((user) => user._id) } : null;
   }
 
+  if (queryParams.status) {
+    query.status = queryParams.status;
+  }
+
   return query;
 };
 

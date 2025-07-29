@@ -8,6 +8,7 @@ export interface IApplication extends Document {
   bot: mongoose.Schema.Types.ObjectId | IBot;
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   status: string;
+  remark: string;
 }
 
 const applicationSchema = new Schema<IApplication>(
@@ -31,6 +32,10 @@ const applicationSchema = new Schema<IApplication>(
       type: String,
       enum: ['pending', 'approved', 'rejected'],
       default: 'pending',
+    },
+    remark: {
+      type: String,
+      required: false,
     },
   },
   {

@@ -49,6 +49,10 @@ const buildQuery = async (queryParams: any, req: RequestCustom) => {
     query.user = req.user._id;
   }
 
+  if (queryParams.status) {
+    query.status = queryParams.status;
+  }
+
   return query;
 };
 
@@ -281,6 +285,49 @@ export const removeBoundProxy = handleAsync(
     res.json({
       success: true,
       data: updatedbotUser,
+    });
+  },
+);
+
+export const rejectApplication = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { id } = req.params;
+
+    const { status, remark } = req.body;
+
+    const botUser = await BotUser.findById(id);
+
+    const botManager = await Bot.findOne({ botUsers: { $in: id } });
+
+    const telegramBot = setupBot(botManager.token);
+
+    try {
+      await telegramBot.api.sendMessage(
+        botUser.id,
+        [`❌ 您的代理申请已被拒绝！`, ``, `📄 缘由: ${remark}`].join('\n'),
+        {
+          parse_mode: 'HTML',
+        },
+      );
+    } catch (error) {
+      console.error('发送消息失败:', error);
+      throw new Error('发送消息失败');
+    }
+
+    const app = await Application.findOneAndUpdate(
+      { botUser: botUser._id },
+      {
+        $set: {
+          status,
+          remark,
+        },
+      },
+    );
+
+    console.log('app', app);
+
+    res.json({
+      success: true,
     });
   },
 );

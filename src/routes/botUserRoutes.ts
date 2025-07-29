@@ -8,6 +8,7 @@ import {
   deleteMultiplebotUsers,
   generateBoundProxy,
   removeBoundProxy,
+  rejectApplication,
 } from '../controllers/botUserController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
@@ -21,6 +22,10 @@ router
 router
   .route('/:id/remove-bound-proxy')
   .put(protect, checkPermission, removeBoundProxy);
+
+router
+  .route('/:id/reject-application')
+  .put(protect, checkPermission, rejectApplication);
 
 router
   .route('/')

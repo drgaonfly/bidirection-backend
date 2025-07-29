@@ -15,7 +15,7 @@ export const checkInProxy = async (
   // 绑定过代理的botUser
   if (!ctx.currentBotUser.bound_proxy) {
     debug('请在绑定过代理的botUser中使用此命令');
-    ctx.reply('您没有绑定过代理，请先绑定代理');
+    ctx.reply('您不是代理, 须先申请成为代理, 才能使用此功能');
     return;
   }
 

@@ -19,7 +19,7 @@ export const checkInProxy = async (
     ctx.reply('您不是代理, 须先申请成为代理, 才能使用此功能', {
       parse_mode: 'HTML',
       reply_markup: new InlineKeyboard()
-        .text('🤝代理申请 代理申请', 'application')
+        .text('🤝代理申请', 'application')
         .text('💬联系客服', 'contact'),
     });
     return;

@@ -2,18 +2,20 @@ import Bot from '../../models/bot';
 import { setupBot } from '../../bot/botSetup';
 import BotUser from '../../models/botUser';
 import Wallet from '../../models/wallet';
-import { getUSDTTransfers } from '../../services/checkUsdt';
 import { formatBeijingDate } from '../../utils/formatBeijingDate';
 import { IdGen } from '../../utils/idGen';
 import Receipt from '../../models/receipt';
-import axios from 'axios';
+import {
+  fetchTrc20Transactions,
+  getAccountBalances,
+} from '../../utils/fetchTransactions';
 
 /**
  * 检查所有钱包的USDT转账记录，包括转入和转出。
  * 根据from_address和to_address判断交易类型。
  * 向用户发送详细的交易通知。
  */
-export async function checkUsdtWallets() {
+export async function newCheckUsdtWallets() {
   try {
     console.log('[checkTransferIn] 开始检查转账...');
 
@@ -28,13 +30,34 @@ export async function checkUsdtWallets() {
     for (const wallet of wallets) {
       const botUser = await BotUser.findById(wallet.botUser);
       const bot = await Bot.findById(wallet.bot);
+
+      if (!bot) {
+        console.log(
+          `[checkTransferIn] 钱包 ${wallet.address} 的机器人不存在，跳过`,
+        );
+        continue;
+      }
+
       const address = wallet.address;
       const telegramBot = setupBot(bot.token);
 
       // 查询该地址近5天的USDT转账
-      let transfers: Awaited<ReturnType<typeof getUSDTTransfers>> = [];
+      let transfers;
+
       try {
-        transfers = await getUSDTTransfers(address);
+        const response = await fetchTrc20Transactions(address);
+
+        // console.log('response', response);
+
+        transfers = response
+          .filter((tx) => tx.token_info?.symbol === 'USDT')
+          .map((tx) => ({
+            hash: tx.transaction_id,
+            from_address: tx.from,
+            to_address: tx.to,
+            money: Number(tx.value) / 1_000_000,
+            time: Math.floor(tx.block_timestamp / 1000),
+          }));
       } catch (err) {
         console.error(
           `[checkTransferIn] 获取地址 ${address} 转账记录失败:`,
@@ -43,15 +66,24 @@ export async function checkUsdtWallets() {
         continue;
       }
 
+      console.log('transfers', transfers);
+
       // 检查每一笔转账
       for (const transfer of transfers) {
         if (!transfer.money) continue;
 
+        // 线上，只处理交易时间大于创建时间的转账
+        if (process.env.NODE_ENV === 'production') {
+          if (transfer.time < wallet.createdAt.getTime() / 1000) {
+            continue;
+          }
+        }
+
         // 检查是否已处理过该转账
         if (
-          transfer.trade_id &&
+          transfer.hash &&
           (await Receipt.exists({
-            hash: transfer.trade_id,
+            hash: transfer.hash,
             bot: bot._id,
             botUser: botUser._id,
           }))
@@ -63,15 +95,14 @@ export async function checkUsdtWallets() {
         }
 
         // 判断交易类型
-        const isIncome =
-          transfer.to_address.toLowerCase() === address.toLowerCase();
+        const isIncome = transfer.to_address === address;
 
         const receipt = await Receipt.create({
           id: await IdGen.next(Receipt, 'id', 6),
           type: isIncome ? 'transferIn' : 'transferOut',
           wallet: wallet._id,
           amount: transfer.money,
-          hash: transfer.trade_id,
+          hash: transfer.hash,
           bot: bot._id,
           botUser: botUser._id,
           time: transfer.time,
@@ -86,15 +117,12 @@ export async function checkUsdtWallets() {
           8,
         )} USDT`;
 
-        const response = await axios.get(
-          `https://apilist.tronscan.org/api/account?address=${wallet.address}`,
-        );
+        const response = await getAccountBalances(address);
 
-        const trxBalance = (response.data.balance / 1_000_000).toFixed(8);
-        const usdtToken = response.data.trc20token_balances?.find(
-          (token: any) => token.tokenAbbr === 'USDT',
-        );
-        const usdtBalance = usdtToken ? usdtToken.balance / 1_000_000 : '0';
+        console.log('余额变化', response);
+
+        const trxBalance = response.trxBalance;
+        const usdtBalance = response.usdtBalance;
 
         wallet.trx_balance = Number(trxBalance);
         wallet.usdt_balance = Number(usdtBalance);

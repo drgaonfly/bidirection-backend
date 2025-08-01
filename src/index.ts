@@ -7,7 +7,6 @@ import cors from 'cors';
 import http from 'http';
 import { setupRedis } from './utils/redis';
 import setupDB from './utils/db';
-import initExecutor from 'express-command-executor';
 
 import userRoutes from './routes/userRoutes';
 import roleRoutes from './routes/roleRoutes';
@@ -60,8 +59,6 @@ app.use(express.json());
 app.get('/', (req: Request, res: Response) => {
   res.send('API is running...ok');
 });
-
-initExecutor(app);
 
 // 使用新路由
 app.use('/api/users', userRoutes);

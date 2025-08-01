@@ -54,7 +54,6 @@ export async function sendTRX(
         from: fromAddress,
         to: toAddress,
         hash: hash,
-        status: 'completed',
       },
     },
     {

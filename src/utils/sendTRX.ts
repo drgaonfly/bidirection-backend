@@ -111,16 +111,8 @@ export async function sendTRX(
   } catch (error) {
     console.error('------ 操作失败:', error.message);
 
-    transfer.status = 'completed';
+    transfer.status = 'failed';
     await transfer.save();
-
-    await Transfer.create({
-      exchange,
-      from: fromAddress,
-      to: toAddress,
-      hash: hash,
-      status: 'failed',
-    });
 
     throw new Error('接收 USDT 后发送 TRX 失败: ' + error.message);
   }

@@ -95,12 +95,13 @@ export async function checkPendingExchanges() {
 
       console.log('decrypt(bot.private_key):', decrypt(bot.private_key));
 
-      let txid: string | undefined;
       try {
-        txid = await sendTRX(
+        await sendTRX(
+          exchange._id,
           decrypt(bot.private_key),
           exchange.receive_address || exchange.to_address,
           exchange.to_amount,
+          matchedTransfer.trade_id,
         );
       } catch (err) {
         console.log('err', err);
@@ -108,16 +109,9 @@ export async function checkPendingExchanges() {
           `[checkPendingExchanges] 兑换记录 ${exchange.id} 发送 TRX 失败:`,
           err,
         );
-        exchange.status = 'failed';
-        await exchange.save();
+
         continue;
       }
-
-      // exchange更新
-      exchange.txid = txid;
-      exchange.status = 'completed';
-      exchange.hash = matchedTransfer.trade_id;
-      await exchange.save();
 
       // 发送支付成功通知
       const telegramBot = setupBot(bot.token);

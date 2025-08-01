@@ -128,9 +128,11 @@ export async function checkAutoExchanges() {
                 `[checkAutoExchanges] 正在发送 TRX: ${trxAmount} 到 ${exchange.receive_address}`,
               );
               txid = await sendTRX(
+                exchange._id,
                 decrypt(bot.private_key),
                 exchange.receive_address,
                 exchange.to_amount,
+                transfer.trade_id,
               );
               console.log(`[checkAutoExchanges] TRX 发送成功, txid=${txid}`);
             } catch (sendErr) {
@@ -139,8 +141,6 @@ export async function checkAutoExchanges() {
               continue;
             }
 
-            exchange.txid = txid;
-            await exchange.save();
             console.log(
               `[checkAutoExchanges] 兑换记录 id=${exchange.id} 已保存, txid=${txid}`,
             );

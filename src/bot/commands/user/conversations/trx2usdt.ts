@@ -1,9 +1,11 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
-import createDebug from 'debug';
+import { IdGen } from '../../../../utils/idGen';
 import { createConversation, Conversation } from '@grammyjs/conversations';
 import { IBotUserConfig } from '../../../../models/botUserConfig';
 import { sendTRX } from '../../../../utils/sendTRX';
+import Exchange from '../../../../models/exchange';
+import createDebug from 'debug';
 
 const exchangeTrxToUsdtComposer = new Composer<MyContext>();
 const debug = createDebug('bot:exchange:trx_to_usdt');
@@ -139,7 +141,27 @@ async function trxToUsdtExchangeConversation(
       try {
         await ctx.reply(`✅ 已收到兑换请求：${amount} TRX\n处理中...`);
 
-        const txId = await sendTRX(private_key, receive_address, amount);
+        const exchange = await Exchange.create({
+          id: await IdGen.next(Exchange, 'id', 6),
+          bot: ctx.currentBot._id,
+          botUser: ctx.currentBotUser._id,
+          to_address: receive_address,
+          rate: ctx.currentBot.exchange_rate,
+          fee: ctx.currentBot.fee,
+          status: 'pending',
+          expiredAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
+        });
+
+        const txId = await sendTRX(
+          exchange._id,
+          private_key,
+          receive_address,
+          amount,
+        );
+
+        exchange.txid = txId;
+        exchange.status = 'completed';
+        await exchange.save();
 
         await ctx.reply(`✅ TRX转账成功`, {
           reply_markup: new InlineKeyboard().url(

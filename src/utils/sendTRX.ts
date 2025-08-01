@@ -1,3 +1,5 @@
+import Transfer from '../models/transfer';
+import { IExchange } from '../models/exchange';
 import { TronWeb } from 'tronweb';
 
 const TRONGRID_API = 'https://api.trongrid.io';
@@ -10,28 +12,58 @@ const TRONGRID_API = 'https://api.trongrid.io';
  * @param trxAmount 发送的 TRX 数量
  */
 export async function sendTRX(
+  exchange: IExchange,
   fromPrivateKey: string,
   toAddress: string,
   trxAmount: number,
+  hash?: string,
 ): Promise<string> {
   console.log('------ fromPrivateKey:', fromPrivateKey);
+
+  const ExistTrxRecord = await Transfer.findOne({
+    hash: hash,
+  });
+
+  if (ExistTrxRecord) {
+    console.log('------ 已存在转账记录:', ExistTrxRecord.txid);
+    throw new Error(`---- 已存在转账记录:', ${ExistTrxRecord.txid}`);
+  }
+
   const tronWeb = new TronWeb({
     fullHost: TRONGRID_API,
     privateKey: fromPrivateKey,
   });
 
+  console.log('------ sendTRX 开始 ------');
+  if (!fromPrivateKey) {
+    console.log('------ fromPrivateKey 为空:', fromPrivateKey);
+    throw new Error('私钥不能为空');
+  }
+
+  const fromAddress = tronWeb.address.fromPrivateKey(fromPrivateKey);
+  console.log('------ fromAddress:', fromAddress);
+  console.log('------ toAddress:', toAddress);
+  console.log('------ trxAmount:', trxAmount);
+
+  const transfer = await Transfer.findOneAndUpdate(
+    {
+      exchange,
+    },
+    {
+      $set: {
+        from: fromAddress,
+        to: toAddress,
+        hash: hash,
+        status: 'completed',
+      },
+    },
+    {
+      upsert: true,
+      new: true,
+    },
+  );
+
   try {
-    console.log('------ sendTRX 开始 ------');
-    if (!fromPrivateKey) {
-      console.log('------ fromPrivateKey 为空:', fromPrivateKey);
-      throw new Error('私钥不能为空');
-    }
-
-    const fromAddress = tronWeb.address.fromPrivateKey(fromPrivateKey);
-    console.log('------ fromAddress:', fromAddress);
-    console.log('------ toAddress:', toAddress);
-    console.log('------ trxAmount:', trxAmount);
-
     // 验证地址格式
     if (!tronWeb.isAddress(toAddress)) {
       console.log('------ toAddress 格式错误:', toAddress);
@@ -67,10 +99,29 @@ export async function sendTRX(
       throw new Error('Invalid amount provided');
     }
     const tx = await tronWeb.trx.sendTransaction(toAddress, amountInSun);
+
     console.log('------ 发送交易成功:', tx.txid);
+
+    transfer.txid = tx.txid;
+    transfer.status = 'completed';
+
+    await transfer.save();
+
     return tx.txid;
   } catch (error) {
     console.error('------ 操作失败:', error.message);
+
+    transfer.status = 'completed';
+    await transfer.save();
+
+    await Transfer.create({
+      exchange,
+      from: fromAddress,
+      to: toAddress,
+      hash: hash,
+      status: 'failed',
+    });
+
     throw new Error('接收 USDT 后发送 TRX 失败: ' + error.message);
   }
 }

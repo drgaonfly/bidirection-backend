@@ -30,7 +30,7 @@ export async function sendTRX(
   }
 
   if (exchange.status === 'completed') {
-    console.log('------ 当前状态不是 completed:', exchange.status);
+    console.log('------ 当前状态是 completed:', exchange.status);
     throw new Error(`---- 当前echange记录的状态已完成:', ${exchange.status}`);
   }
 

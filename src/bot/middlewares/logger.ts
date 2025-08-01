@@ -3,7 +3,6 @@ import { Middleware } from 'grammy';
 import createDebug from 'debug';
 import BotMessage from '../../models/botMessage';
 import { MyContext } from '../types';
-import axios from 'axios';
 
 const debug = createDebug('bot:logger');
 

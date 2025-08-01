@@ -126,7 +126,16 @@ export async function checkAutoExchanges() {
                 `[checkAutoExchanges] 正在发送 TRX: ${trxAmount} 到 ${exchange.receive_address}`,
               );
 
-              if (exchange.status !== 'pending') continue;
+              if (
+                exchange.status === 'failed' ||
+                exchange.status === 'completed'
+              ) {
+                console.log(
+                  '[checkAutoExchanges] 交易状态为失败或已完成，跳过发送 TRX',
+                );
+
+                continue;
+              }
 
               txid = await sendTRX(
                 exchange._id,

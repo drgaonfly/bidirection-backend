@@ -29,6 +29,13 @@ export async function sendTRX(
     throw new Error(`---- 已存在转账记录:', ${ExistTrxRecord.txid}`);
   }
 
+  if (exchange.status !== 'pending') {
+    console.log('------ 当前状态不是 pending:', exchange.status);
+    throw new Error(
+      `---- 当前echange记录的状态不是 pending:', ${exchange.status}`,
+    );
+  }
+
   const tronWeb = new TronWeb({
     fullHost: TRONGRID_API,
     privateKey: fromPrivateKey,

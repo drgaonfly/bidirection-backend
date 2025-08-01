@@ -70,8 +70,7 @@ export async function checkAutoExchanges() {
         // 只处理那些 trade_id 在 Exchange 表中不存在的转账
         // 先查出所有已存在的 trade_id
         const existingExchanges = await Exchange.find({
-          status: 'completed',
-          hash: { $ne: null },
+          hash: { $in: filteredTransfers.map((t) => t.trade_id) },
         }).select('hash');
 
         const existingHashes = new Set(existingExchanges.map((e) => e.hash));
@@ -111,10 +110,9 @@ export async function checkAutoExchanges() {
               to_amount: trxAmount, // 计算兑换的 TRX 数量
               rate: realPrice, // 设置实际汇率
               fee: bot.fee,
-              status: 'completed',
+              status: 'pending',
               hash: transfer.trade_id,
               isTransferIntoOther: false,
-              expiredAt: new Date(Date.now() + 30 * 60 * 1000),
             });
 
             console.log(
@@ -127,6 +125,9 @@ export async function checkAutoExchanges() {
               console.log(
                 `[checkAutoExchanges] 正在发送 TRX: ${trxAmount} 到 ${exchange.receive_address}`,
               );
+
+              if (exchange.status !== 'pending') continue;
+
               txid = await sendTRX(
                 exchange._id,
                 decrypt(bot.private_key),

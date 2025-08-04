@@ -42,8 +42,6 @@ export async function newCheckTrxWallets() {
 
         const rawTransfers = data as any[];
 
-        // console.log('data',data)
-
         // 👇 提取 TRX 主币转账（TransferContract）
         transfers = rawTransfers
           .filter((tx) => {
@@ -62,15 +60,41 @@ export async function newCheckTrxWallets() {
             };
           });
 
-        // console.log('transfers', transfers);
-
         console.log(`[checkTrxWallets] 获取地址 ${address} 的转账成功`);
-        // console.log(transfers);
       } catch (err) {
         console.error(`[checkTrxWallets] 获取地址 ${address} 的转账失败:`, err);
         continue;
       }
 
+      // 计算当天总收入
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0); // Set to 00:00:00 of the current day
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999); // Set to 23:59:59 of the current day
+
+      const todayIncome = await Receipt.aggregate([
+        {
+          $match: {
+            wallet: wallet._id,
+            type: 'transferIn',
+            time: {
+              $gte: Math.floor(todayStart.getTime() / 1000),
+              $lte: Math.floor(todayEnd.getTime() / 1000),
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalIncome: { $sum: '$amount' },
+          },
+        },
+      ]);
+
+      const totalIncome =
+        todayIncome.length > 0 ? todayIncome[0].totalIncome : 0;
+
+      // 处理每笔转账
       for (const transfer of transfers) {
         if (!transfer.money) continue;
 
@@ -124,8 +148,6 @@ export async function newCheckTrxWallets() {
         try {
           const response = await getAccountBalances(address);
 
-          // console.log('updated 余额', response)
-
           wallet.trx_balance = Number(response.trxBalance);
           wallet.usdt_balance = Number(response.usdtBalance);
           await wallet.save();
@@ -150,6 +172,7 @@ export async function newCheckTrxWallets() {
           `💸交易金额: ${receipt.amount} TRX`,
           `💸TRX余额: ${wallet.trx_balance} TRX`,
           `💸USDT余额: ${wallet.usdt_balance} USDT`,
+          `\n<b>📊当天总收入: ${totalIncome.toFixed(8)} TRX</b>`, // Add the total income for the day
         ].join('\n');
 
         try {

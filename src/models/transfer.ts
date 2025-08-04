@@ -9,6 +9,7 @@ export interface ITransfer extends Document {
   from: string;
   to: string;
   status: string;
+  trxAmount: number;
 }
 
 // 转账 Schema
@@ -19,6 +20,10 @@ const transferSchema = new mongoose.Schema(
       ref: 'Exchange',
       required: true,
       unique: true,
+    },
+    trxAmount: {
+      type: Number,
+      required: false,
     },
     hash: {
       type: String,
@@ -42,7 +47,8 @@ const transferSchema = new mongoose.Schema(
     status: {
       type: String,
       required: true,
-      enum: ['completed', 'failed'],
+      enum: ['completed', 'failed', 'pending'],
+      default: 'pending',
     },
   },
   {
@@ -53,7 +59,7 @@ const transferSchema = new mongoose.Schema(
 );
 
 // 添加联合索引: sending_hash, receiving_hash
-transferSchema.index({ sending_hash: 1, receiving_hash: 1 }, { unique: true });
+transferSchema.index({ hash: 1, txid: 1 }, { unique: true });
 
 const Transfer = mongoose.model<ITransfer>('Transfer', transferSchema);
 

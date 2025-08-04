@@ -25,8 +25,8 @@ export async function sendTRX(
   });
 
   if (ExistTrxRecord) {
-    console.log('------ 已存在转账记录:', ExistTrxRecord.txid);
-    throw new Error(`---- 已存在转账记录:', ${ExistTrxRecord.txid}`);
+    console.log('------ 已存在兑换记录 hash:', ExistTrxRecord.hash);
+    throw new Error(`---- 已存在兑换记录 hash:', ${ExistTrxRecord.hash}`);
   }
 
   if (exchange.status === 'completed') {
@@ -107,6 +107,7 @@ export async function sendTRX(
     console.log('------ 发送交易成功:', tx.txid);
 
     transfer.txid = tx.txid;
+    transfer.trxAmount = trxAmount;
     transfer.status = 'completed';
 
     await transfer.save();

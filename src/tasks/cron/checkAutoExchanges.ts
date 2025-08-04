@@ -115,6 +115,8 @@ export async function checkAutoExchanges() {
               isTransferIntoOther: false,
             });
 
+            console.log('exchange', exchange);
+
             console.log(
               `[checkAutoExchanges] 已创建兑换记录 id=${exchange.id}, hash=${exchange.hash}`,
             );

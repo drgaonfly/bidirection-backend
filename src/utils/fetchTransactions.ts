@@ -20,6 +20,14 @@ const API_KEYS = [
 let lastUsedIndex = -1;
 
 function getNextApiKey(): string {
+  // 随机打乱 API_KEYS
+  if (lastUsedIndex === -1) {
+    for (let i = API_KEYS.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [API_KEYS[i], API_KEYS[j]] = [API_KEYS[j], API_KEYS[i]];
+    }
+  }
+  console.log('API_KEYS', API_KEYS);
   lastUsedIndex = (lastUsedIndex + 1) % API_KEYS.length;
   return API_KEYS[lastUsedIndex];
 }

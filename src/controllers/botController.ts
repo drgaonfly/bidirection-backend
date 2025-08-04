@@ -213,6 +213,8 @@ const updateBot = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { private_key, ...restBody } = req.body;
 
+  console.log('req.body', req.body);
+
   const botManager = await Bot.findById(id);
 
   if (!botManager) {
@@ -230,9 +232,11 @@ const updateBot = handleAsync(async (req: Request, res: Response) => {
 
   const updatedBot = await Bot.findByIdAndUpdate(
     id,
-    { $set: updateData },
+    {
+      ...updateData,
+    },
     { new: true },
-  );
+  ).exec();
 
   if (updatedBot.isOnline !== botManager.isOnline && updatedBot.isOnline) {
     await setWebhook(updatedBot);

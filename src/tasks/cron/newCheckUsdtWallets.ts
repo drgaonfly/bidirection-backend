@@ -58,6 +58,34 @@ export async function newCheckUsdtWallets() {
 
       console.log('transfers', transfers);
 
+      // 计算当天总收入
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0); // Set to 00:00:00 of the current day
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999); // Set to 23:59:59 of the current day
+
+      const todayIncome = await Receipt.aggregate([
+        {
+          $match: {
+            wallet: wallet._id,
+            type: 'transferIn',
+            time: {
+              $gte: Math.floor(todayStart.getTime() / 1000),
+              $lte: Math.floor(todayEnd.getTime() / 1000),
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalIncome: { $sum: '$amount' },
+          },
+        },
+      ]);
+
+      const totalIncome =
+        todayIncome.length > 0 ? todayIncome[0].totalIncome : 0;
+
       // 检查每一笔转账
       for (const transfer of transfers) {
         if (!transfer.money) continue;
@@ -132,6 +160,7 @@ export async function newCheckUsdtWallets() {
           `💸交易金额: ${receipt.amount} USDT`,
           `💸TRX余额: ${wallet.trx_balance} TRX`,
           `💸USDT余额: ${wallet.usdt_balance} USDT`,
+          `<b>📊当天总收入: ${totalIncome.toFixed(8)} USDT</b>`, // Add the total income for the day
         ].join('\n');
 
         try {

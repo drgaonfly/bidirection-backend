@@ -39,8 +39,6 @@ export async function newCheckUsdtWallets() {
       try {
         const response = await fetchTrc20Transactions(address);
 
-        // console.log('response', response);
-
         transfers = response
           .filter((tx) => tx.token_info?.symbol === 'USDT')
           .map((tx) => ({
@@ -63,6 +61,14 @@ export async function newCheckUsdtWallets() {
       // 检查每一笔转账
       for (const transfer of transfers) {
         if (!transfer.money) continue;
+
+        // Check if transaction time is greater than wallet creation time
+        if (transfer.time < wallet.createdAt.getTime() / 1000) {
+          console.log(
+            `[checkTransferIn] 钱包 ${wallet.address} 的转账时间早于钱包创建时间，跳过`,
+          );
+          continue;
+        }
 
         // 检查是否已处理过该转账
         if (

@@ -6,6 +6,7 @@ import { IUser } from './user';
 export interface IWallet extends Document {
   botUser: mongoose.Schema.Types.ObjectId | IBotUser; // 关联的 BotUser
   bot: mongoose.Schema.Types.ObjectId | IBot; // 关联的 Bot
+  proxy: mongoose.Types.ObjectId | IUser;
   name?: string;
   address: string;
   usdt_balance: number;
@@ -14,7 +15,6 @@ export interface IWallet extends Document {
   remark: string;
   createdAt: Date;
   updatedAt: Date;
-  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 const walletSchema = new Schema<IWallet>(

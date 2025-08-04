@@ -14,6 +14,11 @@ export async function handleRentalCommand(ctx: MyContext) {
 
   await ctx.conversation.exitAll();
 
+  if (!ctx.currentBot.energy_address) {
+    await ctx.reply('请先设置该机器人的能量地址');
+    return;
+  }
+
   const message = [
     '【🔋能量闪租🔋】',
     '🔸3笔 (1小时) :  9 TRX   (1小时内有效)',
@@ -24,7 +29,7 @@ export async function handleRentalCommand(ctx: MyContext) {
     '2.请在1小时内转账, 否则过期回收。',
     `\n`,
     '🔸<b>闪租能量收款地址:</b>',
-    `<code>${ctx.currentBot.trx20_address}</code>`,
+    `<code>${ctx.currentBot.energy_address}</code>`,
     '➖➖➖➖➖➖➖➖➖',
     '发送 /start 可以更新最新功能列表',
     '以下按钮可以选择其他能量租用模式：',

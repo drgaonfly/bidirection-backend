@@ -91,8 +91,30 @@ export async function newCheckTrxWallets() {
         },
       ]);
 
+      const todayExpend = await Receipt.aggregate([
+        {
+          $match: {
+            wallet: wallet._id,
+            type: 'transferOut',
+            time: {
+              $gte: Math.floor(todayStart.getTime() / 1000),
+              $lte: Math.floor(todayEnd.getTime() / 1000),
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalExpend: { $sum: '$amount' },
+          },
+        },
+      ]);
+
       const totalIncome =
         todayIncome.length > 0 ? todayIncome[0].totalIncome : 0;
+
+      const totalExpend =
+        todayExpend.length > 0 ? todayExpend[0].totalExpend : 0;
 
       // 处理每笔转账
       for (const transfer of transfers) {
@@ -172,7 +194,8 @@ export async function newCheckTrxWallets() {
           `💸交易金额: ${receipt.amount} TRX`,
           `💸TRX余额: ${wallet.trx_balance} TRX`,
           `💸USDT余额: ${wallet.usdt_balance} USDT`,
-          `\n<b>📊当天总收入: ${totalIncome.toFixed(8)} TRX</b>`, // Add the total income for the day
+          `<b>📊当天总收入: ${totalIncome.toFixed(8)} TRX</b>`, // Add the total income for the day
+          `<b>📊当天总支出: ${totalExpend.toFixed(8)} TRX</b>`,
         ].join('\n');
 
         try {

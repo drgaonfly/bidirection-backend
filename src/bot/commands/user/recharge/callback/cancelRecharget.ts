@@ -31,8 +31,6 @@ cancelRechargeCallback.callbackQuery(/^recharge:cancel_(.+)$/, async (ctx) => {
   });
 
   await ctx.deleteMessage();
-
-  await ctx.answerCallbackQuery(ctx.t('recharge_cancelled'));
 });
 
 export default cancelRechargeCallback;

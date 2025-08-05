@@ -200,8 +200,17 @@ export async function newCheckUsdtWallets() {
               ],
             },
           });
+          receipt.status = 'success';
+          await receipt.save();
         } catch (err) {
           console.error(`[checkTransferIn] 通知用户 ${botUser.id} 失败:`, err);
+          receipt.status = 'failed';
+          // 兼容处理: err 可能不是 Error 实例
+          receipt.fail_reason =
+            err && typeof err === 'object' && 'message' in err
+              ? (err as any).message
+              : String(err);
+          await receipt.save();
         }
       }
     }

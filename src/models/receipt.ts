@@ -20,6 +20,8 @@ export interface IReceipt extends Document {
   createdAt: Date;
   updatedAt: Date;
   proxy: mongoose.Types.ObjectId | IUser;
+  status: string;
+  fail_reason?: string; // 失败原因
 }
 
 // 收据 Schema
@@ -76,6 +78,15 @@ const receiptSchema = new mongoose.Schema(
     },
 
     proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
+    status: {
+      type: String,
+      enum: ['pending', 'success', 'failed'],
+      default: 'pending',
+    },
+    fail_reason: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,

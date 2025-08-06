@@ -19,6 +19,7 @@ export interface IRental extends Document {
   separation: number; // 笔数
   price: number; // 租赁价格，单位trx
   tx_id: string; // 交易哈希
+  hash: string; // 接收哈希
   bot: mongoose.Schema.Types.ObjectId | IBot;
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   time: number; // 交易时间
@@ -70,6 +71,10 @@ const rentalSchema = new Schema<IRental>(
       type: String,
       required: false,
     },
+    hash: {
+      type: String,
+      required: false,
+    },
     bot: {
       type: Schema.Types.ObjectId,
       ref: 'Bot',
@@ -87,7 +92,7 @@ const rentalSchema = new Schema<IRental>(
     },
     status: {
       type: String,
-      enum: ['pending', 'completed', 'cancelled', 'expired'],
+      enum: ['pending', 'completed', 'cancelled', 'expired', 'failed'],
       required: true,
       default: 'pending',
     },

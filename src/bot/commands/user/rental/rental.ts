@@ -1,8 +1,7 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
+import { checkInBot } from '../../../middlewares/checkInBot';
 import createDebug from 'debug';
-
-import { checkPermission } from '../../../middlewares/checkPermission';
 
 const rentalCommand = new Composer<MyContext>();
 
@@ -65,7 +64,7 @@ export async function handleRentalCommand(ctx: MyContext) {
 }
 
 // 开始命令处理
-rentalCommand.hears(/能量闪租/, checkPermission, async (ctx) => {
+rentalCommand.hears(/能量闪租/, checkInBot, async (ctx) => {
   await handleRentalCommand(ctx);
 });
 

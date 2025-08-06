@@ -2,7 +2,7 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { createConversation, Conversation } from '@grammyjs/conversations';
 import { MyContext } from '../../../types';
 import Rental from '../../../../models/rental';
-import { generateOrderNumber } from '../../../../utils/generateOrderNumber';
+import { IdGen } from '../../../../utils/idGen';
 import { IBot, IPricePair } from '../../../../models/bot';
 import { IBotUser } from '../../../../models/botUser';
 import createDebug from 'debug';
@@ -174,7 +174,7 @@ async function rentalSepConversation(
   const totalPrice = selectedPair.expenditure * rental_count;
 
   const rental = await Rental.create({
-    id: await generateOrderNumber(),
+    id: await IdGen.next(Rental, 'id', 6),
     from_address: bot.trx20_address,
     to_address: trxAddress,
     amount: totalAmount,

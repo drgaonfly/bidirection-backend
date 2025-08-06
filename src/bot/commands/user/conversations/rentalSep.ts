@@ -42,6 +42,7 @@ async function renderOrderInfo(ctx: MyContext, rental) {
     `实时单价: <code>${unitPrice} ${unit.toUpperCase()}</code>`,
     `订单总额: <b>${totalPrice} ${unit.toUpperCase()}</b>`,
     `接收地址: <code>${rental.to_address}</code>`,
+    `有效期:   <b>${rental.limit_hour} 小时</b>`,
   ].join('\n');
 
   const msgId = rentalMessageMap.get(rental.id);
@@ -122,7 +123,7 @@ async function rentalSepConversation(
   const keyboard = new InlineKeyboard();
   price_pairs.forEach((pair, idx) => {
     keyboard.text(
-      `${pair.aqusition} 能量 / ${pair.expenditure} TRX`,
+      `${pair.aqusition} 能量 / ${pair.expenditure} TRX / ${pair.expiration} 小时`,
       `select_pair_${idx}`,
     );
     if ((idx + 1) % 2 === 0) keyboard.row();
@@ -184,6 +185,7 @@ async function rentalSepConversation(
     status: 'pending',
     type: 'auto',
     crypto_type: 'trx',
+    limit_hour: selectedPair.expiration,
     expiredAt: new Date(Date.now() + 30 * 60 * 1000),
   });
 

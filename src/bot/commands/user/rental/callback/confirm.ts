@@ -44,7 +44,6 @@ confirmRentalCommand.callbackQuery(/^confirm_rental_(.+)$/, async (ctx) => {
     '确认订单',
     `订单ID:  <code>${rental.id}</code>`,
     `购买能量:  ${rental.amount}`,
-    `实时单价:  <b>${ctx.currentBot.uni_energy_price}</b>`,
     '---------------------------------',
     '支付信息:',
     `支付金额: ${rental.price} <b>${rental.crypto_type.toUpperCase()}</b>`,

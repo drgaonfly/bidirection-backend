@@ -3,10 +3,8 @@ import { createConversation, Conversation } from '@grammyjs/conversations';
 import { MyContext } from '../../../types';
 import Rental from '../../../../models/rental';
 import { generateOrderNumber } from '../../../../utils/generateOrderNumber';
-import { IBot } from '../../../../models/bot';
+import { IBot, IPricePair } from '../../../../models/bot';
 import { IBotUser } from '../../../../models/botUser';
-// import { getExchangeRate } from '../../../../utils/getExchange';
-// import { getAccountBalances } from '../../../../utils/fetchTransactions'
 import createDebug from 'debug';
 
 const debug = createDebug('bot:rental-sep');
@@ -18,12 +16,17 @@ const TIMEOUT = 5 * 60 * 1000;
 const TRX_ADDRESS_REGEX = /^T[A-Za-z1-9]{33}$/;
 
 // 渲染订单确认信息
-async function renderOrderInfo(ctx: MyContext, rental, bot: IBot) {
+async function renderOrderInfo(ctx: MyContext, rental) {
   const unit = 'trx';
 
-  const unitPriceTRX =
-    (Number(bot.uni_energy_price) / 1_000_000) * Number(bot.uni_energy_amount);
-  const totalPriceTRX = unitPriceTRX * rental.separation;
+  // 这里我们假设 amount 单位是 sun，1 trx = 1_000_000 sun
+  // 订单总额 = expenditure * separation
+  // 单价 = expenditure / aqusition (1 trx/能量)
+  // 订单能量 = aqusition * separation
+
+  // 这里假设 rental 里已经有 amount, price, separation
+  const unitPriceTRX = Number(rental.price) / rental.separation;
+  const totalPriceTRX = Number(rental.price);
 
   const unitPrice = unitPriceTRX.toFixed(6);
   const totalPrice = totalPriceTRX.toFixed(6);
@@ -69,6 +72,7 @@ async function rentalSepConversation(
     botUser,
   }: { rental_count: number; bot: IBot; botUser: IBotUser },
 ) {
+  // 1. 先让用户输入地址或取消
   await ctx.reply(
     [
       `请输入您要接收能量的TRX地址:`,
@@ -105,17 +109,76 @@ async function rentalSepConversation(
     });
   }
 
+  // 2. 让用户选择套餐
+  // price_pairs: [{ expenditure, aqusition }]
+  const price_pairs: IPricePair[] = bot.price_pairs || [];
+  if (!price_pairs.length) {
+    await ctx.reply('未配置套餐，请联系管理员');
+    return;
+  }
+
+  // 只支持单一套餐，或让用户选套餐
+  // 这里我们让用户选套餐
+  const keyboard = new InlineKeyboard();
+  price_pairs.forEach((pair, idx) => {
+    keyboard.text(
+      `${pair.aqusition} 能量 / ${pair.expenditure} TRX`,
+      `select_pair_${idx}`,
+    );
+    if ((idx + 1) % 2 === 0) keyboard.row();
+  });
+  keyboard.text('❌ 取消', 'close');
+
+  await ctx.reply('请选择套餐:', { reply_markup: keyboard });
+
+  // 等待用户选择套餐
+  let selectedPair: IPricePair | null = null;
+  while (!selectedPair) {
+    const pairResult = await conversation.waitFor(['callback_query:data'], {
+      maxMilliseconds: TIMEOUT,
+    });
+
+    if (!pairResult) {
+      await ctx.reply('操作超时，请重新开始');
+      return;
+    }
+
+    if (pairResult.callbackQuery?.data === 'close') {
+      await pairResult.deleteMessage();
+      await ctx.reply('已取消');
+      return;
+    }
+
+    const match = pairResult.callbackQuery?.data?.match(/^select_pair_(\d+)$/);
+    if (match) {
+      const idx = parseInt(match[1]);
+      if (price_pairs[idx]) {
+        selectedPair = price_pairs[idx];
+        await pairResult.answerCallbackQuery({ text: '已选择套餐' });
+        await pairResult.deleteMessage();
+        break;
+      }
+    } else {
+      await pairResult.answerCallbackQuery({
+        text: '请选择套餐',
+        show_alert: true,
+      });
+    }
+  }
+
+  // 3. 创建订单
+  // 总能量 = aqusition * rental_count
+  // 总价格 = expenditure * rental_count
+  const totalAmount = selectedPair.aqusition * rental_count;
+  const totalPrice = selectedPair.expenditure * rental_count;
+
   const rental = await Rental.create({
     id: await generateOrderNumber(),
     from_address: bot.trx20_address,
     to_address: trxAddress,
-    amount: bot.uni_energy_amount,
+    amount: totalAmount,
     separation: rental_count,
-    price:
-      (Number(bot.uni_energy_price) *
-        Number(bot.uni_energy_amount) *
-        Number(rental_count)) /
-      1_000_000,
+    price: totalPrice,
     bot: bot._id,
     botUser: botUser._id,
     status: 'pending',
@@ -127,7 +190,7 @@ async function rentalSepConversation(
   const sent = await ctx.reply('⏳ 正在生成订单详情...');
   rentalMessageMap.set(rental.id, sent.message_id);
 
-  await renderOrderInfo(ctx, rental, bot);
+  await renderOrderInfo(ctx, rental);
 }
 
 // 注册 conversation

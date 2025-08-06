@@ -14,6 +14,7 @@ export interface IBot extends Document {
   menus: IMenu[];
   keyboards: IKeyboard[];
   commands: ICommand[];
+  price_pairs: IPricePair[];
   isOnline: boolean;
   botUsers: mongoose.Schema.Types.ObjectId[] | IBotUser[];
   session?: string;
@@ -35,8 +36,6 @@ export interface IBot extends Document {
   exchange_rate: number; // 闪兑汇率
   groups: mongoose.Schema.Types.ObjectId[] | IGroup[]; // 关联的群组
   webhook_url: string; // webhook url
-  uni_energy_amount: number; // 单笔能量数
-  uni_energy_price: number; // 能量价格，每 1 Energy 价格，单位sun
   energy_address: string; // 能量地址
   min_interger_limit: number; // 使用预支功能的最少积分数
   isCreatedByAdmin?: boolean; // 是否由管理员创建，由管理创建的机器人就是平台机器人
@@ -57,6 +56,11 @@ export interface ICommand extends Document {
   content: string;
   isStart: boolean;
   weight: number;
+}
+
+export interface IPricePair extends Document {
+  expenditure: number; // 花费多少 (trx)
+  aqusition: number; // 得到多少能量(sun)
 }
 
 const menuSchema = new mongoose.Schema({
@@ -83,6 +87,11 @@ const commandSchema = new mongoose.Schema({
   content: { type: String, required: true },
   isStart: { type: Boolean, required: true },
   weight: { type: Number, required: true },
+});
+
+const pricePairSchema = new mongoose.Schema({
+  expenditure: { type: Number, required: true },
+  aqusition: { type: Number, required: true },
 });
 
 const botSchema = new mongoose.Schema(
@@ -131,6 +140,10 @@ const botSchema = new mongoose.Schema(
     },
     keyboards: {
       type: [keyboardSchema],
+      default: [],
+    },
+    price_pairs: {
+      type: [pricePairSchema],
       default: [],
     },
     commands: {
@@ -221,12 +234,6 @@ const botSchema = new mongoose.Schema(
       type: String,
       trim: true,
     }, // 新增：webhook url
-    uni_energy_amount: {
-      type: Number,
-    },
-    uni_energy_price: {
-      type: Number,
-    },
     energy_address: {
       type: String,
       trim: true,

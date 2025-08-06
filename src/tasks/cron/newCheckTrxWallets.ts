@@ -212,8 +212,17 @@ export async function newCheckTrxWallets() {
               ],
             },
           });
+          receipt.status = 'success';
+          await receipt.save();
         } catch (err) {
           console.error(`[checkTrxWallets] 通知用户 ${botUser.id} 失败:`, err);
+          receipt.status = 'failed';
+          // 兼容处理: err 可能不是 Error 实例
+          receipt.fail_reason =
+            err && typeof err === 'object' && 'message' in err
+              ? (err as any).message
+              : String(err);
+          await receipt.save();
         }
       }
     }

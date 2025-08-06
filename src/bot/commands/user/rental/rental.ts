@@ -19,11 +19,30 @@ export async function handleRentalCommand(ctx: MyContext) {
     return;
   }
 
+  if (!ctx.currentBot.price_pairs) {
+    await ctx.reply('请先设置该机器人的闪兑套餐');
+    return;
+  }
+
+  const price_pairs = ctx.currentBot.price_pairs || [];
+
+  let pricePairLines: string[] = [];
+  if (price_pairs.length > 0) {
+    pricePairLines = price_pairs.map((pair) => {
+      // 1 trx = 1_000_000 sun
+      const energy = pair.aqusition;
+      const trx = pair.expenditure;
+      const hour = pair.expiration;
+      // 能量显示为整数
+      return `🔸${energy} 能量 (${hour}小时) :  ${trx} TRX   (${hour}小时内有效)`;
+    });
+  } else {
+    pricePairLines = ['未配置闪兑套餐，请联系管理员。'];
+  }
+
   const message = [
     '【🔋能量闪租🔋】',
-    '🔸3笔 (1小时) :  9 TRX   (1小时内有效)',
-    '🔸2笔 (1小时) :  6 TRX   (1小时内有效)',
-    '🔸1笔 (1小时) :  3 TRX   (1小时内有效)',
+    ...pricePairLines,
     `\n`,
     '1.向无U地址转账, 需要双倍能量。',
     '2.请在1小时内转账, 否则过期回收。',

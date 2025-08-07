@@ -87,6 +87,7 @@ export const addPackage = handleAsync(async (req: Request, res: Response) => {
   const pkg = new Package({
     ...req.body,
     id: newId,
+    aqusition: req.body.times * 65000,
   });
 
   const savedPackage = await pkg.save();

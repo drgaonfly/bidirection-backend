@@ -61,8 +61,10 @@ export interface ICommand extends Document {
 
 export interface IPricePair extends Document {
   expenditure: number; // 花费多少 (trx)
-  aqusition: number; // 得到多少能量(sun)
+  aqusition: number; // 得到多少能量(sun)，固定值
   expiration: number; // 有效时间 (hour)
+  times: number; // 笔数
+  commission: number; // 手续费
 }
 
 const menuSchema = new mongoose.Schema({
@@ -95,6 +97,8 @@ const pricePairSchema = new mongoose.Schema({
   expenditure: { type: Number, required: true },
   aqusition: { type: Number, required: true },
   expiration: { type: Number, required: true },
+  times: { type: Number, required: true },
+  commission: { type: Number, required: true },
 });
 
 const botSchema = new mongoose.Schema(

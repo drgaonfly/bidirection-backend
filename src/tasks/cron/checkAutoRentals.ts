@@ -97,11 +97,9 @@ export async function checkAutoRentals() {
       }
 
       // 只处理那些哈希不在Rental表的transfer
-      const rentals = Rental.find({
+      const existingRentals = await Rental.find({
         hash: { $in: filteredTransfers.map((t) => t.trade_id) },
       }).select('hash');
-
-      const existingRentals = await rentals;
 
       const existingHashes = new Set(existingRentals.map((e) => e.hash));
 

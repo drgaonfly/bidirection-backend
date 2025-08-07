@@ -3,6 +3,7 @@ import { getExchangeRate } from './getExchange';
 import axios from 'axios';
 import { getAdminUser } from './buyTelegramPremium';
 import { decrypt } from '../services/encrypt';
+import { IRental } from '../models/rental';
 
 const API_KEYS = [
   'cfb0c541-ae6c-4a66-a6d8-3c82e3a5be81',
@@ -143,6 +144,7 @@ const getAccountBalances = async (accountId: string) => {
 // }
 
 async function rentEnergy(
+  rental: IRental,
   fromAddress: string,
   toAddress: string,
   amount: number,
@@ -186,9 +188,15 @@ async function rentEnergy(
     const signedTx = await tronWeb.trx.sign(transaction);
     const result = await tronWeb.trx.sendRawTransaction(signedTx);
 
+    rental.tx_id = result.txid;
+    rental.status = 'completed';
+    await rental.save();
+
     return result.txid;
   } catch (error) {
     console.error('租赁能量失败:', error);
+    rental.status = 'failed';
+    await rental.save();
     throw error;
   }
 }

@@ -61,6 +61,7 @@ balanceRentalCommand.callbackQuery(
     await ctx.deleteMessage();
 
     const result = await rentEnergy(
+      rental,
       rental.from_address,
       rental.to_address,
       rental.amount,

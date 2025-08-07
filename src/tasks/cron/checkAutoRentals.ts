@@ -131,7 +131,7 @@ export async function checkAutoRentals() {
             price: transfer.money,
             bot: bot._id,
             // botUser: botUser._id,
-            status: 'completed',
+            status: 'pending',
             type: 'auto',
             crypto_type: 'trx',
             limit_hour: 1,
@@ -146,9 +146,9 @@ export async function checkAutoRentals() {
           );
 
           // 发起 能量租赁
-          let txid = '';
           try {
-            txid = await rentEnergy(
+            const txid = await rentEnergy(
+              rental,
               transfer.from_address,
               transfer.to_address,
               rental.amount,
@@ -168,9 +168,7 @@ export async function checkAutoRentals() {
             continue;
           }
 
-          console.log(
-            `[checkAutoRentals] 租赁记录 id=${rental.id} 已保存, txid=${txid}`,
-          );
+          console.log(`[checkAutoRentals] 租赁记录 id=${rental.id} 已保存`);
         } catch (err) {
           console.error('[checkAutoRentals] 处理租赁记录时出错:', err);
           continue;

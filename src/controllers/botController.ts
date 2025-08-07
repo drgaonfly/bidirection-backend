@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Bot, { IBot } from '../models/bot';
 import handleAsync from '../utils/handleAsync';
 import User from '../models/user';
+import Package from '../models/package';
 import BotUser from '../models/botUser';
 import { printWebhookInfo, setupBot } from '../bot/botSetup';
 import { RequestCustom } from 'user';
@@ -9,9 +10,9 @@ import { isProxy, isEmployee } from '../middlewares/authMiddleware';
 import { getUserByUsername } from '../bot/commands/user/operator/add';
 import { encrypt } from '../services/encrypt';
 import { createTrxWallet } from '../utils/generateWallet';
-import dotenv from 'dotenv';
 import { InputFile } from 'grammy';
-import Package from '../models/package';
+import { isAdministrator } from '../middlewares/authMiddleware';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
@@ -61,6 +62,12 @@ const buildQuery = async (
 
   if (queryParams.isOnline !== '') {
     query.isOnline = queryParams.isOnline === 'true';
+  }
+
+  if (isAdministrator(queryParams.proxy)) {
+    query.user = null;
+  } else {
+    query.user = queryParams.proxy;
   }
 
   if (queryParams.user) {

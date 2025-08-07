@@ -22,7 +22,12 @@ specificRechargeCallback.callbackQuery(/^charge_(\d+):(\w+)$/, async (ctx) => {
 
   debug(`处理金额: ${actualAmount}`);
 
-  const success = await handleRechargeRequest(ctx, actualAmount, cryptoType);
+  const success = await handleRechargeRequest(
+    ctx,
+    actualAmount,
+    cryptoType,
+    ctx.currentBot,
+  );
 
   if (!success) {
     debug('处理特定金额充值失败');
@@ -34,6 +39,8 @@ specificRechargeCallback.callbackQuery(/recharge:again/, async (ctx) => {
   debug('重新发起充值');
 
   await ctx.conversation.exitAll();
+
+  console.log('ctx.currentBot.proxy', ctx.currentBot.user);
 
   await handleChargingBalance(ctx);
 });

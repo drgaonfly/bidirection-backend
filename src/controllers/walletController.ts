@@ -46,6 +46,10 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     }
   }
 
+  if (queryParams.proxy) {
+    query.proxy = queryParams.proxy;
+  }
+
   return query;
 };
 
@@ -56,6 +60,7 @@ export const getWallets = handleAsync(async (req: Request, res: Response) => {
 
   const wallets = await Wallet.find(query)
     .sort('-createdAt')
+    .populate('proxy')
     .populate({
       path: 'receipts',
       populate: [

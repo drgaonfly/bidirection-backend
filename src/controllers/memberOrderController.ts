@@ -45,6 +45,10 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     }
   }
 
+  if (queryParams.proxy) {
+    query.proxy = queryParams.proxy;
+  }
+
   return query;
 };
 
@@ -55,11 +59,13 @@ export const getMemberOrders = handleAsync(
     const query = await buildQuery(req.query);
 
     const memberOrders = await MemberOrder.find(query)
+      .populate('botUser')
+      .populate('bot')
+      .populate('proxy')
       .sort('-createdAt')
       .skip((+current - 1) * +pageSize)
       .limit(+pageSize)
-      .populate('botUser')
-      .populate('bot')
+
       .lean()
       .exec();
 

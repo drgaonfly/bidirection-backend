@@ -1,6 +1,7 @@
 import mongoose, { Document } from 'mongoose';
 import { IBot } from './bot';
 import { IBotUser } from './botUser';
+import { IUser } from './user';
 
 // 群组接口定义
 export interface IGroup extends Document {
@@ -17,6 +18,7 @@ export interface IGroup extends Document {
   startAt?: Date;
   unit?: string;
   message: string;
+  proxy: mongoose.Schema.Types.ObjectId | IUser;
 }
 
 // 群组 Schema
@@ -92,6 +94,10 @@ const groupSchema = new mongoose.Schema(
       default: 'USD',
     },
     message: {
+      type: String,
+      required: false,
+    },
+    proxy: {
       type: String,
       required: false,
     },

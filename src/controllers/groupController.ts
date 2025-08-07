@@ -17,6 +17,10 @@ const buildQuery = (queryParams: any): any => {
     query.isOnline = queryParams.isOnline;
   }
 
+  if (queryParams.proxy) {
+    query.proxy = queryParams.proxy;
+  }
+
   return query;
 };
 
@@ -32,6 +36,7 @@ const getGroups = handleAsync(async (req: Request, res: Response) => {
     .populate('operators')
     .populate('botUsers')
     .populate('transactions')
+    .populate('proxy')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)

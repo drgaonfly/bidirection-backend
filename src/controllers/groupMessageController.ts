@@ -39,6 +39,10 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     }
   }
 
+  if (queryParams.proxy) {
+    query.proxy = queryParams.proxy;
+  }
+
   return query;
 };
 
@@ -51,6 +55,7 @@ const getGroupMessages = handleAsync(async (req: Request, res: Response) => {
   const groupMessages = await GroupMessage.find(query)
     .populate('bot')
     .populate('groups')
+    .populate('proxy')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)

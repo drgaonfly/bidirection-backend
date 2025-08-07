@@ -8,7 +8,7 @@ import { generateOrderNumber } from '../../../../../utils/generateOrderNumber'; 
 import createDebug from 'debug';
 import { chargeOptions } from '../../../../../models/payment';
 import BotUser from '../../../../../models/botUser';
-import Bot from '../../../../../models/bot';
+import Bot, { IBot } from '../../../../../models/bot';
 
 const debug = createDebug('bot:recharge:callback');
 
@@ -22,10 +22,10 @@ export async function handleRechargeRequest(
   ctx: MyContext,
   amount: number,
   crypto_type: string,
+  bot: IBot,
 ): Promise<boolean> {
-  debug('handleRechargeRequest-ctx', ctx);
+  debug('handleRechargeRequest', ctx);
 
-  let bot = ctx.currentBot;
   let botUser = ctx.currentBotUser;
 
   if (!botUser) {
@@ -141,6 +141,7 @@ export async function handleRechargeRequest(
         callback: chargeInfo.callback,
       },
       crypto_type,
+      proxy: bot.user,
     });
 
     await payment.save();

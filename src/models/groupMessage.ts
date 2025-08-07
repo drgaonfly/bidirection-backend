@@ -40,7 +40,6 @@ const groupMessageSchema = new mongoose.Schema(
       type: Boolean,
       required: false,
     },
-
     proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   {

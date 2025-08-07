@@ -62,6 +62,7 @@ const getBotUserConfigs = handleAsync(
     const botUserConfigs = await BotUserConfig.find(query)
       .populate('botUser')
       .populate('bot')
+      .populate('proxy')
       .sort('-createdAt')
       .skip((+current - 1) * +pageSize)
       .limit(+pageSize)

@@ -3,6 +3,7 @@ import Payment from '../models/payment';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
 import { generateOrderNumber } from '../utils/generateOrderNumber';
+import { isAdministrator } from '../middlewares/authMiddleware';
 
 const buildQuery = (queryParams: any): any => {
   const query: any = {};
@@ -14,6 +15,12 @@ const buildQuery = (queryParams: any): any => {
 
   if (queryParams.status) {
     query.status = queryParams.status;
+  }
+
+  if (isAdministrator(queryParams.proxy)) {
+    query.proxy = null;
+  } else {
+    query.proxy = queryParams.proxy;
   }
 
   return query;
@@ -30,6 +37,7 @@ export const getPayments = handleAsync(async (req: Request, res: Response) => {
     .limit(+pageSize)
     .populate('botUser')
     .populate('bot')
+    .populate('proxy')
     .lean()
     .exec();
 

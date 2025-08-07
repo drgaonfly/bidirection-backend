@@ -27,7 +27,6 @@ const walletSchema = new Schema<IWallet>(
     trx_balance: { type: Number, default: 0 },
     isOnline: { type: Boolean, default: true },
     remark: { type: String, trim: true },
-
     proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   { timestamps: true },

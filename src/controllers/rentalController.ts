@@ -69,6 +69,10 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     query.crypto_type = queryParams.crypto_type;
   }
 
+  if (queryParams.proxy) {
+    query.proxy = queryParams.proxy;
+  }
+
   return query;
 };
 
@@ -78,11 +82,12 @@ export const getRentals = handleAsync(async (req: Request, res: Response) => {
   const query = await buildQuery(req.query);
 
   const rentals = await Rental.find(query)
+    .populate('botUser')
+    .populate('bot')
+    .populate('proxy')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
-    .populate('botUser')
-    .populate('bot')
     .lean()
     .exec();
 
@@ -104,6 +109,7 @@ export const getRentalById = handleAsync(
     })
       .populate('botUser')
       .populate('bot')
+      .populate('proxy')
       .lean();
 
     if (!rental) {

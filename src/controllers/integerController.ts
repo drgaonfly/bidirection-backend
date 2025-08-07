@@ -51,6 +51,10 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     query.id = queryParams.id;
   }
 
+  if (queryParams.proxy) {
+    query.proxy = queryParams.proxy;
+  }
+
   return query;
 };
 
@@ -60,11 +64,13 @@ export const getIntegers = handleAsync(async (req: Request, res: Response) => {
   const query = await buildQuery(req.query);
 
   const integers = await Integer.find(query)
+    .populate('botUser')
+    .populate('bot')
+    .populate('proxy')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
-    .populate('botUser')
-    .populate('bot')
+
     .lean()
     .exec();
 

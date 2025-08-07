@@ -292,6 +292,12 @@ export const isEmployee = (user: IUser): boolean => {
   );
 };
 
+export const isAdministrator = (user: IUser): boolean => {
+  return (
+    user.roles && user.roles.length === 1 && user.roles[0]?.name === '管理员'
+  );
+};
+
 export {
   protect,
   allow,

@@ -59,6 +59,10 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     }
   }
 
+  if (queryParams.proxy) {
+    query.proxy = queryParams.proxy;
+  }
+
   return query;
 };
 
@@ -71,12 +75,10 @@ export const getReceipts = handleAsync(async (req: Request, res: Response) => {
     .populate('botUser')
     .populate('bot')
     .populate('wallet')
+    .populate('proxy')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
-    .populate('botUser')
-    .populate('bot')
-    .populate('wallet')
     .lean()
     .exec();
 

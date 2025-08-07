@@ -37,6 +37,7 @@ export interface IBot extends Document {
   groups: mongoose.Schema.Types.ObjectId[] | IGroup[]; // 关联的群组
   webhook_url: string; // webhook url
   energy_address: string; // 能量地址
+  energy_privateKey: string; // 能量私钥
   min_interger_limit: number; // 使用预支功能的最少积分数
   isCreatedByAdmin?: boolean; // 是否由管理员创建，由管理创建的机器人就是平台机器人
 }
@@ -237,6 +238,10 @@ const botSchema = new mongoose.Schema(
       trim: true,
     }, // 新增：webhook url
     energy_address: {
+      type: String,
+      trim: true,
+    },
+    energy_privateKey: {
       type: String,
       trim: true,
     },

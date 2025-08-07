@@ -122,7 +122,7 @@ const getBots = handleAsync(async (req: RequestCustom, res: Response) => {
     .populate('clonedFrom')
     .populate('creator')
     .sort('-createdAt')
-    .select('-private_key')
+    .select('-private_key -energy_privateKey')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .lean()
@@ -590,9 +590,10 @@ const addTronAddress = handleAsync(
     }
 
     if (!bot.energy_address) {
-      const { address } = await createTrxWallet();
+      const { address, private_key } = await createTrxWallet();
 
       bot.energy_address = address;
+      bot.energy_privateKey = private_key;
 
       await bot.save();
 

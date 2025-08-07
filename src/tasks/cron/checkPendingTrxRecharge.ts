@@ -161,7 +161,7 @@ export async function checkPendingTrxRecharge() {
             `实际到账: <b>${payment.paymentAmount} TRX</b>\n` +
             `到账余额: <b>${
               userConfig ? newBalance : payment.amount
-            } USDT</b>\n` +
+            } TRX</b>\n` +
             `感谢您的充值！`,
           { parse_mode: 'HTML' },
         );
@@ -188,8 +188,8 @@ export async function checkPendingTrxRecharge() {
                 '$1****$2',
               )}</code>`,
               `🔸充值编号： <code>${payment.orderNumber}</code>`,
-              `🔸充值金额： ${payment.amount.toFixed(3)} USDT`,
-              `🔸到账金额： ${payment.paymentAmount.toFixed(3)} USDT`,
+              `🔸充值金额： ${payment.amount.toFixed(3)} TRX`,
+              `🔸到账金额： ${payment.paymentAmount.toFixed(3)} TRX`,
               `🔸充值日期： ${formatBeijingDate(payment.createdAt)}`,
               `\n📣 您也可以点击下方按钮购买号码。`,
             ].join('\n'),

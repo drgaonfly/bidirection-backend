@@ -97,8 +97,10 @@ export async function handleRechargeRequest(
 
     debug('开始生成不重复的随机金额');
     while (!isUnique && attempts < maxAttempts) {
-      const randomDecimal = Math.floor(Math.random() * 1000); // 0-999
-      uniqueAmount = Number((baseAmount + randomDecimal / 1000).toFixed(3));
+      // 随机加 1% 到 3%（含），保留三位小数
+      const percent = 0.01 + Math.random() * 0.02; // 0.01 ~ 0.03
+      const randomIncrease = Number((baseAmount * percent).toFixed(3));
+      uniqueAmount = Number((baseAmount + randomIncrease).toFixed(3));
       debug(`尝试生成金额: ${uniqueAmount}, 第 ${attempts + 1} 次尝试`);
 
       // 检查是否存在相同金额的待支付订单

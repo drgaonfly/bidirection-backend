@@ -1,4 +1,5 @@
 import mongoose, { Document } from 'mongoose';
+import { IBotUser } from './botUser';
 
 export interface IPricePair extends Document {
   expenditure: number; // 花费多少 (trx)
@@ -41,6 +42,8 @@ export interface IUser extends Document {
   lastOnline: Date; // 最后在线时间
 
   price_pairs: IPricePair[];
+
+  botUser: mongoose.Schema.Types.ObjectId | IBotUser;
 }
 
 const pricePairSchema = new mongoose.Schema({
@@ -117,6 +120,11 @@ const userSchema = new mongoose.Schema(
     price_pairs: {
       type: [pricePairSchema],
       default: [],
+    },
+
+    botUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
     },
   },
   { timestamps: true },

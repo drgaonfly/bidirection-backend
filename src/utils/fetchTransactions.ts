@@ -186,7 +186,7 @@ async function rentEnergy(
     const signedTx = await tronWeb.trx.sign(transaction);
     const result = await tronWeb.trx.sendRawTransaction(signedTx);
 
-    return result;
+    return result.txid;
   } catch (error) {
     console.error('租赁能量失败:', error);
     throw error;

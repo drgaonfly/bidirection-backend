@@ -25,6 +25,9 @@ const buildQuery = (queryParams: any): any => {
   if (queryParams.times) {
     query.times = queryParams.times;
   }
+  if (queryParams.type) {
+    query.type = queryParams.type;
+  }
 
   return query;
 };

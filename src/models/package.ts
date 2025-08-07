@@ -7,6 +7,7 @@ export interface IPackage extends Document {
   expiration: number; // 有效时间 (hour)
   commission: number; // 分佣
   times: number; // 笔数
+  type: string; // 类型
 }
 
 const packageSchema = new mongoose.Schema(
@@ -17,6 +18,7 @@ const packageSchema = new mongoose.Schema(
     expiration: { type: Number, required: true }, // 有效时间 (hour)
     commission: { type: Number, required: true }, // 分佣
     times: { type: Number, required: true }, // 笔数
+    type: { type: String, enum: ['hourly', 'daily'] }, // 闪租 hourly, 日租 daily
   },
   {
     timestamps: true,

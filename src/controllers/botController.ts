@@ -172,11 +172,24 @@ const addBot = handleAsync(async (req: RequestCustom, res: Response) => {
     throw new Error('该 Bot Token 已被使用，请使用其他 Token');
   }
 
-  const botManager = new Bot({
-    ...req.body,
-    user: req.user._id,
-    isCreatedByAdmin: req.user.isAdmin,
-  });
+  const user = await User.findById(req.user._id);
+
+  let botManager: IBot;
+
+  if (isProxy(user)) {
+    botManager = new Bot({
+      ...req.body,
+      user: req.user._id,
+      isCreatedByAdmin: req.user.isAdmin,
+      price_pairs: user.price_pairs,
+    });
+  } else {
+    botManager = new Bot({
+      ...req.body,
+      user: req.user._id,
+      isCreatedByAdmin: req.user.isAdmin,
+    });
+  }
 
   if (isOnline) {
     try {

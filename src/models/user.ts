@@ -6,6 +6,7 @@ export interface IPricePair extends Document {
   expiration: number; // 有效时间 (hour)
   commission: number; // 代理分佣 (trx)
   times: number; // 笔数
+  type: string;
 }
 
 export interface IUser extends Document {
@@ -48,6 +49,7 @@ const pricePairSchema = new mongoose.Schema({
   expiration: { type: Number, required: true },
   commission: { type: Number, required: true },
   times: { type: Number, required: true },
+  type: { type: String, required: true },
 });
 
 const userSchema = new mongoose.Schema(

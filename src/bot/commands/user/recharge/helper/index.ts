@@ -9,6 +9,7 @@ import createDebug from 'debug';
 import { chargeOptions } from '../../../../../models/payment';
 import BotUser from '../../../../../models/botUser';
 import Bot, { IBot } from '../../../../../models/bot';
+import { getAdminUser } from '../../../../../utils/buyTelegramPremium';
 
 const debug = createDebug('bot:recharge:callback');
 
@@ -95,10 +96,21 @@ export async function handleRechargeRequest(
     const maxAttempts = 10;
     const baseAmount = chargeInfo.amount ?? amount;
 
+    const admin = await getAdminUser();
+
     debug('开始生成不重复的随机金额');
     while (!isUnique && attempts < maxAttempts) {
       // 随机加 1% 到 3%（含），保留三位小数
-      const percent = 0.01 + Math.random() * 0.02; // 0.01 ~ 0.03
+      // 取 admin.recharge_min ~ admin.recharge_max 之间的百分比，默认 0.01 ~ 0.03
+      const minPercent =
+        typeof admin.recharge_min === 'number' && admin.recharge_min > 0
+          ? admin.recharge_min / 100
+          : 0.01;
+      const maxPercent =
+        typeof admin.recharge_max === 'number' && admin.recharge_max > 0
+          ? admin.recharge_max / 100
+          : 0.03;
+      const percent = minPercent + Math.random() * (maxPercent - minPercent);
       const randomIncrease = Number((baseAmount * percent).toFixed(3));
       uniqueAmount = Number((baseAmount + randomIncrease).toFixed(3));
       debug(`尝试生成金额: ${uniqueAmount}, 第 ${attempts + 1} 次尝试`);

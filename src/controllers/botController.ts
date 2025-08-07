@@ -11,6 +11,7 @@ import { encrypt } from '../services/encrypt';
 import { createTrxWallet } from '../utils/generateWallet';
 import dotenv from 'dotenv';
 import { InputFile } from 'grammy';
+import Package from '../models/package';
 
 dotenv.config();
 
@@ -174,6 +175,8 @@ const addBot = handleAsync(async (req: RequestCustom, res: Response) => {
 
   const user = await User.findById(req.user._id);
 
+  const product = await Package.find();
+
   console.log('user', user);
 
   let botManager: IBot;
@@ -190,6 +193,7 @@ const addBot = handleAsync(async (req: RequestCustom, res: Response) => {
       ...req.body,
       user: req.user._id,
       isCreatedByAdmin: req.user.isAdmin,
+      price_pairs: product,
     });
   }
 

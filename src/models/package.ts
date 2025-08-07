@@ -8,6 +8,7 @@ export interface IPackage extends Document {
   commission: number; // 分佣
   times: number; // 笔数
   type: string; // 类型
+  min_expenditure: number; // 最低消费
 }
 
 const packageSchema = new mongoose.Schema(
@@ -19,6 +20,7 @@ const packageSchema = new mongoose.Schema(
     commission: { type: Number, required: true }, // 分佣
     times: { type: Number, required: true }, // 笔数
     type: { type: String, enum: ['hourly', 'daily'] }, // 闪租 hourly, 日租 daily
+    min_expenditure: { type: Number, required: true }, // 最低消费
   },
   {
     timestamps: true,

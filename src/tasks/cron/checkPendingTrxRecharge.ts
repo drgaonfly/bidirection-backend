@@ -117,11 +117,11 @@ export async function checkPendingTrxRecharge() {
 
       let newBalance = payment.amount;
       if (userConfig) {
-        newBalance = (userConfig.usdt_balance || 0) + payment.amount;
+        newBalance = (userConfig.trx_balance || 0) + payment.amount;
         await BotUserConfig.findOneAndUpdate(
           { _id: userConfig._id },
           {
-            $inc: { balance: payment.amount },
+            $inc: { trx_balance: payment.amount },
           },
           { new: true },
         );
@@ -130,7 +130,7 @@ export async function checkPendingTrxRecharge() {
         await BotUserConfig.create({
           bot: bot._id,
           botUser: botUser._id,
-          balance: payment.amount,
+          trx_balance: payment.amount,
         });
       }
 

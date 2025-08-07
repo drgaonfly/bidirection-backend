@@ -29,8 +29,6 @@ export interface IUser extends Document {
   temp2FASecret?: string; // 临时存储的TOTP密钥（用于激活过程）
   twoFABackupCodes?: string[]; // 备用代码（可选增强）
 
-  trx_balance: number; // TRX 余额
-
   passwordChangedAt: Date;
   lastLoginAt: Date; // 最新登录时间
   lastLoginIp: string; // 最新登录IP
@@ -41,6 +39,14 @@ export interface IUser extends Document {
   price_pairs: IPricePair[];
 
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
+  /**
+   * 充值涨最小值
+   */
+  recharge_min: number;
+  /**
+   * 充值涨最大值
+   */
+  recharge_max: number;
 }
 
 const pricePairSchema = new mongoose.Schema({
@@ -94,7 +100,6 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
-    trx_balance: { type: Number, default: 0 }, // TRX 余额
     twoFABackupCodes: [
       {
         type: String,
@@ -120,6 +125,11 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
+
+    // 充值涨最小值
+    recharge_min: { type: Number, default: 0 },
+    // 充值涨最大值
+    recharge_max: { type: Number, default: 0 },
   },
   { timestamps: true },
 );

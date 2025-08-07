@@ -101,7 +101,7 @@ export async function checkPendingUsdtRecharge() {
         await BotUserConfig.findOneAndUpdate(
           { _id: userConfig._id },
           {
-            $inc: { balance: payment.amount },
+            $inc: { usdt_balance: payment.amount },
           },
           { new: true },
         );
@@ -110,7 +110,7 @@ export async function checkPendingUsdtRecharge() {
         await BotUserConfig.create({
           bot: bot._id,
           botUser: botUser._id,
-          balance: payment.amount,
+          usdt_balance: payment.amount,
         });
       }
 

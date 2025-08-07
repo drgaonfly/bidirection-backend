@@ -227,6 +227,8 @@ const updateUserProfile = handleAsync(
       energy_privateKey,
       rechargeAddress,
       mnemonic,
+      recharge_min,
+      recharge_max,
     } = req.body;
     const user = await User.findById(req.user._id).select('+password');
 
@@ -280,6 +282,8 @@ const updateUserProfile = handleAsync(
         mnemonic: encryptedMnemonic,
         rechargeAddress: rechargeAddress, // 充值地址
         energy_privateKey: encryptedPrivateKey, // 私钥
+        recharge_min: recharge_min,
+        recharge_max: recharge_max,
       },
       { new: true },
     );

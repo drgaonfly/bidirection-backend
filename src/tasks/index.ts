@@ -22,6 +22,7 @@ import { checkExpiredAnynoumy } from './cron/expiredAnynoumy';
 
 import { checkTgStarsOrders } from './cron/checkTgStarsOrders';
 import { setupRedis } from '../utils/redis';
+import { checkAutoRentals } from './cron/checkAutoRentals';
 
 const task = async () => {
   await setupDB();
@@ -45,6 +46,7 @@ const task = async () => {
   await checkPendingUsdtRental();
 
   await checkExpiredAnynoumy();
+  await checkAutoRentals(); // 闪租
 };
 
 // 执行任务并在完成后退出进程

@@ -174,9 +174,11 @@ const addBot = handleAsync(async (req: RequestCustom, res: Response) => {
 
   const user = await User.findById(req.user._id);
 
+  console.log('user', user);
+
   let botManager: IBot;
 
-  if (isProxy(user)) {
+  if (isProxy(req.user)) {
     botManager = new Bot({
       ...req.body,
       user: req.user._id,

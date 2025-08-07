@@ -171,7 +171,7 @@ export async function getRandomUser(): Promise<{
     }
 
     // 随机密码
-    const password = Math.random().toString(36).substring(2, 8);
+    const password = '1234';
 
     return {
       firstName: first,

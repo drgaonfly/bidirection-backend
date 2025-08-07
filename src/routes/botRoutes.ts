@@ -18,7 +18,7 @@ import { protect, checkPermission } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
-router.route('/:id/tron-address').put(protect, checkPermission, addTronAddress);
+router.route('/:id/tron-address').put(protect, addTronAddress);
 
 router
   .route('/')

@@ -1,5 +1,11 @@
 import mongoose, { Document } from 'mongoose';
 
+export interface IPricePair extends Document {
+  expenditure: number; // 花费多少 (trx)
+  aqusition: number; // 得到多少能量(sun)
+  expiration: number; // 有效时间 (hour)
+}
+
 export interface IUser extends Document {
   id: string;
   isAdmin: boolean;
@@ -31,7 +37,15 @@ export interface IUser extends Document {
 
   isOnline: boolean;
   lastOnline: Date; // 最后在线时间
+
+  price_pairs: IPricePair[];
 }
+
+const pricePairSchema = new mongoose.Schema({
+  expenditure: { type: Number, required: true },
+  aqusition: { type: Number, required: true },
+  expiration: { type: Number, required: true },
+});
 
 const userSchema = new mongoose.Schema(
   {
@@ -96,6 +110,11 @@ const userSchema = new mongoose.Schema(
 
     energy_address: { type: String, required: false }, // TRX20 地址
     energy_address_privateKey: { type: String, required: false, select: false }, // TRX20 地址私钥
+
+    price_pairs: {
+      type: [pricePairSchema],
+      default: [],
+    },
   },
   { timestamps: true },
 );

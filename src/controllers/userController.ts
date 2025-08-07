@@ -223,15 +223,7 @@ export const getUserById = handleAsync(async (req: Request, res: Response) => {
 
 export const updateUser = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const {
-    liquidRate,
-    stakeRate,
-    isOnline,
-    proxySharingRate,
-    stackingChannel,
-    serviceLink,
-    ...body
-  } = req.body;
+  const { password, roles } = req.body;
 
   const user = await User.findById(id).select('+password');
 
@@ -242,27 +234,19 @@ export const updateUser = handleAsync(async (req: Request, res: Response) => {
 
   let hashPassword = user.password;
 
-  if (body.password) {
+  if (password) {
     const salt = await bcrypt.genSalt(10);
-    hashPassword = await bcrypt.hash(body.password, salt);
+    hashPassword = await bcrypt.hash(password, salt);
   }
 
-  const newRoles = body.roles ? body.roles : user.roles;
+  const newRoles = roles ? roles : user.roles;
 
   const updatedUser = await User.findByIdAndUpdate(
     id,
     {
-      stackingChannel,
-      isOnline,
-      proxySharingRate,
-      name: body.name,
-      email: body.email,
+      ...req.body,
       password: hashPassword,
-      live: body.live,
       roles: newRoles,
-      liquidRate,
-      stakeRate,
-      serviceLink, // 服务链接
     },
     { new: true },
   );

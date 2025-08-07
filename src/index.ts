@@ -43,6 +43,7 @@ import tgStarsOrderRoutes from './routes/TgStarsOrderRoutes';
 import advanceRoutes from './routes/advanceRoutes';
 import applicationRoutes from './routes/applicationRoutes';
 import transferRoutes from './routes/transferRoutes';
+import packageRoutes from './routes/packageRoutes';
 
 dotenv.config();
 
@@ -96,8 +97,9 @@ app.use('/api/anynoumies', anynoumyRoutes);
 app.use('/api/advances', advanceRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/transfers', transferRoutes);
-
 app.use('/api/tg-stars-orders', tgStarsOrderRoutes);
+app.use('/api/packages', packageRoutes);
+
 app.use('/api/static', express.static('tmp'));
 
 setupDB();

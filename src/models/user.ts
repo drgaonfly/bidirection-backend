@@ -19,7 +19,6 @@ export interface IUser extends Document {
   proxy: mongoose.Schema.Types.ObjectId | IUser;
   creator: mongoose.Schema.Types.ObjectId | IUser;
 
-  energyReceiveAddress?: string; // 收能量地址
   rechargeAddress?: string; // 充值地址
   energy_privateKey?: string; // 能量发送私钥
   mnemonic?: string; // 助记词
@@ -72,8 +71,6 @@ const userSchema = new mongoose.Schema(
       ref: 'User',
       required: false,
     },
-
-    energyReceiveAddress: { type: String, required: false }, // 能量接收地址
 
     rechargeAddress: { type: String, required: false }, // 充值地址
     energy_privateKey: { type: String, required: false, select: false }, // 能量发送私钥

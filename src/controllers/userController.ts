@@ -32,7 +32,6 @@ export const getUsers = handleAsync(
       live,
       isOnline,
       inviteCode,
-      energyReceiveAddress,
       current = '1',
       pageSize = '10',
     } = req.query;
@@ -58,13 +57,6 @@ export const getUsers = handleAsync(
 
     if (isOnline !== '') {
       query.isOnline = isOnline === 'true';
-    }
-
-    if (energyReceiveAddress) {
-      query.energyReceiveAddress = {
-        $regex: energyReceiveAddress,
-        $options: 'i',
-      };
     }
 
     // 员工查询逻辑
@@ -185,7 +177,7 @@ export const getUserById = handleAsync(async (req: Request, res: Response) => {
 
   const employees = await User.find({
     proxy: user._id,
-    roles: employeeRole._id, // Use the role ID for filtering employees
+    roles: employeeRole?._id, // Use the role ID for filtering employees
   }).populate('roles');
 
   const proxies = await User.find({

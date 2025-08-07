@@ -1,6 +1,7 @@
 import mongoose, { Document } from 'mongoose';
 import { IBot } from './bot';
 import { IBotUser } from './botUser';
+
 // 群组接口定义
 export interface IGroup extends Document {
   id: number;

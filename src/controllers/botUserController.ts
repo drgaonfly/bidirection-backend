@@ -10,7 +10,6 @@ import bcrypt from 'bcrypt';
 import User from '../models/user';
 import Role from '../models/role';
 import { IdGen } from '../utils/idGen';
-import { createTrxWallet } from '../utils/generateWallet';
 import { getRandomUser } from '../services/ipGeoaddress';
 import { setupBot } from '../bot/botSetup';
 
@@ -201,8 +200,6 @@ export const generateBoundProxy = handleAsync(
 
     const has_email = email ? email : randomUserInfo.phone + '@gmail.com';
 
-    const { address, privateKey } = await createTrxWallet();
-
     const proxyRole = await Role.findOne({ name: '代理' });
 
     const newUser = new User({
@@ -214,8 +211,6 @@ export const generateBoundProxy = handleAsync(
       password: hashPassword,
       proxy: req.user._id,
       creator: req.user._id,
-      energyReceiveAddress: address,
-      energy_privateKey: privateKey,
       roles: [proxyRole],
     });
 
@@ -243,7 +238,7 @@ export const generateBoundProxy = handleAsync(
           ``,
           `🔑 密码: <code>${password || randomUserInfo.password}</code>`,
           `\n`,
-          `⚡ 能量接收地址: <code>${newUser.energyReceiveAddress}</code>`,
+          // `⚡ 能量接收地址: <code>${newUser.energyReceiveAddress}</code>`,
         ].join('\n'),
         {
           parse_mode: 'HTML',

@@ -1,15 +1,16 @@
-import { Request, Response } from 'express';
 import BotUser from '../models/botUser'; // 引入botUser模型
 import Bot from '../models/bot';
 import Application from '../models/application';
-import handleAsync from '../utils/handleAsync';
-import { RequestCustom } from 'user';
-import { isEmployee, isProxy } from '../middlewares/authMiddleware';
-import { generateInviteCode } from './userController';
+import Package from '../models/package';
 import bcrypt from 'bcrypt';
 import User from '../models/user';
 import Role from '../models/role';
 import { IdGen } from '../utils/idGen';
+import { Request, Response } from 'express';
+import handleAsync from '../utils/handleAsync';
+import { RequestCustom } from 'user';
+import { isEmployee, isProxy } from '../middlewares/authMiddleware';
+import { generateInviteCode } from './userController';
 import { getRandomUser } from '../services/ipGeoaddress';
 import { setupBot } from '../bot/botSetup';
 
@@ -202,6 +203,8 @@ export const generateBoundProxy = handleAsync(
 
     const proxyRole = await Role.findOne({ name: '代理' });
 
+    const price_pairs = await Package.find();
+
     const newUser = new User({
       ...req.body,
       id: newId,
@@ -212,6 +215,7 @@ export const generateBoundProxy = handleAsync(
       proxy: req.user._id,
       creator: req.user._id,
       roles: [proxyRole],
+      price_pairs,
     });
 
     await newUser.save();

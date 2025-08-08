@@ -35,11 +35,7 @@ export async function checkAutoUnRentals() {
       }
 
       try {
-        const result = await unRentEnergy(
-          rental.from_address,
-          rental.to_address,
-          rental.amount,
-        );
+        const result = await unRentEnergy(rental.from_address, rental.amount);
 
         await UnRental.create({
           proxy: rental.proxy,

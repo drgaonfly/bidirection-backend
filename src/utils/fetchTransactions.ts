@@ -234,11 +234,7 @@ async function rentEnergy(
   }
 }
 
-async function unRentEnergy(
-  fromAddress: string,
-  toAddress: string,
-  amount: number,
-): Promise<any> {
+async function unRentEnergy(toAddress: string, amount: number): Promise<any> {
   // 获取管理员用户
   const admin = await getAdminUser();
 
@@ -250,6 +246,10 @@ async function unRentEnergy(
     fullHost: 'https://api.trongrid.io',
     privateKey: decryptedPrivateKey,
   });
+
+  const fromAddress = tronWeb.address.fromPrivateKey(
+    decryptedPrivateKey,
+  ) as string;
 
   try {
     const amountSunStr = tronWeb.toSun(amount); // 转为Sun单位字符串

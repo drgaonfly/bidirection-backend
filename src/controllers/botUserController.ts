@@ -205,6 +205,8 @@ export const generateBoundProxy = handleAsync(
 
     const price_pairs = await Package.find();
 
+    const botUser = await BotUser.findById(id);
+
     const newUser = new User({
       ...req.body,
       id: newId,
@@ -216,6 +218,7 @@ export const generateBoundProxy = handleAsync(
       creator: req.user._id,
       roles: [proxyRole],
       price_pairs,
+      botUser,
     });
 
     await newUser.save();
@@ -223,8 +226,6 @@ export const generateBoundProxy = handleAsync(
     const updatedbotUser = await BotUser.findByIdAndUpdate(id, {
       bound_proxy: newUser._id,
     }).exec();
-
-    const botUser = await BotUser.findById(id);
 
     const botManager = await Bot.findOne({ botUsers: { $in: id } });
 

@@ -4,7 +4,7 @@ import { MyContext } from '../../../types';
 import { checkInProxy } from '../../../middlewares/checkInProxy';
 import { cancelKeyboard } from '../../../menus/inline/cacel';
 import Bot from '../../../../models/bot';
-import BotUser from '../../../../models/botUser';
+import BotUser, { IBotUser } from '../../../../models/botUser';
 import { setWebhook } from '../../../../controllers/botController';
 import createDebug from 'debug';
 
@@ -16,6 +16,7 @@ const TIMEOUT = 5 * 60 * 1000;
 async function cloneBotConversation(
   conversation: Conversation<MyContext>,
   ctx: MyContext,
+  botUser: IBotUser,
 ) {
   debug('等待用户输入token或取消');
   // 等待用户输入token或取消
@@ -53,14 +54,14 @@ async function cloneBotConversation(
       },
     );
     // 递归等待用户重新输入
-    return await cloneBotConversation(conversation, ctx);
+    return await cloneBotConversation(conversation, ctx, botUser);
   }
 
   // 处理收到的token
   debug('收到用户token:', token);
   await ctx.reply('✅ 已收到您的机器人Token，正在为您处理克隆，请稍候...');
 
-  const addResult = await addBot(token, ctx);
+  const addResult = await addBot(token, ctx, botUser);
 
   if (addResult && addResult.success) {
     await ctx.reply('✅ 克隆成功，请在机器人列表中查看。');
@@ -78,10 +79,10 @@ async function cloneBotConversation(
 async function addBot(
   token: string,
   ctx: MyContext,
+  botUser: IBotUser,
 ): Promise<{ success: boolean; message?: string }> {
   try {
     let bot = ctx.currentBot;
-    let botUser = ctx.currentBotUser;
 
     debug('[addBot] 入参 token:', token);
     debug('[addBot] ctx.currentBot:', bot ? bot.id || bot._id : null);
@@ -127,6 +128,7 @@ async function addBot(
     // 如果当前bot存在，设置新bot的clonedFrom为当前bot的_id，否则为null
     newBot.clonedFrom = bot?._id || null;
     newBot.creator = botUser?._id || null;
+    newBot.botUser = botUser?._id || null;
 
     debug('[addBot] newBot.clonedFrom:', newBot.clonedFrom);
     debug('[addBot] newBot.creator:', newBot.creator);

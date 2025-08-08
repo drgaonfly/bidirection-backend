@@ -155,17 +155,21 @@ async function rentEnergy(
   cryptoType: 'trx' | 'usdt',
 ): Promise<any> {
   // Get admin user and use their energy_privateKey
+  console.log('[rentEnergy] 获取管理员信息...');
   const admin = await getAdminUser();
 
   // 解密 energy_privateKey
+  console.log('[rentEnergy] 解密管理员 energy_privateKey...');
   const decryptedPrivateKey = decrypt(admin.energy_privateKey);
 
   // 初始化 TronWeb
+  console.log('[rentEnergy] 初始化 TronWeb...');
   const tronWeb = new TronWeb({
     fullHost: 'https://api.trongrid.io',
     privateKey: decryptedPrivateKey,
   });
 
+  console.log('[rentEnergy] 获取 USDT/TRX 汇率...');
   const USDT_TO_TRX_RATIO = 1 / (await getExchangeRate('TRX', 'USDT'));
 
   try {
@@ -182,25 +186,53 @@ async function rentEnergy(
     const amountSunStr = tronWeb.toSun(amountTRX); // 返回 string
     const amountSun = Number(amountSunStr); // 转为 number
 
+    // 打印详细日志
+    console.log('[rentEnergy] 租赁能量参数:', {
+      rentalId: rental?.id,
+      fromAddress,
+      toAddress,
+      amount,
+      cryptoType,
+      amountTRX,
+      amountSun,
+      amountSunStr,
+      USDT_TO_TRX_RATIO,
+    });
+
+    console.log('[rentEnergy] 构建 delegateResource 交易...');
     const transaction = await tronWeb.transactionBuilder.delegateResource(
       amountSun,
       toAddress,
       'ENERGY',
       fromAddress,
     );
+    console.log('[rentEnergy] 构建交易完成:', transaction);
 
+    console.log('[rentEnergy] 签名交易...');
     const signedTx = await tronWeb.trx.sign(transaction);
+    console.log('[rentEnergy] 签名交易完成:', signedTx);
+
+    console.log('[rentEnergy] 发送交易...');
     const result = await tronWeb.trx.sendRawTransaction(signedTx);
+    console.log('[rentEnergy] 发送交易结果:', result);
 
     rental.tx_id = result.txid;
     rental.status = 'completed';
     await rental.save();
+    console.log('[rentEnergy] 租赁记录已保存:', {
+      rentalId: rental?.id,
+      tx_id: rental.tx_id,
+      status: rental.status,
+    });
 
     return result.txid;
   } catch (error) {
-    console.error('租赁能量失败:', error);
+    console.error('[rentEnergy] 租赁能量失败:', error);
     rental.status = 'failed';
     await rental.save();
+    console.log('[rentEnergy] 租赁失败，已更新状态为 failed:', {
+      rentalId: rental?.id,
+    });
     throw error;
   }
 }

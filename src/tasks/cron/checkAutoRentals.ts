@@ -149,6 +149,7 @@ export async function checkAutoRentals() {
             limit_hour: matchedPricePair.expiration,
             expiredAt: new Date(Date.now() + 30 * 60 * 1000),
             hash: transfer.trade_id,
+            proxy: bot.user,
           });
 
           console.log('paid rental', rental);

@@ -83,7 +83,6 @@ const rentalSchema = new Schema<IRental>(
     botUser: {
       type: Schema.Types.ObjectId,
       ref: 'BotUser',
-      required: true,
     },
 
     type: {

@@ -6,6 +6,7 @@ import { rentEnergy } from '../../utils/fetchTransactions';
 import createDebug from 'debug';
 
 import { TronWeb } from 'tronweb';
+import UnRental from '../../models/unrental';
 
 const tronWeb = new TronWeb({
   fullHost: 'https://api.trongrid.io',
@@ -169,6 +170,11 @@ export async function checkAutoRentals() {
             );
 
             console.log(`[checkAutoRentals] 能量租赁成功, txid=${txid}`);
+
+            await UnRental.create({
+              rental: rental._id,
+              proxy: bot.user,
+            });
           } catch (sendErr) {
             console.error(`[checkAutoRentals] 能量租赁成功失败:`, sendErr);
             // 这里可以考虑更新兑换状态为失败

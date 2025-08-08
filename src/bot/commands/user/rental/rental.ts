@@ -65,6 +65,8 @@ export async function handleRentalCommand(ctx: MyContext) {
 
 // 开始命令处理
 rentalCommand.hears(/能量闪租/, checkInBot, async (ctx) => {
+  await ctx.conversation.exitAll();
+
   await handleRentalCommand(ctx);
 });
 

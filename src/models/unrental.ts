@@ -1,20 +1,39 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { IRental } from './rental';
 import { IUser } from './user';
+import { IBot } from './bot';
 
 // 能量解除租用接口定义
 export interface IUnRental extends Document {
-  rental: mongoose.Schema.Types.ObjectId | IRental;
+  proxy: mongoose.Schema.Types.ObjectId | IUser;
+  bot: mongoose.Schema.Types.ObjectId | IBot;
+  amount: number; // 租赁能量数
+  separation: number; // 笔数
+  limit_hour: number;
   status: string;
   hash: string;
-  proxy: mongoose.Schema.Types.ObjectId | IUser;
 }
 
 const unRentalSchema = new Schema<IUnRental>(
   {
-    rental: {
+    proxy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Rental',
+      ref: 'User',
+    },
+    bot: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Bot',
+      required: true,
+    },
+    amount: {
+      type: Number,
+      required: true,
+    },
+    separation: {
+      type: Number,
+      required: true,
+    },
+    limit_hour: {
+      type: Number,
       required: true,
     },
     hash: {
@@ -26,10 +45,6 @@ const unRentalSchema = new Schema<IUnRental>(
       enum: ['delegated', 'undelegated', 'failed'],
       required: true,
       default: 'delegated',
-    },
-    proxy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
     },
   },
   {

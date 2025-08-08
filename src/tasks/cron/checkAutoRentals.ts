@@ -163,7 +163,6 @@ export async function checkAutoRentals() {
           try {
             const txid = await rentEnergy(
               rental,
-              transfer.from_address,
               transfer.to_address,
               rental.amount,
               'trx',

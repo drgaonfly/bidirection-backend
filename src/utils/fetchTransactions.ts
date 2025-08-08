@@ -149,7 +149,6 @@ const getAccountBalances = async (accountId: string) => {
 
 async function rentEnergy(
   rental: IRental,
-  fromAddress: string,
   toAddress: string,
   amount: number,
   cryptoType: 'trx' | 'usdt',
@@ -171,6 +170,12 @@ async function rentEnergy(
 
   console.log('[rentEnergy] 获取 USDT/TRX 汇率...');
   const USDT_TO_TRX_RATIO = 1 / (await getExchangeRate('TRX', 'USDT'));
+
+  const fromAddress = tronWeb.address.fromPrivateKey(
+    decryptedPrivateKey,
+  ) as string;
+
+  console.log('[rentEnergy] 获取 fromAddress...', fromAddress);
 
   try {
     let amountTRX: number;
@@ -204,7 +209,7 @@ async function rentEnergy(
       amountSun,
       toAddress,
       'ENERGY',
-      fromAddress,
+      fromAddress as string,
     );
     console.log('[rentEnergy] 构建交易完成:', transaction);
 
@@ -217,6 +222,7 @@ async function rentEnergy(
     console.log('[rentEnergy] 发送交易结果:', result);
 
     rental.tx_id = result.txid;
+    rental.energyFromAddress = fromAddress as string;
     rental.status = 'completed';
     await rental.save();
     console.log('[rentEnergy] 租赁记录已保存:', {
@@ -229,6 +235,7 @@ async function rentEnergy(
   } catch (error) {
     console.error('[rentEnergy] 租赁能量失败:', error);
     rental.status = 'failed';
+    rental.energyFromAddress = fromAddress as string;
     await rental.save();
     console.log('[rentEnergy] 租赁失败，已更新状态为 failed:', {
       rentalId: rental?.id,

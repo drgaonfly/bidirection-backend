@@ -70,10 +70,14 @@ const rentalSchema = new Schema<IRental>(
     tx_id: {
       type: String,
       required: false,
+      unique: true,
+      sparse: true,
     },
     hash: {
       type: String,
       required: false,
+      unique: true,
+      sparse: true,
     },
     bot: {
       type: Schema.Types.ObjectId,

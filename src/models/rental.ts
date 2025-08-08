@@ -26,7 +26,6 @@ export interface IRental extends Document {
   type: string;
   status: string;
   crypto_type: 'usdt' | 'trx';
-  startAt: Date; // 租赁开始时间
   endAt: Date; // 租赁结束时间
   expiredAt: Date; // 订单过期时间
   limit_hour: number;
@@ -104,10 +103,6 @@ const rentalSchema = new Schema<IRental>(
       type: String,
       enum: ['usdt', 'trx'],
       required: true,
-    },
-    startAt: {
-      type: Date,
-      required: false,
     },
     endAt: {
       type: Date,

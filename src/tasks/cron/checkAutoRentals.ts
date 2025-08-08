@@ -26,7 +26,7 @@ export async function checkAutoRentals() {
     // 查询所有待处理的充值订单（pending 且 type 为 recharge）
     const bots = await Bot.find({
       isOnline: true,
-    });
+    }).populate('price_pairs');
 
     console.log(`[checkAutoRentals] 查询到 ${bots.length} 个在线的机器人`);
 

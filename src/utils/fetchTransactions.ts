@@ -222,6 +222,10 @@ async function rentEnergy(
     console.log('[rentEnergy] 发送交易结果:', result);
 
     rental.tx_id = result.txid;
+    rental.transactionAt = new Date();
+    rental.endAt = new Date(
+      rental.transactionAt.getTime() + rental.limit_hour * 60 * 60 * 1000,
+    );
     rental.energyFromAddress = fromAddress as string;
     rental.status = 'completed';
     await rental.save();

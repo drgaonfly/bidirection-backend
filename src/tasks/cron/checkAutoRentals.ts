@@ -25,9 +25,7 @@ export async function checkAutoRentals() {
     // 查询所有待处理的充值订单（pending 且 type 为 recharge）
     const bots = await Bot.find({
       isOnline: true,
-    })
-      .populate('botUser')
-      .populate('bot');
+    });
 
     console.log(`[checkAutoRentals] 查询到 ${bots.length} 个在线的机器人`);
 
@@ -155,15 +153,10 @@ export async function checkAutoRentals() {
               'trx',
             );
 
-            rental.tx_id = txid;
-
             console.log(`[checkAutoRentals] 能量租赁成功, txid=${txid}`);
           } catch (sendErr) {
             console.error(`[checkAutoRentals] 能量租赁成功失败:`, sendErr);
             // 这里可以考虑更新兑换状态为失败
-
-            rental.status = 'failed';
-            await rental.save();
 
             continue;
           }

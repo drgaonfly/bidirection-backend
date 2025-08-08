@@ -42,7 +42,7 @@ const unRentalSchema = new Schema<IUnRental>(
     },
     status: {
       type: String,
-      enum: ['delegated', 'undelegated', 'failed'],
+      enum: ['undelegated', 'failed'],
       required: true,
       default: 'delegated',
     },

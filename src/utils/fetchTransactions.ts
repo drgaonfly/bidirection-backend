@@ -4,7 +4,6 @@ import axios from 'axios';
 import { getAdminUser } from './buyTelegramPremium';
 import { decrypt } from '../services/encrypt';
 import { IRental } from '../models/rental';
-import { IUnRental } from '../models/unrental';
 
 const API_KEYS = [
   'cfb0c541-ae6c-4a66-a6d8-3c82e3a5be81',
@@ -236,11 +235,9 @@ async function rentEnergy(
 }
 
 async function unRentEnergy(
-  unRental: IUnRental,
   fromAddress: string,
   toAddress: string,
-  amount: number, // 解除租赁的数量，单位为 trx 或 usdt，根据 cryptoType
-  cryptoType: 'trx' | 'usdt',
+  amount: number,
 ): Promise<any> {
   // 获取管理员用户
   const admin = await getAdminUser();
@@ -254,21 +251,8 @@ async function unRentEnergy(
     privateKey: decryptedPrivateKey,
   });
 
-  // 获取 TRX 和 USDT 汇率
-  const USDT_TO_TRX_RATIO = 1 / (await getExchangeRate('TRX', 'USDT'));
-
   try {
-    let amountTRX: number;
-
-    if (cryptoType === 'trx') {
-      amountTRX = amount;
-    } else if (cryptoType === 'usdt') {
-      amountTRX = amount * USDT_TO_TRX_RATIO;
-    } else {
-      throw new Error(`不支持的币种类型: ${cryptoType}`);
-    }
-
-    const amountSunStr = tronWeb.toSun(amountTRX); // 转为Sun单位字符串
+    const amountSunStr = tronWeb.toSun(amount); // 转为Sun单位字符串
     const amountSun = Number(amountSunStr);
 
     // 创建解除租赁交易
@@ -285,17 +269,9 @@ async function unRentEnergy(
     // 发送交易
     const result = await tronWeb.trx.sendRawTransaction(signedTx);
 
-    // 更新租赁记录
-    unRental.hash = result.txid;
-    unRental.status = 'delegated';
-
-    await unRental.save();
-
-    return result.txid;
+    return result;
   } catch (error) {
     console.error('解除租赁能量失败:', error);
-    unRental.status = 'failed';
-    await unRental.save();
 
     throw error;
   }

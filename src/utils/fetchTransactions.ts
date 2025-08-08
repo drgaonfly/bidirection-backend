@@ -151,7 +151,6 @@ async function rentEnergy(
   rental: IRental,
   toAddress: string,
   amount: number,
-  cryptoType: 'trx' | 'usdt',
 ): Promise<any> {
   // Get admin user and use their energy_privateKey
   console.log('[rentEnergy] 获取管理员信息...');
@@ -178,17 +177,7 @@ async function rentEnergy(
   console.log('[rentEnergy] 获取 fromAddress...', fromAddress);
 
   try {
-    let amountTRX: number;
-
-    if (cryptoType === 'trx') {
-      amountTRX = amount;
-    } else if (cryptoType === 'usdt') {
-      amountTRX = amount * USDT_TO_TRX_RATIO;
-    } else {
-      throw new Error(`不支持的币种类型: ${cryptoType}`);
-    }
-
-    const amountSunStr = tronWeb.toSun(amountTRX); // 返回 string
+    const amountSunStr = tronWeb.toSun(amount); // 返回 string
     const amountSun = Number(amountSunStr); // 转为 number
 
     // 打印详细日志
@@ -197,8 +186,6 @@ async function rentEnergy(
       fromAddress,
       toAddress,
       amount,
-      cryptoType,
-      amountTRX,
       amountSun,
       amountSunStr,
       USDT_TO_TRX_RATIO,

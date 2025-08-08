@@ -18,34 +18,31 @@ const proxyResolver: Middleware<MyContext> = async (ctx, next) => {
     return await next();
   }
 
+  // 代理后台用户
   const currentProxyUser = await User.findOne({
     _id: currentBot?.user,
   });
-
   // 找不到代理
   if (!currentProxyUser) {
     debug('找不到代理');
   }
-
   ctx.currentProxyUser = currentProxyUser;
 
+  // 代理机器人用户
   const currentProxyBotUser = await BotUser.findOne({
     _id: currentBot.botUser,
   });
-
   ctx.currentProxyBotUser = currentProxyBotUser;
-
   if (!currentProxyBotUser) {
     debug('找不到代理机器人');
   }
 
+  // 代理机器人用户配置
   const currentProxyBotUserConfig = await BotUserConfig.findOne({
     bot: currentBot._id,
     botUser: currentProxyBotUser?._id,
   });
-
   ctx.currentProxyBotUserConfig = currentProxyBotUserConfig;
-
   if (!currentProxyBotUserConfig) {
     debug('找不到代理机器人配置');
   }

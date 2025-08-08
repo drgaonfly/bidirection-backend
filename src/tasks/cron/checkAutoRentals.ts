@@ -119,20 +119,34 @@ export async function checkAutoRentals() {
           const newId = await IdGen.next(Rental, 'id', 6);
           console.log(`[checkAutoExchanges] 生成新兑换记录 id=${newId}`);
 
+          // 检查 transfer.money 是否和 price_pairs 里任意 expenditure 相等
+          const matchedPricePair = Array.isArray(bot.price_pairs)
+            ? bot.price_pairs.find(
+                (pair) => pair.expenditure === transfer.money,
+              )
+            : undefined;
+
+          if (!matchedPricePair) {
+            console.log(
+              `[checkAutoRentals] bot: ${bot.id} 下的收入 没有匹配的 price_pair, 跳过`,
+            );
+            continue;
+          }
+
           // 创建已支付的兑换记录
           const rental = await Rental.create({
             id: await IdGen.next(Rental, 'id', 6),
             from_address: transfer.from_address,
             to_address: transfer.to_address,
-            amount: 65000,
-            separation: 1,
+            amount: matchedPricePair.aqusition,
+            separation: matchedPricePair.times,
             price: transfer.money,
             bot: bot._id,
             // botUser: botUser._id,
             status: 'pending',
             type: 'auto',
             crypto_type: 'trx',
-            limit_hour: 1,
+            limit_hour: matchedPricePair.expiration,
             expiredAt: new Date(Date.now() + 30 * 60 * 1000),
             hash: transfer.trade_id,
           });

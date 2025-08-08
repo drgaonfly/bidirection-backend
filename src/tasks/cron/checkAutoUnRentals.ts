@@ -1,6 +1,5 @@
 import Rental from '../../models/rental';
 import { unRentEnergy } from '../../utils/fetchTransactions';
-import UnRental from '../../models/unrental';
 import createDebug from 'debug';
 
 const debug = createDebug('cron:checkAutoRentals');
@@ -35,30 +34,11 @@ export async function checkAutoUnRentals() {
       }
 
       try {
-        const result = await unRentEnergy(rental.from_address, rental.amount);
+        const txid = await unRentEnergy(rental);
 
-        await UnRental.create({
-          proxy: rental.proxy,
-          bot: rental.bot,
-          amount: rental.amount,
-          separation: rental.separation,
-          limit_hour: rental.limit_hour,
-          hash: result.txid,
-          status: 'delegated',
-        });
-
-        console.log(`[checkAutoUnRentals] 能量租赁成功, txid=${result.txid}`);
+        console.log(`[checkAutoUnRentals] 能量租赁成功, txid=${txid}`);
       } catch (sendErr) {
         console.error(`[checkAutoUnRentals] 能量租赁成功失败:`, sendErr);
-
-        await UnRental.create({
-          proxy: rental.proxy,
-          bot: rental.bot,
-          amount: rental.amount,
-          separation: rental.separation,
-          limit_hour: rental.limit_hour,
-          status: 'failed',
-        });
 
         continue;
       }

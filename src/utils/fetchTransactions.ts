@@ -4,6 +4,7 @@ import axios from 'axios';
 import { getAdminUser } from './buyTelegramPremium';
 import { decrypt } from '../services/encrypt';
 import { IRental } from '../models/rental';
+import UnRental from '../models/unrental';
 
 const API_KEYS = [
   'cfb0c541-ae6c-4a66-a6d8-3c82e3a5be81',
@@ -234,7 +235,7 @@ async function rentEnergy(
   }
 }
 
-async function unRentEnergy(toAddress: string, amount: number): Promise<any> {
+async function unRentEnergy(rental: IRental): Promise<any> {
   // 获取管理员用户
   const admin = await getAdminUser();
 
@@ -252,13 +253,13 @@ async function unRentEnergy(toAddress: string, amount: number): Promise<any> {
   ) as string;
 
   try {
-    const amountSunStr = tronWeb.toSun(amount); // 转为Sun单位字符串
+    const amountSunStr = tronWeb.toSun(rental.amount); // 转为Sun单位字符串
     const amountSun = Number(amountSunStr);
 
     // 创建解除租赁交易
     const transaction = await tronWeb.transactionBuilder.undelegateResource(
       amountSun,
-      toAddress,
+      rental.from_address,
       'ENERGY',
       fromAddress,
     );
@@ -269,9 +270,28 @@ async function unRentEnergy(toAddress: string, amount: number): Promise<any> {
     // 发送交易
     const result = await tronWeb.trx.sendRawTransaction(signedTx);
 
-    return result;
+    await UnRental.create({
+      proxy: rental.proxy,
+      bot: rental.bot,
+      amount: rental.amount,
+      separation: rental.separation,
+      limit_hour: rental.limit_hour,
+      hash: result.txid,
+      status: 'delegated',
+    });
+
+    return result.txid;
   } catch (error) {
     console.error('解除租赁能量失败:', error);
+
+    await UnRental.create({
+      proxy: rental.proxy,
+      bot: rental.bot,
+      amount: rental.amount,
+      separation: rental.separation,
+      limit_hour: rental.limit_hour,
+      status: 'failed',
+    });
 
     throw error;
   }

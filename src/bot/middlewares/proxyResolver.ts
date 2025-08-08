@@ -38,8 +38,8 @@ const proxyResolver: Middleware<MyContext> = async (ctx, next) => {
   });
 
   const currentProxyBotUserConfig = await BotUserConfig.findOne({
-    bot: currentBot._id,
-    botUser: currentProxyBotUser._id,
+    bot: currentBot?._id,
+    botUser: currentProxyBotUser?._id,
   });
 
   // 找不到代理

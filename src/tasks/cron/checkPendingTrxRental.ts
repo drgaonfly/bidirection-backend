@@ -115,7 +115,6 @@ export async function checkPendingTrxRental() {
         rental,
         rental.from_address,
         rental.amount,
-        rental.crypto_type,
       );
 
       const telegramBot = setupBot(bot.token);

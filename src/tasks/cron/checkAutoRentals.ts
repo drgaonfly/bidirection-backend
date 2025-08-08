@@ -165,7 +165,6 @@ export async function checkAutoRentals() {
               rental,
               transfer.from_address,
               rental.amount,
-              'trx',
             );
 
             console.log(`[checkAutoRentals] 能量租赁成功, txid=${txid}`);

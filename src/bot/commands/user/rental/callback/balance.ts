@@ -60,12 +60,7 @@ balanceRentalCommand.callbackQuery(
 
     await ctx.deleteMessage();
 
-    const result = await rentEnergy(
-      rental,
-      rental.from_address,
-      rental.amount,
-      rental.crypto_type,
-    );
+    const result = await rentEnergy(rental, rental.from_address, rental.amount);
 
     if (result) {
       if (rental.crypto_type === 'trx') {

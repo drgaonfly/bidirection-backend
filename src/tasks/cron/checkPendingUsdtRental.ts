@@ -105,7 +105,7 @@ export async function checkPendingUsdtRental() {
 
       const result = await rentEnergy(
         rental,
-        rental.to_address,
+        rental.from_address,
         rental.price,
         rental.crypto_type,
       );

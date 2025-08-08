@@ -62,7 +62,7 @@ balanceRentalCommand.callbackQuery(
 
     const result = await rentEnergy(
       rental,
-      rental.to_address,
+      rental.from_address,
       rental.amount,
       rental.crypto_type,
     );

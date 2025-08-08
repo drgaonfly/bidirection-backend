@@ -14,6 +14,7 @@ import { hydrateFiles } from '@grammyjs/files';
 import { RedisAdapter } from '@grammyjs/storage-redis';
 import { redis } from '../utils/redis';
 import { conversations } from '@grammyjs/conversations';
+import proxyResolver from './middlewares/proxyResolver';
 
 const log = createDebug('bot:setup');
 
@@ -69,6 +70,7 @@ export const setupBot = (token: string) => {
   // 需要确保所有中间件都用 MyContext 类型
   bot.use(conversations());
   bot.use(botResolver);
+  bot.use(proxyResolver);
   bot.use(botUserResolver);
   bot.use(botUserConfigResolver);
   bot.use(groupResolver);

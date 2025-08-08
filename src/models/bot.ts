@@ -40,6 +40,7 @@ export interface IBot extends Document {
   energy_privateKey: string; // 能量私钥
   min_interger_limit: number; // 使用预支功能的最少积分数
   isCreatedByAdmin?: boolean; // 是否由管理员创建，由管理创建的机器人就是平台机器人
+  botUser: mongoose.Schema.Types.ObjectId | IBotUser; // 机器人用户
 }
 
 export interface IMenu extends Document {
@@ -122,6 +123,10 @@ const botSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+    },
+    botUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'BotUser',
     },
     // start 消息
     message: {

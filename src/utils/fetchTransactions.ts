@@ -206,10 +206,10 @@ async function rentEnergy(
 
     console.log('[rentEnergy] 构建 delegateResource 交易...');
     const transaction = await tronWeb.transactionBuilder.delegateResource(
-      amountSun,
-      toAddress,
-      'ENERGY',
-      fromAddress as string,
+      amountSun, // 第1个参数：租赁的TRX数量（以Sun为单位）
+      toAddress, // 第2个参数：接收能量的地址（租给谁）
+      'ENERGY', // 第3个参数：租赁的资源类型（能量）
+      fromAddress as string, // 第4个参数：出租能量的地址（从谁那里租）
     );
     console.log('[rentEnergy] 构建交易完成:', transaction);
 

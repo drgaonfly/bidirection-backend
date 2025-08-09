@@ -1,9 +1,7 @@
 import { Middleware } from 'grammy';
 import { MyContext } from '../types';
 import createDebug from 'debug';
-import User from '../../models/user';
-import BotUser from '../../models/botUser';
-import BotUserConfig from '../../models/botUserConfig';
+import { findBotProxy } from '../../services/findBotProxy';
 // import { startClientAndGetSession } from '../services/gramClient';
 
 const debug = createDebug('botProxy:Resolver');
@@ -18,32 +16,21 @@ const proxyResolver: Middleware<MyContext> = async (ctx, next) => {
     return await next();
   }
 
-  // 代理后台用户
-  const currentProxyUser = await User.findOne({
-    _id: currentBot?.user,
-  });
-  // 找不到代理
-  if (!currentProxyUser) {
+  const { proxyUser, proxyBotUser, proxyBotUserConfig } =
+    await findBotProxy(currentBot);
+
+  ctx.currentProxyUser = proxyUser;
+  if (!proxyUser) {
     debug('找不到代理');
   }
-  ctx.currentProxyUser = currentProxyUser;
 
-  // 代理机器人用户
-  const currentProxyBotUser = await BotUser.findOne({
-    _id: currentBot.botUser,
-  });
-  ctx.currentProxyBotUser = currentProxyBotUser;
-  if (!currentProxyBotUser) {
+  ctx.currentProxyBotUser = proxyBotUser;
+  if (!proxyBotUser) {
     debug('找不到代理机器人');
   }
 
-  // 代理机器人用户配置
-  const currentProxyBotUserConfig = await BotUserConfig.findOne({
-    bot: currentBot._id,
-    botUser: currentProxyBotUser?._id,
-  });
-  ctx.currentProxyBotUserConfig = currentProxyBotUserConfig;
-  if (!currentProxyBotUserConfig) {
+  ctx.currentProxyBotUserConfig = proxyBotUserConfig;
+  if (!proxyBotUserConfig) {
     debug('找不到代理机器人配置');
   }
 

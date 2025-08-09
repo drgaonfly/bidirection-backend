@@ -260,17 +260,6 @@ const updateUserProfile = handleAsync(
       hashPassword = await bcrypt.hash(password, salt);
     }
 
-    // 只有在 energy_privateKey 和 mnemonic 非空且非空字符串时才加密和更新
-    let encryptedPrivateKey: string | undefined;
-    if (energy_privateKey !== undefined && energy_privateKey !== '') {
-      encryptedPrivateKey = encrypt(energy_privateKey);
-    }
-
-    let encryptedMnemonic: string | undefined;
-    if (mnemonic !== undefined && mnemonic !== '') {
-      encryptedMnemonic = encrypt(mnemonic);
-    }
-
     // 构建 update 对象，只在有值时才更新 energy_privateKey 和 mnemonic
     const updateFields: any = {
       name: name || user.name,
@@ -282,11 +271,11 @@ const updateUserProfile = handleAsync(
       energy_per_times: energy_per_times,
     };
 
-    if (encryptedPrivateKey !== undefined) {
-      updateFields.energy_privateKey = encryptedPrivateKey;
+    if (energy_privateKey) {
+      updateFields.energy_privateKey = encrypt(energy_privateKey);
     }
-    if (encryptedMnemonic !== undefined) {
-      updateFields.mnemonic = encryptedMnemonic;
+    if (mnemonic) {
+      updateFields.mnemonic = encrypt(mnemonic);
     }
 
     const updatedUser = await User.findByIdAndUpdate(user._id, updateFields, {

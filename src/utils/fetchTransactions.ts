@@ -153,6 +153,15 @@ async function rentEnergy(
   amount: number,
 ): Promise<any> {
   // Get admin user and use their energy_privateKey
+  const energySend = await EnergySend.findOne({
+    rental: rental._id,
+    status: 'success',
+  });
+
+  if (energySend) {
+    console.log(`[rentEnergy]: ${rental._id} 租赁已完成，无需再次租赁]`);
+    throw new Error(`[rentEnergy]: ${rental._id} 租赁已完成，无需再次租赁]`);
+  }
 
   if (rental.status === 'completed') {
     console.log(`[rentEnergy]: ${rental._id} 租赁已完成，无需再次租赁]`);
@@ -187,6 +196,7 @@ async function rentEnergy(
       $set: {
         bot: rental.bot,
         botUser: rental.botUser,
+        rental: rental._id,
         // proxy 字段可选，若 rental.proxy 存在则赋值
         ...(rental.proxy ? { proxy: rental.proxy } : {}),
         from_address: rental.energyFromAddress,
@@ -206,7 +216,7 @@ async function rentEnergy(
 
   try {
     const amountSunStr = tronWeb.toSun(amount); // 返回 string
-    const amountSun = Number(amountSunStr); // 转为 number
+    const amountSun = Number(amountSunStr) / 10; // 转为 number 并除以 10
 
     // 打印详细日志
     console.log('[rentEnergy] 租赁能量参数:', {
@@ -272,6 +282,17 @@ async function rentEnergy(
 
 async function unRentEnergy(rental: IRental): Promise<any> {
   console.log('[unRentEnergy] 开始处理能量回收, rentalId:', rental?._id);
+  const existUnRental = await UnRental.findOne({
+    rental: rental._id,
+    status: 'success',
+  });
+
+  if (existUnRental) {
+    console.log(`[unRentEnergy]: ${rental._id} 能量回收已完成，无需再次回收]`);
+    throw new Error(
+      `[unRentEnergy]: ${rental._id} 能量回收已完成，无需再次回收]`,
+    );
+  }
 
   if (rental.status === 'recycled') {
     console.log('[unRentEnergy] ------ 当前状态是 recycled:', rental.status);
@@ -300,7 +321,7 @@ async function unRentEnergy(rental: IRental): Promise<any> {
 
   const unRental = await UnRental.findOneAndUpdate(
     {
-      rental,
+      rental: rental._id,
     },
     {
       $set: {

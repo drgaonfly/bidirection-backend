@@ -120,12 +120,17 @@ export async function checkAutoRentals() {
           );
 
           const newId = await IdGen.next(Rental, 'id', 6);
-          console.log(`[checkAutoExchanges] 生成新兑换记录 id=${newId}`);
+          console.log(`[checkAutoRentals] 生成新记录 id=${newId}`);
+
+          console.log(
+            `[checkAutoRentals] bot ${bot.id} 的 price_pairs:`,
+            bot.price_pairs,
+          );
 
           // 检查 transfer.money 是否和 price_pairs 里任意 expenditure 相等
           const matchedPricePair = Array.isArray(bot.price_pairs)
             ? bot.price_pairs.find(
-                (pair) => pair.expenditure === transfer.money,
+                (pair) => pair.expenditure === Number(transfer.money),
               )
             : undefined;
 

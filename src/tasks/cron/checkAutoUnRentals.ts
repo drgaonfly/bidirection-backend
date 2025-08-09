@@ -36,16 +36,16 @@ export async function checkAutoUnRentals() {
       try {
         const txid = await unRentEnergy(rental);
 
-        console.log(`[checkAutoUnRentals] 能量租赁成功, txid=${txid}`);
+        console.log(`[checkAutoUnRentals] 能量回收成功, txid=${txid}`);
       } catch (sendErr) {
-        console.error(`[checkAutoUnRentals] 能量租赁成功失败:`, sendErr);
+        console.error(`[checkAutoUnRentals] 能量回收失败:`, sendErr);
 
         continue;
       }
     }
 
-    console.log('[checkAutoUnRentals] 待处理能量租赁处理完成');
+    console.log('[checkAutoUnRentals] 待处理能量回收成功处理完成');
   } catch (error) {
-    console.error('[checkAutoUnRentals] 处理能量租赁时出错:', error);
+    console.error('[checkAutoUnRentals] 处理能量回收成功时出错:', error);
   }
 }

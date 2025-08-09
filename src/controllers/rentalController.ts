@@ -4,6 +4,7 @@ import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
 import Bot from '../models/bot';
 import BotUser from '../models/botUser';
+import { unRentEnergy } from '../utils/fetchTransactions';
 
 const buildQuery = async (queryParams: any): Promise<any> => {
   const query: any = {};
@@ -185,3 +186,26 @@ export const deleteMultipleRentals = handleAsync(
     });
   },
 );
+
+export const unRental = handleAsync(async (req: Request, res: Response) => {
+  const rental = await Rental.findById(req.params.id);
+
+  if (!rental) {
+    res.status(404);
+    throw new Error('租赁记录未找到');
+  }
+
+  const txid = await unRentEnergy(rental);
+
+  if (txid) {
+    res.json({
+      success: true,
+      message: '能量回收成功',
+    });
+  } else {
+    res.json({
+      success: false,
+      message: '能量回收失败',
+    });
+  }
+});

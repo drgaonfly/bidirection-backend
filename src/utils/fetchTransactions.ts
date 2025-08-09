@@ -236,6 +236,18 @@ async function rentEnergy(
 }
 
 async function unRentEnergy(rental: IRental): Promise<any> {
+  const ExistUnRental = await UnRental.findOne({ rental: rental._id });
+
+  if (ExistUnRental.hash) {
+    console.log('------ 已存在能量回收记录 hash:', ExistUnRental.hash);
+    throw new Error(`---- 已存在能量回收记录 hash:', ${ExistUnRental.hash}`);
+  }
+
+  if (rental.status === 'recycled') {
+    console.log('------ 当前状态是 recycled:', rental.status);
+    throw new Error(`---- 当前echange记录的状态已回收:', ${rental.status}`);
+  }
+
   // 获取管理员用户
   const admin = await getAdminUser();
 
@@ -251,6 +263,28 @@ async function unRentEnergy(rental: IRental): Promise<any> {
   const fromAddress = tronWeb.address.fromPrivateKey(
     decryptedPrivateKey,
   ) as string;
+
+  const unRental = await UnRental.findOneAndUpdate(
+    {
+      rental,
+    },
+    {
+      $set: {
+        from: fromAddress,
+        to: rental.to_address,
+        hash: rental.hash,
+        separation: rental.separation,
+        amount: rental.amount,
+        limit_hour: rental.limit_hour,
+        price: rental.price,
+        actual_price: rental.actual_price,
+      },
+    },
+    {
+      upsert: true,
+      new: true,
+    },
+  );
 
   try {
     const amountSunStr = tronWeb.toSun(rental.amount); // 转为Sun单位字符串
@@ -270,28 +304,17 @@ async function unRentEnergy(rental: IRental): Promise<any> {
     // 发送交易
     const result = await tronWeb.trx.sendRawTransaction(signedTx);
 
-    await UnRental.create({
-      proxy: rental.proxy,
-      bot: rental.bot,
-      amount: rental.amount,
-      separation: rental.separation,
-      limit_hour: rental.limit_hour,
-      hash: result.txid,
-      status: 'delegated',
-    });
+    unRental.status = 'success';
+
+    await unRental.save();
 
     return result.txid;
   } catch (error) {
     console.error('解除租赁能量失败:', error);
 
-    await UnRental.create({
-      proxy: rental.proxy,
-      bot: rental.bot,
-      amount: rental.amount,
-      separation: rental.separation,
-      limit_hour: rental.limit_hour,
-      status: 'failed',
-    });
+    unRental.status = 'failed';
+
+    await unRental.save();
 
     throw error;
   }

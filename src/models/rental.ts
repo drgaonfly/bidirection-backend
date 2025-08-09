@@ -22,7 +22,6 @@ export interface IRental extends Document {
   hash: string; // 接收哈希
   bot: mongoose.Schema.Types.ObjectId | IBot;
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
-  time: number; // 交易时间
   type: string;
   status: string;
   crypto_type: 'usdt' | 'trx';
@@ -58,10 +57,6 @@ const rentalSchema = new Schema<IRental>(
     to_address: {
       type: String,
       required: true,
-    },
-    time: {
-      type: Number,
-      required: false,
     },
     price: {
       type: Number,

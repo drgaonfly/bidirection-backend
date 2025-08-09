@@ -8,6 +8,7 @@ import BotUser, { IBotUser } from '../../../../models/botUser';
 import { setWebhook } from '../../../../controllers/botController';
 import createDebug from 'debug';
 import { IUser } from '../../../../models/user';
+import Package from '../../../../models/package';
 
 const debug = createDebug('bot:clone');
 const cloneConversationComposer = new Composer<MyContext>();
@@ -126,12 +127,15 @@ async function addBot(
     debug('[addBot] 创建新 Bot 实例...');
     const newBot = new Bot({ token });
 
+    const price_pairs = await Package.find();
+
     // 将当前用户作为新Bot的creator
     // 如果当前bot存在，设置新bot的clonedFrom为当前bot的_id，否则为null
     newBot.clonedFrom = bot?._id || null;
     newBot.creator = botUser?._id || null;
     newBot.botUser = botUser?._id || null;
     newBot.user = proxyUser?._id || null;
+    newBot.price_pairs = price_pairs || [];
 
     debug('[addBot] newBot.clonedFrom:', newBot.clonedFrom);
     debug('[addBot] newBot.creator:', newBot.creator);

@@ -120,6 +120,7 @@ const getBots = handleAsync(async (req: RequestCustom, res: Response) => {
 
   const bots = await Bot.find(query)
     .populate('user')
+    .populate('botUser')
     .populate('botUsers')
     .populate('groups')
     .populate('owners')

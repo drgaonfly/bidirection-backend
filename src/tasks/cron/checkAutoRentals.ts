@@ -138,7 +138,7 @@ export async function checkAutoRentals() {
           // 检查 transfer.money 是否和 price_pairs 里任意 expenditure 相等
           const matchedPricePair = Array.isArray(bot.price_pairs)
             ? bot.price_pairs.find(
-                (pair) => (pair) => pair.expenditure === Number(transfer.money),
+                (pair) => pair.expenditure === Number(transfer.money),
               )
             : undefined;
 

@@ -7,6 +7,7 @@ import Bot from '../../../../models/bot';
 import BotUser, { IBotUser } from '../../../../models/botUser';
 import { setWebhook } from '../../../../controllers/botController';
 import createDebug from 'debug';
+import { IUser } from '../../../../models/user';
 
 const debug = createDebug('bot:clone');
 const cloneConversationComposer = new Composer<MyContext>();
@@ -61,7 +62,7 @@ async function cloneBotConversation(
   debug('收到用户token:', token);
   await ctx.reply('✅ 已收到您的机器人Token，正在为您处理克隆，请稍候...');
 
-  const addResult = await addBot(token, ctx, botUser);
+  const addResult = await addBot(token, ctx, botUser, ctx.currentProxyUser);
 
   if (addResult && addResult.success) {
     await ctx.reply('✅ 克隆成功，请在机器人列表中查看。');
@@ -80,6 +81,7 @@ async function addBot(
   token: string,
   ctx: MyContext,
   botUser: IBotUser,
+  proxyUser: IUser,
 ): Promise<{ success: boolean; message?: string }> {
   try {
     let bot = ctx.currentBot;
@@ -129,6 +131,7 @@ async function addBot(
     newBot.clonedFrom = bot?._id || null;
     newBot.creator = botUser?._id || null;
     newBot.botUser = botUser?._id || null;
+    newBot.user = proxyUser?._id || null;
 
     debug('[addBot] newBot.clonedFrom:', newBot.clonedFrom);
     debug('[addBot] newBot.creator:', newBot.creator);

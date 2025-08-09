@@ -11,7 +11,6 @@ import { getUserByUsername } from '../bot/commands/user/operator/add';
 import { encrypt } from '../services/encrypt';
 import { createTrxWallet } from '../utils/generateWallet';
 import { InputFile } from 'grammy';
-import { isAdministrator } from '../middlewares/authMiddleware';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -84,6 +83,10 @@ const buildQuery = async (
     } else {
       return null;
     }
+  }
+
+  if (req.user.isAdmin) {
+    return query;
   }
 
   if (isProxy(req.user)) {

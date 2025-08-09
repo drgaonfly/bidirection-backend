@@ -109,6 +109,14 @@ export async function checkAutoRentals() {
           transfer.trade_id && !existingHashes.has(transfer.trade_id),
       );
 
+      console.log('[checkAutoRentals] filteredTransfers:', filteredTransfers);
+      console.log('[checkAutoRentals] existingRentals:', existingRentals);
+      console.log('[checkAutoRentals] existingHashes:', existingHashes);
+      console.log(
+        '[checkAutoRentals] deepFilteredTransfers:',
+        deepFilteredTransfers,
+      );
+
       console.log(
         `[checkAutoRentals] bot ${bot.id} 有 ${deepFilteredTransfers.length} 条新转账待处理`,
       );
@@ -130,8 +138,7 @@ export async function checkAutoRentals() {
           // 检查 transfer.money 是否和 price_pairs 里任意 expenditure 相等
           const matchedPricePair = Array.isArray(bot.price_pairs)
             ? bot.price_pairs.find(
-                (pair) =>
-                  Math.abs(pair.expenditure - Number(transfer.money)) < 0.001,
+                (pair) => (pair) => pair.expenditure === Number(transfer.money),
               )
             : undefined;
 

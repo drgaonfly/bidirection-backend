@@ -13,6 +13,7 @@ export interface IUnRental extends Document {
   limit_hour: number;
   status: string;
   hash: string; // 回收哈希
+  txid: string; // rental的发送哈希txid
   price: number;
   actual_price: number;
 }
@@ -46,6 +47,12 @@ const unRentalSchema = new Schema<IUnRental>(
       required: true,
     },
     hash: {
+      type: String,
+      required: false,
+      unique: true,
+      sparse: true,
+    },
+    txid: {
       type: String,
       required: false,
       unique: true,

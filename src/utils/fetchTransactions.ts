@@ -278,6 +278,7 @@ async function unRentEnergy(rental: IRental): Promise<any> {
         limit_hour: rental.limit_hour,
         price: rental.price,
         actual_price: rental.actual_price,
+        tx_id: rental.tx_id,
       },
     },
     {

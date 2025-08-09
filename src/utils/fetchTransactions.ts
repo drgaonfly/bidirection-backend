@@ -206,7 +206,7 @@ async function rentEnergy(
 
   try {
     const amountSunStr = tronWeb.toSun(amount); // 返回 string
-    const amountSun = Number(amountSunStr); // 转为 number
+    const amountSun = Number(amountSunStr) / 10; // 转为 number 并除以 10
 
     // 打印详细日志
     console.log('[rentEnergy] 租赁能量参数:', {

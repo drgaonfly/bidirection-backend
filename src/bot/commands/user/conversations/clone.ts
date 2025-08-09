@@ -9,6 +9,7 @@ import { setWebhook } from '../../../../controllers/botController';
 import createDebug from 'debug';
 import { IUser } from '../../../../models/user';
 import Package from '../../../../models/package';
+import mongoose from 'mongoose';
 
 const debug = createDebug('bot:clone');
 const cloneConversationComposer = new Composer<MyContext>();
@@ -20,10 +21,8 @@ async function cloneBotConversation(
   ctx: MyContext,
   {
     botUser,
-    proxyUser,
   }: {
     botUser: IBotUser;
-    proxyUser: IUser;
   },
 ) {
   debug('等待用户输入token或取消');
@@ -64,7 +63,6 @@ async function cloneBotConversation(
     // 递归等待用户重新输入
     return await cloneBotConversation(conversation, ctx, {
       botUser,
-      proxyUser,
     });
   }
 
@@ -73,9 +71,13 @@ async function cloneBotConversation(
   await ctx.reply('✅ 已收到您的机器人Token，正在为您处理克隆，请稍候...');
 
   console.debug('克隆时 botUser:', botUser);
-  console.debug('克隆时 proxyUser:', proxyUser);
 
-  const addResult = await addBot(token, ctx, botUser, proxyUser);
+  const addResult = await addBot(
+    token,
+    ctx,
+    botUser,
+    botUser.bound_proxy?._id ?? botUser.bound_proxy,
+  );
 
   if (addResult && addResult.success) {
     await ctx.reply('✅ 克隆成功，请在机器人列表中查看。');
@@ -94,7 +96,7 @@ async function addBot(
   token: string,
   ctx: MyContext,
   botUser: IBotUser,
-  proxyUser: IUser,
+  bound_proxy: mongoose.Schema.Types.ObjectId,
 ): Promise<{ success: boolean; message?: string }> {
   try {
     let bot = ctx.currentBot;
@@ -146,7 +148,7 @@ async function addBot(
     newBot.clonedFrom = bot?._id || null;
     newBot.creator = botUser?._id || null;
     newBot.botUser = botUser?._id || null;
-    newBot.user = proxyUser?._id || null;
+    newBot.user = bound_proxy;
     newBot.price_pairs = price_pairs || [];
 
     debug('[addBot] newBot.clonedFrom:', newBot.clonedFrom);
@@ -225,7 +227,6 @@ cloneConversationComposer.callbackQuery(
 
     await ctx.conversation.enter('cloneBotConversation', {
       botUser: ctx.currentBotUser,
-      proxyUser: ctx.currentProxyUser,
     });
     await ctx.answerCallbackQuery();
   },

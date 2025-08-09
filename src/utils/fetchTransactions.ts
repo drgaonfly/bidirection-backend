@@ -191,9 +191,8 @@ async function rentEnergy(
       $set: {
         bot: rental.bot,
         botUser: rental.botUser,
-        from: rental.from_address,
+        from: rental.energyFromAddress,
         to: rental.to_address,
-        energyFromAddress: rental.energyFromAddress,
         amount,
         separation: rental.separation,
         price: rental.price,

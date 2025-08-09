@@ -10,7 +10,6 @@ export interface IEnergySend extends Document {
   proxy: mongoose.Types.ObjectId | IUser;
   from_address: string;
   to_address: string;
-  energyFromAddress: string; // 能量来源地址
   amount: number; // 发送能量数
   separation: number; // 笔数
   price: number; // 发送价格，单位trx
@@ -51,10 +50,6 @@ const energySendSchema = new Schema<IEnergySend>(
     to_address: {
       type: String,
       required: true,
-    },
-    energyFromAddress: {
-      type: String,
-      required: false,
     },
     price: {
       type: Number,

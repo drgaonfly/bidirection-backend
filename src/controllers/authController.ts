@@ -225,7 +225,6 @@ const updateUserProfile = handleAsync(
       confirmPassword,
       serviceLink,
       energy_privateKey,
-      rechargeAddress,
       mnemonic,
       recharge_min,
       recharge_max,

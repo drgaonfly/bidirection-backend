@@ -132,6 +132,9 @@ const userSchema = new mongoose.Schema(
     recharge_min: { type: Number, default: 0 },
     // 充值涨最大值
     recharge_max: { type: Number, default: 0 },
+
+    // 每笔多少能量
+    energy_per_times: { type: Number, default: 0 },
   },
   { timestamps: true },
 );

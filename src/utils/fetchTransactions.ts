@@ -5,6 +5,7 @@ import { getAdminUser } from './buyTelegramPremium';
 import { decrypt } from '../services/encrypt';
 import { IRental } from '../models/rental';
 import UnRental from '../models/unrental';
+import EnergySend from '../models/energySend';
 
 const API_KEYS = [
   'cfb0c541-ae6c-4a66-a6d8-3c82e3a5be81',
@@ -221,6 +222,31 @@ async function rentEnergy(
       tx_id: rental.tx_id,
       status: rental.status,
     });
+
+    await EnergySend.findOneAndUpdate(
+      {
+        tx_id: rental.tx_id,
+      },
+      {
+        $set: {
+          bot: rental.bot,
+          botUser: rental.botUser,
+          from: rental.from_address,
+          to: rental.to_address,
+          energyFromAddress: rental.energyFromAddress,
+          amount,
+          separation: rental.separation,
+          price: rental.price,
+          actual_price: rental.actual_price,
+          limit_hour: rental.limit_hour,
+          tx_id: rental.tx_id,
+        },
+      },
+      {
+        upsert: true,
+        new: true,
+      },
+    );
 
     return result.txid;
   } catch (error) {

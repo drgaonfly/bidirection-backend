@@ -53,6 +53,7 @@ const pricePairSchema = new mongoose.Schema({
   aqusition: { type: Number, required: true },
   expiration: { type: Number, required: true },
   commission: { type: Number, required: true },
+  times: { type: Number, required: true },
 });
 
 const userSchema = new mongoose.Schema(

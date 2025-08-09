@@ -13,7 +13,10 @@ export async function checkAutoExchanges() {
   console.log('[checkAutoExchanges] 当前 TRX/USDT 汇率:', currentPrice);
 
   try {
-    const bots = await Bot.find({ isOnline: true });
+    const bots = await Bot.find({
+      isOnline: true,
+      auto_exchange_address: { $ne: null },
+    }).select('+private_key');
     console.log(`[checkAutoExchanges] 共找到 ${bots.length} 个在线机器人`);
 
     for (const bot of bots) {

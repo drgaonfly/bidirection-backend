@@ -7,7 +7,6 @@ import Bot from '../../../../models/bot';
 import BotUser, { IBotUser } from '../../../../models/botUser';
 import { setWebhook } from '../../../../controllers/botController';
 import createDebug from 'debug';
-import { IUser } from '../../../../models/user';
 import Package from '../../../../models/package';
 import mongoose from 'mongoose';
 

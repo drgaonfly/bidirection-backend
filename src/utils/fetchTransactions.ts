@@ -174,9 +174,6 @@ async function rentEnergy(
     privateKey: decryptedPrivateKey,
   });
 
-  console.log('[rentEnergy] 获取 USDT/TRX 汇率...');
-  const USDT_TO_TRX_RATIO = 1 / (await getExchangeRate('TRX', 'USDT'));
-
   const fromAddress = tronWeb.address.fromPrivateKey(
     decryptedPrivateKey,
   ) as string;
@@ -220,7 +217,6 @@ async function rentEnergy(
       amount,
       amountSun,
       amountSunStr,
-      USDT_TO_TRX_RATIO,
     });
 
     console.log('[rentEnergy] 构建 delegateResource 交易...');

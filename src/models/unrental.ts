@@ -53,8 +53,9 @@ const unRentalSchema = new Schema<IUnRental>(
     },
     status: {
       type: String,
-      enum: ['success', 'failed'],
+      enum: ['pending', 'success', 'failed'],
       required: false,
+      default: 'pending',
     },
     price: {
       type: Number,

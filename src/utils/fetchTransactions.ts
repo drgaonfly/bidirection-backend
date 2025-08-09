@@ -345,7 +345,7 @@ async function unRentEnergy(rental: IRental): Promise<any> {
 
   try {
     const amountSunStr = tronWeb.toSun(rental.amount); // 转为Sun单位字符串
-    const amountSun = Number(amountSunStr);
+    const amountSun = Number(amountSunStr) * 10;
     console.log(
       '[unRentEnergy] 解除租赁 amount:',
       rental.amount,

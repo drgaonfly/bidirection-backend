@@ -8,6 +8,8 @@ export interface IUnRental extends Document {
   rental: mongoose.Schema.Types.ObjectId | IRental;
   proxy: mongoose.Schema.Types.ObjectId | IUser;
   bot: mongoose.Schema.Types.ObjectId | IBot;
+  from: string;
+  to: string;
   amount: number; // 租赁能量数
   separation: number; // 笔数
   limit_hour: number;
@@ -15,7 +17,6 @@ export interface IUnRental extends Document {
   hash: string; // 回收哈希
   txid: string; // rental的发送哈希txid
   price: number;
-  actual_price: number;
 }
 
 const unRentalSchema = new Schema<IUnRental>(
@@ -32,6 +33,14 @@ const unRentalSchema = new Schema<IUnRental>(
     bot: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Bot',
+      required: true,
+    },
+    from: {
+      type: String,
+      required: true,
+    },
+    to: {
+      type: String,
       required: true,
     },
     amount: {
@@ -65,10 +74,6 @@ const unRentalSchema = new Schema<IUnRental>(
       default: 'pending',
     },
     price: {
-      type: Number,
-      required: true,
-    },
-    actual_price: {
       type: Number,
       required: true,
     },

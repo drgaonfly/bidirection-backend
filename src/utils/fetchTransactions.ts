@@ -1,5 +1,4 @@
 import { TronWeb } from 'tronweb';
-import { getExchangeRate } from './getExchange';
 import axios from 'axios';
 import { getAdminUser } from './buyTelegramPremium';
 import { decrypt } from '../services/encrypt';
@@ -274,16 +273,6 @@ async function rentEnergy(
 async function unRentEnergy(rental: IRental): Promise<any> {
   console.log('[unRentEnergy] 开始处理能量回收, rentalId:', rental?._id);
 
-  const existUnRental = await UnRental.findOne({ rental: rental._id });
-
-  if (existUnRental) {
-    console.log(
-      '[unRentEnergy] ------ 已存在能量回收记录 hash:',
-      existUnRental.hash,
-    );
-    throw new Error(`---- 已存在能量回收记录 hash:', ${existUnRental.hash}`);
-  }
-
   if (rental.status === 'recycled') {
     console.log('[unRentEnergy] ------ 当前状态是 recycled:', rental.status);
     throw new Error(`---- 当前echange记录的状态已回收:', ${rental.status}`);
@@ -315,13 +304,14 @@ async function unRentEnergy(rental: IRental): Promise<any> {
     },
     {
       $set: {
+        bot: rental.bot,
+        proxy: rental.proxy,
         from: fromAddress,
         to: rental.from_address,
         separation: rental.separation,
         amount: rental.amount,
         limit_hour: rental.limit_hour,
         price: rental.price,
-        actual_price: rental.actual_price,
         txid: rental.tx_id,
       },
     },

@@ -123,7 +123,6 @@ const rentalSchema = new Schema<IRental>(
     actual_price: {
       type: Number,
     },
-
     energyFromAddress: {
       type: String,
       required: false,

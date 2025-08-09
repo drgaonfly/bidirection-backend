@@ -17,7 +17,6 @@ export async function checkAutoUnRentals() {
 
     // 查询所有已完成且到期的租赁订单
     const rentals = await Rental.find({
-      status: 'completed',
       endAt: { $exists: true, $lte: currentDate },
     });
 

@@ -1,5 +1,5 @@
 import { IBotUser } from '../../models/botUser';
-import { IBot } from '../../models/bot';
+import Bot, { IBot } from '../../models/bot';
 import { setupBot } from '../../bot/botSetup';
 import { fetchTrc20Transactions } from '../../utils/fetchTransactions';
 import Exchange from '../../models/exchange';
@@ -25,7 +25,16 @@ export async function checkPendingExchanges() {
     for (const exchange of pendingExchanges) {
       // 检查 bot 是否有 auto_exchange_address
       const botUser = exchange.botUser as IBotUser;
-      const bot = exchange.bot as IBot;
+      let bot = exchange.bot as IBot;
+
+      if (!bot) {
+        console.warn(
+          `[checkPendingExchanges] 兑换记录 ${exchange.id} 的机器人不存在，跳过`,
+        );
+        continue;
+      }
+
+      bot = await Bot.findById(bot._id).select('+private_key');
 
       const autoExchangeAddress = bot.auto_exchange_address;
 

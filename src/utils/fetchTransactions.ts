@@ -153,6 +153,15 @@ async function rentEnergy(
   amount: number,
 ): Promise<any> {
   // Get admin user and use their energy_privateKey
+  const energySend = await EnergySend.findOne({
+    tx_id: rental.tx_id,
+    status: 'success',
+  });
+
+  if (energySend) {
+    console.log(`[rentEnergy]: ${rental._id} 租赁已完成，无需再次租赁]`);
+    throw new Error(`[rentEnergy]: ${rental._id} 租赁已完成，无需再次租赁]`);
+  }
 
   if (rental.status === 'completed') {
     console.log(`[rentEnergy]: ${rental._id} 租赁已完成，无需再次租赁]`);

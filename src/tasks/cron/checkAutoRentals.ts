@@ -6,6 +6,8 @@ import { rentEnergy } from '../../utils/fetchTransactions';
 import createDebug from 'debug';
 
 import { TronWeb } from 'tronweb';
+import BotUserConfig from '../../models/botUserConfig';
+import User from '../../models/user';
 // import UnRental from '../../models/unrental';
 
 const tronWeb = new TronWeb({
@@ -132,6 +134,36 @@ export async function checkAutoRentals() {
               `[checkAutoRentals] bot: ${bot.id} 下的收入 没有匹配的 price_pair, 跳过`,
             );
             continue;
+          }
+
+          if (!bot.isCreatedByAdmin) {
+            if (!bot.botUser) {
+              console.log(
+                `[checkAutoRentals] bot: ${bot.id} 下的收入 没有代理电报用户, 跳过`,
+              );
+              continue;
+            }
+
+            const proxyBotUserConfig = await BotUserConfig.findOne({
+              bot: bot._id,
+              botUser: bot.botUser,
+            });
+
+            if (!proxyBotUserConfig) {
+              console.log(
+                `[checkAutoRentals] bot: ${bot.id} 下的收入 没有代理电报用户配置, 跳过`,
+              );
+              continue;
+            }
+
+            const proxyUser = await User.findById(bot.user);
+
+            if (!proxyUser) {
+              console.log(
+                `[checkAutoRentals] bot: ${bot.id} 下的收入 没有代理用户, 跳过`,
+              );
+              continue;
+            }
           }
 
           // 创建已支付的兑换记录

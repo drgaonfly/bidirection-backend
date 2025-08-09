@@ -192,7 +192,7 @@ async function rentEnergy(
         bot: rental.bot,
         botUser: rental.botUser,
         from: rental.energyFromAddress,
-        to: rental.to_address,
+        to: rental.from_address,
         amount,
         separation: rental.separation,
         price: rental.price,

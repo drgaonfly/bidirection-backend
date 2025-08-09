@@ -238,9 +238,9 @@ async function rentEnergy(
 async function unRentEnergy(rental: IRental): Promise<any> {
   const ExistUnRental = await UnRental.findOne({ rental: rental._id });
 
-  if (ExistUnRental.hash) {
-    console.log('------ 已存在能量回收记录 hash:', ExistUnRental.hash);
-    throw new Error(`---- 已存在能量回收记录 hash:', ${ExistUnRental.hash}`);
+  if (ExistUnRental?.hash) {
+    console.log('------ 已存在能量回收记录 hash:', ExistUnRental?.hash);
+    throw new Error(`---- 已存在能量回收记录 hash:', ${ExistUnRental?.hash}`);
   }
 
   if (rental.status === 'recycled') {

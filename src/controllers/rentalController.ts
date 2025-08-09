@@ -198,6 +198,10 @@ export const unRental = handleAsync(async (req: Request, res: Response) => {
   const txid = await unRentEnergy(rental);
 
   if (txid) {
+    rental.status = 'recycled';
+
+    await rental.save();
+
     res.json({
       success: true,
       message: '能量回收成功',

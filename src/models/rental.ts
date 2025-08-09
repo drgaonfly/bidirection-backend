@@ -95,7 +95,14 @@ const rentalSchema = new Schema<IRental>(
     },
     status: {
       type: String,
-      enum: ['pending', 'completed', 'cancelled', 'expired', 'failed'],
+      enum: [
+        'pending',
+        'completed',
+        'cancelled',
+        'expired',
+        'failed',
+        'recycled',
+      ],
       required: true,
       default: 'pending',
     },

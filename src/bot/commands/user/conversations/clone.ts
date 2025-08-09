@@ -72,7 +72,7 @@ async function cloneBotConversation(
   debug('收到用户token:', token);
   await ctx.reply('✅ 已收到您的机器人Token，正在为您处理克隆，请稍候...');
 
-  const addResult = await addBot(token, ctx, botUser, ctx.currentProxyUser);
+  const addResult = await addBot(token, ctx, botUser, proxyUser);
 
   if (addResult && addResult.success) {
     await ctx.reply('✅ 克隆成功，请在机器人列表中查看。');

@@ -42,11 +42,11 @@ const buildQuery = async (queryParams: any, req: RequestCustom) => {
   if (isProxy(req.user)) {
     const employees = await User.find({ proxy: req.user._id });
     const employeeIds = employees.map((employee) => employee._id);
-    query.user = { $in: [...employeeIds, req.user._id] };
+    query.proxy = { $in: [...employeeIds, req.user._id] };
   }
 
   if (isEmployee(req.user)) {
-    query.user = req.user._id;
+    query.proxy = req.user._id;
   }
 
   return query;

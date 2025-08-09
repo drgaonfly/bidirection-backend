@@ -191,9 +191,11 @@ async function rentEnergy(
       $set: {
         bot: rental.bot,
         botUser: rental.botUser,
-        from: rental.energyFromAddress,
-        to: rental.from_address,
-        amount,
+        // proxy 字段可选，若 rental.proxy 存在则赋值
+        ...(rental.proxy ? { proxy: rental.proxy } : {}),
+        from_address: rental.energyFromAddress,
+        to_address: rental.from_address,
+        amount: amount,
         separation: rental.separation,
         price: rental.price,
         actual_price: rental.actual_price,

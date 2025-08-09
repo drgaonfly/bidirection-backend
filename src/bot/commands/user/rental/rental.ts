@@ -23,19 +23,6 @@ export async function handleRentalCommand(ctx: MyContext) {
     return;
   }
 
-  const currentTrxBalance = ctx.currentBotUserConfig?.trx_balance || 0;
-
-  if (currentTrxBalance < 1) {
-    const inline = new InlineKeyboard().url(
-      '📞 联系客服',
-      ctx.currentBot.customer_service_link || 'https://t.me/infoswqz',
-    );
-    await ctx.reply('该地址能量不足，请联系在线客服。', {
-      reply_markup: inline,
-    });
-    return;
-  }
-
   const price_pairs = ctx.currentBot.price_pairs || [];
 
   let pricePairLines: string[] = [];
@@ -50,6 +37,12 @@ export async function handleRentalCommand(ctx: MyContext) {
     });
   } else {
     pricePairLines = ['未配置闪兑套餐，请联系管理员。'];
+  }
+
+  const currentTrxBalance = ctx.currentBotUserConfig?.trx_balance || 0;
+
+  if (currentTrxBalance < 1) {
+    pricePairLines = ['该地址能量不足，请联系在线客服。'];
   }
 
   const message = [

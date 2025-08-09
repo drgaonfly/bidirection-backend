@@ -64,12 +64,6 @@ const buildQuery = async (
     query.isOnline = queryParams.isOnline === 'true';
   }
 
-  if (isAdministrator(queryParams.proxy)) {
-    query.user = null;
-  } else {
-    query.user = queryParams.proxy;
-  }
-
   if (queryParams.user) {
     let searchText;
     try {

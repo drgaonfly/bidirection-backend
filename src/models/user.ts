@@ -5,6 +5,7 @@ export interface IPricePair extends Document {
   aqusition: number; // 得到多少能量(sun)
   expiration: number; // 有效时间 (hour)
   commission: number; // 代理分佣 (trx)
+  times: number; // 笔数
 }
 
 export interface IUser extends Document {

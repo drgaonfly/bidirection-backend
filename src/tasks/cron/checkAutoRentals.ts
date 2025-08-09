@@ -4,10 +4,10 @@ import { fetchTrxTransactions } from '../../utils/fetchTransactions';
 import { IdGen } from '../../utils/idGen';
 import { rentEnergy } from '../../utils/fetchTransactions';
 import createDebug from 'debug';
-
 import { TronWeb } from 'tronweb';
-import BotUserConfig from '../../models/botUserConfig';
-import User from '../../models/user';
+import { setupBot } from '../../bot/botSetup';
+import { InlineKeyboard } from 'grammy';
+import { findBotProxy } from '../../services/findBotProxy';
 // import UnRental from '../../models/unrental';
 
 const tronWeb = new TronWeb({
@@ -137,33 +137,83 @@ export async function checkAutoRentals() {
           }
 
           if (!bot.isCreatedByAdmin) {
-            if (!bot.botUser) {
+            // 调用 findBotProxy 并取值, 如果有一个没有就打印并 continue
+            const { proxyBotUser, proxyBotUserConfig, proxyUser } =
+              await findBotProxy(bot);
+
+            console.log('[checkAutoRentals] 代理信息:');
+            console.log('proxyBotUser:', proxyBotUser);
+            console.log('proxyBotUserConfig:', proxyBotUserConfig);
+            console.log('proxyUser:', proxyUser);
+
+            if (!proxyBotUser || !proxyBotUserConfig || !proxyUser) {
               console.log(
-                `[checkAutoRentals] bot: ${bot.id} 下的收入 没有代理电报用户, 跳过`,
+                `[checkAutoRentals] bot: ${
+                  bot.id
+                } 下的收入 缺少代理信息, proxyBotUser: ${!!proxyBotUser}, proxyBotUserConfig: ${!!proxyBotUserConfig}, proxyUser: ${!!proxyUser}，跳过`,
               );
               continue;
             }
 
-            const proxyBotUserConfig = await BotUserConfig.findOne({
-              bot: bot._id,
-              botUser: bot.botUser,
-            });
+            // 用户下的要匹配 separation: matchedPricePair.times,
+            // 查找用户 price_pairs 里 times 匹配的套餐
+            const userPricePair = Array.isArray(proxyUser.price_pairs)
+              ? proxyUser.price_pairs.find(
+                  (pair) => pair.times === matchedPricePair.times,
+                )
+              : undefined;
 
-            if (!proxyBotUserConfig) {
+            // 修复：userPricePair 可能为 undefined，且 userPricePair.userPricePair 不存在
+            const commission = userPricePair
+              ? userPricePair.commission
+              : undefined;
+
+            if (!commission) {
               console.log(
-                `[checkAutoRentals] bot: ${bot.id} 下的收入 没有代理电报用户配置, 跳过`,
+                `[checkAutoRentals] bot: ${bot.id} 下的收入 没有代理用户配置, 跳过`,
               );
               continue;
             }
 
-            const proxyUser = await User.findById(bot.user);
-
-            if (!proxyUser) {
+            if (proxyBotUserConfig.trx_balance < Number(commission)) {
               console.log(
-                `[checkAutoRentals] bot: ${bot.id} 下的收入 没有代理用户, 跳过`,
+                `[checkAutoRentals] bot: ${bot.id} 下的收入 代理用户 ${proxyUser.id} 的 TRX 余额不足, 跳过`,
               );
-              continue;
+
+              // 余额不足，通知代理用户充值
+              const telegramBot = setupBot(bot.token);
+
+              try {
+                await telegramBot.api.sendMessage(
+                  proxyBotUser.id, // 代理电报用户id
+                  [
+                    `⚠️ 您的 TRX 余额不足，无法为下级用户自动闪租能量。`,
+                    '',
+                    `当前余额：<b>${proxyBotUserConfig.trx_balance}</b> TRX`,
+                    `所需金额：<b>${commission}</b> TRX`,
+                    '',
+                    `请及时充值以保证正常为下级用户自动闪租能量。`,
+                  ].join('\n'),
+                  {
+                    parse_mode: 'HTML',
+                    reply_markup: new InlineKeyboard()
+                      .text('⚡️ 我要充值', 'recharge')
+                      .text('📞 联系客服', 'contact'),
+                  },
+                );
+                continue;
+              } catch (err) {
+                console.error(
+                  '[checkAutoRentals] 通知代理用户余额不足失败:',
+                  err,
+                );
+                continue;
+              }
             }
+
+            // 扣减代理用户 TRX 余额
+            proxyBotUserConfig.trx_balance -= commission;
+            await proxyBotUserConfig.save();
           }
 
           // 创建已支付的兑换记录

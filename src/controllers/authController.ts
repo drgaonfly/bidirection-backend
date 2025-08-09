@@ -261,34 +261,38 @@ const updateUserProfile = handleAsync(
       hashPassword = await bcrypt.hash(password, salt);
     }
 
-    // 如果提供了新的 privateKey，则加密它
-    let encryptedPrivateKey = energy_privateKey;
-    if (energy_privateKey) {
+    // 只有在 energy_privateKey 和 mnemonic 非空且非空字符串时才加密和更新
+    let encryptedPrivateKey: string | undefined;
+    if (energy_privateKey !== undefined && energy_privateKey !== '') {
       encryptedPrivateKey = encrypt(energy_privateKey);
     }
 
-    // 如果提供了新的 mnemonic，则加密它
-    let encryptedMnemonic = mnemonic;
-    if (mnemonic) {
+    let encryptedMnemonic: string | undefined;
+    if (mnemonic !== undefined && mnemonic !== '') {
       encryptedMnemonic = encrypt(mnemonic);
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      user._id,
-      {
-        name: name || user.name,
-        email: email || user.email,
-        password: hashPassword,
-        serviceLink: serviceLink,
-        mnemonic: encryptedMnemonic,
-        rechargeAddress: rechargeAddress, // 充值地址
-        energy_privateKey: encryptedPrivateKey, // 私钥
-        recharge_min: recharge_min,
-        recharge_max: recharge_max,
-        energy_per_times: energy_per_times,
-      },
-      { new: true },
-    );
+    // 构建 update 对象，只在有值时才更新 energy_privateKey 和 mnemonic
+    const updateFields: any = {
+      name: name || user.name,
+      email: email || user.email,
+      password: hashPassword,
+      serviceLink: serviceLink,
+      recharge_min: recharge_min,
+      recharge_max: recharge_max,
+      energy_per_times: energy_per_times,
+    };
+
+    if (encryptedPrivateKey !== undefined) {
+      updateFields.energy_privateKey = encryptedPrivateKey;
+    }
+    if (encryptedMnemonic !== undefined) {
+      updateFields.mnemonic = encryptedMnemonic;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(user._id, updateFields, {
+      new: true,
+    });
 
     // 如果修改了密码，更新密码修改时间
     if (password) {

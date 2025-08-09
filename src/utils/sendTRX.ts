@@ -20,13 +20,13 @@ export async function sendTRX(
 ): Promise<string> {
   console.log('------ fromPrivateKey:', fromPrivateKey);
 
-  const ExistTrxRecord = await Transfer.findOne({
+  const existTrxRecord = await Transfer.findOne({
     hash: hash,
   });
 
-  if (ExistTrxRecord) {
-    console.log('------ 已存在兑换记录 hash:', ExistTrxRecord.hash);
-    throw new Error(`---- 已存在兑换记录 hash:', ${ExistTrxRecord.hash}`);
+  if (existTrxRecord) {
+    console.log('------ 已存在兑换记录 hash:', existTrxRecord.hash);
+    throw new Error(`---- 已存在兑换记录 hash:', ${existTrxRecord.hash}`);
   }
 
   if (exchange.status === 'completed') {

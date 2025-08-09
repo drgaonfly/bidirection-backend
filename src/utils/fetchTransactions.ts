@@ -306,7 +306,13 @@ async function unRentEnergy(rental: IRental): Promise<any> {
 
     unRental.status = 'success';
 
+    unRental.hash = result.txid;
+
+    rental.status = 'recycled';
+
     await unRental.save();
+
+    await rental.save();
 
     return result.txid;
   } catch (error) {

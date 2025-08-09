@@ -272,7 +272,6 @@ async function unRentEnergy(rental: IRental): Promise<any> {
       $set: {
         from: fromAddress,
         to: rental.to_address,
-        hash: rental.hash,
         separation: rental.separation,
         amount: rental.amount,
         limit_hour: rental.limit_hour,

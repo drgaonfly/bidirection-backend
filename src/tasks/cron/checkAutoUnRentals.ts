@@ -19,12 +19,6 @@ export async function checkAutoUnRentals() {
     const rentals = await Rental.find({
       status: 'completed',
       endAt: { $exists: true, $lte: currentDate },
-      $expr: {
-        $lte: [
-          { $add: ['$endAt', { $multiply: ['$limit_hour', 60 * 60 * 1000] }] },
-          currentDate,
-        ],
-      },
     });
 
     console.log(

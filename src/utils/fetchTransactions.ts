@@ -236,11 +236,11 @@ async function rentEnergy(
 }
 
 async function unRentEnergy(rental: IRental): Promise<any> {
-  const ExistUnRental = await UnRental.findOne({ rental: rental._id });
+  const existUnRental = await UnRental.findOne({ rental: rental._id });
 
-  if (ExistUnRental?.hash) {
-    console.log('------ 已存在能量回收记录 hash:', ExistUnRental?.hash);
-    throw new Error(`---- 已存在能量回收记录 hash:', ${ExistUnRental?.hash}`);
+  if (existUnRental) {
+    console.log('------ 已存在能量回收记录 hash:', existUnRental.hash);
+    throw new Error(`---- 已存在能量回收记录 hash:', ${existUnRental.hash}`);
   }
 
   if (rental.status === 'recycled') {
@@ -271,13 +271,13 @@ async function unRentEnergy(rental: IRental): Promise<any> {
     {
       $set: {
         from: fromAddress,
-        to: rental.to_address,
+        to: rental.from_address,
         separation: rental.separation,
         amount: rental.amount,
         limit_hour: rental.limit_hour,
         price: rental.price,
         actual_price: rental.actual_price,
-        tx_id: rental.tx_id,
+        txid: rental.tx_id,
       },
     },
     {
@@ -305,13 +305,10 @@ async function unRentEnergy(rental: IRental): Promise<any> {
     const result = await tronWeb.trx.sendRawTransaction(signedTx);
 
     unRental.status = 'success';
-
     unRental.hash = result.txid;
-
-    rental.status = 'recycled';
-
     await unRental.save();
 
+    rental.status = 'recycled';
     await rental.save();
 
     return result.txid;

@@ -17,6 +17,7 @@ export interface IEnergySend extends Document {
   actual_price: number;
   tx_id: string; // 交易哈希
   limit_hour: number;
+  status: string;
 }
 
 const energySendSchema = new Schema<IEnergySend>(
@@ -70,6 +71,12 @@ const energySendSchema = new Schema<IEnergySend>(
     },
     limit_hour: {
       type: Number,
+    },
+    status: {
+      type: String,
+      required: false,
+      enum: ['pending', 'success', 'failed'],
+      default: 'pending',
     },
   },
   {

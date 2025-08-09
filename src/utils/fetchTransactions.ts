@@ -154,6 +154,12 @@ async function rentEnergy(
   amount: number,
 ): Promise<any> {
   // Get admin user and use their energy_privateKey
+
+  if (rental.status === 'completed') {
+    console.log(`[rentEnergy]: ${rental._id} 租赁已完成，无需再次租赁]`);
+    return;
+  }
+
   console.log('[rentEnergy] 获取管理员信息...');
   const admin = await getAdminUser();
 
@@ -176,6 +182,30 @@ async function rentEnergy(
   ) as string;
 
   console.log('[rentEnergy] 获取 fromAddress...', fromAddress);
+
+  const es = await EnergySend.findOneAndUpdate(
+    {
+      tx_id: rental.tx_id,
+    },
+    {
+      $set: {
+        bot: rental.bot,
+        botUser: rental.botUser,
+        from: rental.from_address,
+        to: rental.to_address,
+        energyFromAddress: rental.energyFromAddress,
+        amount,
+        separation: rental.separation,
+        price: rental.price,
+        actual_price: rental.actual_price,
+        limit_hour: rental.limit_hour,
+      },
+    },
+    {
+      upsert: true,
+      new: true,
+    },
+  );
 
   try {
     const amountSunStr = tronWeb.toSun(amount); // 返回 string
@@ -223,30 +253,9 @@ async function rentEnergy(
       status: rental.status,
     });
 
-    await EnergySend.findOneAndUpdate(
-      {
-        tx_id: rental.tx_id,
-      },
-      {
-        $set: {
-          bot: rental.bot,
-          botUser: rental.botUser,
-          from: rental.from_address,
-          to: rental.to_address,
-          energyFromAddress: rental.energyFromAddress,
-          amount,
-          separation: rental.separation,
-          price: rental.price,
-          actual_price: rental.actual_price,
-          limit_hour: rental.limit_hour,
-          tx_id: rental.tx_id,
-        },
-      },
-      {
-        upsert: true,
-        new: true,
-      },
-    );
+    es.status = 'success';
+    es.tx_id = result.txid;
+    await es.save();
 
     return result.txid;
   } catch (error) {
@@ -257,6 +266,10 @@ async function rentEnergy(
     console.log('[rentEnergy] 租赁失败，已更新状态为 failed:', {
       rentalId: rental?.id,
     });
+
+    es.status = 'failed';
+    await es.save();
+
     throw error;
   }
 }

@@ -48,6 +48,8 @@ const unRentalSchema = new Schema<IUnRental>(
     hash: {
       type: String,
       required: false,
+      unique: true,
+      sparse: true,
     },
     status: {
       type: String,

@@ -48,6 +48,10 @@ export interface IUser extends Document {
    * 充值涨最大值
    */
   recharge_max: number;
+  /**
+   * 每笔多少能量
+   */
+  energy_per_times: number;
 }
 
 const pricePairSchema = new mongoose.Schema({

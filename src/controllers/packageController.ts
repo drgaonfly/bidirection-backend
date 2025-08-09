@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Package from '../models/package';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
+import { getAdminUser } from '../utils/buyTelegramPremium';
 
 // 构建查询参数
 const buildQuery = (queryParams: any): any => {
@@ -84,10 +85,12 @@ export const addPackage = handleAsync(async (req: Request, res: Response) => {
     throw new Error('抽佣不能大于用户花费');
   }
 
+  const admin = await getAdminUser();
+
   const pkg = new Package({
     ...req.body,
     id: newId,
-    aqusition: req.body.times * 65000,
+    aqusition: req.body.times * (admin.energy_per_times || 65000),
   });
 
   const savedPackage = await pkg.save();

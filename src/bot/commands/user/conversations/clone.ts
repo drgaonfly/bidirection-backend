@@ -18,7 +18,13 @@ const TIMEOUT = 5 * 60 * 1000;
 async function cloneBotConversation(
   conversation: Conversation<MyContext>,
   ctx: MyContext,
-  botUser: IBotUser,
+  {
+    botUser,
+    proxyUser,
+  }: {
+    botUser: IBotUser;
+    proxyUser: IUser;
+  },
 ) {
   debug('等待用户输入token或取消');
   // 等待用户输入token或取消
@@ -56,7 +62,10 @@ async function cloneBotConversation(
       },
     );
     // 递归等待用户重新输入
-    return await cloneBotConversation(conversation, ctx, botUser);
+    return await cloneBotConversation(conversation, ctx, {
+      botUser,
+      proxyUser,
+    });
   }
 
   // 处理收到的token
@@ -211,7 +220,10 @@ cloneConversationComposer.callbackQuery(
       },
     );
 
-    await ctx.conversation.enter('cloneBotConversation');
+    await ctx.conversation.enter('cloneBotConversation', {
+      botUser: ctx.currentBotUser,
+      proxyUser: ctx.currentProxyUser,
+    });
     await ctx.answerCallbackQuery();
   },
 );

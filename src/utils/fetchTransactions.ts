@@ -272,25 +272,33 @@ async function rentEnergy(
 }
 
 async function unRentEnergy(rental: IRental): Promise<any> {
+  console.log('[unRentEnergy] 开始处理能量回收, rentalId:', rental?._id);
+
   const existUnRental = await UnRental.findOne({ rental: rental._id });
 
   if (existUnRental) {
-    console.log('------ 已存在能量回收记录 hash:', existUnRental.hash);
+    console.log(
+      '[unRentEnergy] ------ 已存在能量回收记录 hash:',
+      existUnRental.hash,
+    );
     throw new Error(`---- 已存在能量回收记录 hash:', ${existUnRental.hash}`);
   }
 
   if (rental.status === 'recycled') {
-    console.log('------ 当前状态是 recycled:', rental.status);
+    console.log('[unRentEnergy] ------ 当前状态是 recycled:', rental.status);
     throw new Error(`---- 当前echange记录的状态已回收:', ${rental.status}`);
   }
 
   // 获取管理员用户
+  console.log('[unRentEnergy] 获取管理员用户...');
   const admin = await getAdminUser();
 
   // 解密私钥
+  console.log('[unRentEnergy] 解密管理员能量私钥...');
   const decryptedPrivateKey = decrypt(admin.energy_privateKey);
 
   // 初始化 TronWeb
+  console.log('[unRentEnergy] 初始化 TronWeb...');
   const tronWeb = new TronWeb({
     fullHost: 'https://api.trongrid.io',
     privateKey: decryptedPrivateKey,
@@ -299,6 +307,7 @@ async function unRentEnergy(rental: IRental): Promise<any> {
   const fromAddress = tronWeb.address.fromPrivateKey(
     decryptedPrivateKey,
   ) as string;
+  console.log('[unRentEnergy] 管理员地址:', fromAddress);
 
   const unRental = await UnRental.findOneAndUpdate(
     {
@@ -321,39 +330,63 @@ async function unRentEnergy(rental: IRental): Promise<any> {
       new: true,
     },
   );
+  console.log('[unRentEnergy] UnRental 记录已创建/更新:', unRental?._id);
 
   try {
     const amountSunStr = tronWeb.toSun(rental.amount); // 转为Sun单位字符串
     const amountSun = Number(amountSunStr);
-
-    // 创建解除租赁交易
-    const transaction = await tronWeb.transactionBuilder.undelegateResource(
+    console.log(
+      '[unRentEnergy] 解除租赁 amount:',
+      rental.amount,
+      'Sun:',
       amountSun,
-      rental.from_address,
-      'ENERGY',
-      fromAddress,
     );
 
+    // 创建解除租赁交易
+    console.log('[unRentEnergy] 创建解除租赁交易...');
+    const transaction = await tronWeb.transactionBuilder.undelegateResource(
+      amountSun, // 解除租赁的能量数量（Sun单位）
+      rental.from_address, // 被解除租赁的用户地址
+      'ENERGY', // 资源类型，固定为 'ENERGY'
+      fromAddress, // 管理员（发起解除租赁）的地址
+    );
+    console.log('[unRentEnergy] 解除租赁交易已构建:', transaction);
+
     // 签名交易
+    console.log('[unRentEnergy] 签名交易...');
     const signedTx = await tronWeb.trx.sign(transaction);
+    console.log('[unRentEnergy] 签名交易完成:', signedTx);
 
     // 发送交易
+    console.log('[unRentEnergy] 发送交易...');
     const result = await tronWeb.trx.sendRawTransaction(signedTx);
+    console.log('[unRentEnergy] 发送交易结果:', result);
 
     unRental.status = 'success';
     unRental.hash = result.txid;
     await unRental.save();
+    console.log(
+      '[unRentEnergy] UnRental 状态已更新为 success, hash:',
+      result.txid,
+    );
 
     rental.status = 'recycled';
     await rental.save();
+    console.log(
+      '[unRentEnergy] Rental 状态已更新为 recycled, rentalId:',
+      rental?._id,
+    );
 
     return result.txid;
   } catch (error) {
-    console.error('解除租赁能量失败:', error);
+    console.error('[unRentEnergy] 解除租赁能量失败:', error);
 
     unRental.status = 'failed';
-
     await unRental.save();
+    console.log(
+      '[unRentEnergy] UnRental 状态已更新为 failed, unRentalId:',
+      unRental?._id,
+    );
 
     throw error;
   }

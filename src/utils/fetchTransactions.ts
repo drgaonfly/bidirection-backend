@@ -154,7 +154,7 @@ async function rentEnergy(
 ): Promise<any> {
   // Get admin user and use their energy_privateKey
   const energySend = await EnergySend.findOne({
-    tx_id: rental.tx_id,
+    rental: rental._id,
     status: 'success',
   });
 
@@ -196,6 +196,7 @@ async function rentEnergy(
       $set: {
         bot: rental.bot,
         botUser: rental.botUser,
+        rental: rental._id,
         // proxy 字段可选，若 rental.proxy 存在则赋值
         ...(rental.proxy ? { proxy: rental.proxy } : {}),
         from_address: rental.energyFromAddress,
@@ -281,6 +282,17 @@ async function rentEnergy(
 
 async function unRentEnergy(rental: IRental): Promise<any> {
   console.log('[unRentEnergy] 开始处理能量回收, rentalId:', rental?._id);
+  const existUnRental = await UnRental.findOne({
+    rental: rental._id,
+    status: 'success',
+  });
+
+  if (existUnRental) {
+    console.log(`[unRentEnergy]: ${rental._id} 能量回收已完成，无需再次回收]`);
+    throw new Error(
+      `[unRentEnergy]: ${rental._id} 能量回收已完成，无需再次回收]`,
+    );
+  }
 
   if (rental.status === 'recycled') {
     console.log('[unRentEnergy] ------ 当前状态是 recycled:', rental.status);
@@ -309,7 +321,7 @@ async function unRentEnergy(rental: IRental): Promise<any> {
 
   const unRental = await UnRental.findOneAndUpdate(
     {
-      rental,
+      rental: rental._id,
     },
     {
       $set: {

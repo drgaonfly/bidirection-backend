@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 import { IBot } from './bot';
 import { IBotUser } from './botUser';
 import { IUser } from './user';
-
+import { IRental } from './rental';
 // 能量发送接口定义
 export interface IEnergySend extends Document {
   bot: mongoose.Schema.Types.ObjectId | IBot;
@@ -17,6 +17,7 @@ export interface IEnergySend extends Document {
   tx_id: string; // 交易哈希
   limit_hour: number;
   status: string;
+  rental: mongoose.Schema.Types.ObjectId | IRental;
 }
 
 const energySendSchema = new Schema<IEnergySend>(
@@ -24,6 +25,11 @@ const energySendSchema = new Schema<IEnergySend>(
     bot: {
       type: Schema.Types.ObjectId,
       ref: 'Bot',
+      required: true,
+    },
+    rental: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Rental',
       required: true,
     },
     botUser: {

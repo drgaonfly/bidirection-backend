@@ -295,6 +295,10 @@ async function rentEnergy(
     const result = await tronWeb.trx.sendRawTransaction(signedTx);
     console.log('[rentEnergy] 发送交易结果:', result);
 
+    if (!result || result.result !== true) {
+      throw new Error(`[rentEnergy] 发送交易失败: ${JSON.stringify(result)}`);
+    }
+
     rental.tx_id = result.txid;
     rental.transactionAt = new Date();
     rental.endAt = new Date(

@@ -94,7 +94,7 @@ export const getDeductions = handleAsync(
   async (
     req: RequestCustom,
     res: Response,
-    next: NextFunction,
+    _next: NextFunction,
   ): Promise<void> => {
     const { current = '1', pageSize = '10' } = req.query;
 
@@ -123,7 +123,7 @@ export const getDeductions = handleAsync(
 );
 
 export const getDeductionById = handleAsync(
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
     const { id } = req.params;
 
     const deduction = await Deduction.findById(id)
@@ -149,7 +149,7 @@ export const getDeductionById = handleAsync(
 );
 
 export const addDeduction = handleAsync(
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
     const deductionData = req.body;
 
     // 生成唯一ID
@@ -167,7 +167,7 @@ export const addDeduction = handleAsync(
 );
 
 export const updateDeduction = handleAsync(
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
     const { id } = req.params;
     const updateData = req.body;
 
@@ -197,7 +197,7 @@ export const updateDeduction = handleAsync(
 );
 
 export const deleteDeduction = handleAsync(
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
     const { id } = req.params;
 
     const deduction = await Deduction.findByIdAndDelete(id).exec();
@@ -218,7 +218,7 @@ export const deleteDeduction = handleAsync(
 );
 
 export const deleteMultipleDeductions = handleAsync(
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
     const { ids } = req.body;
 
     if (!ids || !Array.isArray(ids) || ids.length === 0) {

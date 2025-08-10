@@ -36,27 +36,29 @@ const buildQuery = async (
 };
 
 // 获取所有匿名用户
-const getAnynoumies = handleAsync(async (req: RequestCustom, res: Response) => {
-  const { current = '1', pageSize = '10' } = req.query;
+export const getAnynoumies = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { current = '1', pageSize = '10' } = req.query;
 
-  const query = await buildQuery(req.query, req);
+    const query = await buildQuery(req.query, req);
 
-  const anynoumies = await Anynoumy.find(query)
-    .sort('-createdAt')
-    .skip((+current - 1) * +pageSize)
-    .limit(+pageSize)
-    .exec();
+    const anynoumies = await Anynoumy.find(query)
+      .sort('-createdAt')
+      .skip((+current - 1) * +pageSize)
+      .limit(+pageSize)
+      .exec();
 
-  const total = await Anynoumy.countDocuments(query).exec();
+    const total = await Anynoumy.countDocuments(query).exec();
 
-  res.json({
-    success: true,
-    data: anynoumies,
-    total,
-    current: +current,
-    pageSize: +pageSize,
-  });
-});
+    res.json({
+      success: true,
+      data: anynoumies,
+      total,
+      current: +current,
+      pageSize: +pageSize,
+    });
+  },
+);
 
 export const getAnynoumyById = handleAsync(
   async (req: Request, res: Response) => {

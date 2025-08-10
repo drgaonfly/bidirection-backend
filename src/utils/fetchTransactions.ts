@@ -286,7 +286,7 @@ async function rentEnergy(
       transaction,
       decryptedPrivateKey,
       true,
-      true,
+      false,
     );
 
     console.log('[rentEnergy] 签名交易完成:', signedTx);

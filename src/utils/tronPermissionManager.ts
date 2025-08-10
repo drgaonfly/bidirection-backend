@@ -21,12 +21,16 @@ export async function checkAccountPermission(
 
     const accountInfo = await tronWeb.trx.getAccount(energyAddress);
 
-    if (!accountInfo.active_permission) {
+    if (
+      !accountInfo.active_permission ||
+      accountInfo.active_permission.length === 0
+    ) {
       return false;
     }
 
-    return accountInfo.active_permission.some((perm: any) =>
-      perm.keys.some((key: any) => key.address === fromAddress),
+    // 检查所有 active permission 中是否包含 fromAddress
+    return accountInfo.active_permission.some((perm) =>
+      perm.keys.some((key) => key.address === fromAddress),
     );
   } catch (error) {
     console.error('[checkAccountPermission] 检查账户权限失败:', error);
@@ -38,7 +42,13 @@ export async function checkAccountPermission(
  * 获取账户的权限信息
  * @param address 要查询的地址
  */
-export async function getAccountPermissions(address: string): Promise<any> {
+export async function getAccountPermissions(address: string): Promise<{
+  address: string;
+  hasActivePermission: boolean;
+  activePermissionCount: number;
+  permissions: any[];
+  masterWeight: number;
+}> {
   try {
     const tronWeb = new TronWeb({
       fullHost: 'https://api.trongrid.io',
@@ -47,7 +57,9 @@ export async function getAccountPermissions(address: string): Promise<any> {
     const accountInfo = await tronWeb.trx.getAccount(address);
     return {
       address,
-      hasActivePermission: !!accountInfo.active_permission,
+      hasActivePermission:
+        !!accountInfo.active_permission &&
+        accountInfo.active_permission.length > 0,
       activePermissionCount: accountInfo.active_permission?.length || 0,
       permissions: accountInfo.active_permission || [],
       masterWeight: (accountInfo as any).master_weight || 0,

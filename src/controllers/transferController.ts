@@ -2,8 +2,14 @@ import { Request, Response } from 'express';
 import Transfer from '../models/transfer';
 import Exchange from '../models/exchange';
 import handleAsync from '../utils/handleAsync';
+import { RequestCustom } from '../types/user';
+import { isEmployee, isProxy } from '../middlewares/authMiddleware';
+import User from '../models/user';
 
-const buildQuery = async (queryParams: any): Promise<any> => {
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
 
   if (queryParams.exchange) {
@@ -43,38 +49,59 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     query.status = queryParams.status;
   }
 
+  // 代理查询逻辑
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.proxy = { $in: [...employeeIds, req.user._id] };
+  } else if (isEmployee(req.user)) {
+    query.proxy = req.user._id;
+  }
+
   return query;
 };
 
-export const getTransfers = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10' } = req.query;
+export const getTransfers = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { current = '1', pageSize = '10' } = req.query;
 
-  const query = await buildQuery(req.query);
+    const query = await buildQuery(req.query, req);
 
-  const transfers = await Transfer.find(query)
-    .sort('-createdAt')
-    .populate('exchange')
-    .skip((+current - 1) * +pageSize)
-    .limit(+pageSize)
-    .lean()
-    .exec();
+    const transfers = await Transfer.find(query)
+      .sort('-createdAt')
+      .populate('exchange')
+      .populate('proxy')
+      .skip((+current - 1) * +pageSize)
+      .limit(+pageSize)
+      .lean()
+      .exec();
 
-  const total = await Transfer.countDocuments(query).exec();
+    const total = await Transfer.countDocuments(query).exec();
 
-  res.json({
-    success: true,
-    data: transfers,
-    total,
-    current: +current,
-    pageSize: +pageSize,
-  });
-});
+    res.json({
+      success: true,
+      data: transfers,
+      total,
+      current: +current,
+      pageSize: +pageSize,
+    });
+  },
+);
 
 export const getTransferById = handleAsync(
-  async (req: Request, res: Response) => {
-    const transfer = await Transfer.findOne({
-      _id: req.params.id,
-    }).lean();
+  async (req: RequestCustom, res: Response) => {
+    const query: any = { _id: req.params.id };
+
+    // 添加代理查询逻辑
+    if (isProxy(req.user)) {
+      const employees = await User.find({ proxy: req.user._id });
+      const employeeIds = employees.map((employee) => employee._id);
+      query.proxy = { $in: [...employeeIds, req.user._id] };
+    } else if (isEmployee(req.user)) {
+      query.proxy = req.user._id;
+    }
+
+    const transfer = await Transfer.findOne(query).lean();
 
     if (!transfer) {
       res.status(404);

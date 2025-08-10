@@ -98,7 +98,8 @@ const groupSchema = new mongoose.Schema(
       required: false,
     },
     proxy: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
       required: false,
     },
   },

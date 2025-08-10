@@ -74,19 +74,21 @@ const buildQuery = async (
     query.expiredAt = queryParams.expiredAt;
   }
 
-  if (queryParams.proxy) {
-    query.proxy = queryParams.proxy;
-  }
-
-  // 代理查询逻辑
+  // 代理查询逻辑 - 根据用户角色设置查询条件
   if (isProxy(req.user)) {
+    // 代理用户：可以查看自己及其下属员工的预支记录
     const employees = await User.find({ proxy: req.user._id });
     const employeeIds = employees.map((employee) => employee._id);
     query.proxy = { $in: [...employeeIds, req.user._id] };
-  }
-
-  if (isEmployee(req.user)) {
+  } else if (isEmployee(req.user)) {
+    // 员工用户：只能查看自己的预支记录
     query.proxy = req.user._id;
+  } else {
+    // 管理员或其他角色：可以查看所有记录（不添加 proxy 限制）
+    // 如果明确指定了 proxy 参数，则使用指定的值
+    if (queryParams.proxy) {
+      query.proxy = queryParams.proxy;
+    }
   }
 
   return query;
@@ -122,12 +124,25 @@ export const getAdvances = handleAsync(
 );
 
 export const getAdvanceById = handleAsync(
-  async (req: Request, res: Response) => {
-    const advance = await Advance.findOne({
-      _id: req.params.id,
-    })
+  async (req: RequestCustom, res: Response) => {
+    const query: any = { _id: req.params.id };
+
+    // 添加代理查询逻辑
+    if (isProxy(req.user)) {
+      // 代理用户：可以查看自己及其下属员工的预支记录
+      const employees = await User.find({ proxy: req.user._id });
+      const employeeIds = employees.map((employee) => employee._id);
+      query.proxy = { $in: [...employeeIds, req.user._id] };
+    } else if (isEmployee(req.user)) {
+      // 员工用户：只能查看自己的预支记录
+      query.proxy = req.user._id;
+    }
+    // 管理员或其他角色：可以查看所有记录（不添加 proxy 限制）
+
+    const advance = await Advance.findOne(query)
       .populate('botUser')
       .populate('bot')
+      .populate('proxy')
       .lean();
 
     if (!advance) {
@@ -142,25 +157,45 @@ export const getAdvanceById = handleAsync(
   },
 );
 
-export const addAdvance = handleAsync(async (req: Request, res: Response) => {
-  const newId = await IdGen.next(Advance, 'id', 6);
+export const addAdvance = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const newId = await IdGen.next(Advance, 'id', 6);
 
-  const advance = new Advance({
-    ...req.body,
-    id: newId,
-  });
+    // 自动设置代理字段
+    const advanceData = {
+      ...req.body,
+      id: newId,
+      proxy: req.user._id, // 自动设置为当前用户
+    };
 
-  const savedAdvance = await advance.save();
+    const advance = new Advance(advanceData);
 
-  res.status(201).json({
-    success: true,
-    data: savedAdvance,
-  });
-});
+    const savedAdvance = await advance.save();
+
+    res.status(201).json({
+      success: true,
+      data: savedAdvance,
+    });
+  },
+);
 
 export const updateAdvance = handleAsync(
-  async (req: Request, res: Response) => {
-    const advance = await Advance.findByIdAndUpdate(req.params.id, req.body, {
+  async (req: RequestCustom, res: Response) => {
+    const query: any = { _id: req.params.id };
+
+    // 添加代理查询逻辑
+    if (isProxy(req.user)) {
+      // 代理用户：可以更新自己及其下属员工的预支记录
+      const employees = await User.find({ proxy: req.user._id });
+      const employeeIds = employees.map((employee) => employee._id);
+      query.proxy = { $in: [...employeeIds, req.user._id] };
+    } else if (isEmployee(req.user)) {
+      // 员工用户：只能更新自己的预支记录
+      query.proxy = req.user._id;
+    }
+    // 管理员或其他角色：可以更新所有记录（不添加 proxy 限制）
+
+    const advance = await Advance.findOneAndUpdate(query, req.body, {
       new: true,
     });
 
@@ -177,10 +212,22 @@ export const updateAdvance = handleAsync(
 );
 
 export const deleteAdvance = handleAsync(
-  async (req: Request, res: Response) => {
-    const advance = await Advance.deleteOne({
-      _id: req.params.id,
-    });
+  async (req: RequestCustom, res: Response) => {
+    const query: any = { _id: req.params.id };
+
+    // 添加代理查询逻辑
+    if (isProxy(req.user)) {
+      // 代理用户：可以删除自己及其下属员工的预支记录
+      const employees = await User.find({ proxy: req.user._id });
+      const employeeIds = employees.map((employee) => employee._id);
+      query.proxy = { $in: [...employeeIds, req.user._id] };
+    } else if (isEmployee(req.user)) {
+      // 员工用户：只能删除自己的预支记录
+      query.proxy = req.user._id;
+    }
+    // 管理员或其他角色：可以删除所有记录（不添加 proxy 限制）
+
+    const advance = await Advance.findOneAndDelete(query);
 
     if (!advance) {
       res.status(404);
@@ -195,13 +242,27 @@ export const deleteAdvance = handleAsync(
 );
 
 export const deleteMultipleAdvances = handleAsync(
-  async (req: Request, res: Response) => {
+  async (req: RequestCustom, res: Response) => {
     const { ids } = req.body;
-    await Advance.deleteMany({ _id: { $in: ids } });
+    const query: any = { _id: { $in: ids } };
+
+    // 添加代理查询逻辑
+    if (isProxy(req.user)) {
+      // 代理用户：可以删除自己及其下属员工的预支记录
+      const employees = await User.find({ proxy: req.user._id });
+      const employeeIds = employees.map((employee) => employee._id);
+      query.proxy = { $in: [...employeeIds, req.user._id] };
+    } else if (isEmployee(req.user)) {
+      // 员工用户：只能删除自己的预支记录
+      query.proxy = req.user._id;
+    }
+    // 管理员或其他角色：可以删除所有记录（不添加 proxy 限制）
+
+    const result = await Advance.deleteMany(query);
 
     res.json({
       success: true,
-      message: '预支记录批量删除成功',
+      message: `成功删除 ${result.deletedCount} 条预支记录`,
     });
   },
 );

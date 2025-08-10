@@ -1,5 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 import { IExchange } from './exchange';
+import { IUser } from './user';
 
 // 转账接口定义
 export interface ITransfer extends Document {
@@ -10,6 +11,7 @@ export interface ITransfer extends Document {
   to: string;
   status: string;
   trxAmount: number;
+  proxy: mongoose.Types.ObjectId | IUser; // 代理
 }
 
 // 转账 Schema
@@ -50,6 +52,7 @@ const transferSchema = new mongoose.Schema(
       enum: ['completed', 'failed', 'pending'],
       default: 'pending',
     },
+    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
   },
   {
     timestamps: true,

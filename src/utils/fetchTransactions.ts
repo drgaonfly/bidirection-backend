@@ -277,8 +277,6 @@ async function rentEnergy(
       toAddress, // 第2个参数：接收能量的地址（租给谁）
       'ENERGY', // 第3个参数：租赁的资源类型（能量）
       energyAddress, // 第4个参数：出租能量的地址（B 地址，放能量的地址）
-      true, // 第5个参数：是否使用多签
-      3600, // 第6个参数：租赁时长（秒）
     );
     console.log('[rentEnergy] 构建交易完成:', tx);
 
@@ -287,7 +285,7 @@ async function rentEnergy(
     const stx = await tronWeb.trx.multiSign(
       tx,
       decryptedPrivateKey,
-      0, // PERMISSION_ID，通常为0表示active权限
+      3, // PERMISSION_ID，通常为0表示active权限
     );
 
     console.log('[rentEnergy] 多签交易完成:', stx);
@@ -299,6 +297,7 @@ async function rentEnergy(
       throw new Error(`[rentEnergy] 发送交易失败: ${JSON.stringify(result)}`);
     }
 
+    rental.error = JSON.stringify(result);
     rental.tx_id = result.txid;
     rental.transactionAt = new Date();
     rental.endAt = new Date(

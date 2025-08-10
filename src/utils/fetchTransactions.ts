@@ -415,8 +415,9 @@ async function unRentEnergy(rental: IRental): Promise<any> {
       amountSun,
     );
 
-    // 创建解除租赁交易
-    console.log('[unRentEnergy] 创建解除租赁交易...');
+    // 创建解除租赁交易（新方法，使用多签）
+    console.log('[unRentEnergy] 创建解除租赁交易（多签）...');
+    tronWeb.setAddress(energyAddress);
     const transaction = await tronWeb.transactionBuilder.undelegateResource(
       amountSun, // 解除租赁的能量数量（Sun单位）
       rental.from_address, // 被解除租赁的用户地址
@@ -425,15 +426,19 @@ async function unRentEnergy(rental: IRental): Promise<any> {
     );
     console.log('[unRentEnergy] 解除租赁交易已构建:', transaction);
 
-    // 签名交易
-    console.log('[unRentEnergy] 签名交易...');
-    const signedTx = await tronWeb.trx.sign(transaction, decryptedPrivateKey);
-    console.log('[unRentEnergy] 签名交易完成:', signedTx);
+    // 多签交易（使用 A 的私钥进行多签，PERMISSION_ID 通常为 0 表示 active 权限）
+    console.log('[unRentEnergy] 多签交易...');
+    const signedTx = await tronWeb.trx.multiSign(
+      transaction,
+      decryptedPrivateKey,
+      3, // PERMISSION_ID，通常为0或3，视合约配置而定
+    );
+    console.log('[unRentEnergy] 多签交易完成:', signedTx);
 
-    // 发送交易
-    console.log('[unRentEnergy] 发送交易...');
-    const result = await tronWeb.trx.sendRawTransaction(signedTx);
-    console.log('[unRentEnergy] 发送交易结果:', result);
+    // 广播交易
+    console.log('[unRentEnergy] 广播交易...');
+    const result = await tronWeb.trx.broadcast(signedTx);
+    console.log('[unRentEnergy] 广播交易结果:', result);
 
     unRental.status = 'success';
     unRental.hash = result.txid;

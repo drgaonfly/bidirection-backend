@@ -17,6 +17,7 @@ export interface IUnRental extends Document {
   hash: string; // 回收哈希
   txid: string; // rental的发送哈希txid
   price: number;
+  error: string;
 }
 
 const unRentalSchema = new Schema<IUnRental>(
@@ -76,6 +77,10 @@ const unRentalSchema = new Schema<IUnRental>(
     price: {
       type: Number,
       required: true,
+    },
+    error: {
+      type: String,
+      required: false,
     },
   },
   {

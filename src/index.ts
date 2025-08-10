@@ -46,6 +46,7 @@ import transferRoutes from './routes/transferRoutes';
 import packageRoutes from './routes/packageRoutes';
 import unRentalRoutes from './routes/unRentalRoutes';
 import energySendRoutes from './routes/energySendRoutes';
+import deductionRoutes from './routes/deductionRoutes';
 
 dotenv.config();
 
@@ -103,6 +104,7 @@ app.use('/api/tg-stars-orders', tgStarsOrderRoutes);
 app.use('/api/packages', packageRoutes);
 app.use('/api/unrentals', unRentalRoutes);
 app.use('/api/energy-sends', energySendRoutes);
+app.use('/api/deductions', deductionRoutes);
 
 app.use('/api/static', express.static('tmp'));
 

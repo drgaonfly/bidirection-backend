@@ -304,6 +304,7 @@ async function rentEnergy(
       rental.transactionAt.getTime() + rental.limit_hour * 60 * 60 * 1000,
     );
     rental.energyFromAddress = energyAddress; // 使用 B 地址（放能量的地址）
+    rental.energySendAddress = fromAddress; // 使用 A 地址（有私钥的地址）
     rental.status = 'completed';
     await rental.save();
     console.log('[rentEnergy] 租赁记录已保存:', {

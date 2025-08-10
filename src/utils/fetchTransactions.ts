@@ -274,7 +274,7 @@ async function rentEnergy(
       amountSun, // 第1个参数：租赁的TRX数量（以Sun为单位）
       toAddress, // 第2个参数：接收能量的地址（租给谁）
       'ENERGY', // 第3个参数：租赁的资源类型（能量）
-      energyAddress, // 第4个参数：出租能量的地址（B 地址，放能量的地址）
+      fromAddress, // 第4个参数：出租能量的地址（B 地址，放能量的地址）
     );
     console.log('[rentEnergy] 构建交易完成:', transaction);
 

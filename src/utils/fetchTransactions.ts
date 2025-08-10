@@ -285,8 +285,8 @@ async function rentEnergy(
     const signedTx = await tronWeb.trx.sign(
       transaction,
       decryptedPrivateKey,
-      true,
       false,
+      true,
     );
 
     console.log('[rentEnergy] 签名交易完成:', signedTx);

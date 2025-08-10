@@ -268,20 +268,24 @@ async function rentEnergy(
       amountSunStr,
     });
 
-    const ENERGY_RENTAL_CONTRACT = 'TQn9Y2khEsLJW1ccvkA8hdh1e43mJRZq9k';
-    console.log('[rentEnergy] 调用能量租赁合约...');
-    const contract = await tronWeb.contract().at(ENERGY_RENTAL_CONTRACT);
-    // 注意：amountSun 这里单位为 sun
-    const result = await contract
-      .rentEnergy(
-        energyAddress, // 能量所有者（B 地址）
-        toAddress, // 接收能量的地址
-        amountSun, // 能量数量（单位：sun）
-      )
-      .send({
-        feeLimit: 10_000_000,
-      });
-    console.log('[rentEnergy] 合约调用成功:', result);
+    console.log('[rentEnergy] 构建 delegateResource 交易...');
+    // 使用 B 地址作为 from_address，但用 A 的私钥签名
+    const transaction = await tronWeb.transactionBuilder.delegateResource(
+      amountSun, // 第1个参数：租赁的TRX数量（以Sun为单位）
+      toAddress, // 第2个参数：接收能量的地址（租给谁）
+      'ENERGY', // 第3个参数：租赁的资源类型（能量）
+      energyAddress, // 第4个参数：出租能量的地址（B 地址，放能量的地址）
+    );
+    console.log('[rentEnergy] 构建交易完成:', transaction);
+
+    console.log('[rentEnergy] 签名交易...');
+    // 使用 A 的私钥签名（因为 B 授权给了 A）
+    const signedTx = await tronWeb.trx.sign(transaction, decryptedPrivateKey);
+    console.log('[rentEnergy] 签名交易完成:', signedTx);
+
+    console.log('[rentEnergy] 发送交易...');
+    const result = await tronWeb.trx.sendRawTransaction(signedTx);
+    console.log('[rentEnergy] 发送交易结果:', result);
 
     rental.tx_id = result.txid;
     rental.transactionAt = new Date();

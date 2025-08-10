@@ -282,7 +282,13 @@ async function rentEnergy(
 
     console.log('[rentEnergy] 签名交易...');
     // 使用 A 的私钥签名（因为 B 授权给了 A）
-    const signedTx = await tronWeb.trx.sign(transaction, decryptedPrivateKey);
+    const signedTx = await tronWeb.trx.sign(
+      transaction,
+      decryptedPrivateKey,
+      true,
+      true,
+    );
+
     console.log('[rentEnergy] 签名交易完成:', signedTx);
 
     console.log('[rentEnergy] 发送交易...');

@@ -320,6 +320,7 @@ async function rentEnergy(
     return result.txid;
   } catch (error) {
     console.error('[rentEnergy] 租赁能量失败:', error);
+    rental.error = error.message;
     rental.status = 'failed';
     rental.energyFromAddress = energyAddress; // 使用 B 地址（放能量的地址）
     await rental.save();

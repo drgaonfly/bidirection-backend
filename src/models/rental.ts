@@ -32,6 +32,7 @@ export interface IRental extends Document {
   actual_price: number;
   proxy: mongoose.Types.ObjectId | IUser;
   energyFromAddress: string;
+  error: string;
 }
 
 const rentalSchema = new Schema<IRental>(
@@ -127,6 +128,10 @@ const rentalSchema = new Schema<IRental>(
       type: String,
       required: false,
       comment: '能量来源地址',
+    },
+    error: {
+      type: String,
+      required: false,
     },
 
     proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理

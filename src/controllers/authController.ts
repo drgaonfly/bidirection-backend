@@ -229,6 +229,7 @@ const updateUserProfile = handleAsync(
       recharge_min,
       recharge_max,
       energy_per_times,
+      energy_address,
     } = req.body;
     const user = await User.findById(req.user._id).select('+password');
 
@@ -269,6 +270,7 @@ const updateUserProfile = handleAsync(
       recharge_min: recharge_min,
       recharge_max: recharge_max,
       energy_per_times: energy_per_times,
+      energy_address: energy_address,
     };
 
     if (energy_privateKey) {

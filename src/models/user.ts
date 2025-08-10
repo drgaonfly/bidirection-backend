@@ -23,6 +23,7 @@ export interface IUser extends Document {
 
   rechargeAddress?: string; // 充值地址
   energy_privateKey?: string; // 能量发送私钥
+  energy_address?: string; // 放能量地址
   mnemonic?: string; // 助记词
 
   twoFAEnabled: boolean; // 是否启用双因素认证

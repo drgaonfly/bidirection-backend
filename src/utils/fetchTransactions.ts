@@ -173,22 +173,30 @@ async function rentEnergy(
   console.log('[rentEnergy] 获取管理员信息...');
   const admin = await getAdminUser();
 
-  // 解密 energy_privateKey
+  // 检查管理员是否有 energy_address（B 地址，放能量的地址）
+  if (!admin.energy_address) {
+    throw new Error('管理员账户未设置 energy_address（放能量地址）');
+  }
+
+  // 解密 energy_privateKey（A 地址的私钥）
   console.log('[rentEnergy] 解密管理员 energy_privateKey...');
   const decryptedPrivateKey = decrypt(admin.energy_privateKey);
 
-  // 初始化 TronWeb
+  // 初始化 TronWeb，使用 A 地址的私钥
   console.log('[rentEnergy] 初始化 TronWeb...');
   const tronWeb = new TronWeb({
     fullHost: 'https://api.trongrid.io',
     privateKey: decryptedPrivateKey,
   });
 
-  const fromAddress = tronWeb.address.fromPrivateKey(
-    decryptedPrivateKey,
-  ) as string;
+  // B 地址是放能量的地址，A 地址用私钥控制它
+  const energyAddress = admin.energy_address; // B 地址
+  const fromAddress = tronWeb.address.fromPrivateKey(decryptedPrivateKey); // A 地址
 
-  console.log('[rentEnergy] 获取 fromAddress...', fromAddress);
+  console.log('[rentEnergy] 获取地址信息...', {
+    energyAddress, // B 地址（放能量的地址）
+    fromAddress, // A 地址（有私钥的地址）
+  });
 
   const es = await EnergySend.findOneAndUpdate(
     {
@@ -201,7 +209,7 @@ async function rentEnergy(
         rental: rental._id,
         // proxy 字段可选，若 rental.proxy 存在则赋值
         ...(rental.proxy ? { proxy: rental.proxy } : {}),
-        from_address: rental.energyFromAddress,
+        from_address: energyAddress, // 使用 B 地址（放能量的地址）
         to_address: rental.from_address,
         amount: amount,
         separation: rental.separation,
@@ -223,7 +231,8 @@ async function rentEnergy(
     // 打印详细日志
     console.log('[rentEnergy] 租赁能量参数:', {
       rentalId: rental?.id,
-      fromAddress,
+      energyAddress, // B 地址（放能量的地址）
+      fromAddress, // A 地址（有私钥的地址）
       toAddress,
       amount,
       amountSun,
@@ -235,7 +244,7 @@ async function rentEnergy(
       amountSun, // 第1个参数：租赁的TRX数量（以Sun为单位）
       toAddress, // 第2个参数：接收能量的地址（租给谁）
       'ENERGY', // 第3个参数：租赁的资源类型（能量）
-      fromAddress as string, // 第4个参数：出租能量的地址（从谁那里租）
+      energyAddress, // 第4个参数：出租能量的地址（B 地址，放能量的地址）
     );
     console.log('[rentEnergy] 构建交易完成:', transaction);
 
@@ -252,7 +261,7 @@ async function rentEnergy(
     rental.endAt = new Date(
       rental.transactionAt.getTime() + rental.limit_hour * 60 * 60 * 1000,
     );
-    rental.energyFromAddress = fromAddress as string;
+    rental.energyFromAddress = energyAddress; // 使用 B 地址（放能量的地址）
     rental.status = 'completed';
     await rental.save();
     console.log('[rentEnergy] 租赁记录已保存:', {
@@ -269,7 +278,7 @@ async function rentEnergy(
   } catch (error) {
     console.error('[rentEnergy] 租赁能量失败:', error);
     rental.status = 'failed';
-    rental.energyFromAddress = fromAddress as string;
+    rental.energyFromAddress = energyAddress; // 使用 B 地址（放能量的地址）
     await rental.save();
     console.log('[rentEnergy] 租赁失败，已更新状态为 failed:', {
       rentalId: rental?.id,
@@ -305,21 +314,29 @@ async function unRentEnergy(rental: IRental): Promise<any> {
   console.log('[unRentEnergy] 获取管理员用户...');
   const admin = await getAdminUser();
 
-  // 解密私钥
+  // 检查管理员是否有 energy_address（B 地址，放能量的地址）
+  if (!admin.energy_address) {
+    throw new Error('管理员账户未设置 energy_address（放能量地址）');
+  }
+
+  // 解密私钥（A 地址的私钥）
   console.log('[unRentEnergy] 解密管理员能量私钥...');
   const decryptedPrivateKey = decrypt(admin.energy_privateKey);
 
-  // 初始化 TronWeb
+  // 初始化 TronWeb，使用 A 地址的私钥
   console.log('[unRentEnergy] 初始化 TronWeb...');
   const tronWeb = new TronWeb({
     fullHost: 'https://api.trongrid.io',
     privateKey: decryptedPrivateKey,
   });
 
-  const fromAddress = tronWeb.address.fromPrivateKey(
-    decryptedPrivateKey,
-  ) as string;
-  console.log('[unRentEnergy] 管理员地址:', fromAddress);
+  // B 地址是放能量的地址，A 地址用私钥控制它
+  const energyAddress = admin.energy_address; // B 地址
+  const fromAddress = tronWeb.address.fromPrivateKey(decryptedPrivateKey); // A 地址
+  console.log('[unRentEnergy] 管理员地址信息:', {
+    energyAddress, // B 地址（放能量的地址）
+    fromAddress, // A 地址（有私钥的地址）
+  });
 
   const unRental = await UnRental.findOneAndUpdate(
     {
@@ -329,7 +346,7 @@ async function unRentEnergy(rental: IRental): Promise<any> {
       $set: {
         bot: rental.bot,
         proxy: rental.proxy,
-        from: fromAddress,
+        from: energyAddress, // 使用 B 地址（放能量的地址）
         to: rental.from_address,
         separation: rental.separation,
         amount: rental.amount,
@@ -361,7 +378,7 @@ async function unRentEnergy(rental: IRental): Promise<any> {
       amountSun, // 解除租赁的能量数量（Sun单位）
       rental.from_address, // 被解除租赁的用户地址
       'ENERGY', // 资源类型，固定为 'ENERGY'
-      fromAddress, // 管理员（发起解除租赁）的地址
+      energyAddress, // 管理员（发起解除租赁）的地址，使用 B 地址
     );
     console.log('[unRentEnergy] 解除租赁交易已构建:', transaction);
 

@@ -285,7 +285,7 @@ async function rentEnergy(
     const signedTx = await tronWeb.trx.sign(
       transaction,
       decryptedPrivateKey,
-      false,
+      true,
       true,
     );
 

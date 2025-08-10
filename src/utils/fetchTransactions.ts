@@ -440,6 +440,13 @@ async function unRentEnergy(rental: IRental): Promise<any> {
     const result = await tronWeb.trx.broadcast(signedTx);
     console.log('[unRentEnergy] 广播交易结果:', result);
 
+    if (!result || result.result !== true) {
+      throw new Error(
+        `[unRentEnergy] 解除租赁交易失败: ${JSON.stringify(result)}`,
+      );
+    }
+
+    unRental.error = JSON.stringify(result);
     unRental.status = 'success';
     unRental.hash = result.txid;
     await unRental.save();

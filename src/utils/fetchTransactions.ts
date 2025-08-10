@@ -272,28 +272,28 @@ async function rentEnergy(
     // 设置默认地址为 B 地址（energyAddress）
     tronWeb.setAddress(energyAddress);
     // 使用 B 地址作为 from_address，但用 A 的私钥签名
-    const transaction = await tronWeb.transactionBuilder.delegateResource(
+    const tx = await tronWeb.transactionBuilder.delegateResource(
       amountSun, // 第1个参数：租赁的TRX数量（以Sun为单位）
       toAddress, // 第2个参数：接收能量的地址（租给谁）
       'ENERGY', // 第3个参数：租赁的资源类型（能量）
       energyAddress, // 第4个参数：出租能量的地址（B 地址，放能量的地址）
+      true, // 第5个参数：是否使用多签
+      3600, // 第6个参数：租赁时长（秒）
     );
-    console.log('[rentEnergy] 构建交易完成:', transaction);
+    console.log('[rentEnergy] 构建交易完成:', tx);
 
-    console.log('[rentEnergy] 签名交易...');
-    // 使用 A 的私钥签名（因为 B 授权给了 A）
-    const signedTx = await tronWeb.trx.sign(
-      transaction,
+    console.log('[rentEnergy] 多签交易...');
+    // 使用 A 的私钥进行多签（因为 B 授权给了 A）
+    const stx = await tronWeb.trx.multiSign(
+      tx,
       decryptedPrivateKey,
-      true,
-      true,
+      0, // PERMISSION_ID，通常为0表示active权限
     );
 
-    console.log('[rentEnergy] 签名交易完成:', signedTx);
+    console.log('[rentEnergy] 多签交易完成:', stx);
 
-    console.log('[rentEnergy] 发送交易...');
-    const result = await tronWeb.trx.sendRawTransaction(signedTx);
-    console.log('[rentEnergy] 发送交易结果:', result);
+    console.log('[rentEnergy] 广播交易...');
+    const result = await tronWeb.trx.broadcast(stx);
 
     if (!result || result.result !== true) {
       throw new Error(`[rentEnergy] 发送交易失败: ${JSON.stringify(result)}`);

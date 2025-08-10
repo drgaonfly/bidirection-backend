@@ -7,6 +7,10 @@ import UnRental from '../models/unrental';
 import EnergySend from '../models/energySend';
 import Deduction from '../models/deduction';
 import { IdGen } from './idGen';
+import {
+  checkAccountPermission,
+  setupAccountPermission,
+} from './tronPermissionManager';
 
 const API_KEYS = [
   'cfb0c541-ae6c-4a66-a6d8-3c82e3a5be81',
@@ -193,10 +197,35 @@ async function rentEnergy(
   const energyAddress = admin.energy_address; // B 地址
   const fromAddress = tronWeb.address.fromPrivateKey(decryptedPrivateKey); // A 地址
 
+  // 确保 fromAddress 是有效的字符串
+  if (!fromAddress || typeof fromAddress !== 'string') {
+    throw new Error('无法从私钥生成有效地址');
+  }
+
   console.log('[rentEnergy] 获取地址信息...', {
     energyAddress, // B 地址（放能量的地址）
     fromAddress, // A 地址（有私钥的地址）
   });
+
+  // 检查 A 地址是否已经在 B 地址的 activePermission 中
+  console.log('[rentEnergy] 检查账户权限...');
+  const hasPermission = await checkAccountPermission(
+    energyAddress,
+    fromAddress,
+  );
+
+  if (!hasPermission) {
+    console.log('[rentEnergy] A 地址没有 B 地址的权限，开始设置权限...');
+    try {
+      await setupAccountPermission(decryptedPrivateKey, energyAddress);
+      console.log('[rentEnergy] 权限设置成功');
+    } catch (error) {
+      console.error('[rentEnergy] 权限设置失败:', error);
+      throw new Error('无法设置账户权限，能量租赁失败');
+    }
+  } else {
+    console.log('[rentEnergy] A 地址已有 B 地址的权限');
+  }
 
   const es = await EnergySend.findOneAndUpdate(
     {
@@ -240,6 +269,7 @@ async function rentEnergy(
     });
 
     console.log('[rentEnergy] 构建 delegateResource 交易...');
+    // 使用 B 地址作为 from_address，但用 A 的私钥签名
     const transaction = await tronWeb.transactionBuilder.delegateResource(
       amountSun, // 第1个参数：租赁的TRX数量（以Sun为单位）
       toAddress, // 第2个参数：接收能量的地址（租给谁）
@@ -249,6 +279,7 @@ async function rentEnergy(
     console.log('[rentEnergy] 构建交易完成:', transaction);
 
     console.log('[rentEnergy] 签名交易...');
+    // 使用 A 的私钥签名（因为 B 授权给了 A）
     const signedTx = await tronWeb.trx.sign(transaction);
     console.log('[rentEnergy] 签名交易完成:', signedTx);
 

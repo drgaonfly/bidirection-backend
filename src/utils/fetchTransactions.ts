@@ -393,6 +393,7 @@ async function unRentEnergy(rental: IRental): Promise<any> {
         proxy: rental.proxy,
         from: energyAddress, // 使用 B 地址（放能量的地址）
         to: rental.from_address,
+        energySendAddress: fromAddress,
         separation: rental.separation,
         amount: rental.amount,
         limit_hour: rental.limit_hour,

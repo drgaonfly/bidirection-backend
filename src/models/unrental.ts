@@ -18,6 +18,7 @@ export interface IUnRental extends Document {
   txid: string; // rental的发送哈希txid
   price: number;
   error: string;
+  energySendAddress: string;
 }
 
 const unRentalSchema = new Schema<IUnRental>(
@@ -35,6 +36,10 @@ const unRentalSchema = new Schema<IUnRental>(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Bot',
       required: true,
+    },
+    energySendAddress: {
+      type: String,
+      required: false,
     },
     from: {
       type: String,

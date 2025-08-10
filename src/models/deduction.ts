@@ -3,7 +3,9 @@ import { IBot } from './bot';
 import { IBotUser } from './botUser';
 import { IUser } from './user';
 
-// 扣款记录接口定义
+// 多态关联类型定义
+export type DeductableType = 'rental' | 'recharge';
+
 export interface IDeduction extends Document {
   id: string;
   bot: mongoose.Schema.Types.ObjectId | IBot;
@@ -11,7 +13,7 @@ export interface IDeduction extends Document {
   amount: number; // 扣款金额
   currency: string; // 扣款币种 (USDT, TRX等)
   reason: string; // 扣款原因
-  type: string; // 扣款类型 (service_fee, penalty, subscription等)
+  type: DeductableType; // 扣款类型 (service_fee, penalty, subscription等)
   status: string; // 扣款状态
   hash: string; // 交易哈希
   txid: string; // 交易ID
@@ -25,6 +27,10 @@ export interface IDeduction extends Document {
   updatedAt: Date;
   processedAt: Date; // 处理时间
   proxy: mongoose.Types.ObjectId | IUser; // 代理
+
+  // 多态关联
+  deductable_type: DeductableType;
+  deductable: mongoose.Types.ObjectId; // 关联的对象ID，比如 rental
 }
 
 // 扣款记录 Schema
@@ -58,11 +64,6 @@ const deductionSchema = new mongoose.Schema(
     reason: {
       type: String,
       required: true,
-    },
-    type: {
-      type: String,
-      required: true,
-      enum: ['rental', 'recharge'],
     },
     status: {
       type: String,
@@ -106,6 +107,17 @@ const deductionSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: false,
+    },
+    // 多态关联字段
+    type: {
+      type: String,
+      required: true,
+      enum: ['Rental', 'Recharge'],
+    },
+    deductable: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      refPath: 'type', // 多态关联
     },
   },
   {

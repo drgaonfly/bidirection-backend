@@ -11,6 +11,10 @@ import {
   checkAccountPermission,
   setupAccountPermission,
 } from './tronPermissionManager';
+import { IBot } from '../models/bot';
+import { IUser } from '../models/user';
+import { IBotUser } from '../models/botUser';
+import { IBotUserConfig } from '../models/botUserConfig';
 
 const API_KEYS = [
   'cfb0c541-ae6c-4a66-a6d8-3c82e3a5be81',
@@ -481,19 +485,34 @@ async function unRentEnergy(rental: IRental): Promise<any> {
 }
 
 async function deductProxyTrxBalance(
-  bot: any,
-  proxyBotUser: any,
-  proxyBotUserConfig: any,
-  proxyUser: any,
+  type: string,
+  bot: IBot,
+  proxyBotUser: IBotUser,
+  proxyBotUserConfig: IBotUserConfig,
+  proxyUser: IUser,
   commission: number,
-  rental: any,
+  deductable: any, // 参数名称由 rental 改为 deductable
 ): Promise<boolean> {
   try {
+    // 检查该 deductable 是否已经有扣款记录
+    const existDeduction = await Deduction.findOne({
+      deductable: deductable._id,
+      type, // 保持类型一致
+    });
+
+    if (existDeduction) {
+      console.log(
+        `[deductProxyTrxBalance] 已存在扣款记录, 跳过处理, 扣款记录ID: ${existDeduction.id}`,
+      );
+      return true;
+    }
+
     // 扣减代理用户 TRX 余额
     const balanceBefore = proxyBotUserConfig.trx_balance;
     proxyBotUserConfig.trx_balance -= commission;
     await proxyBotUserConfig.save();
 
+    // 按照 deduction.ts 的 schema 进行多态关联
     const deduction = await Deduction.create({
       id: await IdGen.next(Deduction, 'id', 6),
       bot: bot._id,
@@ -501,11 +520,12 @@ async function deductProxyTrxBalance(
       amount: commission,
       currency: 'TRX',
       reason: `为下级用户自动闪租能量`,
-      type: 'rental',
+      type: 'Rental', // 必须为 'Rental' 或 'Recharge'
+      deductable: deductable._id, // 多态关联到 rental
       status: 'completed',
       balance_before: balanceBefore,
       balance_after: proxyBotUserConfig.trx_balance,
-      remark: `租赁记录ID: ${rental.id}`,
+      remark: `租赁记录ID: ${deductable.id}`,
       processedAt: new Date(),
       proxy: proxyUser._id,
     });

@@ -263,6 +263,7 @@ export async function checkAutoRentals() {
             const commission = userPricePair ? userPricePair.commission : 0;
 
             const success = await deductProxyTrxBalance(
+              'Rental',
               bot,
               proxyBotUser,
               proxyBotUserConfig,

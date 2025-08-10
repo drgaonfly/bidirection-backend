@@ -184,23 +184,12 @@ const addBot = handleAsync(async (req: RequestCustom, res: Response) => {
 
   console.log('user', user);
 
-  let botManager: IBot;
-
-  if (isProxy(req.user)) {
-    botManager = new Bot({
-      ...req.body,
-      user: req.user._id,
-      isCreatedByAdmin: req.user.isAdmin,
-      price_pairs: user.price_pairs,
-    });
-  } else {
-    botManager = new Bot({
-      ...req.body,
-      user: req.user._id,
-      isCreatedByAdmin: req.user.isAdmin,
-      price_pairs: product,
-    });
-  }
+  const botManager = new Bot({
+    ...req.body,
+    user: req.user._id,
+    isCreatedByAdmin: req.user.isAdmin,
+    price_pairs: product,
+  });
 
   if (isOnline) {
     try {

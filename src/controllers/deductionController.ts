@@ -4,8 +4,14 @@ import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
 import Bot from '../models/bot';
 import BotUser from '../models/botUser';
+import { RequestCustom } from '../types/user';
+import { isEmployee, isProxy } from '../middlewares/authMiddleware';
+import User from '../models/user';
 
-const buildQuery = async (queryParams: any): Promise<any> => {
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
 
   if (queryParams.bot) {
@@ -70,14 +76,29 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     query.proxy = queryParams.proxy;
   }
 
+  // 代理查询逻辑
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.proxy = { $in: [...employeeIds, req.user._id] };
+  }
+
+  if (isEmployee(req.user)) {
+    query.proxy = req.user._id;
+  }
+
   return query;
 };
 
 export const getDeductions = handleAsync(
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  async (
+    req: RequestCustom,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     const { current = '1', pageSize = '10' } = req.query;
 
-    const query = await buildQuery(req.query);
+    const query = await buildQuery(req.query, req);
 
     const deductions = await Deduction.find(query)
       .populate('botUser')

@@ -4,8 +4,14 @@ import handleAsync from '../utils/handleAsync';
 import Bot from '../models/bot';
 import BotUser from '../models/botUser';
 // import { IdGen } from '../utils/idGen';
+import { RequestCustom } from '../types/user';
+import { isEmployee, isProxy } from '../middlewares/authMiddleware';
+import User from '../models/user';
 
-const buildQuery = async (queryParams: any): Promise<any> => {
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
 
   if (queryParams.address) {
@@ -50,47 +56,60 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     query.proxy = queryParams.proxy;
   }
 
+  // 代理查询逻辑
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.proxy = { $in: [...employeeIds, req.user._id] };
+  }
+
+  if (isEmployee(req.user)) {
+    query.proxy = req.user._id;
+  }
+
   return query;
 };
 
-export const getWallets = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10' } = req.query;
+export const getWallets = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { current = '1', pageSize = '10' } = req.query;
 
-  const query = await buildQuery(req.query);
+    const query = await buildQuery(req.query, req);
 
-  const wallets = await Wallet.find(query)
-    .sort('-createdAt')
-    .populate('proxy')
-    .populate({
-      path: 'receipts',
-      populate: [
-        {
-          path: 'botUser',
-          select: 'userName displayName',
-        },
-        {
-          path: 'bot',
-          select: 'botName',
-        },
-      ],
-    })
-    .skip((+current - 1) * +pageSize)
-    .limit(+pageSize)
-    .populate('botUser')
-    .populate('bot')
-    .lean()
-    .exec();
+    const wallets = await Wallet.find(query)
+      .sort('-createdAt')
+      .populate('proxy')
+      .populate({
+        path: 'receipts',
+        populate: [
+          {
+            path: 'botUser',
+            select: 'userName displayName',
+          },
+          {
+            path: 'bot',
+            select: 'botName',
+          },
+        ],
+      })
+      .skip((+current - 1) * +pageSize)
+      .limit(+pageSize)
+      .populate('botUser')
+      .populate('bot')
+      .lean()
+      .exec();
 
-  const total = await Wallet.countDocuments(query).exec();
+    const total = await Wallet.countDocuments(query).exec();
 
-  res.json({
-    success: true,
-    data: wallets,
-    total,
-    current: +current,
-    pageSize: +pageSize,
-  });
-});
+    res.json({
+      success: true,
+      data: wallets,
+      total,
+      current: +current,
+      pageSize: +pageSize,
+    });
+  },
+);
 
 export const getWalletById = handleAsync(
   async (req: Request, res: Response) => {

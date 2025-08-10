@@ -1,9 +1,15 @@
 import { Request, Response } from 'express';
 import Message from '../models/message';
 import handleAsync from '../utils/handleAsync';
+import { RequestCustom } from '../types/user';
+import { isEmployee, isProxy } from '../middlewares/authMiddleware';
+import User from '../models/user';
 
 // 构建查询参数
-const buildQuery = (queryParams: any): any => {
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
 
   // messageType
@@ -26,14 +32,23 @@ const buildQuery = (queryParams: any): any => {
     query.botName = queryParams.botName;
   }
 
+  // 代理查询逻辑
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.proxy = { $in: [req.user._id, ...employeeIds] };
+  } else if (isEmployee(req.user)) {
+    query.proxy = req.user.proxy;
+  }
+
   return query;
 };
 
 // 获取所有消息
-const getMessages = handleAsync(async (req: Request, res: Response) => {
+const getMessages = handleAsync(async (req: RequestCustom, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
-  const query = buildQuery(req.query);
+  const query = await buildQuery(req.query, req);
 
   const messages = await Message.find(query)
     .sort('-date')

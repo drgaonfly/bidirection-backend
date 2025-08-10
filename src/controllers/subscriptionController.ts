@@ -2,9 +2,15 @@ import { Request, Response } from 'express';
 import Subscription from '../models/subscription';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
+import { RequestCustom } from '../types/user';
+import { isEmployee, isProxy } from '../middlewares/authMiddleware';
+import User from '../models/user';
 
 // 构建查询参数
-const buildQuery = (queryParams: any): any => {
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
 
   // status
@@ -27,32 +33,43 @@ const buildQuery = (queryParams: any): any => {
     query.isTrial = queryParams.isTrial;
   }
 
+  // 代理查询逻辑
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.proxy = { $in: [req.user._id, ...employeeIds] };
+  } else if (isEmployee(req.user)) {
+    query.proxy = req.user.proxy;
+  }
+
   return query;
 };
 
 // 获取所有订阅
-const getSubscriptions = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10' } = req.query;
+const getSubscriptions = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { current = '1', pageSize = '10' } = req.query;
 
-  const query = buildQuery(req.query);
+    const query = await buildQuery(req.query, req);
 
-  const subscriptions = await Subscription.find(query)
-    .populate('botUser')
-    .sort('-createdAt')
-    .skip((+current - 1) * +pageSize)
-    .limit(+pageSize)
-    .exec();
+    const subscriptions = await Subscription.find(query)
+      .populate('botUser')
+      .sort('-createdAt')
+      .skip((+current - 1) * +pageSize)
+      .limit(+pageSize)
+      .exec();
 
-  const total = await Subscription.countDocuments(query).exec();
+    const total = await Subscription.countDocuments(query).exec();
 
-  res.json({
-    success: true,
-    data: subscriptions,
-    total,
-    current: +current,
-    pageSize: +pageSize,
-  });
-});
+    res.json({
+      success: true,
+      data: subscriptions,
+      total,
+      current: +current,
+      pageSize: +pageSize,
+    });
+  },
+);
 
 // 获取订阅详情
 const getSubscriptionById = handleAsync(async (req: Request, res: Response) => {

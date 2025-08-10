@@ -4,9 +4,15 @@ import handleAsync from '../utils/handleAsync';
 import Bot from '../models/bot';
 import Group from '../models/group';
 import { transformDocumentImages } from '../utils/transformUtils';
+import { RequestCustom } from '../types/user';
+import { isEmployee, isProxy } from '../middlewares/authMiddleware';
+import User from '../models/user';
 
 // 构建查询参数
-const buildQuery = async (queryParams: any): Promise<any> => {
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
 
   if (queryParams.bot) {
@@ -43,39 +49,52 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     query.proxy = queryParams.proxy;
   }
 
+  // 代理查询逻辑
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.proxy = { $in: [...employeeIds, req.user._id] };
+  }
+
+  if (isEmployee(req.user)) {
+    query.proxy = req.user._id;
+  }
+
   return query;
 };
 
 // 获取所有群消息
-const getGroupMessages = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10' } = req.query;
+const getGroupMessages = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { current = '1', pageSize = '10' } = req.query;
 
-  const query = await buildQuery(req.query);
+    const query = await buildQuery(req.query, req);
 
-  const groupMessages = await GroupMessage.find(query)
-    .populate('bot')
-    .populate('groups')
-    .populate('proxy')
-    .sort('-createdAt')
-    .skip((+current - 1) * +pageSize)
-    .limit(+pageSize)
-    .exec();
+    const groupMessages = await GroupMessage.find(query)
+      .populate('bot')
+      .populate('groups')
+      .populate('proxy')
+      .sort('-createdAt')
+      .skip((+current - 1) * +pageSize)
+      .limit(+pageSize)
+      .exec();
 
-  const total = await GroupMessage.countDocuments(query).exec();
+    const total = await GroupMessage.countDocuments(query).exec();
 
-  const processedGroupMessages = await transformDocumentImages(
-    groupMessages,
-    'image',
-  );
+    const processedGroupMessages = await transformDocumentImages(
+      groupMessages,
+      'image',
+    );
 
-  res.json({
-    success: true,
-    data: processedGroupMessages,
-    total,
-    current: +current,
-    pageSize: +pageSize,
-  });
-});
+    res.json({
+      success: true,
+      data: processedGroupMessages,
+      total,
+      current: +current,
+      pageSize: +pageSize,
+    });
+  },
+);
 
 // 获取群消息详情
 const getGroupMessageById = handleAsync(async (req: Request, res: Response) => {

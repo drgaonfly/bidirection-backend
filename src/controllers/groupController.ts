@@ -2,9 +2,15 @@ import { Request, Response } from 'express';
 import Group from '../models/group';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
+import { RequestCustom } from '../types/user';
+import { isEmployee, isProxy } from '../middlewares/authMiddleware';
+import User from '../models/user';
 
 // 构建查询参数
-const buildQuery = (queryParams: any): any => {
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
 
   // title
@@ -21,14 +27,25 @@ const buildQuery = (queryParams: any): any => {
     query.proxy = queryParams.proxy;
   }
 
+  // 代理查询逻辑
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.proxy = { $in: [...employeeIds, req.user._id] };
+  }
+
+  if (isEmployee(req.user)) {
+    query.proxy = req.user._id;
+  }
+
   return query;
 };
 
 // 获取所有群组
-const getGroups = handleAsync(async (req: Request, res: Response) => {
+const getGroups = handleAsync(async (req: RequestCustom, res: Response) => {
   const { current = '1', pageSize = '10' } = req.query;
 
-  const query = buildQuery(req.query);
+  const query = await buildQuery(req.query, req);
 
   const groups = await Group.find(query)
     .populate('bot')

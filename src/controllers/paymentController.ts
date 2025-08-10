@@ -3,54 +3,109 @@ import Payment from '../models/payment';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
 import { generateOrderNumber } from '../utils/generateOrderNumber';
-import { isAdministrator } from '../middlewares/authMiddleware';
+import { RequestCustom } from '../types/user';
+import { isEmployee, isProxy } from '../middlewares/authMiddleware';
+import User from '../models/user';
 
-const buildQuery = (queryParams: any): any => {
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
-
-  // orderNumber`
-  if (queryParams.orderNumber) {
-    query.orderNumber = queryParams.orderNumber;
-  }
 
   if (queryParams.status) {
     query.status = queryParams.status;
   }
 
-  if (isAdministrator(queryParams.proxy)) {
-    query.proxy = null;
-  } else {
+  if (queryParams.type) {
+    query.type = queryParams.type;
+  }
+
+  if (queryParams.orderNumber) {
+    query.orderNumber = { $regex: queryParams.orderNumber, $options: 'i' };
+  }
+
+  if (queryParams.amount) {
+    query.amount = Number(queryParams.amount);
+  }
+
+  if (queryParams.paymentAmount) {
+    query.paymentAmount = Number(queryParams.paymentAmount);
+  }
+
+  if (queryParams.txHash) {
+    query.txHash = queryParams.txHash;
+  }
+
+  if (queryParams.sendAddress) {
+    query.sendAddress = queryParams.sendAddress;
+  }
+
+  if (queryParams.receiveAddress) {
+    query.receiveAddress = queryParams.receiveAddress;
+  }
+
+  if (queryParams.crypto_type) {
+    query.crypto_type = queryParams.crypto_type;
+  }
+
+  if (queryParams.botUser) {
+    query.botUser = queryParams.botUser;
+  }
+
+  if (queryParams.bot) {
+    query.bot = queryParams.bot;
+  }
+
+  if (queryParams.subscription) {
+    query.subscription = queryParams.subscription;
+  }
+
+  if (queryParams.proxy) {
     query.proxy = queryParams.proxy;
+  }
+
+  // 代理查询逻辑
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.proxy = { $in: [...employeeIds, req.user._id] };
+  }
+
+  if (isEmployee(req.user)) {
+    query.proxy = req.user._id;
   }
 
   return query;
 };
 
-export const getPayments = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10' } = req.query;
+export const getPayments = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { current = '1', pageSize = '10' } = req.query;
 
-  const query = buildQuery(req.query);
+    const query = await buildQuery(req.query, req);
 
-  const payments = await Payment.find(query)
-    .sort('-createdAt')
-    .skip((+current - 1) * +pageSize)
-    .limit(+pageSize)
-    .populate('botUser')
-    .populate('bot')
-    .populate('proxy')
-    .lean()
-    .exec();
+    const payments = await Payment.find(query)
+      .sort('-createdAt')
+      .skip((+current - 1) * +pageSize)
+      .limit(+pageSize)
+      .populate('botUser')
+      .populate('bot')
+      .populate('proxy')
+      .lean()
+      .exec();
 
-  const total = await Payment.countDocuments(query).exec();
+    const total = await Payment.countDocuments(query).exec();
 
-  res.json({
-    success: true,
-    data: payments,
-    total,
-    current: +current,
-    pageSize: +pageSize,
-  });
-});
+    res.json({
+      success: true,
+      data: payments,
+      total,
+      current: +current,
+      pageSize: +pageSize,
+    });
+  },
+);
 
 export const getPaymentById = handleAsync(
   async (req: Request, res: Response) => {

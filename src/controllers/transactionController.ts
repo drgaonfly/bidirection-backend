@@ -7,9 +7,15 @@ import Bot, { IBot } from '../models/bot';
 import Group, { IGroup } from '../models/group';
 import BotUser from '../models/botUser';
 import * as ExcelJS from 'exceljs';
+import { RequestCustom } from '../types/user';
+import { isEmployee, isProxy } from '../middlewares/authMiddleware';
+import User from '../models/user';
 
 // Build query based on query parameters
-const buildQuery = async (queryParams: any) => {
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
 
   if (queryParams.bot) {
@@ -27,8 +33,19 @@ const buildQuery = async (queryParams: any) => {
     }
   }
 
-  if (queryParams.type) {
-    query.type = queryParams.type;
+  if (queryParams.botUser) {
+    const botUsers = await BotUser.find({
+      userName: {
+        $regex: queryParams.botUser,
+        $options: 'i',
+      },
+    });
+
+    if (botUsers && botUsers.length > 0) {
+      query.botUser = { $in: botUsers.map((botUser) => botUser._id) };
+    } else {
+      query.botUser = null;
+    }
   }
 
   if (queryParams.group) {
@@ -46,20 +63,39 @@ const buildQuery = async (queryParams: any) => {
     }
   }
 
-  // botUser下的userName
-  if (queryParams.botUser) {
-    const botUsers = await BotUser.find({
-      userName: {
-        $regex: queryParams.botUser,
-        $options: 'i',
-      },
-    });
+  if (queryParams.type) {
+    query.type = queryParams.type;
+  }
 
-    if (botUsers && botUsers.length > 0) {
-      query.botUser = { $in: botUsers.map((botUser) => botUser._id) };
-    } else {
-      query.botUser = null;
-    }
+  if (queryParams.amount) {
+    query.amount = Number(queryParams.amount);
+  }
+
+  if (queryParams.exchange_rate) {
+    query.exchange_rate = Number(queryParams.exchange_rate);
+  }
+
+  if (queryParams.fee_rate) {
+    query.fee_rate = Number(queryParams.fee_rate);
+  }
+
+  if (queryParams.usdt_amount) {
+    query.usdt_amount = Number(queryParams.usdt_amount);
+  }
+
+  if (queryParams.proxy) {
+    query.proxy = queryParams.proxy;
+  }
+
+  // 代理查询逻辑
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.proxy = { $in: [...employeeIds, req.user._id] };
+  }
+
+  if (isEmployee(req.user)) {
+    query.proxy = req.user._id;
   }
 
   return query;
@@ -95,28 +131,30 @@ const buildDateCondition = (dateFilter: string) => {
 };
 
 // 获取所有交易记录
-const getTransactions = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10' } = req.query;
+const getTransactions = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { current = '1', pageSize = '10' } = req.query;
 
-  const query = await buildQuery(req.query);
+    const query = await buildQuery(req.query, req);
 
-  const transactions = await Transaction.find(query)
-    .populate('bot')
-    .populate('botUser')
-    .sort('-createdAt') // Sort by creation time in descending order
-    .populate('group')
-    .skip((+current - 1) * +pageSize)
-    .limit(+pageSize)
-    .exec();
+    const transactions = await Transaction.find(query)
+      .populate('bot')
+      .populate('botUser')
+      .sort('-createdAt') // Sort by creation time in descending order
+      .populate('group')
+      .skip((+current - 1) * +pageSize)
+      .limit(+pageSize)
+      .exec();
 
-  res.json({
-    success: true,
-    data: transactions,
-    total: await Transaction.countDocuments(query),
-    current: +current,
-    pageSize: +pageSize,
-  });
-});
+    res.json({
+      success: true,
+      data: transactions,
+      total: await Transaction.countDocuments(query),
+      current: +current,
+      pageSize: +pageSize,
+    });
+  },
+);
 
 // 根据 ID 获取交易记录
 const getTransactionById = handleAsync(async (req: Request, res: Response) => {

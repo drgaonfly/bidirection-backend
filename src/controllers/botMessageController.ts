@@ -4,9 +4,15 @@ import Group from '../models/group';
 import BotUser from '../models/botUser';
 import Bot from '../models/bot';
 import handleAsync from '../utils/handleAsync';
+import { RequestCustom } from '../types/user';
+import { isEmployee, isProxy } from '../middlewares/authMiddleware';
+import User from '../models/user';
 
 // 构建查询参数
-const buildQuery = async (queryParams: any) => {
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
 
   // messageType
@@ -60,34 +66,45 @@ const buildQuery = async (queryParams: any) => {
     }
   }
 
+  // 代理查询逻辑
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.proxy = { $in: [req.user._id, ...employeeIds] };
+  } else if (isEmployee(req.user)) {
+    query.proxy = req.user.proxy;
+  }
+
   return query;
 };
 
 // 获取所有消息
-const getBotMessages = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10' } = req.query;
+const getBotMessages = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { current = '1', pageSize = '10' } = req.query;
 
-  const query = await buildQuery(req.query);
+    const query = await buildQuery(req.query, req);
 
-  const messages = await BotMessage.find(query)
-    .populate('bot')
-    .populate('group')
-    .populate('botUser')
-    .sort('-createdAt')
-    .skip((+current - 1) * +pageSize)
-    .limit(+pageSize)
-    .exec();
+    const messages = await BotMessage.find(query)
+      .populate('bot')
+      .populate('group')
+      .populate('botUser')
+      .sort('-createdAt')
+      .skip((+current - 1) * +pageSize)
+      .limit(+pageSize)
+      .exec();
 
-  const total = await BotMessage.countDocuments(query).exec();
+    const total = await BotMessage.countDocuments(query).exec();
 
-  res.json({
-    success: true,
-    data: messages,
-    total,
-    current: +current,
-    pageSize: +pageSize,
-  });
-});
+    res.json({
+      success: true,
+      data: messages,
+      total,
+      current: +current,
+      pageSize: +pageSize,
+    });
+  },
+);
 
 // 获取消息详情
 const getBotMessageById = handleAsync(async (req: Request, res: Response) => {

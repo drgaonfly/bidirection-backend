@@ -3,8 +3,14 @@ import UnRental from '../models/unrental';
 import handleAsync from '../utils/handleAsync';
 import Bot from '../models/bot';
 import BotUser from '../models/botUser';
+import { RequestCustom } from '../types/user';
+import { isEmployee, isProxy } from '../middlewares/authMiddleware';
+import User from '../models/user';
 
-const buildQuery = async (queryParams: any): Promise<any> => {
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
 
   if (queryParams.bot) {
@@ -60,36 +66,49 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     query.rental = queryParams.rental;
   }
 
+  // 代理查询逻辑
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.proxy = { $in: [...employeeIds, req.user._id] };
+  }
+
+  if (isEmployee(req.user)) {
+    query.proxy = req.user._id;
+  }
+
   return query;
 };
 
-export const getUnRentals = handleAsync(async (req: Request, res: Response) => {
-  const { current = '1', pageSize = '10' } = req.query;
+export const getUnRentals = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const { current = '1', pageSize = '10' } = req.query;
 
-  const query = await buildQuery(req.query);
+    const query = await buildQuery(req.query, req);
 
-  const unRentals = await UnRental.find(query)
-    .populate({
-      path: 'rental',
-      populate: [{ path: 'botUser' }, { path: 'bot' }, { path: 'proxy' }],
-    })
-    .populate('proxy')
-    .sort('-createdAt')
-    .skip((+current - 1) * +pageSize)
-    .limit(+pageSize)
-    .lean()
-    .exec();
+    const unRentals = await UnRental.find(query)
+      .populate({
+        path: 'rental',
+        populate: [{ path: 'botUser' }, { path: 'bot' }, { path: 'proxy' }],
+      })
+      .populate('proxy')
+      .sort('-createdAt')
+      .skip((+current - 1) * +pageSize)
+      .limit(+pageSize)
+      .lean()
+      .exec();
 
-  const total = await UnRental.countDocuments(query).exec();
+    const total = await UnRental.countDocuments(query).exec();
 
-  res.json({
-    success: true,
-    data: unRentals,
-    total,
-    current: +current,
-    pageSize: +pageSize,
-  });
-});
+    res.json({
+      success: true,
+      data: unRentals,
+      total,
+      current: +current,
+      pageSize: +pageSize,
+    });
+  },
+);
 
 export const getUnRentalById = handleAsync(
   async (req: Request, res: Response) => {

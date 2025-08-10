@@ -236,6 +236,7 @@ async function rentEnergy(
         bot: rental.bot,
         botUser: rental.botUser,
         rental: rental._id,
+        energySendAddress: fromAddress, // 使用 A 地址（有私钥的地址）
         // proxy 字段可选，若 rental.proxy 存在则赋值
         ...(rental.proxy ? { proxy: rental.proxy } : {}),
         from_address: energyAddress, // 使用 B 地址（放能量的地址）

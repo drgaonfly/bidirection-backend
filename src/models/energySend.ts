@@ -18,6 +18,7 @@ export interface IEnergySend extends Document {
   limit_hour: number;
   status: string;
   rental: mongoose.Schema.Types.ObjectId | IRental;
+  energySendAddress: string;
 }
 
 const energySendSchema = new Schema<IEnergySend>(
@@ -78,6 +79,10 @@ const energySendSchema = new Schema<IEnergySend>(
       required: false,
       enum: ['pending', 'success', 'failed'],
       default: 'pending',
+    },
+    energySendAddress: {
+      type: String,
+      required: false,
     },
   },
   {

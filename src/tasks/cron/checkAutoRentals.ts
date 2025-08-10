@@ -1,6 +1,9 @@
 import Bot from '../../models/bot';
 import Rental from '../../models/rental';
-import { fetchTrxTransactions } from '../../utils/fetchTransactions';
+import {
+  fetchTrxTransactions,
+  deductProxyTrxBalance,
+} from '../../utils/fetchTransactions';
 import { IdGen } from '../../utils/idGen';
 import { rentEnergy } from '../../utils/fetchTransactions';
 import createDebug from 'debug';
@@ -223,10 +226,6 @@ export async function checkAutoRentals() {
                 continue;
               }
             }
-
-            // 扣减代理用户 TRX 余额
-            proxyBotUserConfig.trx_balance -= commission;
-            await proxyBotUserConfig.save();
           }
 
           // 创建已支付的兑换记录
@@ -250,9 +249,35 @@ export async function checkAutoRentals() {
 
           console.log('paid rental', rental);
 
-          console.log(
-            `[checkAutoRentals] 已创建租赁记录 id=${rental.id}, hash=${rental.hash}`,
-          );
+          // 如果不是管理员创建的机器人，需要扣减代理用户 TRX 余额
+          if (!bot.isCreatedByAdmin) {
+            const { proxyBotUser, proxyBotUserConfig, proxyUser } =
+              await findBotProxy(bot);
+
+            // 获取佣金金额
+            const userPricePair = Array.isArray(proxyUser.price_pairs)
+              ? proxyUser.price_pairs.find(
+                  (pair) => pair.times === matchedPricePair.times,
+                )
+              : undefined;
+            const commission = userPricePair ? userPricePair.commission : 0;
+
+            const success = await deductProxyTrxBalance(
+              bot,
+              proxyBotUser,
+              proxyBotUserConfig,
+              proxyUser,
+              commission,
+              rental,
+            );
+
+            if (!success) {
+              console.log(
+                `[checkAutoRentals] bot: ${bot.id} 扣减代理用户 TRX 余额失败，跳过`,
+              );
+              continue;
+            }
+          }
 
           // 发起 能量租赁
           try {
@@ -263,6 +288,10 @@ export async function checkAutoRentals() {
             );
 
             console.log(`[checkAutoRentals] 能量租赁成功, txid=${txid}`);
+
+            console.log(
+              `[checkAutoRentals] 已创建租赁记录 id=${rental.id}, hash=${rental.hash}`,
+            );
           } catch (sendErr) {
             console.error(`[checkAutoRentals] 能量租赁成功失败:`, sendErr);
             // 这里可以考虑更新兑换状态为失败

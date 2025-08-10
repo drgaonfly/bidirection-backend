@@ -57,7 +57,7 @@ const deductionSchema = new mongoose.Schema(
     },
     reason: {
       type: String,
-      required: false,
+      required: true,
     },
     type: {
       type: String,

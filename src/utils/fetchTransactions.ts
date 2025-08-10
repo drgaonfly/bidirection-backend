@@ -5,6 +5,8 @@ import { decrypt } from '../services/encrypt';
 import { IRental } from '../models/rental';
 import UnRental from '../models/unrental';
 import EnergySend from '../models/energySend';
+import Deduction from '../models/deduction';
+import { IdGen } from './idGen';
 
 const API_KEYS = [
   'cfb0c541-ae6c-4a66-a6d8-3c82e3a5be81',
@@ -403,10 +405,55 @@ async function unRentEnergy(rental: IRental): Promise<any> {
   }
 }
 
+async function deductProxyTrxBalance(
+  bot: any,
+  proxyBotUser: any,
+  proxyBotUserConfig: any,
+  proxyUser: any,
+  commission: number,
+  rental: any,
+): Promise<boolean> {
+  try {
+    // 扣减代理用户 TRX 余额
+    const balanceBefore = proxyBotUserConfig.trx_balance;
+    proxyBotUserConfig.trx_balance -= commission;
+    await proxyBotUserConfig.save();
+
+    const deduction = await Deduction.create({
+      id: await IdGen.next(Deduction, 'id', 6),
+      bot: bot._id,
+      botUser: proxyBotUser._id,
+      amount: commission,
+      currency: 'TRX',
+      reason: `为下级用户自动闪租能量`,
+      type: 'rental',
+      status: 'completed',
+      balance_before: balanceBefore,
+      balance_after: proxyBotUserConfig.trx_balance,
+      remark: `租赁记录ID: ${rental.id}`,
+      processedAt: new Date(),
+      proxy: proxyUser._id,
+    });
+
+    console.log(
+      `[deductProxyTrxBalance] 已扣减代理用户 ${proxyUser.id} 的 TRX 余额: ${commission}, 扣款记录ID: ${deduction.id}`,
+    );
+
+    return true;
+  } catch (error) {
+    console.error(
+      '[deductProxyTrxBalance] 处理代理用户 TRX 余额扣减失败:',
+      error,
+    );
+    return false;
+  }
+}
+
 export {
   fetchTrxTransactions,
   fetchTrc20Transactions,
   getAccountBalances,
   rentEnergy,
   unRentEnergy,
+  deductProxyTrxBalance,
 };

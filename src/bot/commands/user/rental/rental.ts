@@ -41,7 +41,7 @@ export async function handleRentalCommand(ctx: MyContext) {
 
   const currentTrxBalance = ctx.currentBotUserConfig?.trx_balance || 0;
 
-  if (currentTrxBalance < 1) {
+  if (currentTrxBalance < 1 && !ctx.currentBot.isCreatedByAdmin) {
     pricePairLines = ['该地址能量不足，请联系在线客服。'];
   }
 

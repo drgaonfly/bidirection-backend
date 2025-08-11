@@ -528,6 +528,8 @@ async function deductProxyTrxBalance(
       remark: `租赁记录ID: ${deductable.id}`,
       processedAt: new Date(),
       proxy: proxyUser._id,
+      from_address: deductable?.from_address,
+      to_address: deductable?.to_address,
     });
 
     console.log(

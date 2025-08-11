@@ -219,6 +219,15 @@ export const updateUser = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { password, roles } = req.body;
 
+  const users = await User.find({ isAdmin: true });
+  // 获取所有isAdmin:true的用户id
+  const adminIds = users.map((u) => u._id.toString());
+  // 如果adminIds里有当前超级管理员id，则不允许修改
+  if (adminIds.includes(id)) {
+    res.status(403);
+    throw new Error('不允许修改超级管理员');
+  }
+
   const user = await User.findById(id).select('+password');
 
   if (!user) {
@@ -262,6 +271,12 @@ export const deleteUser = handleAsync(async (req: Request, res: Response) => {
     throw new Error('用户未找到');
   }
 
+  // 如果是超级管理员，不允许删除
+  if (proxy.isAdmin) {
+    res.status(403);
+    throw new Error('不允许删除超级管理员');
+  }
+
   res.json({
     success: true,
     data: { message: 'User deleted successfully' },
@@ -271,6 +286,13 @@ export const deleteUser = handleAsync(async (req: Request, res: Response) => {
 export const deleteMultipleUsers = handleAsync(
   async (req: Request, res: Response) => {
     const { ids } = req.body;
+
+    // 检查是否有 isAdmin 的用户
+    const adminUsers = await User.find({ _id: { $in: ids }, isAdmin: true });
+    if (adminUsers.length > 0) {
+      res.status(403);
+      throw new Error('不允许删除超级管理员');
+    }
 
     // 使用 Mongoose 的 deleteMany 方法进行批量删除
     await User.deleteMany({

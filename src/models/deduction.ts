@@ -4,7 +4,6 @@ import { IBotUser } from './botUser';
 import { IUser } from './user';
 
 // 多态关联类型定义
-export type DeductableType = 'rental' | 'recharge';
 
 export interface IDeduction extends Document {
   id: string;
@@ -13,7 +12,7 @@ export interface IDeduction extends Document {
   amount: number; // 扣款金额
   currency: string; // 扣款币种 (USDT, TRX等)
   reason: string; // 扣款原因
-  type: DeductableType; // 扣款类型 (service_fee, penalty, subscription等)
+  type: string; // 扣款类型 (service_fee, penalty, subscription等)
   status: string; // 扣款状态
   hash: string; // 交易哈希
   txid: string; // 交易ID
@@ -29,7 +28,7 @@ export interface IDeduction extends Document {
   proxy: mongoose.Types.ObjectId | IUser; // 代理
 
   // 多态关联
-  deductable_type: DeductableType;
+  deductable_type: string;
   deductable: mongoose.Types.ObjectId; // 关联的对象ID，比如 rental
 }
 

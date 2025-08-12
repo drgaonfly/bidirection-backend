@@ -1,7 +1,9 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../../types';
 import Rental from '../../../../../models/rental';
+import Deduction from '../../../../../models/deduction';
 import { rentEnergy } from '../../../../../utils/fetchTransactions';
+import { IdGen } from '../../../../../utils/idGen';
 import createDebug from 'debug';
 
 const balanceRentalCommand = new Composer<MyContext>();
@@ -38,7 +40,7 @@ balanceRentalCommand.callbackQuery(/^balance_rental_(.+)$/, async (ctx) => {
     ctx.currentBotUserConfig.trx_balance < rental.price ||
     ctx.currentBotUserConfig.usdt_balance < rental.price
   ) {
-    await ctx.reply('余额不足, 请先充值', {
+    await ctx.reply('USDT余额不足, 请先充值', {
       parse_mode: 'HTML',
       reply_markup: new InlineKeyboard().text('立即充值', 'recharge'),
     });
@@ -58,17 +60,38 @@ balanceRentalCommand.callbackQuery(/^balance_rental_(.+)$/, async (ctx) => {
 
   await ctx.deleteMessage();
 
+  const balance_before = ctx.currentBotUserConfig.trx_balance;
+
+  if (rental.crypto_type === 'usdt') {
+    ctx.currentBotUserConfig.usdt_balance -= rental.price;
+  } else {
+    ctx.currentBotUserConfig.trx_balance -= rental.price;
+  }
+
+  await ctx.currentBotUserConfig.save();
+
+  await Deduction.create({
+    id: await IdGen.next(Deduction, 'id', 6),
+    bot: ctx.currentBot._id,
+    botUser: ctx.currentBotUser._id,
+    proxy: ctx.currentBot.user,
+    amount: rental.price,
+    currency: 'TRX',
+    reason: `为下级用户自动闪租能量`,
+    type: 'Rental', // 必须为 'Rental' 或 'Recharge'
+    status: 'completed',
+    balance_before,
+    balance_after: ctx.currentBotUserConfig.usdt_balance,
+    remark: `租赁记录ID: ${rental.id}`,
+    processedAt: new Date(),
+    deductable: rental._id,
+    from_address: rental.from_address,
+    to_address: rental.to_address,
+  });
+
   const result = await rentEnergy(rental, rental.from_address, rental.amount);
 
   if (result) {
-    if (rental.crypto_type === 'trx') {
-      ctx.currentBotUserConfig.trx_balance -= rental.price;
-    } else {
-      ctx.currentBotUserConfig.usdt_balance -= rental.price;
-    }
-
-    await ctx.currentBotUserConfig.save();
-
     rental.status = 'completed';
     await rental.save();
 

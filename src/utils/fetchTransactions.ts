@@ -520,7 +520,7 @@ async function deductProxyTrxBalance(
       amount: commission,
       currency: 'TRX',
       reason: `为下级用户自动闪租能量`,
-      type: 'Rental', // 必须为 'Rental' 或 'Recharge'
+      type: 'rental', // 必须为 'Rental' 或 'Recharge'
       deductable: deductable._id, // 多态关联到 rental
       status: 'completed',
       balance_before: balanceBefore,

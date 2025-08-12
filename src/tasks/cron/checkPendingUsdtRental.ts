@@ -6,6 +6,7 @@ import {
   fetchTrc20Transactions,
   rentEnergy,
 } from '../../utils/fetchTransactions';
+import { formatBeijingDate } from '../../utils/formatBeijingDate';
 // import Group from '../../models/group';
 // import createDebug from 'debug';
 // import { formatBeijingDate } from '../../utils/formatBeijingDate';
@@ -29,7 +30,7 @@ export async function checkPendingUsdtRental() {
     // 查询所有待处理的充值订单（pending 且 type 为 Rental）
     const pendingRentals = await Rental.find({
       status: 'pending',
-      crypto_type: 'trx',
+      crypto_type: 'usdt',
     })
       .populate('botUser')
       .populate('bot');
@@ -112,21 +113,19 @@ export async function checkPendingUsdtRental() {
       const telegramBot = setupBot(bot.token);
 
       const info = [
-        '确认订单:',
-        `订单ID:  <code>${rental.id}</code>`,
-        `购买能量: <code>${rental.amount}</code> (1小时)`,
-        `订单总额: <b>${rental.price} ${rental.crypto_type.toUpperCase()}</b>`,
-        `接收地址: <code>${rental.to_address}</code>`,
+        '⚡️ 能量到账成功!',
+        `🆔 订单ID:  <code>${rental.id}</code>`,
+        `🔋 购买能量: <code>${rental.amount}</code>`,
+        `💰 订单总额: <b>${rental.price} USDT</b>`,
+        `📥 接收地址: <code>${rental.to_address}</code>`,
+        `🔗 交易哈希: <code>${rental.tx_id}</code>`,
+        `⏰ 交易时间: <code>${formatBeijingDate(rental.transactionAt)}</code>`,
+        `📅 有效期: <b>${formatBeijingDate(
+          rental.transactionAt,
+        )} - ${formatBeijingDate(rental.endAt)}</b>`,
       ].join('\n');
 
       if (result) {
-        // 更新 payment 状态
-        rental.status = 'success';
-        rental.tx_id = matchedTransfer.trade_id;
-        rental.transactionAt = new Date(matchedTransfer.time * 1000);
-        rental.actual_price = matchedTransfer.money; // 记录实际支付金额
-        await rental.save();
-
         await telegramBot.api.sendMessage(botUser.id, info);
       } else {
         await telegramBot.api.sendMessage(botUser.id, '租赁失败', {

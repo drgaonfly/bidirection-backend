@@ -62,8 +62,14 @@ async function fetchTrxTransactions(address: string, minutes = 1) {
   return response.data;
 }
 
-async function fetchTrc20Transactions(address: string) {
-  const url = `https://api.trongrid.io/v1/accounts/${address}/transactions/trc20`;
+async function fetchTrc20Transactions(address: string, minutes = 1) {
+  const start_time = Math.floor(
+    (new Date().getTime() - minutes * 60 * 1000) / 1000,
+  ); // 转换为秒
+
+  const end_time = Math.floor(new Date().getTime() / 1000); // 当前时间的秒级时间戳
+
+  const url = `https://api.trongrid.io/v1/accounts/${address}/transactions/trc20?start=${start_time}&end=${end_time}`;
 
   const key = getNextApiKey();
 

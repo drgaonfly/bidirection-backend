@@ -65,6 +65,7 @@ export interface IPricePair extends Document {
   aqusition: number; // 得到多少能量(sun)，固定值
   expiration: number; // 有效时间 (hour)
   times: number; // 笔数
+  type?: string; // 类型, 闪租还是日租
 }
 
 const menuSchema = new mongoose.Schema({
@@ -98,6 +99,7 @@ const pricePairSchema = new mongoose.Schema({
   aqusition: { type: Number, required: true },
   expiration: { type: Number, required: true },
   times: { type: Number, required: true },
+  type: { type: String, required: false },
 });
 
 const botSchema = new mongoose.Schema(

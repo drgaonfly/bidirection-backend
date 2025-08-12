@@ -32,7 +32,7 @@ export async function handleSeparationCommand(ctx: MyContext) {
   );
 
   if (Options.length === 0) {
-    await ctx.reply('暂无日租套餐');
+    await ctx.reply('该机器人暂无日租套餐, 请先到后台设置');
     return;
   }
 

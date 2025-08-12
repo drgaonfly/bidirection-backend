@@ -129,7 +129,7 @@ async function rentalSepConversation(
     status: 'pending',
     type: 'auto',
     crypto_type: 'usdt',
-    limit_hour: pricePair.expiration,
+    limit_hour: pricePair.expiration * 24,
     expiredAt: new Date(Date.now() + 30 * 60 * 1000),
     proxy: botUser._id,
   });

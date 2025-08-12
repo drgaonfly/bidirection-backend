@@ -21,13 +21,13 @@ import { formatBeijingDate } from '../../utils/formatBeijingDate';
 // const debug = createDebug('cron:checkPendingRental');
 
 /**
- * 检查所有 pending 的充值订单，只有当 bot.energy_address 收到正确金额，才为用户充值
+ * 检查所有 pending 的日租订单，只有当 bot.energy_address 收到正确金额，才为用户日租
  */
 export async function checkPendingUsdtRental() {
   try {
-    console.log('[checkPendingRental] 开始检查所有待处理的充值订单...');
+    console.log('[checkPendingRental] 开始检查所有待处理的日租订单...');
 
-    // 查询所有待处理的充值订单（pending 且 type 为 Rental）
+    // 查询所有待处理的日租订单（pending 且 type 为 Rental）
     const pendingRentals = await Rental.find({
       status: 'pending',
       crypto_type: 'usdt',
@@ -36,7 +36,7 @@ export async function checkPendingUsdtRental() {
       .populate('bot');
 
     console.log(
-      `[checkPendingRental] 查询到 ${pendingRentals.length} 个待处理的充值订单`,
+      `[checkPendingRental] 查询到 ${pendingRentals.length} 个待处理的日租订单`,
     );
 
     for (const rental of pendingRentals) {
@@ -134,8 +134,8 @@ export async function checkPendingUsdtRental() {
       }
     }
 
-    console.log('[checkPendingRental] 待处理充值订单处理完成');
+    console.log('[checkPendingRental] 待处理日租订单处理完成');
   } catch (error) {
-    console.error('[checkPendingRental] 处理待处理充值订单时出错:', error);
+    console.error('[checkPendingRental] 处理待处理日租订单时出错:', error);
   }
 }

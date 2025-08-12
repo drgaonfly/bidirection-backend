@@ -119,7 +119,7 @@ async function rentalSepConversation(
 
   const rental = await Rental.create({
     id: await IdGen.next(Rental, 'id', 6),
-    from_address: bot.trx20_address,
+    from_address: bot.energy_address,
     to_address: trxAddress,
     amount: totalAmount,
     separation: pricePair.times,
@@ -163,6 +163,11 @@ rentalSepCallback.callbackQuery(
     );
 
     console.log('pricePair', pricePair);
+
+    if (!ctx.currentBot.energy_address) {
+      await ctx.reply('⚠️ 机器人没有配置能量地址，请先配置');
+      return;
+    }
 
     await ctx.conversation.enter('rentalSepConversation', {
       pricePair: pricePair,

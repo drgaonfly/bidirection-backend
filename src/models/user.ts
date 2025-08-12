@@ -55,6 +55,10 @@ export interface IUser extends Document {
    * 每笔多少能量
    */
   energy_per_times: number;
+  /**
+   * 最低销回收时间 单位小时
+   */
+  recycle_min: number;
 }
 
 const pricePairSchema = new mongoose.Schema({
@@ -144,6 +148,8 @@ const userSchema = new mongoose.Schema(
 
     // 每笔多少能量
     energy_per_times: { type: Number, default: 0 },
+
+    recycle_min: { type: Number, default: 2 },
   },
   { timestamps: true },
 );

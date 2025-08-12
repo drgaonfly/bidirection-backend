@@ -27,7 +27,9 @@ export async function handleSeparationCommand(ctx: MyContext) {
     `(点击开启按钮即可成功开启)`,
   ].join('\n');
 
-  const Options = ctx.currentBot.price_pairs;
+  const Options = ctx.currentBot.price_pairs.filter(
+    (opt) => opt.type !== 'hourly',
+  );
 
   // 每行放几个按钮？
   const buttonsPerRow = 2;
@@ -35,15 +37,7 @@ export async function handleSeparationCommand(ctx: MyContext) {
   const inline = new InlineKeyboard();
 
   Options.forEach((opt, index) => {
-    inline.text(
-      [
-        `${opt.times}笔 (`,
-        `${opt.expenditure} ${opt.type === 'hourly' ? 'TRX' : 'USDT'}`,
-        `${opt.expiration} ${opt.type === 'hourly' ? '小时' : '天'}`,
-        `)`,
-      ].join('\n'),
-      `rental_sep_${opt.times}`,
-    );
+    inline.text(opt?.name, `rental_sep_${opt._id}`);
     if ((index + 1) % buttonsPerRow === 0) {
       inline.row();
     }

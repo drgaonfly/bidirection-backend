@@ -61,6 +61,7 @@ export interface ICommand extends Document {
 }
 
 export interface IPricePair extends Document {
+  name: string;
   expenditure: number; // 花费多少 (trx)
   aqusition: number; // 得到多少能量(sun)，固定值
   expiration: number; // 有效时间 (hour)
@@ -95,6 +96,7 @@ const commandSchema = new mongoose.Schema({
 });
 
 const pricePairSchema = new mongoose.Schema({
+  name: { type: String, required: false },
   expenditure: { type: Number, required: true },
   aqusition: { type: Number, required: true },
   expiration: { type: Number, required: true },

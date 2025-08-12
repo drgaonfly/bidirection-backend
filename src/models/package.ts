@@ -2,6 +2,7 @@ import mongoose, { Document } from 'mongoose';
 
 export interface IPackage extends Document {
   id: string;
+  name: string; // 名称
   expenditure: number; // 花费多少 (trx)
   aqusition: number; // 得到多少能量(sun)
   expiration: number; // 有效时间 (hour)
@@ -14,6 +15,7 @@ export interface IPackage extends Document {
 const packageSchema = new mongoose.Schema(
   {
     id: { type: String, required: true, unique: true }, //id
+    name: { type: String, required: false }, // 名称
     expenditure: { type: Number, required: true }, // 花费多少 (trx)
     aqusition: { type: Number, required: true, default: 65000 }, // 得到多少能量(sun)
     expiration: { type: Number, required: true }, // 有效时间 (hour)

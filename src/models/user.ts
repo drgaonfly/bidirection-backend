@@ -2,6 +2,8 @@ import mongoose, { Document } from 'mongoose';
 import { IBotUser } from './botUser';
 
 export interface IPricePair extends Document {
+  name: string;
+  type: string;
   aqusition: number; // 得到多少能量(sun)
   expiration: number; // 有效时间 (hour)
   commission: number; // 代理分佣 (trx)
@@ -56,6 +58,8 @@ export interface IUser extends Document {
 }
 
 const pricePairSchema = new mongoose.Schema({
+  name: { type: String, required: false },
+  type: { type: String, required: true, enum: ['hourly', 'daily'] },
   aqusition: { type: Number, required: true },
   expiration: { type: Number, required: true },
   commission: { type: Number, required: true },

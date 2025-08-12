@@ -31,6 +31,11 @@ export async function handleSeparationCommand(ctx: MyContext) {
     (opt) => opt.type !== 'hourly',
   );
 
+  if (Options.length === 0) {
+    await ctx.reply('暂无日租套餐');
+    return;
+  }
+
   // 每行放几个按钮？
   const buttonsPerRow = 2;
 

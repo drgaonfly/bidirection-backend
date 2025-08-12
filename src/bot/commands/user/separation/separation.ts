@@ -1,6 +1,5 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
-import { Options } from '../../../../models/rental';
 import createDebug from 'debug';
 
 import { checkPermission } from '../../../middlewares/checkPermission';
@@ -28,13 +27,23 @@ export async function handleSeparationCommand(ctx: MyContext) {
     `(点击开启按钮即可成功开启)`,
   ].join('\n');
 
+  const Options = ctx.currentBot.price_pairs;
+
   // 每行放几个按钮？
   const buttonsPerRow = 2;
 
   const inline = new InlineKeyboard();
 
   Options.forEach((opt, index) => {
-    inline.text(opt.label, opt.callback);
+    inline.text(
+      [
+        `${opt.times}笔 (`,
+        `${opt.expenditure} ${opt.type === 'hourly' ? 'TRX' : 'USDT'}`,
+        `${opt.expiration} ${opt.type === 'hourly' ? '小时' : '天'}`,
+        `)`,
+      ].join('\n'),
+      `rental_sep_${opt.times}`,
+    );
     if ((index + 1) % buttonsPerRow === 0) {
       inline.row();
     }

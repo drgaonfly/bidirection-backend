@@ -13,7 +13,7 @@ import { checkPendingUsdtRecharge } from './cron/checkPendingUsdtRecharge';
 import { checkPendingTrxRecharge } from './cron/checkPendingTrxRecharge';
 import { checkExpiredPayments } from './cron/expiredRecharges';
 
-import { checkPendingTrxRental } from './cron/checkPendingTrxRental';
+// import { checkPendingTrxRental } from './cron/checkPendingTrxRental';
 import { checkPendingUsdtRental } from './cron/checkPendingUsdtRental';
 import { checkExpiredRentals } from './cron/expiredRental';
 import { checkMemberOrders } from './cron/checkMemberOrders';
@@ -43,11 +43,11 @@ const task = async () => {
   await checkTgStarsOrders(); //电报星星订单
 
   await checkExpiredRentals();
-  await checkPendingTrxRental();
-  await checkPendingUsdtRental();
+  // await checkPendingTrxRental();
+  await checkPendingUsdtRental(); // 处理日租
 
   await checkExpiredAnynoumy();
-  await checkAutoRentals(); // 闪租
+  await checkAutoRentals(); // 处理闪租
   await checkAutoUnRentals(); // 解除租赁
 };
 

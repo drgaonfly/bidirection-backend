@@ -2,8 +2,6 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import createDebug from 'debug';
 
-import { checkPermission } from '../../../middlewares/checkPermission';
-
 const separationCommand = new Composer<MyContext>();
 
 const debug = createDebug('bot:separation');
@@ -28,7 +26,7 @@ export async function handleSeparationCommand(ctx: MyContext) {
   ].join('\n');
 
   const Options = ctx.currentBot.price_pairs.filter(
-    (opt) => opt.type !== 'hourly',
+    (opt) => opt.type === 'daily',
   );
 
   if (Options.length === 0) {
@@ -55,7 +53,7 @@ export async function handleSeparationCommand(ctx: MyContext) {
 }
 
 // 开始命令处理
-separationCommand.hears(/笔数套餐/, checkPermission, async (ctx) => {
+separationCommand.hears(/笔数套餐/, async (ctx) => {
   await ctx.conversation.exitAll();
   await handleSeparationCommand(ctx);
 });

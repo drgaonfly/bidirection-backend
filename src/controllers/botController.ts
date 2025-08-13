@@ -322,6 +322,8 @@ const addOwner = handleAsync(async (req: Request, res: Response) => {
   const ownerUsername = req.body.owner.replace(/^@/, '');
   const user = await getUserByUsername(botManager.session, ownerUsername);
 
+  const price_pairs = await Package.find();
+
   if (user) {
     // 查找或创建 BotUser，并填充 subscriptions 字段
     const botUser = await BotUser.findOneAndUpdate(
@@ -331,6 +333,7 @@ const addOwner = handleAsync(async (req: Request, res: Response) => {
           userName: user.username,
           firstName: user.first_name,
           lastName: user.last_name,
+          price_pairs: price_pairs,
         },
       },
       { new: true, upsert: true },

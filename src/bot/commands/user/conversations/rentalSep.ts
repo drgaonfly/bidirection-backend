@@ -62,6 +62,20 @@ async function rentalSepConversation(
     botUserConfig: IBotUserConfig;
   },
 ) {
+  const isExtra = pricePair.expenditure > botUserConfig.usdt_balance;
+
+  let balanceMsg = '';
+  if (!isExtra) {
+    balanceMsg = `✅ 您当前USDT余额为 ${botUserConfig.usdt_balance}, 余额充足, 可直接使用余额支付。`;
+  } else {
+    balanceMsg = [
+      `❗您的USDT余额不足, 当前余额为 ${botUserConfig.usdt_balance} USDT。`,
+      `请先到 '个人信息' -> '我要充值' 功能里额外充值${
+        pricePair.expenditure - botUserConfig.usdt_balance
+      } USDT, 或继续下单后选择手动支付。`,
+    ].join('\n');
+  }
+
   // 1. 先让用户输入地址或取消
   await ctx.reply(
     [
@@ -72,6 +86,8 @@ async function rentalSepConversation(
       `价格: ${pricePair.expenditure} USDT`,
       `能量: ${pricePair.aqusition} sun`,
       `有效期 ${pricePair.expiration} 天`,
+      '',
+      balanceMsg,
       '',
       `⚠️ 确保输入地址正确，否则将无法到账。`,
       `⏳ 此操作将在 5 分钟后过期。`,

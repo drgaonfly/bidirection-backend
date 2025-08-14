@@ -20,6 +20,7 @@ export enum UserStatus {
 export interface IBotUserConfig extends Document {
   bot: mongoose.Types.ObjectId | IBot;
   botUser: mongoose.Types.ObjectId | IBotUser;
+  proxy: mongoose.Types.ObjectId | IUser;
   subscription?: mongoose.Types.ObjectId | ISubscription;
   status: UserStatus;
   trialEndDate?: Date;
@@ -32,20 +33,28 @@ export interface IBotUserConfig extends Document {
   interger: number; // 积分
   spread_code: string;
   invited_counts: number; // 邀请人数
+  available_separations: number; // 可用笔数
   createdAt: Date;
   updatedAt: Date;
-  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 // Bot和User关系表Schema
 const botUserConfigSchema = new mongoose.Schema(
   {
-    bot: { type: mongoose.Schema.Types.ObjectId, ref: 'Bot', required: true },
+    bot: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Bot',
+      required: true,
+    },
     botUser: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'BotUser',
       required: true,
     },
+    proxy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    }, // 代理
     status: {
       type: String,
       enum: Object.values(UserStatus),
@@ -106,8 +115,11 @@ const botUserConfigSchema = new mongoose.Schema(
       required: true,
       default: 0,
     },
-
-    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
+    available_separations: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
   },
   {
     timestamps: true,

@@ -66,8 +66,15 @@ async function sendUserProfile(ctx: MyContext) {
     usdt_balance: botUserConfig.usdt_balance,
     trx_balance: botUserConfig.trx_balance,
   });
+
+  const reconstructed_message = [
+    message,
+    '',
+    `🖊️ 可用笔数: ${ctx.currentBotUserConfig.available_separations}`,
+  ].join('\n');
+
   // 添加联系客服按钮，使用url参数直接跳转到客服链接
-  await ctx.reply(message, {
+  await ctx.reply(reconstructed_message, {
     parse_mode: 'HTML',
     reply_markup: profile,
   });

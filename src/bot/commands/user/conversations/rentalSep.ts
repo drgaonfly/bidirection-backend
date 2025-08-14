@@ -5,6 +5,7 @@ import Rental from '../../../../models/rental';
 import { IdGen } from '../../../../utils/idGen';
 import { IBot, IPricePair } from '../../../../models/bot';
 import { IBotUser } from '../../../../models/botUser';
+import { IBotUserConfig } from '../../../../models/botUserConfig';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:rental-sep');
@@ -17,33 +18,14 @@ const TRX_ADDRESS_REGEX = /^T[A-Za-z1-9]{33}$/;
 
 // 渲染订单确认信息
 async function renderOrderInfo(ctx: MyContext, rental) {
-  const unit = rental.crypto_type;
-
-  // 这里我们假设 amount 单位是 sun，1 trx = 1_000_000 sun
-  // 订单总额 = expenditure * separation
-  // 单价 = expenditure / aqusition (1 trx/能量)
-  // 订单能量 = aqusition * separation
-
-  // 这里假设 rental 里已经有 amount, price, separation
-  const unitPriceTRX = Number(rental.price) / rental.separation;
-  const totalPriceTRX = Number(rental.price);
-
-  const unitPrice = unitPriceTRX.toFixed(6);
-  const totalPrice = totalPriceTRX.toFixed(6);
-
-  rental.price = totalPrice;
-
-  await rental.save();
-
   const info = [
     '📝 <b>确认订单</b>：',
     `🆔 订单ID号:  <code>${rental.id}</code>`,
     `⚡ 购买能量: <code>${rental.amount}</code>`,
     `✏️ 购买笔数:  <b>${rental.separation} 笔</b>`,
-    `💰 实时单价: <code>${unitPrice} ${unit.toUpperCase()}</code>`,
-    `💵 订单总额: <b>${totalPrice} ${unit.toUpperCase()}</b>`,
+    `💵 订单总额: <b>${rental.price} USDT</b>`,
     `📥 接收地址: <code>${rental.to_address}</code>`,
-    `⏳ 有效期:   <b>${rental.limit_hour} 天</b>`,
+    `⏳ 有效期:   <b>${rental.limit_hour} 小时</b>`,
   ].join('\n');
 
   const msgId = rentalMessageMap.get(rental.id);
@@ -72,13 +54,41 @@ async function rentalSepConversation(
     pricePair,
     bot,
     botUser,
-  }: { pricePair: IPricePair; bot: IBot; botUser: IBotUser },
+    botUserConfig,
+  }: {
+    pricePair: IPricePair;
+    bot: IBot;
+    botUser: IBotUser;
+    botUserConfig: IBotUserConfig;
+  },
 ) {
   // 1. 先让用户输入地址或取消
+  const isExtra = pricePair.expenditure > botUserConfig.usdt_balance;
+
+  let balanceMsg = '';
+  if (!isExtra) {
+    balanceMsg = `✅ 您当前USDT余额为 ${botUserConfig.usdt_balance}, 余额充足, 可直接使用余额支付。`;
+  } else {
+    balanceMsg = [
+      `❗您的USDT余额不足, 当前余额为 ${botUserConfig.usdt_balance} USDT。`,
+      `请先额外充值${
+        pricePair.expenditure - botUserConfig.usdt_balance
+      } USDT,或继续下单后选择USDT支付。`,
+    ].join('\n');
+  }
+
   await ctx.reply(
     [
       `请输入您要接收能量的TRX地址:`,
-      `您选择了 ${pricePair.times} 笔租用。`,
+      '',
+      `您选择了 ${pricePair.name} 套餐`,
+      `笔数: ${pricePair.times} 笔`,
+      `价格: ${pricePair.expenditure} USDT`,
+      `能量: ${pricePair.aqusition} sun`,
+      `有效期 ${pricePair.expiration * 24}小时`,
+      '',
+      balanceMsg,
+      '',
       `⚠️ 确保输入地址正确，否则将无法到账。`,
       `⏳ 此操作将在 5 分钟后过期。`,
     ].join('\n'),
@@ -108,22 +118,20 @@ async function rentalSepConversation(
       pricePair,
       bot,
       botUser,
+      botUserConfig,
     });
   }
 
   // 3. 创建订单
   // 总能量 = aqusition * rental_count
   // 总价格 = expenditure * rental_count
-  const totalAmount = pricePair.aqusition * pricePair.times;
-  const totalPrice = pricePair.expenditure;
-
   const rental = await Rental.create({
     id: await IdGen.next(Rental, 'id', 6),
     from_address: bot.energy_address,
     to_address: trxAddress,
-    amount: totalAmount,
+    amount: pricePair.aqusition,
     separation: pricePair.times,
-    price: totalPrice,
+    price: pricePair.expenditure,
     bot: bot._id,
     botUser: botUser._id,
     status: 'pending',
@@ -173,6 +181,7 @@ rentalSepCallback.callbackQuery(
       pricePair: pricePair,
       bot: ctx.currentBot,
       botUser: ctx.currentBotUser,
+      botUserConfig: ctx.currentBotUserConfig,
     });
 
     await ctx.answerCallbackQuery();

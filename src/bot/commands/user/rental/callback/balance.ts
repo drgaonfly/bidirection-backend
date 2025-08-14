@@ -36,14 +36,18 @@ balanceRentalCommand.callbackQuery(/^balance_rental_(.+)$/, async (ctx) => {
     return;
   }
 
-  if (
-    ctx.currentBotUserConfig.trx_balance < rental.price ||
-    ctx.currentBotUserConfig.usdt_balance < rental.price
-  ) {
-    await ctx.reply('USDT余额不足, 请先充值', {
-      parse_mode: 'HTML',
-      reply_markup: new InlineKeyboard().text('立即充值', 'recharge'),
-    });
+  if (ctx.currentBotUserConfig.usdt_balance < rental.price) {
+    await ctx.reply(
+      `USDT余额不足, 请先充值，当前余额 ${
+        ctx.currentBotUserConfig.usdt_balance
+      } USDT, 还需要充值${
+        rental.price - ctx.currentBotUserConfig.usdt_balance
+      } USDT`,
+      {
+        parse_mode: 'HTML',
+        reply_markup: new InlineKeyboard().text('立即充值', 'recharge'),
+      },
+    );
     return;
   }
 
@@ -51,9 +55,6 @@ balanceRentalCommand.callbackQuery(/^balance_rental_(.+)$/, async (ctx) => {
     '租赁成功!',
     `订单ID:  <code>${rental.id}</code>`,
     `购买能量: <code>${rental.amount}</code> (1小时)`,
-    `实时单价: <code>${
-      rental.price / rental.separation
-    } ${rental.crypto_type.toUpperCase()}</code>`,
     `订单总额: <b>${rental.price} ${rental.crypto_type.toUpperCase()}</b>`,
     `接收地址: <code>${rental.to_address}</code>`,
   ].join('\n');
@@ -62,12 +63,7 @@ balanceRentalCommand.callbackQuery(/^balance_rental_(.+)$/, async (ctx) => {
 
   const balance_before = ctx.currentBotUserConfig.trx_balance;
 
-  if (rental.crypto_type === 'usdt') {
-    ctx.currentBotUserConfig.usdt_balance -= rental.price;
-  } else {
-    ctx.currentBotUserConfig.trx_balance -= rental.price;
-  }
-
+  ctx.currentBotUserConfig.usdt_balance -= rental.price;
   await ctx.currentBotUserConfig.save();
 
   await Deduction.create({

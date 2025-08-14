@@ -22,8 +22,8 @@ export async function handleRentalCommand(ctx: MyContext) {
     await ctx.reply('请先设置该机器人的闪兑套餐');
     return;
   }
-
-  const price_pairs = ctx.currentBot.price_pairs || [];
+  const price_pairs =
+    ctx.currentBot.price_pairs?.filter((pair) => pair.type === 'hourly') || [];
 
   let pricePairLines: string[] = [];
   if (price_pairs.length > 0) {

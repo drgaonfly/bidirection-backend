@@ -101,7 +101,7 @@ const pricePairSchema = new mongoose.Schema({
   aqusition: { type: Number, required: true },
   expiration: { type: Number, required: true },
   times: { type: Number, required: true },
-  type: { type: String, required: false },
+  type: { type: String, enum: ['hourly', 'daily'], required: true },
 });
 
 const botSchema = new mongoose.Schema(

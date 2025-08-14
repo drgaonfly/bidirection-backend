@@ -25,7 +25,7 @@ async function renderOrderInfo(ctx: MyContext, rental) {
     `✏️ 购买笔数:  <b>${rental.separation} 笔</b>`,
     `💵 订单总额: <b>${rental.price} USDT</b>`,
     `📥 接收地址: <code>${rental.to_address}</code>`,
-    `⏳ 有效期:   <b>${rental.limit_hour} 小时</b>`,
+    `⏳ 有效期:   <b>${rental.limit_hour} 天</b>`,
   ].join('\n');
 
   const msgId = rentalMessageMap.get(rental.id);
@@ -63,20 +63,6 @@ async function rentalSepConversation(
   },
 ) {
   // 1. 先让用户输入地址或取消
-  const isExtra = pricePair.expenditure > botUserConfig.usdt_balance;
-
-  let balanceMsg = '';
-  if (!isExtra) {
-    balanceMsg = `✅ 您当前USDT余额为 ${botUserConfig.usdt_balance}, 余额充足, 可直接使用余额支付。`;
-  } else {
-    balanceMsg = [
-      `❗您的USDT余额不足, 当前余额为 ${botUserConfig.usdt_balance} USDT。`,
-      `请先额外充值${
-        pricePair.expenditure - botUserConfig.usdt_balance
-      } USDT,或继续下单后选择USDT支付。`,
-    ].join('\n');
-  }
-
   await ctx.reply(
     [
       `请输入您要接收能量的TRX地址:`,
@@ -85,9 +71,7 @@ async function rentalSepConversation(
       `笔数: ${pricePair.times} 笔`,
       `价格: ${pricePair.expenditure} USDT`,
       `能量: ${pricePair.aqusition} sun`,
-      `有效期 ${pricePair.expiration * 24}小时`,
-      '',
-      balanceMsg,
+      `有效期 ${pricePair.expiration} 天`,
       '',
       `⚠️ 确保输入地址正确，否则将无法到账。`,
       `⏳ 此操作将在 5 分钟后过期。`,
@@ -137,7 +121,7 @@ async function rentalSepConversation(
     status: 'pending',
     type: 'auto',
     crypto_type: 'usdt',
-    limit_hour: pricePair.expiration * 24,
+    limit_hour: pricePair.expiration,
     expiredAt: new Date(Date.now() + 30 * 60 * 1000),
     proxy: botUser._id,
   });

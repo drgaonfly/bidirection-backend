@@ -41,6 +41,7 @@ export const useUserProfile = () => {
     bot: IBot;
     usdt_balance: number;
     trx_balance: number;
+    available_separations: number;
   }) => {
     const templatePath = path.join(__dirname, '../templates/userProfile.ejs');
     return await ejs.renderFile(templatePath, data);

@@ -19,6 +19,7 @@ import membershipCommand from './membership';
 import advanceComposer from './advance';
 import anynoumyComposer from './anynoumy';
 import application from './application';
+import packageOrderComposer from './packageOrder';
 
 import conversationsComposer from './conversations';
 
@@ -48,6 +49,7 @@ userComposer.use(membershipCommand.middleware());
 userComposer.use(advanceComposer.middleware());
 userComposer.use(anynoumyComposer.middleware());
 userComposer.use(application.middleware());
+userComposer.use(packageOrderComposer.middleware());
 userComposer.use(conversationsComposer.middleware());
 
 export default userComposer;

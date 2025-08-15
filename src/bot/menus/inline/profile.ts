@@ -8,7 +8,9 @@ const profile = new InlineKeyboard()
   .text('⚡️ 我要充值', 'recharge')
   .text('📋 充值记录', 'recharge_history')
   .row()
-  .text('❌ 关闭', 'close')
-  .text('📞 联系客服', 'contact');
+  .text('📝 我的笔数套餐', 'my_package_order')
+  .text('📞 联系客服', 'contact')
+  .row()
+  .text('❌ 关闭', 'close');
 
 export default profile;

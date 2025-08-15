@@ -6,7 +6,7 @@ import setWalletConversation from './setWallet';
 // import trxToUsdtExchangeConversation from './trx2usdt';
 import transferExchangeConversation from './transfer';
 import customRechargeConversation from './customRecharge';
-import rentalSepCallback from './rentalSep';
+import packageOrderCallback from './rentalSep';
 import membershipingCallback from './membership';
 import tgStarsCallback from './tgStars';
 
@@ -19,7 +19,7 @@ conversationsComposer.use(setWalletConversation.middleware());
 // conversationsComposer.use(usdtToTrxExchangeConversation.middleware());
 // conversationsComposer.use(trxToUsdtExchangeConversation.middleware());
 conversationsComposer.use(transferExchangeConversation.middleware());
-conversationsComposer.use(rentalSepCallback.middleware());
+conversationsComposer.use(packageOrderCallback.middleware());
 conversationsComposer.use(membershipingCallback.middleware());
 conversationsComposer.use(tgStarsCallback.middleware());
 

@@ -111,7 +111,7 @@ const deductionSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ['Rental', 'Recharge'],
+      enum: ['Rental', 'Recharge', 'PackageOrder'],
     },
     deductable: {
       type: mongoose.Schema.Types.ObjectId,

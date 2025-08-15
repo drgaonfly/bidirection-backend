@@ -38,11 +38,13 @@ export async function checkExpiredRentals() {
           await bot.api.sendMessage(
             botUser.id,
             [
-              `租赁ID  : <code>${rental.id}</code> 已超时未支付，自动取消。`,
-              `购买能量：${rental.amount}`,
-              `订单金额：${rental.price} ${rental.crypto_type.toUpperCase()}`,
-              `发送地址：<code>${rental.from_address}</code>`,
-              `接收地址：<code>${rental.to_address || '无'}</code>`,
+              `❌ 租赁ID  : <code>${rental.id}</code> 已超时未支付，自动取消。`,
+              `⚡️ 购买能量：${rental.amount}`,
+              `💰 订单金额：${
+                rental.price
+              } ${rental.crypto_type.toUpperCase()}`,
+              `📤 发送地址：<code>${rental.from_address}</code>`,
+              `📥 接收地址：<code>${rental.to_address || '无'}</code>`,
             ].join('\n'),
             { parse_mode: 'HTML' },
           );

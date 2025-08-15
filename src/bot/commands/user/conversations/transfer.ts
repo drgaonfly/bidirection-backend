@@ -8,7 +8,7 @@ import Exchange from '../../../../models/exchange';
 import { IdGen } from '../../../../utils/idGen';
 import { formatBeijingDate } from '../../../../utils/formatBeijingDate';
 import createDebug from 'debug';
-import { fetchTrxUsdtPrice } from '../exchange/realtiem';
+import { getExchangeRate } from '../../../../utils/getExchange';
 
 const exchangeTransferComposer = new Composer<MyContext>();
 const debug = createDebug('bot:exchange:transfer');
@@ -287,14 +287,14 @@ exchangeTransferComposer.callbackQuery('exchange_to_others', async (ctx) => {
     return;
   }
 
-  const price = await fetchTrxUsdtPrice();
+  const price = await getExchangeRate('TRX', 'USDT');
 
   if (!price) {
     await ctx.reply('抱歉，暂时无法获取价格信息，请稍后再试。');
     return;
   }
 
-  const realPrice = price * (1 - ctx.currentBot.fee / 100);
+  const realPrice = (1 / price) * (1 - ctx.currentBot.fee / 100);
 
   await ctx.conversation.enter('transferExchangeConversation', {
     bot: ctx.currentBot,

@@ -30,8 +30,6 @@ export async function checkAutoRentals() {
     throw new Error('管理员未设置每笔多少能量');
   }
 
-  const energy_per_times = adminUser.energy_per_times;
-
   try {
     console.log('[checkAutoRentals] 开始检查所有待处理的充值订单...');
 
@@ -235,12 +233,18 @@ export async function checkAutoRentals() {
             }
           }
 
+          const adminUser = await getAdminUser();
+
+          // 计算总能量：每笔能量 × 笔数
+          const totalEnergy =
+            (adminUser.energy_per_times || 65000) * matchedPricePair.times;
+
           // 创建已支付的兑换记录
           const rental = await Rental.create({
             id: await IdGen.next(Rental, 'id', 6),
             from_address: transfer.from_address,
             to_address: transfer.to_address,
-            amount: energy_per_times * matchedPricePair.times,
+            amount: totalEnergy,
             separation: matchedPricePair.times,
             price: transfer.money,
             bot: bot._id,

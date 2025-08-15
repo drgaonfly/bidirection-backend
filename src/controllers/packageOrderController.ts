@@ -11,7 +11,10 @@ import { isEmployee, isProxy } from '../middlewares/authMiddleware';
 import { RequestCustom } from '../types/user';
 
 // 构建查询参数
-const buildQuery = (queryParams: any): any => {
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
 
   if (queryParams.id) {
@@ -39,6 +42,17 @@ const buildQuery = (queryParams: any): any => {
     query.orderNumber = queryParams.orderNumber;
   }
 
+  // 权限检查：代理只能看到自己及其员工的订单
+  if (isProxy(req.user)) {
+    const employees = await User.find({ proxy: req.user._id });
+    const employeeIds = employees.map((employee) => employee._id);
+    query.proxy = { $in: [...employeeIds, req.user._id] };
+  }
+
+  if (isEmployee(req.user)) {
+    query.proxy = req.user._id;
+  }
+
   return query;
 };
 
@@ -47,18 +61,7 @@ export const getPackageOrders = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const { current = '1', pageSize = '10' } = req.query;
 
-    const query = buildQuery(req.query);
-
-    // 权限检查：代理只能看到自己及其员工的订单
-    if (isProxy(req.user)) {
-      const employees = await User.find({ proxy: req.user._id });
-      const employeeIds = employees.map((employee) => employee._id);
-      query.proxy = { $in: [...employeeIds, req.user._id] };
-    }
-
-    if (isEmployee(req.user)) {
-      query.proxy = req.user._id;
-    }
+    const query = await buildQuery(req.query, req);
 
     const packageOrders = await PackageOrder.find(query)
       .populate('bot')
@@ -96,77 +99,9 @@ export const getPackageOrderById = handleAsync(
       throw new Error('套餐订单未找到');
     }
 
-    // 权限检查：代理只能看到自己及其员工的订单
-    if (isProxy(req.user) || isEmployee(req.user)) {
-      if (
-        packageOrder.proxy &&
-        packageOrder.proxy.toString() !== req.user._id.toString()
-      ) {
-        const employees = await User.find({ proxy: req.user._id });
-        const employeeIds = employees.map((employee) =>
-          employee._id.toString(),
-        );
-        if (!employeeIds.includes(packageOrder.proxy.toString())) {
-          res.status(403);
-          throw new Error('没有权限查看此订单');
-        }
-      }
-    }
-
     res.json({
       success: true,
       data: packageOrder,
-    });
-  },
-);
-
-// 创建套餐订单
-export const createPackageOrder = handleAsync(
-  async (req: RequestCustom, res: Response) => {
-    const newId = await IdGen.next(PackageOrder, 'id', 6);
-    const orderNumber = await generateOrderNumber();
-
-    // 验证套餐是否存在
-    const packageData = await Package.findById(req.body.package);
-    if (!packageData) {
-      res.status(400);
-      throw new Error('套餐不存在');
-    }
-
-    // 验证机器人是否存在
-    const bot = await Bot.findById(req.body.bot);
-    if (!bot) {
-      res.status(400);
-      throw new Error('机器人不存在');
-    }
-
-    // 验证机器人用户是否存在
-    const botUser = await BotUser.findById(req.body.botUser);
-    if (!botUser) {
-      res.status(400);
-      throw new Error('机器人用户不存在');
-    }
-
-    // 计算过期时间
-    const expiredAt = new Date();
-    expiredAt.setDate(expiredAt.getDate() + (req.body.validityDays || 3));
-
-    const packageOrder = new PackageOrder({
-      ...req.body,
-      id: newId,
-      orderNumber,
-      expiredAt,
-      packageName: packageData.name,
-      times: packageData.times,
-      energy: packageData.aqusition,
-      minConsumption: packageData.min_expenditure,
-    });
-
-    const savedPackageOrder = await packageOrder.save();
-
-    res.status(201).json({
-      success: true,
-      data: savedPackageOrder,
     });
   },
 );
@@ -182,23 +117,6 @@ export const updatePackageOrder = handleAsync(
     if (!packageOrder) {
       res.status(404);
       throw new Error('套餐订单未找到');
-    }
-
-    // 权限检查：代理只能更新自己及其员工的订单
-    if (isProxy(req.user) || isEmployee(req.user)) {
-      if (
-        packageOrder.proxy &&
-        packageOrder.proxy.toString() !== req.user._id.toString()
-      ) {
-        const employees = await User.find({ proxy: req.user._id });
-        const employeeIds = employees.map((employee) =>
-          employee._id.toString(),
-        );
-        if (!employeeIds.includes(packageOrder.proxy.toString())) {
-          res.status(403);
-          throw new Error('没有权限更新此订单');
-        }
-      }
     }
 
     const updatedPackageOrder = await PackageOrder.findByIdAndUpdate(
@@ -229,23 +147,6 @@ export const deletePackageOrder = handleAsync(
       throw new Error('套餐订单未找到');
     }
 
-    // 权限检查：代理只能删除自己及其员工的订单
-    if (isProxy(req.user) || isEmployee(req.user)) {
-      if (
-        packageOrder.proxy &&
-        packageOrder.proxy.toString() !== req.user._id.toString()
-      ) {
-        const employees = await User.find({ proxy: req.user._id });
-        const employeeIds = employees.map((employee) =>
-          employee._id.toString(),
-        );
-        if (!employeeIds.includes(packageOrder.proxy.toString())) {
-          res.status(403);
-          throw new Error('没有权限删除此订单');
-        }
-      }
-    }
-
     await PackageOrder.findByIdAndDelete(req.params.id);
 
     res.json({
@@ -263,25 +164,6 @@ export const deleteMultiplePackageOrders = handleAsync(
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       res.status(400);
       throw new Error('请提供要删除的订单ID列表');
-    }
-
-    // 权限检查：代理只能删除自己及其员工的订单
-    if (isProxy(req.user) || isEmployee(req.user)) {
-      const employees = await User.find({ proxy: req.user._id });
-      const employeeIds = employees.map((employee) => employee._id);
-
-      const orders = await PackageOrder.find({ _id: { $in: ids } });
-      const unauthorizedOrders = orders.filter(
-        (order) =>
-          order.proxy &&
-          !employeeIds.includes(order.proxy) &&
-          order.proxy.toString() !== req.user._id.toString(),
-      );
-
-      if (unauthorizedOrders.length > 0) {
-        res.status(403);
-        throw new Error('存在没有权限删除的订单');
-      }
     }
 
     const result = await PackageOrder.deleteMany({ _id: { $in: ids } });

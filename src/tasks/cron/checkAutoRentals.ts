@@ -6,12 +6,12 @@ import {
 } from '../../utils/fetchTransactions';
 import { IdGen } from '../../utils/idGen';
 import { rentEnergy } from '../../utils/fetchTransactions';
-import createDebug from 'debug';
 import { TronWeb } from 'tronweb';
 import { setupBot } from '../../bot/botSetup';
 import { InlineKeyboard } from 'grammy';
 import { findBotProxy } from '../../services/findBotProxy';
-// import UnRental from '../../models/unrental';
+import { getAdminUser } from '../../utils/buyTelegramPremium';
+import createDebug from 'debug';
 
 const tronWeb = new TronWeb({
   fullHost: 'https://api.trongrid.io',
@@ -24,6 +24,13 @@ const debug = createDebug('cron:checkAutoRentals');
  */
 export async function checkAutoRentals() {
   debug('checkAutoRentals');
+  const adminUser = await getAdminUser();
+
+  if (!adminUser.energy_per_times) {
+    throw new Error('管理员未设置每笔多少能量');
+  }
+
+  const energy_per_times = adminUser.energy_per_times;
 
   try {
     console.log('[checkAutoRentals] 开始检查所有待处理的充值订单...');
@@ -233,7 +240,7 @@ export async function checkAutoRentals() {
             id: await IdGen.next(Rental, 'id', 6),
             from_address: transfer.from_address,
             to_address: transfer.to_address,
-            amount: matchedPricePair.aqusition,
+            amount: energy_per_times * matchedPricePair.times,
             separation: matchedPricePair.times,
             price: transfer.money,
             bot: bot._id,

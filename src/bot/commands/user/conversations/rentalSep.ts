@@ -6,6 +6,7 @@ import { IdGen } from '../../../../utils/idGen';
 import { IBot, IPricePair } from '../../../../models/bot';
 import { IBotUser } from '../../../../models/botUser';
 import { IBotUserConfig } from '../../../../models/botUserConfig';
+import { getAdminUser } from '../../../../utils/buyTelegramPremium';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:rental-sep');
@@ -55,11 +56,13 @@ async function rentalSepConversation(
     bot,
     botUser,
     botUserConfig,
+    energy_per_times,
   }: {
     pricePair: IPricePair;
     bot: IBot;
     botUser: IBotUser;
     botUserConfig: IBotUserConfig;
+    energy_per_times: number;
   },
 ) {
   const isExtra = pricePair.expenditure > botUserConfig.usdt_balance;
@@ -84,7 +87,7 @@ async function rentalSepConversation(
       `您选择了 ${pricePair.name} 套餐`,
       `笔数: ${pricePair.times} 笔`,
       `价格: ${pricePair.expenditure} USDT`,
-      `能量: ${pricePair.aqusition} sun`,
+      `能量: ${energy_per_times * pricePair.times} sun`,
       `有效期 ${pricePair.expiration} 天`,
       '',
       balanceMsg,
@@ -119,17 +122,16 @@ async function rentalSepConversation(
       bot,
       botUser,
       botUserConfig,
+      energy_per_times,
     });
   }
 
   // 3. 创建订单
-  // 总能量 = aqusition * rental_count
-  // 总价格 = expenditure * rental_count
   const rental = await Rental.create({
     id: await IdGen.next(Rental, 'id', 6),
     from_address: bot.energy_address,
     to_address: trxAddress,
-    amount: pricePair.aqusition,
+    amount: pricePair.times * energy_per_times,
     separation: pricePair.times,
     price: pricePair.expenditure,
     bot: bot._id,
@@ -177,11 +179,19 @@ rentalSepCallback.callbackQuery(
       return;
     }
 
+    const adminUser = await getAdminUser();
+
+    if (!adminUser.energy_per_times) {
+      await ctx.reply('⚠️ 平台没有配置每笔多少能量，请先配置');
+      return;
+    }
+
     await ctx.conversation.enter('rentalSepConversation', {
       pricePair: pricePair,
       bot: ctx.currentBot,
       botUser: ctx.currentBotUser,
       botUserConfig: ctx.currentBotUserConfig,
+      energy_per_times: adminUser.energy_per_times,
     });
 
     await ctx.answerCallbackQuery();

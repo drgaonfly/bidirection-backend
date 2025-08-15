@@ -1,6 +1,7 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import { checkInBot } from '../../../middlewares/checkInBot';
+import { getAdminUser } from '../../../../utils/buyTelegramPremium';
 import createDebug from 'debug';
 
 const rentalCommand = new Composer<MyContext>();
@@ -8,7 +9,10 @@ const rentalCommand = new Composer<MyContext>();
 const debug = createDebug('bot:rental');
 
 // 监听"联系客服"文本消息
-export async function handleRentalCommand(ctx: MyContext) {
+export async function handleRentalCommand(
+  ctx: MyContext,
+  energy_per_times: number,
+) {
   debug('rental');
 
   await ctx.conversation.exitAll();
@@ -29,7 +33,7 @@ export async function handleRentalCommand(ctx: MyContext) {
   if (price_pairs.length > 0) {
     pricePairLines = price_pairs.map((pair) => {
       // 1 trx = 1_000_000 sun
-      const energy = pair.aqusition;
+      const energy = energy_per_times * pair.times;
       const trx = pair.expenditure;
       const hour = pair.expiration;
       // 能量显示为整数
@@ -73,7 +77,15 @@ export async function handleRentalCommand(ctx: MyContext) {
 rentalCommand.hears(/能量闪租/, checkInBot, async (ctx) => {
   await ctx.conversation.exitAll();
 
-  await handleRentalCommand(ctx);
+  const adminUser = await getAdminUser();
+
+  if (!adminUser.energy_per_times) {
+    throw new Error('管理员未设置每笔多少能量');
+  }
+
+  const energy_per_times = adminUser.energy_per_times;
+
+  await handleRentalCommand(ctx, energy_per_times);
 });
 
 export default rentalCommand;

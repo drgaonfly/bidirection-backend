@@ -147,7 +147,7 @@ const userSchema = new mongoose.Schema(
     recharge_max: { type: Number, default: 0 },
 
     // 每笔多少能量
-    energy_per_times: { type: Number, default: 0 },
+    energy_per_times: { type: Number, default: 65000 },
 
     recycle_min: { type: Number, default: 12 },
   },

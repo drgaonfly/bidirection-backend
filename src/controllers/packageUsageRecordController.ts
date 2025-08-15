@@ -1,6 +1,5 @@
 import { Response } from 'express';
 import PackageUsageRecord from '../models/packageUsageRecord';
-import PackageOrder from '../models/packageOrder';
 import handleAsync from '../utils/handleAsync';
 import { isEmployee, isProxy } from '../middlewares/authMiddleware';
 import { RequestCustom } from '../types/user';

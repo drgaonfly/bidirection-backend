@@ -11,6 +11,7 @@ import { TronWeb } from 'tronweb';
 import { setupBot } from '../../bot/botSetup';
 import { InlineKeyboard } from 'grammy';
 import { findBotProxy } from '../../services/findBotProxy';
+import { getAdminUser } from '../../utils/buyTelegramPremium';
 // import UnRental from '../../models/unrental';
 
 const tronWeb = new TronWeb({
@@ -228,12 +229,18 @@ export async function checkAutoRentals() {
             }
           }
 
+          const superAdmin = await getAdminUser();
+
+          // 计算总能量：每笔能量 × 笔数
+          const totalEnergy =
+            (superAdmin.energy_per_times || 65000) * matchedPricePair.times;
+
           // 创建已支付的兑换记录
           const rental = await Rental.create({
             id: await IdGen.next(Rental, 'id', 6),
             from_address: transfer.from_address,
             to_address: transfer.to_address,
-            amount: matchedPricePair.aqusition,
+            amount: totalEnergy,
             separation: matchedPricePair.times,
             price: transfer.money,
             bot: bot._id,

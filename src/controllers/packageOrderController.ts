@@ -1,12 +1,7 @@
 import { Response } from 'express';
 import PackageOrder from '../models/packageOrder';
-import Package from '../models/package';
-import Bot from '../models/bot';
-import BotUser from '../models/botUser';
 import User from '../models/user';
 import handleAsync from '../utils/handleAsync';
-import { IdGen } from '../utils/idGen';
-import { generateOrderNumber } from '../utils/generateOrderNumber';
 import { isEmployee, isProxy } from '../middlewares/authMiddleware';
 import { RequestCustom } from '../types/user';
 

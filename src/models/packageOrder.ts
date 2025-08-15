@@ -17,6 +17,7 @@ export interface IPackageOrder extends Document {
   expiredAt: Date; // 过期时间
   status: 'pending' | 'active' | 'expired'; // 状态
   proxy: mongoose.Types.ObjectId | IUser; // 代理
+  createdAt: Date;
 }
 
 const packageOrderSchema = new Schema<IPackageOrder>(

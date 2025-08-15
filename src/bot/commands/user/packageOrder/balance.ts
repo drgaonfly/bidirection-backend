@@ -98,11 +98,12 @@ balanceCallback.callbackQuery(/^balance_(trx|usdt)_(.+)$/, async (ctx) => {
 
   const info = [
     '✅ 套餐购买成功!',
-    `订单ID:  <code>${order.id}</code>`,
-    `购买笔数: <b>${order.times}</b>`,
-    `购买能量: <code>${order.energy}</code> sun`,
-    `订单总额: <b>${priceToDeduct} ${paymentType.toUpperCase()}</b>`,
-    `有效期: <b>${order.validityDays} 天</b>`,
+    `🆔 订单ID:  <code>${order.id}</code>`,
+    `✏️ 购买笔数: <b>${order.times}</b>`,
+    `⚡ 购买能量: <code>${order.energy}</code> sun`,
+    `💵 订单总额: <b>${priceToDeduct} ${paymentType.toUpperCase()}</b>`,
+    `🪙 最低消费: <b>${order.minConsumption}</b>`,
+    `⏳ 有效期: <b>${order.validityDays} 天</b>`,
   ].join('\n');
 
   await ctx.reply(info, { parse_mode: 'HTML' });

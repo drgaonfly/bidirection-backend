@@ -46,6 +46,8 @@ export async function handleSeparationCommand(ctx: MyContext) {
     }
   });
 
+  inline.row().text('📝 我的笔数套餐', 'my_package_order');
+
   ctx.reply(message, {
     parse_mode: 'HTML',
     reply_markup: inline,

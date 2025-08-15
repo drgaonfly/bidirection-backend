@@ -27,6 +27,7 @@ async function renderOrderInfo(
     `✏️ 购买笔数:  <b>${order.times} 笔</b>`,
     `⚡ 购买能量: <code>${order.energy}</code> sun`,
     `💵 订单总额: <b>${order.price} ${order.paymentType.toUpperCase()}</b>`,
+    `🪙 最低消费: <b>${order.minConsumption}</b>`,
     `⏳ 有效期:   <b>${order.validityDays} 天</b>`,
   ].join('\n');
 

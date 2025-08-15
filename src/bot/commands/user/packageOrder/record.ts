@@ -1,6 +1,7 @@
 import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
 import PackageOrder, { IPackageOrder } from '../../../../models/packageOrder';
+import { formatBeijingDate } from '../../../../utils/formatBeijingDate';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:record');
@@ -32,6 +33,7 @@ export async function sendMyPackageOrders(ctx: MyContext) {
           `✏️ 笔数: <b>${order.times}</b>`,
           `⚡ 能量: <b>${order.energy} sun</b>`,
           `💵 金额: <b>${order.price} ${order.paymentType.toUpperCase()}</b>`,
+          `⏰ 购买时间: <b>${formatBeijingDate(order.createdAt)}</b>`,
           '\n',
         ].join('\n');
       })

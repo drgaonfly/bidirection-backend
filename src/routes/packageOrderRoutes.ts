@@ -2,7 +2,6 @@ import express, { Router } from 'express';
 import {
   getPackageOrders,
   getPackageOrderById,
-  createPackageOrder,
   updatePackageOrder,
   deletePackageOrder,
   deleteMultiplePackageOrders,
@@ -15,7 +14,6 @@ const router: Router = express.Router();
 router
   .route('/')
   .get(protect, checkPermission, getPackageOrders)
-  .post(protect, checkPermission, createPackageOrder)
   .delete(protect, checkPermission, deleteMultiplePackageOrders);
 
 router

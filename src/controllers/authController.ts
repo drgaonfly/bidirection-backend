@@ -11,6 +11,7 @@ import { exclude } from '../utils/handleData';
 import { RequestCustom } from 'user';
 import { redis } from '../utils/redis';
 import { v4 as uuidv4 } from 'uuid';
+import { getAdminUser } from '../utils/buyTelegramPremium';
 
 const login = handleAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -343,6 +344,21 @@ export const disable2FA = handleAsync(
     res.json({
       success: true,
       message: '2FA has been disabled successfully',
+    });
+  },
+);
+
+// Get super admin energy_per_times
+export const getSuperAdminEnergyPerTimes = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    // 使用 getAdminUser 函数获取超级管理员信息
+    const superAdmin = await getAdminUser();
+
+    res.json({
+      success: true,
+      data: {
+        energy_per_times: superAdmin.energy_per_times || 0,
+      },
     });
   },
 );

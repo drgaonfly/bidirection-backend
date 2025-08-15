@@ -1,7 +1,7 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import createBug from 'debug';
-import { fetchTrxUsdtPrice } from './realtiem';
+import { getExchangeRate } from '../../../../utils/getExchange';
 const exchangeShowComposer = new Composer<MyContext>();
 
 const debug = createBug('bot:exchange');
@@ -17,7 +17,7 @@ const handleShow = async (ctx: MyContext) => {
     return;
   }
 
-  const price = await fetchTrxUsdtPrice();
+  const price = await getExchangeRate('TRX', 'USDT');
 
   if (!price) {
     await ctx.reply('抱歉，暂时无法获取价格信息，请稍后再试。');
@@ -26,7 +26,7 @@ const handleShow = async (ctx: MyContext) => {
 
   debug(price);
 
-  const realPrice = (price * (1 - ctx.currentBot.fee / 100)).toFixed(2);
+  const realPrice = ((1 / price) * (1 - ctx.currentBot.fee / 100)).toFixed(2);
 
   const initialMessage = [
     `📈实时汇率`,

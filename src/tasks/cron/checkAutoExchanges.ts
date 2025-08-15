@@ -4,12 +4,12 @@ import Bot from '../../models/bot';
 import { sendTRX } from '../../utils/sendTRX';
 import { decrypt } from '../../services/encrypt';
 import { fetchTrc20Transactions } from '../../utils/fetchTransactions';
-import { fetchTrxUsdtPrice } from '../../bot/commands/user/exchange/realtiem';
+import { getExchangeRate } from '../../utils/getExchange';
 import { IdGen } from '../../utils/idGen';
 
 export async function checkAutoExchanges() {
   console.log('[checkAutoExchanges] 开始检查自动兑换...');
-  const currentPrice = await fetchTrxUsdtPrice();
+  const currentPrice = await getExchangeRate('TRX', 'USDT');
   console.log('[checkAutoExchanges] 当前 TRX/USDT 汇率:', currentPrice);
 
   try {
@@ -93,7 +93,7 @@ export async function checkAutoExchanges() {
               `[checkAutoExchanges] 处理转账 trade_id=${transfer.trade_id}, 金额=${transfer.money}, from=${transfer.from_address}`,
             );
             // 计算实际汇率和兑换的 TRX 数量
-            const realPrice = currentPrice * (1 - bot.fee / 100);
+            const realPrice = (1 / currentPrice) * (1 - bot.fee / 100);
             const trxAmount = transfer.money * realPrice;
             console.log(
               `[checkAutoExchanges] 实际汇率: ${realPrice}, 兑换 TRX 数量: ${trxAmount}`,

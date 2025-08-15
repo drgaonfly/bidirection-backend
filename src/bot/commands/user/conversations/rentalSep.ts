@@ -5,9 +5,7 @@ import Rental from '../../../../models/rental';
 import { IdGen } from '../../../../utils/idGen';
 import { IBot, IPricePair } from '../../../../models/bot';
 import { IBotUser } from '../../../../models/botUser';
-import BotUserConfig, {
-  IBotUserConfig,
-} from '../../../../models/botUserConfig';
+import { IBotUserConfig } from '../../../../models/botUserConfig';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:rental-sep');
@@ -143,20 +141,6 @@ async function rentalSepConversation(
     expiredAt: new Date(Date.now() + 30 * 60 * 1000),
     proxy: botUser._id,
   });
-
-  await BotUserConfig.findOneAndUpdate(
-    {
-      bot: bot._id,
-      botUser: botUser._id,
-    },
-    {
-      $set: {
-        $inc: {
-          available_separations: pricePair.times,
-        },
-      },
-    },
-  );
 
   const sent = await ctx.reply('⏳ 正在生成订单详情...');
   rentalMessageMap.set(rental.id, sent.message_id);

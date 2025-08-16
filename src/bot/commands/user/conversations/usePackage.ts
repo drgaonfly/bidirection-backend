@@ -12,10 +12,8 @@ const debug = createDebug('bot:package:use');
 
 const usePackageCallback = new Composer<MyContext>();
 const TIMEOUT = 5 * 60 * 1000; // 5 分钟
-
 const cancelKeyboard = new InlineKeyboard().text('❌ 取消', 'close');
 
-// 对话：使用套餐
 async function usePackageConversation(
   conversation: Conversation<MyContext>,
   ctx: MyContext,
@@ -63,36 +61,44 @@ async function usePackageConversation(
     });
   }
 
-  // 2️⃣ 选择使用笔数
-  const timesKeyboard = new InlineKeyboard()
-    .text('1 笔', 'use_times_1')
-    .text('2 笔', 'use_times_2')
-    .row()
-    .text('❌ 取消', 'close');
-
-  await ctx.reply(`请选择使用笔数：`, { reply_markup: timesKeyboard });
-
-  const timesResult = await conversation.waitFor(['callback_query:data'], {
-    maxMilliseconds: TIMEOUT,
-  });
-
-  if (timesResult.callbackQuery?.data === 'close') {
-    await ctx.reply('已取消使用套餐');
-    return;
-  }
-
   let usedTimes = 0;
-  if (timesResult.callbackQuery?.data === 'use_times_1') usedTimes = 1;
-  else if (timesResult.callbackQuery?.data === 'use_times_2') usedTimes = 2;
 
-  if (!usedTimes || usedTimes > order.times) {
-    await ctx.reply(`❌ 使用笔数不合法，必须在 1~${order.times} 之间`);
-    return await usePackageConversation(conversation, ctx, {
-      bot,
-      botUser,
-      orderId,
-      type,
+  if (type === 'myself') {
+    // 如果是自己，默认 2 笔
+    usedTimes = 2;
+  } else {
+    // 如果是他人，选择 1 或 2 笔
+    const timesKeyboard = new InlineKeyboard()
+      .text('1 笔', 'use_times_1')
+      .text('2 笔', 'use_times_2')
+      .row()
+      .text('❌ 取消', 'close');
+
+    await ctx.reply(`请选择使用笔数：`, { reply_markup: timesKeyboard });
+
+    const timesResult = await conversation.waitFor(['callback_query:data'], {
+      maxMilliseconds: TIMEOUT,
     });
+
+    if (timesResult.callbackQuery?.data === 'close') {
+      await ctx.reply('已取消使用套餐');
+      return;
+    }
+
+    await ctx.api.answerCallbackQuery(timesResult.callbackQuery.id); // 避免 “正在处理”
+
+    if (timesResult.callbackQuery?.data === 'use_times_1') usedTimes = 1;
+    else if (timesResult.callbackQuery?.data === 'use_times_2') usedTimes = 2;
+
+    if (!usedTimes || usedTimes > order.times) {
+      await ctx.reply(`❌ 使用笔数不合法，必须在 1~${order.times} 之间`);
+      return await usePackageConversation(conversation, ctx, {
+        bot,
+        botUser,
+        orderId,
+        type,
+      });
+    }
   }
 
   // 3️⃣ 创建使用记录

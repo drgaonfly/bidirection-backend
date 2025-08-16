@@ -29,7 +29,9 @@ export async function sendMyPackageOrders(ctx: MyContext) {
     orders.forEach((order) => {
       keyboard
         .text(
-          `${order.energy} sun / ${order.times} 笔`,
+          `${order.energy} sun / ${order.times} 笔 / ${
+            order.validityDays
+          } 天 / ${order.price} ${order.paymentType.toUpperCase()}`,
           `packageOrder_record_${order.id}`,
         )
         .row();

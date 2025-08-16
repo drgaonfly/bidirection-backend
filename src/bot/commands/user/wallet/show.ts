@@ -124,7 +124,8 @@ walletShowComposer.hears(/T[a-zA-Z0-9]{33}$/, async (ctx, next) => {
       ctx.conversation.active('transferExchangeConversation')) ||
     ctx.conversation.active('walletAddAddressConversation') ||
     ctx.conversation.active('walletDeleteAddressConversation') ||
-    ctx.conversation.active('packageOrderConversation')
+    ctx.conversation.active('packageOrderConversation') ||
+    ctx.conversation.active('usePackageConversation')
   ) {
     return await next();
   }

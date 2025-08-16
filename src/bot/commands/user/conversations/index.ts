@@ -9,6 +9,7 @@ import customRechargeConversation from './customRecharge';
 import packageOrderCallback from './rentalSep';
 import membershipingCallback from './membership';
 import tgStarsCallback from './tgStars';
+import usePackageCallback from './usePackage';
 
 const conversationsComposer = new Composer();
 
@@ -22,5 +23,6 @@ conversationsComposer.use(transferExchangeConversation.middleware());
 conversationsComposer.use(packageOrderCallback.middleware());
 conversationsComposer.use(membershipingCallback.middleware());
 conversationsComposer.use(tgStarsCallback.middleware());
+conversationsComposer.use(usePackageCallback.middleware());
 
 export default conversationsComposer;

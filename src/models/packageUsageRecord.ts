@@ -16,8 +16,7 @@ export interface IPackageUsageRecord extends Document {
   usedTimes: number; // 使用的笔数
   usedAt: Date; // 使用时间
   notes?: string; // 备注（可选）
-  createdAt: Date;
-  updatedAt: Date;
+  type: 'myself' | 'other'; // 使用类型
 }
 
 const packageUsageRecordSchema = new Schema<IPackageUsageRecord>(

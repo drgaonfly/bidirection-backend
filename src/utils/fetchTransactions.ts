@@ -553,7 +553,50 @@ async function deductProxyTrxBalance(
   }
 }
 
+async function getAccountEnergy(address: string) {
+  const url = `https://api.trongrid.io/v1/accounts/${address}/resources`;
+
+  const key = getNextApiKey();
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        Accept: 'application/json',
+        'TRON-PRO-API-KEY': key,
+      },
+    });
+
+    const data = response.data.data[0];
+
+    // 获取能量信息
+    const availableEnergy = data.energy || 0;
+    const totalEnergy = data.energyLimit || 0;
+
+    // 计算已使用能量
+    const usedEnergy = totalEnergy - availableEnergy;
+
+    // 计算能量使用百分比
+    const energyUsagePercent =
+      totalEnergy > 0 ? ((usedEnergy / totalEnergy) * 100).toFixed(2) : '0.00';
+
+    return {
+      availableEnergy,
+      totalEnergy,
+      usedEnergy,
+      energyUsagePercent: `${energyUsagePercent}%`,
+      // 格式化显示，添加千位分隔符
+      formattedAvailable: availableEnergy.toLocaleString(),
+      formattedTotal: totalEnergy.toLocaleString(),
+      formattedUsed: usedEnergy.toLocaleString(),
+    };
+  } catch (error) {
+    console.error('Error fetching account energy:', error);
+    throw error;
+  }
+}
+
 export {
+  getAccountEnergy,
   fetchTrxTransactions,
   fetchTrc20Transactions,
   getAccountBalances,

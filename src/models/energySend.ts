@@ -19,6 +19,7 @@ export interface IEnergySend extends Document {
   status: string;
   rental: mongoose.Schema.Types.ObjectId | IRental;
   energySendAddress: string;
+  type: 'flash' | 'daily'; // 闪租还是日租
 }
 
 const energySendSchema = new Schema<IEnergySend>(
@@ -83,6 +84,11 @@ const energySendSchema = new Schema<IEnergySend>(
     energySendAddress: {
       type: String,
       required: false,
+    },
+    type: {
+      type: String,
+      required: true,
+      enum: ['flash', 'daily'], // flash=闪租, daily=日租
     },
   },
   {

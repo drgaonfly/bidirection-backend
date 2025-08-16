@@ -101,18 +101,38 @@ async function usePackageConversation(
     }
   }
 
+  const admin = await getAdminUser();
+
   // 3️⃣ 尝试发送能量
-  const energy_per_times = (await getAdminUser()).energy_per_times;
+  const energy_per_times = admin.energy_per_times;
   const totalEnergy = energy_per_times * usedTimes;
+
+  const energyAddress = admin.energy_address;
 
   let txId = '';
   try {
-    ctx.reply(`⚡ 正在发送能量 ${totalEnergy} sun，请稍等...`);
+    // await ctx.reply(
+    //   [
+    //     `⚡ 正在向地址 <code>${address}</code> 发送能量 ${totalEnergy} sun, 请稍等...`
+    //   ].join('\n'),
+    //   {
+    //     parse_mode: 'HTML',
+    //   },
+    // );
     txId = await genericSendEnergy(address, totalEnergy);
-    ctx.reply(`✅ 能量发送成功！交易ID: ${txId}`);
+    // await ctx.reply(
+    //   [
+    //     `✅ 能量发送成功!`,
+    //     '',
+    //     `交易ID: <code>${txId}</code>`
+    //   ].join('\n'),
+    //   {
+    //     parse_mode: 'HTML',
+    //   }
+    // );
   } catch (error) {
     console.error('能量发送失败:', error);
-    await ctx.reply('❌ 能量发送失败，请稍后重试');
+    await ctx.reply(['❌ 能量发送失败，请稍后重试'].join('\n'));
     return;
   }
 
@@ -136,8 +156,9 @@ async function usePackageConversation(
     botUser: botUser._id,
     proxy: bot.user,
     packageUsageRecord: usageRecord._id,
-    from_address: (await getAdminUser()).energy_address,
+    from_address: energyAddress,
     to_address: address,
+    energySendAddress: energyAddress,
     amount: totalEnergy,
     separation: usedTimes,
     price: order.price, // 如果有价格逻辑，可以填
@@ -150,6 +171,7 @@ async function usePackageConversation(
 
   // 扣减套餐剩余笔数
   order.times -= usedTimes;
+  order.status = 'using';
   await order.save();
 
   // 6️⃣ 回复用户

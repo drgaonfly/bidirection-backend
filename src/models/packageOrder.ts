@@ -15,7 +15,7 @@ export interface IPackageOrder extends Document {
   minConsumption: number; // 低销多少钱
   paymentType: 'trx' | 'usdt'; // 扣款类型
   expiredAt: Date; // 过期时间
-  status: 'pending' | 'active' | 'expired'; // 状态
+  status: 'pending' | 'using' | 'expired'; // 状态
   proxy: mongoose.Types.ObjectId | IUser; // 代理
   createdAt: Date;
 }
@@ -68,7 +68,6 @@ const packageOrderSchema = new Schema<IPackageOrder>(
     },
     status: {
       type: String,
-      enum: ['pending', 'active', 'expired'],
       required: true,
       default: 'pending',
     },

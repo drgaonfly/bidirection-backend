@@ -1,4 +1,4 @@
-import { Composer } from 'grammy';
+import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import PackageOrder from '../../../../models/packageOrder';
 import Deduction from '../../../../models/deduction';
@@ -124,7 +124,13 @@ balanceCallback.callbackQuery(
         `🪙 最低消费: <b>${order.minConsumption}</b>`,
         `⏳ 有效期: <b>${order.validityDays} 天</b>`,
       ].join('\n'),
-      { parse_mode: 'HTML' },
+      {
+        parse_mode: 'HTML',
+        reply_markup: new InlineKeyboard().url(
+          '联系客服',
+          ctx.currentBot.customer_service_link || 'https://t.me/infoswqz',
+        ),
+      },
     );
   },
 );

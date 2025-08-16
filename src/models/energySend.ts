@@ -34,7 +34,7 @@ const energySendSchema = new Schema<IEnergySend>(
     rental: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Rental',
-      required: true,
+      required: false,
     },
     botUser: {
       type: Schema.Types.ObjectId,

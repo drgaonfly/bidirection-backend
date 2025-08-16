@@ -11,6 +11,8 @@ const debug = createDebug('bot:confirm-package-order');
 
 // 确认套餐订单回调处理
 balanceCallback.callbackQuery(/^balance_(trx|usdt)_(.+)$/, async (ctx) => {
+  await ctx.conversation.exitAll();
+
   const match = ctx.callbackQuery.data.match(/^balance_(trx|usdt)_(.+)$/);
   if (!match) {
     await ctx.answerCallbackQuery({ text: '订单ID无效', show_alert: true });

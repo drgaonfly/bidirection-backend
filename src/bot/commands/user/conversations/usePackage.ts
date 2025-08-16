@@ -140,10 +140,10 @@ async function usePackageConversation(
     to_address: address,
     amount: totalEnergy,
     separation: usedTimes,
-    price: 0, // 如果有价格逻辑，可以填
-    actual_price: 0,
+    price: order.price, // 如果有价格逻辑，可以填
+    actual_price: order.price,
     tx_id: txId,
-    limit_hour: 0,
+    limit_day: order.validityDays,
     status: 'success',
     type: 'daily',
   });

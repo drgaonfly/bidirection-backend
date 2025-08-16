@@ -23,6 +23,7 @@ export interface IEnergySend extends Document {
   rental: mongoose.Schema.Types.ObjectId | IRental;
   energySendAddress: string;
   type: 'flash' | 'daily'; // 闪租还是日租
+  limit_day: number; // 日租用小时
 }
 
 const energySendSchema = new Schema<IEnergySend>(
@@ -77,6 +78,11 @@ const energySendSchema = new Schema<IEnergySend>(
     },
     limit_hour: {
       type: Number,
+      required: false,
+    },
+    limit_day: {
+      type: Number,
+      required: false,
     },
     status: {
       type: String,

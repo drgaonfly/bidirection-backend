@@ -5,7 +5,9 @@ import { IBot } from '../../../../models/bot';
 import { IBotUser } from '../../../../models/botUser';
 import PackageOrder from '../../../../models/packageOrder';
 import PackageUsageRecord from '../../../../models/packageUsageRecord';
+import EnergySend from '../../../../models/energySend';
 import { getAdminUser } from '../../../../utils/buyTelegramPremium';
+import { genericSendEnergy } from '../../../../utils/fetchTransactions';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:package:use');
@@ -61,13 +63,11 @@ async function usePackageConversation(
     });
   }
 
+  // 2️⃣ 确定使用笔数
   let usedTimes = 0;
-
   if (type === 'myself') {
-    // 如果是自己，默认 2 笔
     usedTimes = 2;
   } else {
-    // 如果是他人，选择 1 或 2 笔
     const timesKeyboard = new InlineKeyboard()
       .text('1 笔', 'use_times_1')
       .text('2 笔', 'use_times_2')
@@ -85,7 +85,7 @@ async function usePackageConversation(
       return;
     }
 
-    await ctx.api.answerCallbackQuery(timesResult.callbackQuery.id); // 避免 “正在处理”
+    await ctx.api.answerCallbackQuery(timesResult.callbackQuery.id);
 
     if (timesResult.callbackQuery?.data === 'use_times_1') usedTimes = 1;
     else if (timesResult.callbackQuery?.data === 'use_times_2') usedTimes = 2;
@@ -101,26 +101,58 @@ async function usePackageConversation(
     }
   }
 
-  // 3️⃣ 创建使用记录
-  await PackageUsageRecord.create({
+  // 3️⃣ 尝试发送能量
+  const energy_per_times = (await getAdminUser()).energy_per_times;
+  const totalEnergy = energy_per_times * usedTimes;
+
+  let txId = '';
+  try {
+    ctx.reply(`⚡ 正在发送能量 ${totalEnergy} sun，请稍等...`);
+    txId = await genericSendEnergy(address, totalEnergy);
+    ctx.reply(`✅ 能量发送成功！交易ID: ${txId}`);
+  } catch (error) {
+    console.error('能量发送失败:', error);
+    await ctx.reply('❌ 能量发送失败，请稍后重试');
+    return;
+  }
+
+  // 4️⃣ 创建使用记录
+  const usageRecord = await PackageUsageRecord.create({
     id: `${Date.now()}`,
     packageOrder: order._id,
     bot: bot._id,
     botUser: botUser._id,
     proxy: bot.user,
     address,
-    status: 'pending',
+    status: 'success',
     usedTimes,
     usedAt: new Date(),
     type,
+  });
+
+  // 5️⃣ 创建能量发送记录
+  await EnergySend.create({
+    bot: bot._id,
+    botUser: botUser._id,
+    proxy: bot.user,
+    packageUsageRecord: usageRecord._id,
+    from_address: (await getAdminUser()).energy_address,
+    to_address: address,
+    amount: totalEnergy,
+    separation: usedTimes,
+    price: 0, // 如果有价格逻辑，可以填
+    actual_price: 0,
+    tx_id: txId,
+    limit_hour: 0,
+    status: 'success',
+    type: 'daily',
   });
 
   // 扣减套餐剩余笔数
   order.times -= usedTimes;
   await order.save();
 
-  const energy_per_times = (await getAdminUser()).energy_per_times;
-
+  // 6️⃣ 回复用户
   const message = [
     '✅ 套餐使用记录创建成功！',
     '',
@@ -132,7 +164,9 @@ async function usePackageConversation(
     '',
     `🛠️ 使用类型: <b>${type === 'myself' ? '自己' : '他人'}</b>`,
     '',
-    `⚡ 预计发送能量: <b>${energy_per_times * usedTimes} sun</b>`,
+    `⚡ 发送能量: <b>${totalEnergy} sun</b>`,
+    '',
+    `🆔 交易ID: <code>${txId}</code>`,
   ].join('\n');
 
   await ctx.reply(message, { parse_mode: 'HTML' });

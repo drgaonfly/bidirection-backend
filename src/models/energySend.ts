@@ -4,11 +4,13 @@ import { IBotUser } from './botUser';
 import { IUser } from './user';
 import { IRental } from './rental';
 import { IPackageUsageRecord } from './packageUsageRecord';
+
 // 能量发送接口定义
 export interface IEnergySend extends Document {
   bot: mongoose.Schema.Types.ObjectId | IBot;
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   proxy: mongoose.Types.ObjectId | IUser;
+  packageUsageRecord: mongoose.Schema.Types.ObjectId | IPackageUsageRecord;
   from_address: string;
   to_address: string;
   amount: number; // 发送能量数
@@ -21,7 +23,6 @@ export interface IEnergySend extends Document {
   rental: mongoose.Schema.Types.ObjectId | IRental;
   energySendAddress: string;
   type: 'flash' | 'daily'; // 闪租还是日租
-  packageUsageRecord: mongoose.Schema.Types.ObjectId | IPackageUsageRecord;
 }
 
 const energySendSchema = new Schema<IEnergySend>(

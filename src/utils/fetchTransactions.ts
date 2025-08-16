@@ -595,6 +595,95 @@ async function getAccountEnergy(address: string) {
   }
 }
 
+async function genericSendEnergy(
+  toAddress: string,
+  amount: number,
+): Promise<string> {
+  console.log('[genericSendEnergy] 获取管理员信息...');
+  const admin = await getAdminUser();
+
+  if (!admin.energy_address) {
+    throw new Error('管理员账户未设置 energy_address（放能量地址）');
+  }
+
+  console.log('[genericSendEnergy] 解密管理员 energy_privateKey...');
+  const decryptedPrivateKey = decrypt(admin.energy_privateKey);
+
+  console.log('[genericSendEnergy] 初始化 TronWeb...');
+  const tronWeb = new TronWeb({
+    fullHost: 'https://api.trongrid.io',
+    privateKey: decryptedPrivateKey,
+  });
+
+  const energyAddress = admin.energy_address; // B 地址，放能量
+  const fromAddress = tronWeb.address.fromPrivateKey(decryptedPrivateKey); // A 地址
+
+  if (!fromAddress || typeof fromAddress !== 'string') {
+    throw new Error('无法从私钥生成有效地址');
+  }
+
+  console.log('[genericSendEnergy] 地址信息:', { energyAddress, fromAddress });
+
+  console.log('[genericSendEnergy] 检查账户权限...');
+  const hasPermission = await checkAccountPermission(
+    energyAddress,
+    fromAddress,
+  );
+  if (!hasPermission) {
+    console.log('[genericSendEnergy] A 地址没有 B 地址的权限，开始设置权限...');
+    try {
+      await setupAccountPermission(decryptedPrivateKey, energyAddress);
+      console.log('[genericSendEnergy] 权限设置成功');
+    } catch (error) {
+      console.error('[genericSendEnergy] 权限设置失败:', error);
+      throw new Error('无法设置账户权限，能量发送失败');
+    }
+  } else {
+    console.log('[genericSendEnergy] A 地址已有 B 地址的权限');
+  }
+
+  try {
+    const amountSunStr = tronWeb.toSun(amount);
+    const amountSun = Number(amountSunStr) / 10;
+
+    console.log('[genericSendEnergy] 构建 delegateResource 交易...', {
+      toAddress,
+      amount,
+      amountSun,
+      fromAddress,
+      energyAddress,
+    });
+
+    tronWeb.setAddress(energyAddress);
+
+    const tx = await tronWeb.transactionBuilder.delegateResource(
+      amountSun,
+      toAddress,
+      'ENERGY',
+      energyAddress,
+    );
+
+    console.log('[genericSendEnergy] 多签交易...');
+    const stx = await tronWeb.trx.multiSign(tx, decryptedPrivateKey, 3);
+
+    console.log('[genericSendEnergy] 广播交易...');
+    const result = await tronWeb.trx.broadcast(stx);
+
+    if (!result || result.result !== true) {
+      throw new Error(
+        `[genericSendEnergy] 发送交易失败: ${JSON.stringify(result)}`,
+      );
+    }
+
+    console.log('[genericSendEnergy] 能量发送成功，交易ID:', result.txid);
+
+    return result.txid;
+  } catch (error) {
+    console.error('[genericSendEnergy] 能量发送失败:', error);
+    throw error;
+  }
+}
+
 export {
   getAccountEnergy,
   fetchTrxTransactions,
@@ -603,4 +692,5 @@ export {
   rentEnergy,
   unRentEnergy,
   deductProxyTrxBalance,
+  genericSendEnergy,
 };

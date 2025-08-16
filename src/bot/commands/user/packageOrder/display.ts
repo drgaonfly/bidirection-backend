@@ -14,7 +14,6 @@ export async function sendMyPackageOrders(ctx: MyContext) {
     const orders: IPackageOrder[] = await PackageOrder.find({
       botUser: ctx.currentBotUser._id,
       bot: ctx.currentBot._id,
-      status: 'active',
     })
       .sort({ createdAt: -1 }) // 最新订单在前
       .populate('bot', 'name'); // 获取机器人名称

@@ -29,7 +29,7 @@ export const printWebhookInfo = async (bot: Bot) => {
 export const setupBot = (token: string) => {
   const storage = new RedisAdapter({
     instance: redis,
-    ttl: 10,
+    ttl: 3600,
     autoParseDates: true,
   });
   const SOCKS_PROXY_URL = process.env.SOCKS_PROXY_URL; // SOCKS 代理 URL，例如 'socks5://username:password@host:port'
@@ -59,12 +59,7 @@ export const setupBot = (token: string) => {
   }
 
   // 使用 session 中间件
-  bot.use(
-    session({
-      initial: () => ({}),
-      storage,
-    }),
-  );
+  bot.use(session({ initial: () => ({}), storage }));
 
   // 由于 session 已经合并到 context，后续中间件类型也要兼容 MyContext
   // 需要确保所有中间件都用 MyContext 类型

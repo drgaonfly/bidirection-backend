@@ -14,6 +14,7 @@ export async function sendMyPackageOrders(ctx: MyContext) {
     const orders: IPackageOrder[] = await PackageOrder.find({
       botUser: ctx.currentBotUser._id,
       bot: ctx.currentBot._id,
+      status: 'pending', // 目前 pending
     })
       .sort({ createdAt: -1 }) // 最新订单在前
       .populate('bot', 'name'); // 获取机器人名称
@@ -28,7 +29,7 @@ export async function sendMyPackageOrders(ctx: MyContext) {
     orders.forEach((order) => {
       keyboard
         .text(
-          `${order.energy} sun / ${order.times} 笔 / ${
+          `(${order.id}) ${order.energy} sun / ${order.times} 笔 / ${
             order.validityDays
           } 天 / ${order.price} ${order.paymentType.toUpperCase()}`,
           `packageOrder_record_${order.id}`,

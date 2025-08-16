@@ -37,11 +37,11 @@ async function usePackageConversation(
     return;
   }
 
+  // 1️⃣ 输入地址
   await ctx.reply(`请输入使用的地址：\n⏳ 此操作将在 5 分钟后过期`, {
     reply_markup: cancelKeyboard,
   });
 
-  // 等待输入地址
   const addressResult = await conversation.waitFor(
     ['message:text', 'callback_query:data'],
     { maxMilliseconds: TIMEOUT },
@@ -63,23 +63,29 @@ async function usePackageConversation(
     });
   }
 
-  // 输入使用笔数
-  await ctx.reply(`请输入使用笔数（最多 ${order.times} 笔）：`, {
-    reply_markup: cancelKeyboard,
-  });
+  // 2️⃣ 选择使用笔数
+  const timesKeyboard = new InlineKeyboard()
+    .text('1 笔', 'use_times_1')
+    .text('2 笔', 'use_times_2')
+    .row()
+    .text('❌ 取消', 'close');
 
-  const timesResult = await conversation.waitFor(
-    ['message:text', 'callback_query:data'],
-    { maxMilliseconds: TIMEOUT },
-  );
+  await ctx.reply(`请选择使用笔数：`, { reply_markup: timesKeyboard });
+
+  const timesResult = await conversation.waitFor(['callback_query:data'], {
+    maxMilliseconds: TIMEOUT,
+  });
 
   if (timesResult.callbackQuery?.data === 'close') {
     await ctx.reply('已取消使用套餐');
     return;
   }
 
-  const usedTimes = Number(timesResult.message?.text || 0);
-  if (!usedTimes || usedTimes <= 0 || usedTimes > order.times) {
+  let usedTimes = 0;
+  if (timesResult.callbackQuery?.data === 'use_times_1') usedTimes = 1;
+  else if (timesResult.callbackQuery?.data === 'use_times_2') usedTimes = 2;
+
+  if (!usedTimes || usedTimes > order.times) {
     await ctx.reply(`❌ 使用笔数不合法，必须在 1~${order.times} 之间`);
     return await usePackageConversation(conversation, ctx, {
       bot,
@@ -89,15 +95,15 @@ async function usePackageConversation(
     });
   }
 
-  // 创建使用记录
+  // 3️⃣ 创建使用记录
   await PackageUsageRecord.create({
-    id: `${Date.now()}`, // 可以用 IdGen 或其他生成规则
+    id: `${Date.now()}`,
     packageOrder: order._id,
     bot: bot._id,
     botUser: botUser._id,
     proxy: bot.user,
     address,
-    status: 'pending', // 默认 pending，后续可以根据执行结果更新 success/failed
+    status: 'pending',
     usedTimes,
     usedAt: new Date(),
     type,
@@ -109,7 +115,6 @@ async function usePackageConversation(
 
   const energy_per_times = (await getAdminUser()).energy_per_times;
 
-  // 拼接消息
   const message = [
     '✅ 套餐使用记录创建成功！',
     '',
@@ -124,7 +129,6 @@ async function usePackageConversation(
     `⚡ 预计发送能量: <b>${energy_per_times * usedTimes} sun</b>`,
   ].join('\n');
 
-  // 回复
   await ctx.reply(message, { parse_mode: 'HTML' });
 }
 

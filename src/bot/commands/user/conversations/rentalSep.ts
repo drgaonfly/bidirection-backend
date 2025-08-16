@@ -56,8 +56,14 @@ async function packageOrderConversation(
   const original_rate = await getExchangeRate('TRX', 'USDT');
   const processed_rate = 1 / original_rate;
 
+  const fee_for_trx = 1 + bot.fee / 100;
+
   const usdt_price = pricePair.expenditure;
-  const trx_price = +(pricePair.expenditure * processed_rate).toFixed(2);
+  const trx_price = +(
+    pricePair.expenditure *
+    processed_rate *
+    fee_for_trx
+  ).toFixed(2);
 
   const trxEnough = botUserConfig.trx_balance >= trx_price;
   const usdtEnough = botUserConfig.usdt_balance >= usdt_price;

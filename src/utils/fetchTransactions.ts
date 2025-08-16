@@ -256,6 +256,7 @@ async function rentEnergy(
         price: rental.price,
         actual_price: rental.actual_price,
         limit_hour: rental.limit_hour,
+        type: 'flash',
       },
     },
     {

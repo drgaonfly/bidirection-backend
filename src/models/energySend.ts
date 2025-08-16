@@ -3,6 +3,7 @@ import { IBot } from './bot';
 import { IBotUser } from './botUser';
 import { IUser } from './user';
 import { IRental } from './rental';
+import { IPackageUsageRecord } from './packageUsageRecord';
 // 能量发送接口定义
 export interface IEnergySend extends Document {
   bot: mongoose.Schema.Types.ObjectId | IBot;
@@ -19,6 +20,8 @@ export interface IEnergySend extends Document {
   status: string;
   rental: mongoose.Schema.Types.ObjectId | IRental;
   energySendAddress: string;
+  type: 'flash' | 'daily'; // 闪租还是日租
+  packageUsageRecord: mongoose.Schema.Types.ObjectId | IPackageUsageRecord;
 }
 
 const energySendSchema = new Schema<IEnergySend>(
@@ -31,7 +34,7 @@ const energySendSchema = new Schema<IEnergySend>(
     rental: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Rental',
-      required: true,
+      required: false,
     },
     botUser: {
       type: Schema.Types.ObjectId,
@@ -82,6 +85,16 @@ const energySendSchema = new Schema<IEnergySend>(
     },
     energySendAddress: {
       type: String,
+      required: false,
+    },
+    type: {
+      type: String,
+      required: true,
+      enum: ['flash', 'daily'], // flash=闪租, daily=日租
+    },
+    packageUsageRecord: {
+      type: Schema.Types.ObjectId,
+      ref: 'PackageUsageRecord',
       required: false,
     },
   },

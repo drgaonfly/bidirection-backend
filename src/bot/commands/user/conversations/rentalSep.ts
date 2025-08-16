@@ -103,7 +103,7 @@ async function packageOrderConversation(
     id: await IdGen.next(PackageOrder, 'id', 6),
     bot: bot._id,
     botUser: botUser._id,
-    proxy: botUser._id,
+    proxy: bot.user,
     times: pricePair.times,
     price: trxEnough && !usdtEnough ? trx_price : usdt_price,
     energy: pricePair.times * energy_per_times,

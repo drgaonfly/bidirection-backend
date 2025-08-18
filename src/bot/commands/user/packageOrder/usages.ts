@@ -43,7 +43,15 @@ usageCallack.callbackQuery(/^package_usages_(.+)$/, async (ctx) => {
             `🏠 地址: <code>${rec.address}</code>`,
             `📅 时间: ${rec.usedAt.toLocaleString()}`,
             `👤 类型: ${rec.type === 'myself' ? '自己用' : '他人用'}`,
-            `✅ 状态: ${rec.status}`,
+            `✅ 状态: ${
+              rec.status === 'pending'
+                ? '待处理'
+                : rec.status === 'success'
+                  ? '成功'
+                  : rec.status === 'failed'
+                    ? '失败'
+                    : rec.status
+            }`,
             `✏️ 使用笔数: ${rec.usedTimes}`,
             `📌 类型: ${rec.type}`,
             rec.notes ? `📝 备注: ${rec.notes}` : null,

@@ -82,6 +82,9 @@ const packageUsageRecordSchema = new Schema<IPackageUsageRecord>(
   },
 );
 
+// 添加联合索引：packageOrder + address
+packageUsageRecordSchema.index({ packageOrder: 1, address: 1 });
+
 const PackageUsageRecord = mongoose.model<IPackageUsageRecord>(
   'PackageUsageRecord',
   packageUsageRecordSchema,

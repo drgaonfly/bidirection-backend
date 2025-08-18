@@ -63,6 +63,22 @@ async function usePackageConversation(
     });
   }
 
+  const exist = await PackageUsageRecord.find({
+    packageOrder: order._id,
+    address,
+  });
+
+  if (exist.length > 0) {
+    await ctx.reply('❌ 该地址已经使用过该套餐，请重新操作');
+
+    return await usePackageConversation(conversation, ctx, {
+      bot,
+      botUser,
+      orderId,
+      type,
+    });
+  }
+
   // 2️⃣ 确定使用笔数
   let usedTimes = 0;
   if (type === 'myself') {

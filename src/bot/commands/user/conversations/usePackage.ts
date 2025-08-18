@@ -173,7 +173,6 @@ async function usePackageConversation(
 
   // 扣减套餐剩余笔数
   order.current_times -= usedTimes;
-  order.status = 'using';
   await order.save();
 
   // 6️⃣ 回复用户

@@ -94,7 +94,7 @@ balanceCallback.callbackQuery(
       expiredAt: new Date(
         Date.now() + pricePair.expiration * 24 * 60 * 60 * 1000,
       ),
-      status: 'pending',
+      status: 'using',
     });
 
     // 扣费记录

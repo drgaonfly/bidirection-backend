@@ -2,10 +2,12 @@ import mongoose, { Document, Schema } from 'mongoose';
 import { IUser } from './user';
 import { IBot } from './bot';
 import { IRental } from './rental';
+import { IPackageUsageRecord } from './packageUsageRecord';
 
 // 能量解除租用接口定义
 export interface IUnRental extends Document {
   rental: mongoose.Schema.Types.ObjectId | IRental;
+  packageUsageRecord: mongoose.Schema.Types.ObjectId | IPackageUsageRecord;
   proxy: mongoose.Schema.Types.ObjectId | IUser;
   bot: mongoose.Schema.Types.ObjectId | IBot;
   from: string;
@@ -13,6 +15,7 @@ export interface IUnRental extends Document {
   amount: number; // 租赁能量数
   separation: number; // 笔数
   limit_hour: number;
+  limit_day: number;
   status: string;
   hash: string; // 回收哈希
   txid: string; // rental的发送哈希txid
@@ -26,7 +29,12 @@ const unRentalSchema = new Schema<IUnRental>(
     rental: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Rental',
-      required: true,
+      required: false,
+    },
+    packageUsageRecord: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'PackageUsageRecord',
+      required: false,
     },
     proxy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -59,7 +67,11 @@ const unRentalSchema = new Schema<IUnRental>(
     },
     limit_hour: {
       type: Number,
-      required: true,
+      required: false,
+    },
+    limit_day: {
+      type: Number,
+      required: false,
     },
     hash: {
       type: String,

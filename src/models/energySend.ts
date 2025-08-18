@@ -10,6 +10,7 @@ export interface IEnergySend extends Document {
   bot: mongoose.Schema.Types.ObjectId | IBot;
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   proxy: mongoose.Types.ObjectId | IUser;
+  rental: mongoose.Schema.Types.ObjectId | IRental;
   packageUsageRecord: mongoose.Schema.Types.ObjectId | IPackageUsageRecord;
   from_address: string;
   to_address: string;
@@ -20,10 +21,10 @@ export interface IEnergySend extends Document {
   tx_id: string; // 交易哈希
   limit_hour: number;
   status: string;
-  rental: mongoose.Schema.Types.ObjectId | IRental;
   energySendAddress: string;
   type: 'flash' | 'daily'; // 闪租还是日租
   limit_day: number; // 日租用小时
+  createdAt: Date;
 }
 
 const energySendSchema = new Schema<IEnergySend>(
@@ -87,7 +88,7 @@ const energySendSchema = new Schema<IEnergySend>(
     status: {
       type: String,
       required: false,
-      enum: ['pending', 'success', 'failed'],
+      enum: ['pending', 'success', 'failed', 'recycled'],
       default: 'pending',
     },
     energySendAddress: {

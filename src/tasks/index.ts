@@ -24,6 +24,7 @@ import { checkTgStarsOrders } from './cron/checkTgStarsOrders';
 import { setupRedis } from '../utils/redis';
 import { checkAutoRentals } from './cron/checkAutoRentals';
 import { checkAutoUnRentals } from './cron/checkAutoUnRentals';
+import { checkAutoUnPackageUsages } from './cron/checkAutoUnPackageUsages';
 import { checkExpiredPackageOrders } from './cron/checkExpiredPackageOrders';
 
 const task = async () => {
@@ -49,7 +50,8 @@ const task = async () => {
 
   await checkExpiredAnynoumy();
   await checkAutoRentals(); // 处理闪租
-  await checkAutoUnRentals(); // 解除租赁
+  await checkAutoUnRentals(); // 解除闪租
+  await checkAutoUnPackageUsages(); // 接触日租
   await checkExpiredPackageOrders(); // 检查过期的套餐订单
 };
 

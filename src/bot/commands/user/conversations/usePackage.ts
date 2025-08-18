@@ -90,8 +90,10 @@ async function usePackageConversation(
     if (timesResult.callbackQuery?.data === 'use_times_1') usedTimes = 1;
     else if (timesResult.callbackQuery?.data === 'use_times_2') usedTimes = 2;
 
-    if (!usedTimes || usedTimes > order.times) {
-      await ctx.reply(`❌ 使用笔数不合法，必须在 1~${order.times} 之间`);
+    if (!usedTimes || usedTimes > order.current_times) {
+      await ctx.reply(
+        `❌ 使用笔数不合法，必须在 1~${order.current_times} 之间`,
+      );
       return await usePackageConversation(conversation, ctx, {
         bot,
         botUser,
@@ -170,7 +172,7 @@ async function usePackageConversation(
   });
 
   // 扣减套餐剩余笔数
-  order.times -= usedTimes;
+  order.current_times -= usedTimes;
   order.status = 'using';
   await order.save();
 

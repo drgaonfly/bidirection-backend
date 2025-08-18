@@ -70,6 +70,10 @@ const packageUsageRecordSchema = new Schema<IPackageUsageRecord>(
       type: String,
       required: false,
     },
+    type: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,

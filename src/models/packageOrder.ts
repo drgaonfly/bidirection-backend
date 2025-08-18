@@ -6,9 +6,11 @@ import { IUser } from './user';
 // 套餐购买记录接口定义
 export interface IPackageOrder extends Document {
   id: string;
+  name: string;
   bot: mongoose.Schema.Types.ObjectId | IBot; // 属于哪个机器人
   botUser: mongoose.Schema.Types.ObjectId | IBotUser; // 购买用户
   times: number; // 笔数
+  current_times: number; // 当前剩余笔数
   price: number; // 价格
   energy: number; // 能量 (sun)
   validityDays: number; // 有效期（天）
@@ -27,6 +29,10 @@ const packageOrderSchema = new Schema<IPackageOrder>(
       required: true,
       unique: true,
     },
+    name: {
+      type: String,
+      required: false,
+    },
     bot: {
       type: Schema.Types.ObjectId,
       ref: 'Bot',
@@ -40,6 +46,11 @@ const packageOrderSchema = new Schema<IPackageOrder>(
     times: {
       type: Number,
       required: true,
+    },
+    current_times: {
+      type: Number,
+      required: false,
+      default: 0,
     },
     price: {
       type: Number,

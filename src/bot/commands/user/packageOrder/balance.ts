@@ -80,16 +80,20 @@ balanceCallback.callbackQuery(
     // ✅ 真正创建订单
     const order = await PackageOrder.create({
       id: await IdGen.next(PackageOrder, 'id', 6),
+      name: pricePair.name,
       bot: ctx.currentBot._id,
       botUser: ctx.currentBotUser._id,
       proxy: ctx.currentBot.user,
       times: pricePair.times,
+      current_times: pricePair.times,
       energy: pricePair.times * adminUser.energy_per_times,
       validityDays: pricePair.expiration,
       minConsumption: adminUser.recharge_min,
       price: priceToDeduct,
       paymentType,
-      expiredAt: new Date(Date.now() + 30 * 60 * 1000),
+      expiredAt: new Date(
+        Date.now() + pricePair.expiration * 24 * 60 * 60 * 1000,
+      ),
       status: 'pending',
     });
 
@@ -126,10 +130,12 @@ balanceCallback.callbackQuery(
       ].join('\n'),
       {
         parse_mode: 'HTML',
-        reply_markup: new InlineKeyboard().url(
-          '联系客服',
-          ctx.currentBot.customer_service_link || 'https://t.me/infoswqz',
-        ),
+        reply_markup: new InlineKeyboard()
+          .url(
+            '联系客服',
+            ctx.currentBot.customer_service_link || 'https://t.me/infoswqz',
+          )
+          .text('📝 我的笔数套餐', 'my_packageOrder'),
       },
     );
   },

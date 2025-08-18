@@ -29,9 +29,17 @@ export async function sendMyPackageOrders(ctx: MyContext) {
     orders.forEach((order) => {
       keyboard
         .text(
-          `(${order.id}) ${order.energy} sun / ${order.times} 笔 / ${
-            order.validityDays
-          } 天 / ${order.price} ${order.paymentType.toUpperCase()}`,
+          (() => {
+            const now = new Date();
+            const diffTime = order.expiredAt.getTime() - now.getTime();
+            const diffDays = Math.max(
+              0,
+              Math.ceil(diffTime / (1000 * 60 * 60 * 24)),
+            );
+            return `(${order.id}) ${order?.name} / 剩余${
+              order.times - order.current_times
+            }笔 / 剩余${diffDays}天`;
+          })(),
           `packageOrder_record_${order.id}`,
         )
         .row();

@@ -111,7 +111,7 @@ export async function handleRechargeRequest(
           ? admin.recharge_max / 100
           : 0.03;
       const percent = minPercent + Math.random() * (maxPercent - minPercent);
-      const randomIncrease = Number((baseAmount * percent).toFixed(3));
+      const randomIncrease = Number((1 * percent).toFixed(3));
       uniqueAmount = Number((baseAmount + randomIncrease).toFixed(3));
       debug(`尝试生成金额: ${uniqueAmount}, 第 ${attempts + 1} 次尝试`);
 

@@ -118,7 +118,9 @@ async function fetchEnergyContractCalls(address: string, minutes = 1) {
     owner: tronWeb.address.fromHex(
       tx.raw_data?.contract?.[0]?.parameter?.value?.owner_address,
     ),
-    contract: tx.raw_data?.contract?.[0]?.parameter?.value?.contract_address,
+    contract: tronWeb.address.fromHex(
+      tx.raw_data?.contract?.[0]?.parameter?.value?.contract_address,
+    ),
     call_value: tx.raw_data?.contract?.[0]?.parameter?.value?.call_value || 0,
     energy_usage: tx.energy_usage_total || 0,
     energy_fee: tx.energy_fee || 0,

@@ -4,9 +4,9 @@ import { IPackageUsageRecord } from './packageUsageRecord';
 // 能量使用接口定义
 export interface IEnergyUsage extends Document {
   packageUsageRecord: mongoose.Schema.Types.ObjectId | IPackageUsageRecord;
-  address: string;
+  owner_address: string; // 套餐使用记录所存的地址
   consupmtion: number;
-  owner: string;
+  contract_address: string;
   tx_id: string;
   transactionAt: Date;
 }
@@ -21,11 +21,11 @@ const energyUsageSchema = new Schema<IEnergyUsage>(
       type: Number,
       required: true,
     },
-    address: {
+    owner_address: {
       type: String,
       required: false,
     },
-    owner: {
+    contract_address: {
       type: String,
       required: false,
     },

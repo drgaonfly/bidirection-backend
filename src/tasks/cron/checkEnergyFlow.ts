@@ -33,9 +33,9 @@ export async function checkEnergyFlow() {
             {
               $set: {
                 packageUsageRecord: record._id,
-                address: record.address,
+                owner_address: result.owner,
                 consupmtion: result.energy_usage,
-                owner: result.owner,
+                contract_address: result.contract,
                 transactionAt: new Date(result.timestamp),
               },
             },

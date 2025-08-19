@@ -10,8 +10,7 @@ export interface IEnergyUsage extends Document {
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   proxy: mongoose.Schema.Types.ObjectId | IUser;
   packageUsageRecord: mongoose.Schema.Types.ObjectId | IPackageUsageRecord;
-  spied_address: string; // 被监控的地址，也就是套餐使用记录存储的address
-  owner_address: string;
+  address: string; // 被监控的地址，也就是套餐使用记录存储的address
   energy: number; // 消耗的能量
   bandwidth: number; // 消耗的带宽
   tx_id: string;
@@ -51,11 +50,7 @@ const energyUsageSchema = new Schema<IEnergyUsage>(
       type: Number,
       required: true,
     },
-    owner_address: {
-      type: String,
-      required: false,
-    },
-    spied_address: {
+    address: {
       type: String,
       required: false,
     },

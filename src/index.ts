@@ -49,6 +49,7 @@ import energySendRoutes from './routes/energySendRoutes';
 import deductionRoutes from './routes/deductionRoutes';
 import packageOrderRoutes from './routes/packageOrderRoutes';
 import packageUsageRecordRoutes from './routes/packageUsageRecordRoutes';
+import energyUsage from './routes/energyUsageRoutes';
 
 dotenv.config();
 
@@ -109,6 +110,7 @@ app.use('/api/energy-sends', energySendRoutes);
 app.use('/api/deductions', deductionRoutes);
 app.use('/api/package-orders', packageOrderRoutes);
 app.use('/api/package-usage-records', packageUsageRecordRoutes);
+app.use('/api/energy-usages', energyUsage);
 
 app.use('/api/static', express.static('tmp'));
 

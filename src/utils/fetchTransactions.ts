@@ -83,6 +83,48 @@ async function fetchTrc20Transactions(address: string, minutes = 1) {
   return response.data.data;
 }
 
+async function fetchEnergyContractCalls(address: string, minutes = 1) {
+  const now = Date.now();
+  const startTimestamp = now - minutes * 60 * 1000;
+
+  const url = `https://api.trongrid.io/v1/accounts/${address}/transactions?start_timestamp=${startTimestamp}`;
+
+  const key = getNextApiKey();
+
+  const response = await axios.get(url, {
+    headers: {
+      Accept: 'application/json',
+      'TRON-PRO-API-KEY': key,
+    },
+  });
+
+  const transactions = response.data.data || [];
+
+  // 只筛选出调用合约的交易
+  const contractCalls = transactions.filter((tx: any) => {
+    const contractType = tx.raw_data?.contract?.[0]?.type;
+    return contractType === 'TriggerSmartContract';
+  });
+
+  const tronWeb = new TronWeb({
+    fullHost: 'https://api.trongrid.io',
+  });
+
+  // 带上能量消耗信息
+  return contractCalls.map((tx: any) => ({
+    txID: tx.txID,
+    block: tx.blockNumber,
+    timestamp: tx.block_timestamp,
+    owner: tronWeb.address.fromHex(
+      tx.raw_data?.contract?.[0]?.parameter?.value?.owner_address,
+    ),
+    contract: tx.raw_data?.contract?.[0]?.parameter?.value?.contract_address,
+    call_value: tx.raw_data?.contract?.[0]?.parameter?.value?.call_value || 0,
+    energy_usage: tx.energy_usage_total || 0,
+    energy_fee: tx.energy_fee || 0,
+  }));
+}
+
 const getAccountBalances = async (accountId: string) => {
   const url = `https://api.trongrid.io/v1/accounts/${accountId}`;
 
@@ -553,48 +595,6 @@ async function deductProxyTrxBalance(
   }
 }
 
-async function getAccountEnergy(address: string) {
-  const url = `https://api.trongrid.io/v1/accounts/${address}/resources`;
-
-  const key = getNextApiKey();
-
-  try {
-    const response = await axios.get(url, {
-      headers: {
-        Accept: 'application/json',
-        'TRON-PRO-API-KEY': key,
-      },
-    });
-
-    const data = response.data.data[0];
-
-    // 获取能量信息
-    const availableEnergy = data.energy || 0;
-    const totalEnergy = data.energyLimit || 0;
-
-    // 计算已使用能量
-    const usedEnergy = totalEnergy - availableEnergy;
-
-    // 计算能量使用百分比
-    const energyUsagePercent =
-      totalEnergy > 0 ? ((usedEnergy / totalEnergy) * 100).toFixed(2) : '0.00';
-
-    return {
-      availableEnergy,
-      totalEnergy,
-      usedEnergy,
-      energyUsagePercent: `${energyUsagePercent}%`,
-      // 格式化显示，添加千位分隔符
-      formattedAvailable: availableEnergy.toLocaleString(),
-      formattedTotal: totalEnergy.toLocaleString(),
-      formattedUsed: usedEnergy.toLocaleString(),
-    };
-  } catch (error) {
-    console.error('Error fetching account energy:', error);
-    throw error;
-  }
-}
-
 async function genericSendEnergy(
   toAddress: string,
   amount: number,
@@ -814,9 +814,9 @@ async function genericRecycleEnergy(energySend: IEnergySend): Promise<any> {
 }
 
 export {
-  getAccountEnergy,
   fetchTrxTransactions,
   fetchTrc20Transactions,
+  fetchEnergyContractCalls,
   getAccountBalances,
   rentEnergy,
   unRentEnergy,

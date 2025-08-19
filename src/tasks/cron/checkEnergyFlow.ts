@@ -16,7 +16,7 @@ export async function checkEnergyFlow() {
 
     // 查询所有已完成且到期的租赁订单
     const records = await PackageUsageRecord.find({
-      status: 'pending',
+      status: 'success',
     });
 
     console.log(`[checkEnergyFlow] 查询到 ${records.length} 个套餐使用记录`);

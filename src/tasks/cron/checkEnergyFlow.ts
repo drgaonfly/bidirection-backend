@@ -23,10 +23,7 @@ export async function checkEnergyFlow() {
 
     for (const record of records) {
       try {
-        const results = await fetchEnergyContractCalls(
-          record.address,
-          3 * 24 * 60,
-        );
+        const results = await fetchEnergyContractCalls(record.address, 1);
 
         for (const result of results) {
           const energy =

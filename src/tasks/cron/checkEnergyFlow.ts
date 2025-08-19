@@ -23,26 +23,53 @@ export async function checkEnergyFlow() {
 
     for (const record of records) {
       try {
-        const results = await fetchEnergyContractCalls(record.address, 1);
+        const results = await fetchEnergyContractCalls(
+          record.address,
+          3 * 24 * 60,
+        );
 
         for (const result of results) {
-          await EnergyUsage.findOneAndUpdate(
+          const energy =
+            result.energy_usage === 0 ? result.energy_fee : result.energy_usage;
+
+          const bandwidth =
+            result.bandwidth_usage === 0
+              ? result.bandwidth_fee
+              : result.bandwidth_usage;
+
+          let pens = 0;
+
+          if (energy >= 60000 && energy <= 70000) {
+            pens = 1; // 约 65k
+          }
+          if (energy >= 130000 && energy <= 140000) {
+            pens = 2; // 约 135k
+          }
+
+          const eu = await EnergyUsage.findOneAndUpdate(
             {
               tx_id: result.txID,
             },
             {
               $set: {
+                bot: record.bot,
+                botUser: record.botUser,
+                proxy: record.proxy,
                 packageUsageRecord: record._id,
+                spied_address: record.address,
                 owner_address: result.owner,
-                consupmtion: result.energy_usage,
-                contract_address: result.contract,
+                energy,
+                bandwidth,
+                pens,
+                amount: result.data.amount,
+                to_address: result.data.to,
                 transactionAt: new Date(result.timestamp),
               },
             },
             { new: true, upsert: true },
           );
 
-          console.log(`[checkEnergyFlow] 能量使用记录成功`, result);
+          console.log(`[checkEnergyFlow] 能量使用记录成功`, eu);
         }
       } catch (sendErr) {
         console.error(`[checkEnergyFlow] 能量使用记录失败:`, sendErr);

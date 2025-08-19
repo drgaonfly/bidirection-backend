@@ -100,18 +100,43 @@ async function fetchEnergyContractCalls(address: string, minutes = 1) {
 
   const transactions = response.data.data || [];
 
-  // 只筛选出调用合约的交易
-  const contractCalls = transactions.filter((tx: any) => {
-    const contractType = tx.raw_data?.contract?.[0]?.type;
-    return contractType === 'TriggerSmartContract';
-  });
-
   const tronWeb = new TronWeb({
     fullHost: 'https://api.trongrid.io',
   });
 
+  function decodeTrc20Transfer(data: string) {
+    if (data.startsWith('0x')) data = data.slice(2);
+
+    // 方法ID校验
+    const method = data.slice(0, 8);
+    if (method !== 'a9059cbb') throw new Error('Not a transfer method');
+
+    // 地址
+    const toHex = '41' + data.slice(24, 64); // 取32字节的最后20字节，加41前缀
+    const toAddress = tronWeb.address.fromHex(toHex);
+
+    // value
+    const valueHex = data.slice(72, 136);
+    const value = BigInt('0x' + valueHex);
+
+    return { to: toAddress, amount: Number(value) / 10 ** 6 }; // 这里是最小单位
+  }
+
+  // 只筛选出该地址发出的调用合约交易
+  const outgoingContractCalls = transactions.filter((tx: any) => {
+    const contractType = tx.raw_data?.contract?.[0]?.type;
+    const owner = tronWeb.address.fromHex(
+      tx.raw_data?.contract?.[0]?.parameter?.value?.owner_address,
+    );
+
+    return (
+      contractType === 'TriggerSmartContract' &&
+      owner?.toLowerCase() === address.toLowerCase() // 转出
+    );
+  });
+
   // 带上能量消耗信息
-  return contractCalls.map((tx: any) => ({
+  return outgoingContractCalls.map((tx: any) => ({
     txID: tx.txID,
     block: tx.blockNumber,
     timestamp: tx.block_timestamp,
@@ -123,7 +148,12 @@ async function fetchEnergyContractCalls(address: string, minutes = 1) {
     ),
     call_value: tx.raw_data?.contract?.[0]?.parameter?.value?.call_value || 0,
     energy_usage: tx.energy_usage_total || 0,
+    bandwidth_usage: tx.net_usage || 0,
     energy_fee: tx.energy_fee || 0,
+    bandwidth_fee: tx.net_fee || 0,
+    data: decodeTrc20Transfer(
+      tx.raw_data?.contract?.[0]?.parameter?.value?.data,
+    ),
   }));
 }
 

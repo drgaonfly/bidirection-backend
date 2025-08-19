@@ -92,10 +92,10 @@ export const getEnergyUsages = handleAsync(
     const query = await buildQuery(req.query, req);
 
     const energyUsages = await EnergyUsage.find(query)
-      .populate({
-        path: 'packageUsageRecord',
-        populate: [{ path: 'botUser' }, { path: 'bot' }, { path: 'proxy' }],
-      })
+      .populate('packageUsageRecord')
+      .populate('bot')
+      .populate('botUser')
+      .populate('proxy')
       .sort('-createdAt')
       .skip((+current - 1) * +pageSize)
       .limit(+pageSize)

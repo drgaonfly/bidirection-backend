@@ -15,6 +15,12 @@ export async function checkMinConsumption() {
 
   const adminUser = await getAdminUser();
 
+  // 查询今天0点到明天0点的能量使用记录
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
   try {
     console.log('[checkMinConsumption] 开始检查所有待处理的能量归还订单...');
 
@@ -28,12 +34,6 @@ export async function checkMinConsumption() {
     );
 
     for (const pur of purs) {
-      // 查询今天0点到明天0点的能量使用记录
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-
       const energyUsages = await EnergyUsage.find({
         packageUsageRecord: pur._id,
         createdAt: {
@@ -51,7 +51,7 @@ export async function checkMinConsumption() {
       let used_energy = 0;
 
       if (used_times >= adminUser.recycle_min) {
-        //used_times >= packageOrder.minConsumption, 说明，我给自己或给他人充的能量，不仅都用了，还达到了或超过了低消
+        //used_times >= 低消, 说明，给自己或给他人充的能量，不仅都用了，还达到了或超过了低消
 
         let tx_id = '';
 

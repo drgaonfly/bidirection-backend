@@ -25,7 +25,7 @@ import { checkTgStarsOrders } from './cron/checkTgStarsOrders';
 
 import { checkAutoRentals } from './cron/checkAutoRentals';
 import { checkAutoUnRentals } from './cron/checkAutoUnRentals';
-import { checkAutoUnPackageUsages } from './cron/checkAutoUnPackageUsages';
+// import { checkAutoUnPackageUsages } from './cron/checkAutoUnPackageUsages';
 import { checkExpiredPackageOrders } from './cron/checkExpiredPackageOrders';
 
 import { checkEnergyFlow } from './cron/checkEnergyFlow';
@@ -54,7 +54,7 @@ const task = async () => {
   await checkExpiredAnynoumy();
   await checkAutoRentals(); // 处理闪租
   await checkAutoUnRentals(); // 解除闪租
-  await checkAutoUnPackageUsages(); // 接触日租
+  // await checkAutoUnPackageUsages(); // 解除日租
   await checkExpiredPackageOrders(); // 检查过期的套餐订单
   await checkEnergyFlow(); // 监听并生成能量使用记录
 };

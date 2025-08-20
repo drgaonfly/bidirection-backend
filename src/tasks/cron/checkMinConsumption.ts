@@ -48,12 +48,40 @@ export async function checkMinConsumption() {
         0,
       );
 
-      const used_energy = used_times * adminUser.energy_per_times;
+      let used_energy = 0;
 
-      if (used_times > adminUser.recycle_min) {
+      if (used_times >= adminUser.recycle_min) {
         //used_times >= packageOrder.minConsumption, 说明，我给自己或给他人充的能量，不仅都用了，还达到了或超过了低消
 
         let tx_id = '';
+
+        used_energy = used_times * adminUser.energy_per_times;
+
+        try {
+          tx_id = await genericRecycleEnergyByAmount(used_energy, pur.address);
+
+          await minConsumption.create({
+            bot: pur.bot,
+            botUser: pur.botUser,
+            proxy: pur.proxy,
+            packageUsageRecord: pur._id,
+            energy: used_energy,
+            pens: used_times,
+            tx_id,
+          });
+
+          console.log(
+            `[checkMinConsumption] packageUsageRecord : ${pur.id} 回收成功, ${tx_id}`,
+          );
+        } catch (error) {
+          console.log(`[checkMinConsumption] 回收失败, ${error}`);
+        }
+      } else {
+        // 如果用的笔数小于低消，就用低消
+
+        let tx_id = '';
+
+        used_energy = adminUser.recycle_min * adminUser.energy_per_times;
 
         try {
           tx_id = await genericRecycleEnergyByAmount(used_energy, pur.address);

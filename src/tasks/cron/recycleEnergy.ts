@@ -34,23 +34,17 @@ export async function recycleEnergy() {
     );
 
     for (const pur of purs) {
-      const existUnRental = await UnRental.findOne({
-        packageUsageRecord: pur._id,
-        txid: { $ne: null },
-      });
-
-      if (existUnRental) {
-        console.log(
-          `[recycleEnergy]: packageUsageRecord: ${pur.id} 能量回收已完成，无需再次回收]`,
-        );
-        throw new Error(
-          `[recycleEnergy]: packageUsageRecord: ${pur.id} 能量回收已完成，无需再次回收]`,
-        );
-      }
-
       const energyUsages = await EnergyUsage.find({
         packageUsageRecord: pur._id,
+        isRecycled: false,
       });
+
+      if (energyUsages.length === 0) {
+        console.log(
+          `[recycleEnergy]: packageUsageRecord: ${pur.id} 没有能量使用记录，跳过]`,
+        );
+        continue;
+      }
 
       const used_times = energyUsages.reduce(
         (sum, eu) => sum + (eu.pens || 0),
@@ -63,36 +57,49 @@ export async function recycleEnergy() {
 
       const fromAddress = tronWeb.address.fromPrivateKey(decryptedPrivateKey); // A 地址
 
+      const ur = await UnRental.findOneAndUpdate(
+        {
+          bot: pur.bot,
+          botUser: pur.botUser,
+          proxy: pur.proxy,
+          packageUsageRecord: pur._id,
+        },
+        {
+          $set: {
+            energySendAddress: fromAddress,
+            from: adminUser.energy_address,
+            to: pur.address,
+            separation: used_times,
+            amount: used_energy,
+          },
+        },
+        { new: true, upsert: true },
+      );
+
       let tx_id = '';
 
       if (used_times >= adminUser.recycle_min) {
         try {
           tx_id = await genericRecycleEnergyByAmount(used_energy, pur.address);
 
-          await UnRental.findOneAndUpdate(
-            {
-              bot: pur.bot,
-              botUser: pur.botUser,
-              proxy: pur.proxy,
-              packageUsageRecord: pur._id,
-            },
-            {
-              $set: {
-                energySendAddress: fromAddress,
-                from: adminUser.energy_address,
-                to: pur.address,
-                separation: used_times,
-                amount: used_energy,
-                hash: tx_id,
-              },
-            },
-            { new: true, upsert: true },
+          ur.hash = tx_id;
+          ur.status = 'success';
+
+          await ur.save();
+
+          await EnergyUsage.updateMany(
+            { _id: { $in: energyUsages.map((eu) => eu._id) } },
+            { $set: { isRecycled: true } },
           );
 
           console.log(
             `[recycleEnergy] packageUsageRecord : ${pur.id} 回收能量成功, tx_id=${tx_id}`,
           );
         } catch (error) {
+          ur.status = 'failed';
+
+          await ur.save();
+
           console.log(`[recycleEnergy] 回收能量失败, ${error}`);
         }
       }

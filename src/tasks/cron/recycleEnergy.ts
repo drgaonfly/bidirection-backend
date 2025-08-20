@@ -16,13 +16,13 @@ const tronWeb = new TronWeb({
 /**
  * 检查所有已完成且到期的租赁订单，自动归还能量
  */
-export async function recyleEnergy() {
-  debug('recyleEnergy');
+export async function recycleEnergy() {
+  debug('recycleEnergy');
 
   const adminUser = await getAdminUser();
 
   try {
-    console.log('[recyleEnergy] 开始检查所有待处理的套餐使用记录...');
+    console.log('[recycleEnergy] 开始检查所有待处理的套餐使用记录...');
 
     // 查询所有已完成的套餐使用记录
     const purs = await PackageUsageRecord.find({
@@ -30,7 +30,7 @@ export async function recyleEnergy() {
     });
 
     console.log(
-      `[recyleEnergy] 查询到 ${purs.length} 个符合条件的套餐使用记录`,
+      `[recycleEnergy] 查询到 ${purs.length} 个符合条件的套餐使用记录`,
     );
 
     for (const pur of purs) {
@@ -41,10 +41,10 @@ export async function recyleEnergy() {
 
       if (existUnRental) {
         console.log(
-          `[recyleEnergy]: packageUsageRecord: ${pur.id} 能量回收已完成，无需再次回收]`,
+          `[recycleEnergy]: packageUsageRecord: ${pur.id} 能量回收已完成，无需再次回收]`,
         );
         throw new Error(
-          `[recyleEnergy]: packageUsageRecord: ${pur.id} 能量回收已完成，无需再次回收]`,
+          `[recycleEnergy]: packageUsageRecord: ${pur.id} 能量回收已完成，无需再次回收]`,
         );
       }
 
@@ -90,16 +90,16 @@ export async function recyleEnergy() {
           );
 
           console.log(
-            `[recyleEnergy] packageUsageRecord : ${pur.id} 回收能量成功, tx_id=${tx_id}`,
+            `[recycleEnergy] packageUsageRecord : ${pur.id} 回收能量成功, tx_id=${tx_id}`,
           );
         } catch (error) {
-          console.log(`[recyleEnergy] 回收能量失败, ${error}`);
+          console.log(`[recycleEnergy] 回收能量失败, ${error}`);
         }
       }
     }
 
-    console.log('[recyleEnergy] 处理回收能量成功');
+    console.log('[recycleEnergy] 处理回收能量成功');
   } catch (error) {
-    console.error('[recyleEnergy] 处理回收能量时出错:', error);
+    console.error('[recycleEnergy] 处理回收能量时出错:', error);
   }
 }

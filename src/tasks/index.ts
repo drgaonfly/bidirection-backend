@@ -29,6 +29,7 @@ import { checkAutoUnRentals } from './cron/checkAutoUnRentals';
 import { checkExpiredPackageOrders } from './cron/checkExpiredPackageOrders';
 
 import { checkEnergyFlow } from './cron/checkEnergyFlow';
+import { recycleEnergy } from './cron/recycleEnergy';
 
 const task = async () => {
   await setupDB();
@@ -59,6 +60,7 @@ const task = async () => {
   await checkEnergyFlow(); // 监听并生成能量使用记录
 
   // 今天只要消费超过五笔（这个五不是写死的）。就立马回收能量
+  await recycleEnergy();
 };
 
 // 执行任务并在完成后退出进程

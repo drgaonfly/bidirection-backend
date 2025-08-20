@@ -717,6 +717,21 @@ async function genericSendEnergy(
 }
 
 async function genericRecycleEnergy(energySend: IEnergySend): Promise<any> {
+  const existUnRental = await UnRental.findOne({
+    packageUsageRecord: energySend.packageUsageRecord,
+    txid: { $ne: null },
+    status: 'success',
+  });
+
+  if (existUnRental) {
+    console.log(
+      `[genericRecycleEnergy]: ${energySend._id} 能量回收已完成，无需再次回收]`,
+    );
+    throw new Error(
+      `[genericRecycleEnergy]: ${energySend._id} 能量回收已完成，无需再次回收]`,
+    );
+  }
+
   console.log(
     '[genericRecycleEnergy] 开始处理能量回收, amount:',
     energySend.amount,
@@ -845,6 +860,112 @@ async function genericRecycleEnergy(energySend: IEnergySend): Promise<any> {
   }
 }
 
+async function genericRecycleEnergyByAmount(
+  amount: number,
+  address: string,
+): Promise<any> {
+  console.log(
+    '[genericRecycleEnergyByAmount] 开始处理能量回收, amount:',
+    amount,
+  );
+
+  // 获取管理员用户
+  console.log('[genericRecycleEnergyByAmount] 获取管理员用户...');
+  const admin = await getAdminUser();
+
+  if (!admin.energy_address) {
+    throw new Error('管理员账户未设置 energy_address（放能量地址）');
+  }
+
+  // 解密私钥
+  console.log('[genericRecycleEnergyByAmount] 解密管理员能量私钥...');
+  const decryptedPrivateKey = decrypt(admin.energy_privateKey);
+
+  // 初始化 TronWeb
+  console.log('[genericRecycleEnergyByAmount] 初始化 TronWeb...');
+  const tronWeb = new TronWeb({
+    fullHost: 'https://api.trongrid.io',
+    privateKey: decryptedPrivateKey,
+  });
+
+  const energyAddress = admin.energy_address; // B 地址
+  const fromAddress = tronWeb.address.fromPrivateKey(decryptedPrivateKey); // A 地址
+  console.log('[genericRecycleEnergyByAmount] 管理员地址信息:', {
+    energyAddress,
+    fromAddress,
+  });
+
+  // // 创建 UnRental 记录
+  // const unRental = new UnRental({
+  //   from: energyAddress,
+  //   energySendAddress: fromAddress,
+  //   amount: amount,
+  //   status: 'pending',
+  // });
+  // await unRental.save();
+  // console.log('[genericRecycleEnergyByAmount] UnRental 记录已创建:', unRental._id);
+
+  try {
+    const amountSunStr = tronWeb.toSun(amount);
+    const amountSun = Number(amountSunStr) / 10;
+    console.log(
+      '[genericRecycleEnergyByAmount] 解除租赁 amount:',
+      amount,
+      'Sun:',
+      amountSun,
+    );
+
+    // 构建解除能量交易
+    console.log('[genericRecycleEnergyByAmount] 创建解除能量交易...');
+    tronWeb.setAddress(energyAddress);
+    const transaction = await tronWeb.transactionBuilder.undelegateResource(
+      amountSun,
+      address, // 这里要指定被解除的地址，如果只有管理员则默认用管理员自己
+      'ENERGY',
+      energyAddress,
+    );
+    console.log('[genericRecycleEnergyByAmount] 交易已构建:', transaction);
+
+    // 多签
+    console.log('[genericRecycleEnergyByAmount] 多签交易...');
+    const signedTx = await tronWeb.trx.multiSign(
+      transaction,
+      decryptedPrivateKey,
+      3,
+    );
+    console.log('[genericRecycleEnergyByAmount] 多签完成:', signedTx);
+
+    // 广播
+    console.log('[genericRecycleEnergyByAmount] 广播交易...');
+    const result = await tronWeb.trx.broadcast(signedTx);
+    console.log('[genericRecycleEnergyByAmount] 广播结果:', result);
+
+    if (!result || result.result !== true) {
+      throw new Error(
+        `[genericRecycleEnergyByAmount] 交易失败: ${JSON.stringify(result)}`,
+      );
+    }
+
+    // unRental.status = 'success';
+    // unRental.hash = result.txid;
+    // unRental.error = JSON.stringify(result);
+    // await unRental.save();
+
+    console.log(
+      '[genericRecycleEnergyByAmount] UnRental 状态已更新为 success, hash:',
+      result.txid,
+    );
+
+    return result.txid;
+  } catch (error) {
+    console.error('[genericRecycleEnergyByAmount] 解除能量失败:', error);
+    // unRental.status = 'failed';
+    // await unRental.save();
+    // console.log('[genericRecycleEnergyByAmount] UnRental 状态已更新为 failed, unRentalId:', unRental._id);
+    throw error;
+  }
+}
+
 export {
   fetchTrxTransactions,
   fetchTrc20Transactions,
@@ -855,4 +976,5 @@ export {
   deductProxyTrxBalance,
   genericSendEnergy,
   genericRecycleEnergy,
+  genericRecycleEnergyByAmount,
 };

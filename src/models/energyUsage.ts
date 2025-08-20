@@ -18,6 +18,7 @@ export interface IEnergyUsage extends Document {
   amount: number; // 转出多少usdt
   to_address: string; // 转出地址
   transactionAt: Date;
+  createdAt: Date;
 }
 
 const energyUsageSchema = new Schema<IEnergyUsage>(

@@ -149,7 +149,7 @@ const userSchema = new mongoose.Schema(
     // 每笔多少能量
     energy_per_times: { type: Number, default: 65000 },
 
-    recycle_min: { type: Number, default: 12 },
+    recycle_min: { type: Number, default: 5 },
   },
   { timestamps: true },
 );

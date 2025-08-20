@@ -1,6 +1,5 @@
 import PackageUsageRecord from '../../models/packageUsageRecord';
 import EnergyUsage from '../../models/energyUsage';
-import { genericRecycleEnergyByAmount } from '../../utils/fetchTransactions';
 import { getAdminUser } from '../../utils/buyTelegramPremium';
 import minConsumption from '../../models/minConsumption';
 import PackageOrder from '../../models/packageOrder';
@@ -64,21 +63,16 @@ export async function checkMinConsumption() {
       if (used_times === 0) {
         //used_times === 0, 说明，给自己或给他人充的能量，一点没用，按低消回收
 
-        let tx_id = '';
-
         used_energy = adminUser.recycle_min * adminUser.energy_per_times;
 
         try {
-          tx_id = await genericRecycleEnergyByAmount(used_energy, pur.address);
-
           await minConsumption.create({
             bot: pur.bot,
             botUser: pur.botUser,
             proxy: pur.proxy,
             packageUsageRecord: pur._id,
             energy: used_energy,
-            pens: used_times,
-            tx_id,
+            pens: adminUser.recycle_min,
           });
 
           await PackageOrder.findByIdAndUpdate(pur.packageOrder, {
@@ -88,7 +82,7 @@ export async function checkMinConsumption() {
           });
 
           console.log(
-            `[checkMinConsumption] packageUsageRecord : ${pur.id} 扣低消成, ${tx_id}`,
+            `[checkMinConsumption] packageUsageRecord : ${pur.id} 扣低消成`,
           );
         } catch (error) {
           console.log(`[checkMinConsumption] 扣低消失败, ${error}`);

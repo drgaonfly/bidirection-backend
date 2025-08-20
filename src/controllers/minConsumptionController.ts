@@ -94,7 +94,7 @@ export const getMinConsumptions = handleAsync(
       .populate('botUser')
       .populate('bot')
       .populate('proxy')
-      .populate('packageOrder')
+      .populate('packageUsageRecord')
       .sort('-createdAt')
       .skip((+current - 1) * +pageSize)
       .limit(+pageSize)

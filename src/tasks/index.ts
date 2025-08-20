@@ -57,6 +57,8 @@ const task = async () => {
   // await checkAutoUnPackageUsages(); // 解除日租
   await checkExpiredPackageOrders(); // 检查过期的套餐订单
   await checkEnergyFlow(); // 监听并生成能量使用记录
+
+  // 今天只要消费超过五笔（这个五不是写死的）。就立马回收能量
 };
 
 // 执行任务并在完成后退出进程

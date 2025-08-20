@@ -66,8 +66,9 @@ export async function checkMinConsumption() {
             bot: pur.bot,
             botUser: pur.botUser,
             proxy: pur.proxy,
+            packageOrder: packageOrder._id,
             packageUsageRecord: pur._id,
-            pens: adminUser.recycle_min,
+            pens: packageOrder.minConsumption,
           });
 
           await PackageOrder.findByIdAndUpdate(pur.packageOrder, {

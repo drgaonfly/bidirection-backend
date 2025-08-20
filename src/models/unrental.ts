@@ -93,7 +93,7 @@ const unRentalSchema = new Schema<IUnRental>(
     },
     price: {
       type: Number,
-      required: true,
+      required: false,
     },
     error: {
       type: String,

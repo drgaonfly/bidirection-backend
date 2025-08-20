@@ -6,6 +6,7 @@ import { setupRedis } from '../utils/redis';
 
 import { checkMinConsumption } from './cron/checkMinConsumption';
 
+// 每天 0 点 五分跑
 const task = async () => {
   await setupDB();
   await setupRedis();

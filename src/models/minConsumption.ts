@@ -10,7 +10,6 @@ export interface IMinConsumption extends Document {
   proxy: mongoose.Schema.Types.ObjectId | IUser;
   packageUsageRecord: mongoose.Schema.Types.ObjectId | IPackageUsageRecord;
   pens: number;
-  energy: number; // 回收多少能量
 }
 
 const minConsumptionSchema = new mongoose.Schema(
@@ -23,7 +22,6 @@ const minConsumptionSchema = new mongoose.Schema(
       ref: 'PackageUsageRecord',
     },
     pens: { type: Number, required: true },
-    energy: { type: Number, required: true },
   },
   {
     timestamps: true,

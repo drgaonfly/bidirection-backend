@@ -58,12 +58,8 @@ export async function checkMinConsumption() {
         0,
       );
 
-      let used_energy = 0;
-
       if (used_times === 0) {
         //used_times === 0, 说明，给自己或给他人充的能量，一点没用，按低消回收
-
-        used_energy = adminUser.recycle_min * adminUser.energy_per_times;
 
         try {
           await minConsumption.create({
@@ -71,7 +67,6 @@ export async function checkMinConsumption() {
             botUser: pur.botUser,
             proxy: pur.proxy,
             packageUsageRecord: pur._id,
-            energy: used_energy,
             pens: adminUser.recycle_min,
           });
 

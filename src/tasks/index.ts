@@ -56,7 +56,7 @@ const task = async () => {
   await checkAutoUnRentals(); // 解除闪租
   await checkAutoUnPackageUsages(); // 接触日租
   await checkExpiredPackageOrders(); // 检查过期的套餐订单
-  await checkEnergyFlow();
+  await checkEnergyFlow(); // 监听并生成能量使用记录
 };
 
 // 执行任务并在完成后退出进程

@@ -3,6 +3,7 @@ import EnergyUsage from '../../models/energyUsage';
 import { genericRecycleEnergyByAmount } from '../../utils/fetchTransactions';
 import { getAdminUser } from '../../utils/buyTelegramPremium';
 import minConsumption from '../../models/minConsumption';
+import PackageOrder from '../../models/packageOrder';
 import createDebug from 'debug';
 
 const debug = createDebug('cron:checkAutoRentals');
@@ -22,7 +23,7 @@ export async function checkMinConsumption() {
   tomorrow.setDate(tomorrow.getDate() + 1);
 
   try {
-    console.log('[checkMinConsumption] 开始检查所有待处理的能量归还订单...');
+    console.log('[checkMinConsumption] 开始检查所有待处理的套餐使用记录...');
 
     // 查询所有已完成的套餐使用记录
     const purs = await PackageUsageRecord.find({
@@ -34,6 +35,16 @@ export async function checkMinConsumption() {
     );
 
     for (const pur of purs) {
+      const packageOrder = await PackageOrder.findById(pur.packageOrder);
+
+      if (packageOrder.current_times === 0) {
+        console.log(
+          `[checkMinConsumption] packageUsageRecord: [${pur.id}] 所归属的套餐订单已无可用笔数，跳过`,
+        );
+
+        continue;
+      }
+
       const energyUsages = await EnergyUsage.find({
         packageUsageRecord: pur._id,
         createdAt: {
@@ -50,34 +61,8 @@ export async function checkMinConsumption() {
 
       let used_energy = 0;
 
-      if (used_times >= adminUser.recycle_min) {
-        //used_times >= 低消, 说明，给自己或给他人充的能量，不仅都用了，还达到了或超过了低消
-
-        let tx_id = '';
-
-        used_energy = used_times * adminUser.energy_per_times;
-
-        try {
-          tx_id = await genericRecycleEnergyByAmount(used_energy, pur.address);
-
-          await minConsumption.create({
-            bot: pur.bot,
-            botUser: pur.botUser,
-            proxy: pur.proxy,
-            packageUsageRecord: pur._id,
-            energy: used_energy,
-            pens: used_times,
-            tx_id,
-          });
-
-          console.log(
-            `[checkMinConsumption] packageUsageRecord : ${pur.id} 回收成功, ${tx_id}`,
-          );
-        } catch (error) {
-          console.log(`[checkMinConsumption] 回收失败, ${error}`);
-        }
-      } else {
-        // 如果用的笔数小于低消，就用低消
+      if (used_times === 0) {
+        //used_times === 0, 说明，给自己或给他人充的能量，一点没用，按低消回收
 
         let tx_id = '';
 
@@ -96,17 +81,23 @@ export async function checkMinConsumption() {
             tx_id,
           });
 
+          await PackageOrder.findByIdAndUpdate(pur.packageOrder, {
+            $inc: {
+              current_times: -adminUser.recycle_min,
+            },
+          });
+
           console.log(
-            `[checkMinConsumption] packageUsageRecord : ${pur.id} 回收成功, ${tx_id}`,
+            `[checkMinConsumption] packageUsageRecord : ${pur.id} 扣低消成, ${tx_id}`,
           );
         } catch (error) {
-          console.log(`[checkMinConsumption] 回收失败, ${error}`);
+          console.log(`[checkMinConsumption] 扣低消失败, ${error}`);
         }
       }
     }
 
-    console.log('[checkMinConsumption] 待处理能量回收成功处理完成');
+    console.log('[checkMinConsumption] 处理扣低消成功');
   } catch (error) {
-    console.error('[checkMinConsumption] 处理能量租赁时出错:', error);
+    console.error('[checkMinConsumption] 处理扣低消时出错:', error);
   }
 }

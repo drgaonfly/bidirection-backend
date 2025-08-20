@@ -119,6 +119,7 @@ const botUserConfigSchema = new mongoose.Schema(
       type: Number,
       required: false,
       default: 0,
+      min: 0,
     },
   },
   {

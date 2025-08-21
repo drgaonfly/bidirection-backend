@@ -120,7 +120,7 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
       }
 
       order.status = 'expired';
-      order.times = 0;
+      order.current_times = 0;
       await order.save();
 
       console.log(

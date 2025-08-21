@@ -78,6 +78,7 @@ const packageUsageRecordSchema = new Schema<IPackageUsageRecord>(
     isRecycled: {
       type: Boolean,
       required: false,
+      default: false,
     },
   },
   {

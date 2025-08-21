@@ -24,7 +24,7 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
     // 查找所有已过期但状态不是expired的订单
     const expiredOrders = await PackageOrder.find({
       expiredAt: { $lte: now },
-      status: { $nin: ['expired', 'completed'] },
+      status: 'using',
     });
 
     if (expiredOrders.length === 0) {
@@ -77,11 +77,12 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
 
         const unRental = await UnRental.findOneAndUpdate(
           {
-            PackageUsageRecord: pur._id,
+            packageUsageRecord: pur._id,
           },
           {
             $set: {
               bot: pur.bot,
+              botUser: pur.botUser,
               proxy: pur.proxy,
               from: adminuser.energy_address, // 使用 B 地址（放能量的地址）
               to: pur.address,

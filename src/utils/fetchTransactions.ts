@@ -475,6 +475,7 @@ async function unRentEnergy(rental: IRental): Promise<any> {
     {
       $set: {
         bot: rental.bot,
+        botUser: rental.botUser,
         proxy: rental.proxy,
         from: energyAddress, // 使用 B 地址（放能量的地址）
         to: rental.from_address,
@@ -773,6 +774,7 @@ async function genericRecycleEnergy(energySend: IEnergySend): Promise<any> {
     {
       $set: {
         bot: energySend.bot,
+        botUser: energySend.botUser,
         proxy: energySend.proxy,
         from: energyAddress, // 使用 B 地址（放能量的地址）
         to: energySend.to_address,

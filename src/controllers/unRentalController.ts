@@ -87,9 +87,12 @@ export const getUnRentals = handleAsync(
     const query = await buildQuery(req.query, req);
 
     const unRentals = await UnRental.find(query)
+      .populate('rental')
+      .populate('bot')
+      .populate('botUser')
       .populate({
-        path: 'rental',
-        populate: [{ path: 'botUser' }, { path: 'bot' }, { path: 'proxy' }],
+        path: 'packageUsageRecord',
+        populate: 'packageOrder',
       })
       .populate('proxy')
       .sort('-createdAt')

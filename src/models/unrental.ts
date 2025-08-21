@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { IUser } from './user';
 import { IBot } from './bot';
+import { IBotUser } from './botUser';
 import { IRental } from './rental';
 import { IPackageUsageRecord } from './packageUsageRecord';
 
@@ -10,6 +11,7 @@ export interface IUnRental extends Document {
   packageUsageRecord: mongoose.Schema.Types.ObjectId | IPackageUsageRecord;
   proxy: mongoose.Schema.Types.ObjectId | IUser;
   bot: mongoose.Schema.Types.ObjectId | IBot;
+  botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   from: string;
   to: string;
   amount: number; // 租赁能量数
@@ -43,6 +45,11 @@ const unRentalSchema = new Schema<IUnRental>(
     bot: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Bot',
+      required: true,
+    },
+    botUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'BotUser',
       required: true,
     },
     energySendAddress: {

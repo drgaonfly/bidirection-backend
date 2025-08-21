@@ -3,6 +3,7 @@ import PackageUsageRecord from '../models/packageUsageRecord';
 import handleAsync from '../utils/handleAsync';
 import { isEmployee, isProxy } from '../middlewares/authMiddleware';
 import { RequestCustom } from '../types/user';
+import PackageOrder from '../models/packageOrder';
 import User from '../models/user';
 
 // 构建查询参数
@@ -33,11 +34,16 @@ const buildQuery = async (
   if (queryParams.status) {
     query.status = queryParams.status;
   }
-  if (queryParams.transactionHash) {
-    query.transactionHash = {
-      $regex: queryParams.transactionHash,
-      $options: 'i',
-    };
+  if (queryParams.packageOrder) {
+    const ordertData = await PackageOrder.find({
+      id: queryParams.packageOrder,
+    });
+
+    if (ordertData && ordertData.length > 0) {
+      query.packageOrder = { $in: ordertData.map((o) => o._id) };
+    } else {
+      query.packageOrder = null;
+    }
   }
 
   // 权限检查：代理只能看到自己及其员工的订单

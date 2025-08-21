@@ -29,27 +29,29 @@ export async function checkMinConsumption() {
     console.log('[checkMinConsumption] 开始检查所有待处理的套餐使用记录...');
 
     // 查询所有已完成的套餐使用记录
-    const purs = await PackageUsageRecord.find({
+    const packageUsageRecords = await PackageUsageRecord.find({
       status: 'success',
     });
 
     console.log(
-      `[checkMinConsumption] 查询到 ${purs.length} 个符合条件的套餐使用记录`,
+      `[checkMinConsumption] 查询到 ${packageUsageRecords.length} 个符合条件的套餐使用记录`,
     );
 
-    for (const pur of purs) {
-      const packageOrder = await PackageOrder.findById(pur.packageOrder);
+    for (const packageUsageRecord of packageUsageRecords) {
+      const packageOrder = await PackageOrder.findById(
+        packageUsageRecord.packageOrder,
+      );
 
       if (packageOrder.current_times === 0) {
         console.log(
-          `[checkMinConsumption] packageUsageRecord: [${pur.id}] 所归属的套餐订单已无可用笔数，跳过`,
+          `[checkMinConsumption] packageUsageRecord: [${packageUsageRecord.id}] 所归属的套餐订单已无可用笔数，跳过`,
         );
 
         continue;
       }
 
       const energyUsages = await EnergyUsage.find({
-        packageUsageRecord: pur._id,
+        packageUsageRecord: packageUsageRecord._id,
         createdAt: {
           $gte: yesterday,
           $lt: today,
@@ -67,22 +69,25 @@ export async function checkMinConsumption() {
 
         try {
           await minConsumption.create({
-            bot: pur.bot,
-            botUser: pur.botUser,
-            proxy: pur.proxy,
+            bot: packageUsageRecord.bot,
+            botUser: packageUsageRecord.botUser,
+            proxy: packageUsageRecord.proxy,
             packageOrder: packageOrder._id,
-            packageUsageRecord: pur._id,
+            packageUsageRecord: packageUsageRecord._id,
             pens: packageOrder.minConsumption,
           });
 
-          await PackageOrder.findByIdAndUpdate(pur.packageOrder, {
-            $inc: {
-              current_times: -adminUser.recycle_min,
+          await PackageOrder.findByIdAndUpdate(
+            packageUsageRecord.packageOrder,
+            {
+              $inc: {
+                current_times: -adminUser.recycle_min,
+              },
             },
-          });
+          );
 
           console.log(
-            `[checkMinConsumption] packageUsageRecord : ${pur.id} 扣低消成`,
+            `[checkMinConsumption] packageUsageRecord : ${packageUsageRecord.id} 扣低消成`,
           );
         } catch (error) {
           console.log(`[checkMinConsumption] 扣低消失败, ${error}`);

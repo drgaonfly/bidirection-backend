@@ -1,6 +1,12 @@
 import PackageUsageRecord from '../../models/packageUsageRecord';
-import { fetchEnergyContractCalls } from '../../utils/fetchTransactions';
+import {
+  fetchEnergyContractCalls,
+  genericSendEnergy,
+} from '../../utils/fetchTransactions';
+import { getAdminUser } from '../../utils/buyTelegramPremium';
 import EnergyUsage from '../../models/energyUsage';
+import EnergySend from '../../models/energySend';
+import PackageOrder from '../../models/packageOrder';
 import createDebug from 'debug';
 
 const debug = createDebug('cron:checkAutoRentals');
@@ -10,6 +16,10 @@ const debug = createDebug('cron:checkAutoRentals');
  */
 export async function checkEnergyFlow() {
   debug('checkEnergyFlow');
+
+  const adminUser = await getAdminUser();
+
+  const energyAddress = adminUser.energy_address; // B 地址，放能量
 
   try {
     console.log('[checkEnergyFlow] 开始检查所有待处理的能量归还订单...');
@@ -24,6 +34,8 @@ export async function checkEnergyFlow() {
     for (const record of records) {
       try {
         const results = await fetchEnergyContractCalls(record.address, 1);
+
+        const packageOrder = await PackageOrder.findById(record.packageOrder);
 
         for (const result of results) {
           const energy =
@@ -42,6 +54,8 @@ export async function checkEnergyFlow() {
           if (energy >= 130000 && energy <= 140000) {
             pens = 2; // 约 135k
           }
+
+          let tx_id = '';
 
           const eu = await EnergyUsage.findOneAndUpdate(
             {
@@ -64,6 +78,32 @@ export async function checkEnergyFlow() {
             },
             { new: true, upsert: true },
           );
+
+          const es = await EnergySend.create({
+            bot: record.bot,
+            botUser: record.botUser,
+            proxy: record.proxy,
+            packageUsageRecord: record._id,
+            from_address: energyAddress,
+            to_address: record.address,
+            energySendAddress: energyAddress,
+            amount: energy,
+            separation: pens,
+            limit_day: packageOrder.validityDays,
+            type: 'daily',
+            status: 'pending',
+          });
+
+          try {
+            tx_id = await genericSendEnergy(record.address, energy);
+
+            es.tx_id = tx_id;
+            es.status = 'success';
+            await es.save();
+          } catch (error) {
+            es.status = 'failed';
+            await es.save();
+          }
 
           console.log(`[checkEnergyFlow] 能量使用记录成功`, eu);
         }

@@ -21,12 +21,17 @@ export async function recycleEnergy() {
 
   const adminUser = await getAdminUser();
 
+  const decryptedPrivateKey = decrypt(adminUser.energy_privateKey);
+
+  const fromAddress = tronWeb.address.fromPrivateKey(decryptedPrivateKey); // A 地址
+
   try {
     console.log('[recycleEnergy] 开始检查所有待处理的套餐使用记录...');
 
     // 查询所有已完成的套餐使用记录
     const purs = await PackageUsageRecord.find({
       status: 'success',
+      isRecycled: false,
     });
 
     console.log(
@@ -52,10 +57,6 @@ export async function recycleEnergy() {
       );
 
       const used_energy = used_times * adminUser.energy_per_times;
-
-      const decryptedPrivateKey = decrypt(adminUser.energy_privateKey);
-
-      const fromAddress = tronWeb.address.fromPrivateKey(decryptedPrivateKey); // A 地址
 
       const ur = await UnRental.findOneAndUpdate(
         {
@@ -91,6 +92,9 @@ export async function recycleEnergy() {
             { _id: { $in: energyUsages.map((eu) => eu._id) } },
             { $set: { isRecycled: true } },
           );
+
+          pur.isRecycled = true;
+          await pur.save();
 
           console.log(
             `[recycleEnergy] packageUsageRecord : ${pur.id} 回收能量成功, tx_id=${tx_id}`,

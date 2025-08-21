@@ -1,9 +1,25 @@
+import { TronWeb } from 'tronweb';
 import PackageOrder from '../../models/packageOrder';
+import PackageUsageRecord from '../../models/packageUsageRecord';
+import UnRental from '../../models/unrental';
+import { genericRecycleEnergyByAmount } from '../../utils/fetchTransactions';
+import { getAdminUser } from '../../utils/buyTelegramPremium';
+import { decrypt } from '../../services/encrypt';
+
+const tronWeb = new TronWeb({
+  fullHost: 'https://api.trongrid.io',
+});
 
 // 检查过期的套餐订单
 export const checkExpiredPackageOrders = async (): Promise<void> => {
   try {
     const now = new Date();
+
+    const adminuser = await getAdminUser();
+
+    const decryptedPrivateKey = decrypt(adminuser.energy_privateKey);
+
+    const fromAddress = tronWeb.address.fromPrivateKey(decryptedPrivateKey); // A 地址
 
     // 查找所有已过期但状态不是expired的订单
     const expiredOrders = await PackageOrder.find({
@@ -20,26 +36,88 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
       `[checkExpiredPackageOrders] 找到 ${expiredOrders.length} 个过期的套餐订单`,
     );
 
-    // 批量更新过期订单的状态
-    const updatePromises = expiredOrders.map((order) =>
-      PackageOrder.findByIdAndUpdate(order._id, {
-        status: 'expired',
-        $set: { updatedAt: now },
-      }),
-    );
+    // 轮询过期的套餐订单
+    for (const order of expiredOrders) {
+      console.log(`[checkExpiredPackageOrders] 处理过期套餐订单: ${order.id}`);
 
-    await Promise.all(updatePromises);
+      const purs = await PackageUsageRecord.find({
+        packageOrder: order._id,
+        isRecycled: false,
+      });
 
-    console.log(
-      `[checkExpiredPackageOrders] 成功更新 ${expiredOrders.length} 个过期套餐订单的状态`,
-    );
+      if (purs.length === 0) {
+        console.log(
+          `[checkExpiredPackageOrders] 过期套餐订单: ${order.id} 的没有使用记录, 直接标记为过期后跳过`,
+        );
 
-    // 记录过期的订单详情
-    expiredOrders.forEach((order) => {
+        await PackageOrder.findByIdAndUpdate(order._id, {
+          status: 'expired',
+        });
+
+        await PackageUsageRecord.updateMany(
+          { _id: { $in: purs.map((pur) => pur._id) } },
+          { isRecycled: true },
+        );
+
+        continue;
+      }
+
       console.log(
-        `[checkExpiredPackageOrders] 套餐订单 ${order.id} 已过期，用户: ${order.botUser}, 机器人: ${order.bot}`,
+        `[checkExpiredPackageOrders] 处理过期套餐订单: ${order.id} 的${purs.length}个使用记录`,
       );
-    });
+
+      for (const pur of purs) {
+        console.log(
+          `[checkExpiredPackageOrders] 处理过期套餐订单: ${order.id} 的使用记录: ${pur.id}`,
+        );
+
+        let tx_id = '';
+
+        const energy = adminuser.energy_per_times * pur.usedTimes;
+
+        const unRental = await UnRental.findOneAndUpdate(
+          {
+            PackageUsageRecord: pur._id,
+          },
+          {
+            $set: {
+              bot: pur.bot,
+              proxy: pur.proxy,
+              from: adminuser.energy_address, // 使用 B 地址（放能量的地址）
+              to: pur.address,
+              energySendAddress: fromAddress,
+              separation: pur.usedTimes,
+              amount: energy,
+              status: 'pending',
+            },
+          },
+          {
+            upsert: true,
+            new: true,
+          },
+        );
+
+        try {
+          tx_id = await genericRecycleEnergyByAmount(energy, pur.address);
+
+          unRental.status = 'success';
+          unRental.txid = tx_id;
+          await unRental.save();
+
+          pur.isRecycled = true;
+          await pur.save();
+        } catch (error) {
+          console.log(
+            `[checkExpiredPackageOrders] 处理过期套餐订单: ${order.id} 的使用记录: ${pur.id} 的交易记录失败, 跳过`,
+          );
+
+          unRental.status = 'failed';
+          await unRental.save();
+
+          continue;
+        }
+      }
+    }
   } catch (error) {
     console.error(
       '[checkExpiredPackageOrders] 检查过期套餐订单时发生错误:',

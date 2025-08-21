@@ -17,6 +17,7 @@ export interface IPackageUsageRecord extends Document {
   usedAt: Date; // 使用时间
   notes?: string; // 备注（可选）
   type: 'myself' | 'other'; // 使用类型
+  isRecycled: boolean; // 是否回收
 }
 
 const packageUsageRecordSchema = new Schema<IPackageUsageRecord>(
@@ -73,6 +74,10 @@ const packageUsageRecordSchema = new Schema<IPackageUsageRecord>(
     type: {
       type: String,
       required: true,
+    },
+    isRecycled: {
+      type: Boolean,
+      required: false,
     },
   },
   {

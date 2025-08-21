@@ -40,12 +40,12 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
     for (const order of expiredOrders) {
       console.log(`[checkExpiredPackageOrders] 处理过期套餐订单: ${order.id}`);
 
-      const purs = await PackageUsageRecord.find({
+      const packageUsageRecords = await PackageUsageRecord.find({
         packageOrder: order._id,
         isRecycled: false,
       });
 
-      if (purs.length === 0) {
+      if (packageUsageRecords.length === 0) {
         console.log(
           `[checkExpiredPackageOrders] 过期套餐订单: ${order.id} 的没有使用记录, 直接标记为过期后跳过`,
         );
@@ -55,7 +55,7 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
         });
 
         await PackageUsageRecord.updateMany(
-          { _id: { $in: purs.map((pur) => pur._id) } },
+          { _id: { $in: packageUsageRecords.map((pur) => pur._id) } },
           { isRecycled: true },
         );
 
@@ -63,31 +63,31 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
       }
 
       console.log(
-        `[checkExpiredPackageOrders] 处理过期套餐订单: ${order.id} 的${purs.length}个使用记录`,
+        `[checkExpiredPackageOrders] 处理过期套餐订单: ${order.id} 的${packageUsageRecords.length}个使用记录`,
       );
 
-      for (const pur of purs) {
+      for (const record of packageUsageRecords) {
         console.log(
-          `[checkExpiredPackageOrders] 处理过期套餐订单: ${order.id} 的使用记录: ${pur.id}`,
+          `[checkExpiredPackageOrders] 处理过期套餐订单: ${order.id} 的使用记录: ${record.id}`,
         );
 
         let tx_id = '';
 
-        const energy = adminuser.energy_per_times * pur.usedTimes;
+        const energy = adminuser.energy_per_times * record.usedTimes;
 
         const unRental = await UnRental.findOneAndUpdate(
           {
-            packageUsageRecord: pur._id,
+            packageUsageRecord: record._id,
           },
           {
             $set: {
-              bot: pur.bot,
-              botUser: pur.botUser,
-              proxy: pur.proxy,
+              bot: record.bot,
+              botUser: record.botUser,
+              proxy: record.proxy,
               from: adminuser.energy_address, // 使用 B 地址（放能量的地址）
-              to: pur.address,
+              to: record.address,
               energySendAddress: fromAddress,
-              separation: pur.usedTimes,
+              separation: record.usedTimes,
               amount: energy,
               status: 'pending',
             },
@@ -99,17 +99,17 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
         );
 
         try {
-          tx_id = await genericRecycleEnergyByAmount(energy, pur.address);
+          tx_id = await genericRecycleEnergyByAmount(energy, record.address);
 
           unRental.status = 'success';
           unRental.txid = tx_id;
           await unRental.save();
 
-          pur.isRecycled = true;
-          await pur.save();
+          record.isRecycled = true;
+          await record.save();
         } catch (error) {
           console.log(
-            `[checkExpiredPackageOrders] 处理过期套餐订单: ${order.id} 的使用记录: ${pur.id} 的交易记录失败, 跳过`,
+            `[checkExpiredPackageOrders] 处理过期套餐订单: ${order.id} 的使用记录: ${record.id} 的交易记录失败, 跳过`,
           );
 
           unRental.status = 'failed';

@@ -48,7 +48,7 @@ export async function checkEnergyFlow() {
 
           let tx_id = '';
 
-          const eu = await EnergyUsage.findOneAndUpdate(
+          const energyUsage = await EnergyUsage.findOneAndUpdate(
             {
               tx_id: result.txID,
             },
@@ -83,7 +83,7 @@ export async function checkEnergyFlow() {
             console.log(`[checkEnergyFlow] 发送能量失败, error=${error}`);
           }
 
-          console.log(`[checkEnergyFlow] 能量使用记录成功`, eu);
+          console.log(`[checkEnergyFlow] 能量使用记录成功`, energyUsage);
         }
       } catch (sendErr) {
         console.error(`[checkEnergyFlow] 能量使用记录失败:`, sendErr);

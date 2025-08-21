@@ -29,24 +29,24 @@ export async function recycleEnergy() {
     console.log('[recycleEnergy] 开始检查所有待处理的套餐使用记录...');
 
     // 查询所有已完成的套餐使用记录
-    const purs = await PackageUsageRecord.find({
+    const packageUsageRecords = await PackageUsageRecord.find({
       status: 'success',
       isRecycled: false,
     });
 
     console.log(
-      `[recycleEnergy] 查询到 ${purs.length} 个符合条件的套餐使用记录`,
+      `[recycleEnergy] 查询到 ${packageUsageRecords.length} 个符合条件的套餐使用记录`,
     );
 
-    for (const pur of purs) {
+    for (const packageUsageRecord of packageUsageRecords) {
       const energyUsages = await EnergyUsage.find({
-        packageUsageRecord: pur._id,
+        packageUsageRecord: packageUsageRecord._id,
         isRecycled: false,
       });
 
       if (energyUsages.length === 0) {
         console.log(
-          `[recycleEnergy]: packageUsageRecord: ${pur.id} 没有能量使用记录，跳过]`,
+          `[recycleEnergy]: packageUsageRecord: ${packageUsageRecord.id} 没有能量使用记录，跳过]`,
         );
         continue;
       }
@@ -58,18 +58,18 @@ export async function recycleEnergy() {
 
       const used_energy = used_times * adminUser.energy_per_times;
 
-      const ur = await UnRental.findOneAndUpdate(
+      const unRental = await UnRental.findOneAndUpdate(
         {
-          bot: pur.bot,
-          botUser: pur.botUser,
-          proxy: pur.proxy,
-          packageUsageRecord: pur._id,
+          bot: packageUsageRecord.bot,
+          botUser: packageUsageRecord.botUser,
+          proxy: packageUsageRecord.proxy,
+          packageUsageRecord: packageUsageRecord._id,
         },
         {
           $set: {
             energySendAddress: fromAddress,
             from: adminUser.energy_address,
-            to: pur.address,
+            to: packageUsageRecord.address,
             separation: used_times,
             amount: used_energy,
           },
@@ -81,28 +81,31 @@ export async function recycleEnergy() {
 
       if (used_times >= adminUser.recycle_min) {
         try {
-          tx_id = await genericRecycleEnergyByAmount(used_energy, pur.address);
+          tx_id = await genericRecycleEnergyByAmount(
+            used_energy,
+            packageUsageRecord.address,
+          );
 
-          ur.hash = tx_id;
-          ur.status = 'success';
+          unRental.hash = tx_id;
+          unRental.status = 'success';
 
-          await ur.save();
+          await unRental.save();
 
           await EnergyUsage.updateMany(
             { _id: { $in: energyUsages.map((eu) => eu._id) } },
             { $set: { isRecycled: true } },
           );
 
-          pur.isRecycled = true;
-          await pur.save();
+          packageUsageRecord.isRecycled = true;
+          await packageUsageRecord.save();
 
           console.log(
-            `[recycleEnergy] packageUsageRecord : ${pur.id} 回收能量成功, tx_id=${tx_id}`,
+            `[recycleEnergy] packageUsageRecord : ${packageUsageRecord.id} 回收能量成功, tx_id=${tx_id}`,
           );
         } catch (error) {
-          ur.status = 'failed';
+          unRental.status = 'failed';
 
-          await ur.save();
+          await unRental.save();
 
           console.log(`[recycleEnergy] 回收能量失败, ${error}`);
         }

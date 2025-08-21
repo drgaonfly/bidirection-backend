@@ -118,6 +118,14 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
           continue;
         }
       }
+
+      order.status = 'expired';
+      order.times = 0;
+      await order.save();
+
+      console.log(
+        `[checkExpiredPackageOrders] 套餐订单: ${order.id} 已设置为过期，笔数清零`,
+      );
     }
   } catch (error) {
     console.error(

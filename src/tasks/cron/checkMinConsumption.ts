@@ -53,6 +53,7 @@ export async function checkMinConsumption() {
 
       const energyUsages = await EnergyUsage.find({
         packageUsageRecord: packageUsageRecord._id,
+        type: packageUsageRecord.type,
         createdAt: {
           $gte: yesterday,
           $lt: today,

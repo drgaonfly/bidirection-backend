@@ -67,6 +67,7 @@ export async function recycleEnergyWhenOtherUseEnergy() {
             botUser: record.botUser,
             proxy: record.proxy,
             packageUsageRecord: record._id,
+            type: record,
             address: record.address,
             energy,
             bandwidth,

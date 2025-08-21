@@ -39,6 +39,7 @@ export async function recycleEnergyDaily() {
       const energyUsages = await EnergyUsage.find({
         packageUsageRecord: packageUsageRecord._id,
         isRecycled: false,
+        type: packageUsageRecord.type,
         createdAt: {
           $gte: yesterday,
           $lt: today,

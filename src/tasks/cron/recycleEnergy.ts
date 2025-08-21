@@ -31,6 +31,7 @@ export async function recycleEnergy() {
     for (const packageUsageRecord of packageUsageRecords) {
       const energyUsages = await EnergyUsage.find({
         packageUsageRecord: packageUsageRecord._id,
+        type: packageUsageRecord.type,
         isRecycled: false,
       });
 

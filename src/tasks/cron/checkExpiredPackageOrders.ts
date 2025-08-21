@@ -43,6 +43,7 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
       const packageUsageRecords = await PackageUsageRecord.find({
         packageOrder: order._id,
         isRecycled: false,
+        type: 'myself',
       });
 
       if (packageUsageRecords.length === 0) {

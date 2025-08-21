@@ -16,8 +16,15 @@ const tronWeb = new TronWeb({
 /**
  * 检查所有已完成且到期的租赁订单，自动归还能量
  */
-export async function recycleEnergy() {
-  debug('recycleEnergy');
+export async function recycleEnergyDaily() {
+  debug('recycleEnergyDaily');
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // 昨天 0 点
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
 
   const adminUser = await getAdminUser();
 
@@ -26,28 +33,32 @@ export async function recycleEnergy() {
   const fromAddress = tronWeb.address.fromPrivateKey(decryptedPrivateKey); // A 地址
 
   try {
-    console.log('[recycleEnergy] 开始检查所有待处理的套餐使用记录...');
+    console.log('[recycleEnergyDaily] 开始检查所有待处理的套餐使用记录...');
 
     // 查询所有已完成的套餐使用记录
     const packageUsageRecords = await PackageUsageRecord.find({
       status: 'success',
       isRecycled: false,
-      type: 'myselft',
+      type: 'myself',
     });
 
     console.log(
-      `[recycleEnergy] 查询到 ${packageUsageRecords.length} 个符合条件的套餐使用记录`,
+      `[recycleEnergyDaily] 查询到 ${packageUsageRecords.length} 个符合条件的套餐使用记录`,
     );
 
     for (const packageUsageRecord of packageUsageRecords) {
       const energyUsages = await EnergyUsage.find({
         packageUsageRecord: packageUsageRecord._id,
         isRecycled: false,
+        createdAt: {
+          $gte: yesterday,
+          $lt: today,
+        },
       });
 
       if (energyUsages.length === 0) {
         console.log(
-          `[recycleEnergy]: packageUsageRecord: ${packageUsageRecord.id} 没有能量使用记录，跳过]`,
+          `[recycleEnergyDaily]: packageUsageRecord: ${packageUsageRecord.id} 没有能量使用记录，跳过]`,
         );
         continue;
       }
@@ -101,20 +112,20 @@ export async function recycleEnergy() {
           await packageUsageRecord.save();
 
           console.log(
-            `[recycleEnergy] packageUsageRecord : ${packageUsageRecord.id} 回收能量成功, tx_id=${tx_id}`,
+            `[recycleEnergyDaily] packageUsageRecord : ${packageUsageRecord.id} 回收能量成功, tx_id=${tx_id}`,
           );
         } catch (error) {
           unRental.status = 'failed';
 
           await unRental.save();
 
-          console.log(`[recycleEnergy] 回收能量失败, ${error}`);
+          console.log(`[recycleEnergyDaily] 回收能量失败, ${error}`);
         }
       }
     }
 
-    console.log('[recycleEnergy] 处理回收能量成功');
+    console.log('[recycleEnergyDaily] 处理回收能量成功');
   } catch (error) {
-    console.error('[recycleEnergy] 处理回收能量时出错:', error);
+    console.error('[recycleEnergyDaily] 处理回收能量时出错:', error);
   }
 }

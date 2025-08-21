@@ -15,11 +15,15 @@ export async function checkMinConsumption() {
 
   const adminUser = await getAdminUser();
 
-  // 查询今天0点到明天0点的能量使用记录
+  // 查询今天0点到昨天0点的能量使用记录
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  // 昨天 0 点
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+
+  // 查询区间：昨天 0 点 ~ 今天 0 点
 
   try {
     console.log('[checkMinConsumption] 开始检查所有待处理的套餐使用记录...');
@@ -47,8 +51,8 @@ export async function checkMinConsumption() {
       const energyUsages = await EnergyUsage.find({
         packageUsageRecord: pur._id,
         createdAt: {
-          $gte: today,
-          $lt: tomorrow,
+          $gte: yesterday,
+          $lt: today,
         },
       });
 

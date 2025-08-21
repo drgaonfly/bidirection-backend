@@ -5,7 +5,6 @@ import { IBot } from '../../../../models/bot';
 import { IBotUser } from '../../../../models/botUser';
 import PackageOrder from '../../../../models/packageOrder';
 import PackageUsageRecord from '../../../../models/packageUsageRecord';
-import EnergySend from '../../../../models/energySend';
 import { getAdminUser } from '../../../../utils/buyTelegramPremium';
 import { genericSendEnergy } from '../../../../utils/fetchTransactions';
 import createDebug from 'debug';
@@ -125,7 +124,19 @@ async function usePackageConversation(
   const energy_per_times = admin.energy_per_times;
   const totalEnergy = energy_per_times * usedTimes;
 
-  const energyAddress = admin.energy_address;
+  // 4️⃣ 创建使用记录
+  const usageRecord = await PackageUsageRecord.create({
+    id: `${Date.now()}`,
+    packageOrder: order._id,
+    bot: bot._id,
+    botUser: botUser._id,
+    proxy: bot.user,
+    address,
+    status: 'success',
+    usedTimes,
+    usedAt: new Date(),
+    type,
+  });
 
   let txId = '';
   try {
@@ -137,7 +148,12 @@ async function usePackageConversation(
     //     parse_mode: 'HTML',
     //   },
     // );
-    txId = await genericSendEnergy(address, totalEnergy);
+    txId = await genericSendEnergy(
+      address,
+      totalEnergy,
+      usageRecord,
+      usedTimes,
+    );
     // await ctx.reply(
     //   [
     //     `✅ 能量发送成功!`,
@@ -153,39 +169,6 @@ async function usePackageConversation(
     await ctx.reply(['❌ 能量发送失败，请稍后重试'].join('\n'));
     return;
   }
-
-  // 4️⃣ 创建使用记录
-  const usageRecord = await PackageUsageRecord.create({
-    id: `${Date.now()}`,
-    packageOrder: order._id,
-    bot: bot._id,
-    botUser: botUser._id,
-    proxy: bot.user,
-    address,
-    status: 'success',
-    usedTimes,
-    usedAt: new Date(),
-    type,
-  });
-
-  // 5️⃣ 创建能量发送记录
-  await EnergySend.create({
-    bot: bot._id,
-    botUser: botUser._id,
-    proxy: bot.user,
-    packageUsageRecord: usageRecord._id,
-    from_address: energyAddress,
-    to_address: address,
-    energySendAddress: energyAddress,
-    amount: totalEnergy,
-    separation: usedTimes,
-    price: order.price, // 如果有价格逻辑，可以填
-    actual_price: order.price,
-    tx_id: txId,
-    limit_day: order.validityDays,
-    status: 'success',
-    type: 'daily',
-  });
 
   // 扣减套餐剩余笔数
   order.current_times -= usedTimes;

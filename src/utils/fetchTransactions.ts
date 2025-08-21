@@ -1,20 +1,22 @@
-import { TronWeb } from 'tronweb';
 import axios from 'axios';
-import { getAdminUser } from './buyTelegramPremium';
-import { decrypt } from '../services/encrypt';
-import { IRental } from '../models/rental';
-import UnRental from '../models/unrental';
-import EnergySend, { IEnergySend } from '../models/energySend';
-import Deduction from '../models/deduction';
 import { IdGen } from './idGen';
-import {
-  checkAccountPermission,
-  setupAccountPermission,
-} from './tronPermissionManager';
+import { TronWeb } from 'tronweb';
 import { IBot } from '../models/bot';
 import { IUser } from '../models/user';
 import { IBotUser } from '../models/botUser';
 import { IBotUserConfig } from '../models/botUserConfig';
+import { IPackageUsageRecord } from '../models/packageUsageRecord';
+import UnRental from '../models/unrental';
+import PackageOrder from '../models/packageOrder';
+import EnergySend, { IEnergySend } from '../models/energySend';
+import { getAdminUser } from './buyTelegramPremium';
+import { decrypt } from '../services/encrypt';
+import { IRental } from '../models/rental';
+import Deduction from '../models/deduction';
+import {
+  checkAccountPermission,
+  setupAccountPermission,
+} from './tronPermissionManager';
 
 const API_KEYS = [
   'cfb0c541-ae6c-4a66-a6d8-3c82e3a5be81',
@@ -631,6 +633,8 @@ async function deductProxyTrxBalance(
 async function genericSendEnergy(
   toAddress: string,
   amount: number,
+  record?: IPackageUsageRecord,
+  pens?: number,
 ): Promise<string> {
   console.log('[genericSendEnergy] 获取管理员信息...');
   const admin = await getAdminUser();
@@ -675,6 +679,23 @@ async function genericSendEnergy(
     console.log('[genericSendEnergy] A 地址已有 B 地址的权限');
   }
 
+  const packageOrder = await PackageOrder.findById(record.packageOrder);
+
+  const es = await EnergySend.create({
+    bot: record.bot,
+    botUser: record.botUser,
+    proxy: record.proxy,
+    packageUsageRecord: record._id,
+    from_address: energyAddress,
+    to_address: record.address,
+    energySendAddress: fromAddress,
+    amount,
+    separation: pens,
+    limit_day: packageOrder.validityDays,
+    type: 'daily',
+    status: 'pending',
+  });
+
   try {
     const amountSunStr = tronWeb.toSun(amount);
     const amountSun = Number(amountSunStr) / 10;
@@ -710,9 +731,16 @@ async function genericSendEnergy(
 
     console.log('[genericSendEnergy] 能量发送成功，交易ID:', result.txid);
 
+    es.tx_id = result.txid;
+    es.status = 'success';
+    await es.save();
+
     return result.txid;
   } catch (error) {
     console.error('[genericSendEnergy] 能量发送失败:', error);
+
+    es.status = 'failed';
+    await es.save();
     throw error;
   }
 }

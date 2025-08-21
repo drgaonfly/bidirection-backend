@@ -125,7 +125,7 @@ async function usePackageConversation(
   const totalEnergy = energy_per_times * usedTimes;
 
   // 4️⃣ 创建使用记录
-  const usageRecord = await PackageUsageRecord.create({
+  const packageUsageRecord = await PackageUsageRecord.create({
     id: `${Date.now()}`,
     packageOrder: order._id,
     bot: bot._id,
@@ -151,7 +151,7 @@ async function usePackageConversation(
     txId = await genericSendEnergy(
       address,
       totalEnergy,
-      usageRecord,
+      packageUsageRecord,
       usedTimes,
     );
     // await ctx.reply(
@@ -164,6 +164,8 @@ async function usePackageConversation(
     //     parse_mode: 'HTML',
     //   }
     // );
+    packageUsageRecord.hash = txId;
+    await packageUsageRecord.save();
   } catch (error) {
     console.error('能量发送失败:', error);
     await ctx.reply(['❌ 能量发送失败，请稍后重试'].join('\n'));

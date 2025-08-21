@@ -5,10 +5,10 @@ import minConsumption from '../../models/minConsumption';
 import PackageOrder from '../../models/packageOrder';
 import createDebug from 'debug';
 
-const debug = createDebug('cron:checkAutoRentals');
+const debug = createDebug('cron:checkMinConsumption');
 
 /**
- * 检查所有已完成且到期的租赁订单，自动归还能量
+ * 每日低消
  */
 export async function checkMinConsumption() {
   debug('checkMinConsumption');
@@ -35,7 +35,7 @@ export async function checkMinConsumption() {
     });
 
     console.log(
-      `[checkMinConsumption] 查询到 ${packageUsageRecords.length} 个符合条件的套餐使用记录`,
+      `[checkMinConsumption] 查询到 ${packageUsageRecords.length} 个给自己用的套餐使用记录`,
     );
 
     for (const packageUsageRecord of packageUsageRecords) {

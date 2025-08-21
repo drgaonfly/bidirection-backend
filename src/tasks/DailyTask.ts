@@ -4,6 +4,7 @@ import { setupRedis } from '../utils/redis';
 // import { trialExpired } from './cron/trialExpired';
 // import { checkPendingOrders } from './cron/checkPendingOrders';
 
+import { checkMinConsumption } from './cron/checkMinConsumption';
 import { recycleEnergyDaily } from './cron/recycleEnergyDaily';
 
 // 每天 0 点 五分跑
@@ -13,6 +14,7 @@ const task = async () => {
   console.log('当前时间:', new Date().toLocaleString());
   console.log('开始执行扣低消任务...');
 
+  await checkMinConsumption();
   await recycleEnergyDaily();
 };
 

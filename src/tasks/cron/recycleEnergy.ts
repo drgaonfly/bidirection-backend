@@ -2,16 +2,9 @@ import PackageUsageRecord from '../../models/packageUsageRecord';
 import EnergyUsage from '../../models/energyUsage';
 import { getAdminUser } from '../../utils/buyTelegramPremium';
 import { genericRecycleEnergyByAmount } from '../../utils/fetchTransactions';
-import UnRental from '../../models/unrental';
-import { decrypt } from '../../services/encrypt';
-import { TronWeb } from 'tronweb';
 import createDebug from 'debug';
 
 const debug = createDebug('cron:checkAutoRentals');
-
-const tronWeb = new TronWeb({
-  fullHost: 'https://api.trongrid.io',
-});
 
 /**
  * 检查所有已完成且到期的租赁订单，自动归还能量
@@ -20,10 +13,6 @@ export async function recycleEnergy() {
   debug('recycleEnergy');
 
   const adminUser = await getAdminUser();
-
-  const decryptedPrivateKey = decrypt(adminUser.energy_privateKey);
-
-  const fromAddress = tronWeb.address.fromPrivateKey(decryptedPrivateKey); // A 地址
 
   try {
     console.log('[recycleEnergy] 开始检查所有待处理的套餐使用记录...');
@@ -59,25 +48,6 @@ export async function recycleEnergy() {
 
       const used_energy = used_times * adminUser.energy_per_times;
 
-      const unRental = await UnRental.findOneAndUpdate(
-        {
-          bot: packageUsageRecord.bot,
-          botUser: packageUsageRecord.botUser,
-          proxy: packageUsageRecord.proxy,
-          packageUsageRecord: packageUsageRecord._id,
-        },
-        {
-          $set: {
-            energySendAddress: fromAddress,
-            from: adminUser.energy_address,
-            to: packageUsageRecord.address,
-            separation: used_times,
-            amount: used_energy,
-          },
-        },
-        { new: true, upsert: true },
-      );
-
       let tx_id = '';
 
       if (used_times >= adminUser.recycle_min) {
@@ -85,12 +55,9 @@ export async function recycleEnergy() {
           tx_id = await genericRecycleEnergyByAmount(
             used_energy,
             packageUsageRecord.address,
+            packageUsageRecord,
+            used_times,
           );
-
-          unRental.hash = tx_id;
-          unRental.status = 'success';
-
-          await unRental.save();
 
           await EnergyUsage.updateMany(
             { _id: { $in: energyUsages.map((eu) => eu._id) } },
@@ -104,10 +71,6 @@ export async function recycleEnergy() {
             `[recycleEnergy] packageUsageRecord : ${packageUsageRecord.id} 回收能量成功, tx_id=${tx_id}`,
           );
         } catch (error) {
-          unRental.status = 'failed';
-
-          await unRental.save();
-
           console.log(`[recycleEnergy] 回收能量失败, ${error}`);
         }
       }

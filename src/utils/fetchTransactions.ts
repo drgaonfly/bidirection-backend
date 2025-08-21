@@ -893,6 +893,8 @@ async function genericRecycleEnergy(energySend: IEnergySend): Promise<any> {
 async function genericRecycleEnergyByAmount(
   amount: number,
   address: string,
+  record?: IPackageUsageRecord,
+  pens?: number,
 ): Promise<any> {
   console.log(
     '[genericRecycleEnergyByAmount] 开始处理能量回收, amount:',
@@ -925,15 +927,17 @@ async function genericRecycleEnergyByAmount(
     fromAddress,
   });
 
-  // // 创建 UnRental 记录
-  // const unRental = new UnRental({
-  //   from: energyAddress,
-  //   energySendAddress: fromAddress,
-  //   amount: amount,
-  //   status: 'pending',
-  // });
-  // await unRental.save();
-  // console.log('[genericRecycleEnergyByAmount] UnRental 记录已创建:', unRental._id);
+  const unRental = await UnRental.create({
+    bot: record.bot,
+    botUser: record.botUser,
+    proxy: record.proxy,
+    packageUsageRecord: record._id,
+    energySendAddress: fromAddress,
+    from: admin.energy_address,
+    to: record.address,
+    separation: pens,
+    amount: amount,
+  });
 
   try {
     const amountSunStr = tronWeb.toSun(amount);
@@ -976,10 +980,10 @@ async function genericRecycleEnergyByAmount(
       );
     }
 
-    // unRental.status = 'success';
-    // unRental.hash = result.txid;
-    // unRental.error = JSON.stringify(result);
-    // await unRental.save();
+    unRental.status = 'success';
+    unRental.hash = result.txid;
+    unRental.error = JSON.stringify(result);
+    await unRental.save();
 
     console.log(
       '[genericRecycleEnergyByAmount] UnRental 状态已更新为 success, hash:',
@@ -989,9 +993,12 @@ async function genericRecycleEnergyByAmount(
     return result.txid;
   } catch (error) {
     console.error('[genericRecycleEnergyByAmount] 解除能量失败:', error);
-    // unRental.status = 'failed';
-    // await unRental.save();
-    // console.log('[genericRecycleEnergyByAmount] UnRental 状态已更新为 failed, unRentalId:', unRental._id);
+    unRental.status = 'failed';
+    await unRental.save();
+    console.log(
+      '[genericRecycleEnergyByAmount] UnRental 状态已更新为 failed, unRentalId:',
+      unRental._id,
+    );
     throw error;
   }
 }

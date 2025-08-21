@@ -18,6 +18,8 @@ export interface IPackageUsageRecord extends Document {
   notes?: string; // 备注（可选）
   type: 'myself' | 'other'; // 使用类型
   isRecycled: boolean; // 是否回收
+  createdAt: Date;
+  hash: string; // 接收发送能量方法生成的交易哈希的接收哈希
 }
 
 const packageUsageRecordSchema = new Schema<IPackageUsageRecord>(
@@ -79,6 +81,10 @@ const packageUsageRecordSchema = new Schema<IPackageUsageRecord>(
       type: Boolean,
       required: false,
       default: false,
+    },
+    hash: {
+      type: String,
+      required: false,
     },
   },
   {

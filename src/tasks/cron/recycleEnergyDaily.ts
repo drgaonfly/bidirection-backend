@@ -2,19 +2,12 @@ import PackageUsageRecord from '../../models/packageUsageRecord';
 import EnergyUsage from '../../models/energyUsage';
 import { getAdminUser } from '../../utils/buyTelegramPremium';
 import { genericRecycleEnergyByAmount } from '../../utils/fetchTransactions';
-import UnRental from '../../models/unrental';
-import { decrypt } from '../../services/encrypt';
-import { TronWeb } from 'tronweb';
 import createDebug from 'debug';
 
-const debug = createDebug('cron:checkAutoRentals');
-
-const tronWeb = new TronWeb({
-  fullHost: 'https://api.trongrid.io',
-});
+const debug = createDebug('cron:recycleEnergyDaily');
 
 /**
- * 检查所有已完成且到期的租赁订单，自动归还能量
+ * 每日回收给自己用的套餐使用记录的能量
  */
 export async function recycleEnergyDaily() {
   debug('recycleEnergyDaily');
@@ -28,10 +21,6 @@ export async function recycleEnergyDaily() {
 
   const adminUser = await getAdminUser();
 
-  const decryptedPrivateKey = decrypt(adminUser.energy_privateKey);
-
-  const fromAddress = tronWeb.address.fromPrivateKey(decryptedPrivateKey); // A 地址
-
   try {
     console.log('[recycleEnergyDaily] 开始检查所有待处理的套餐使用记录...');
 
@@ -43,7 +32,7 @@ export async function recycleEnergyDaily() {
     });
 
     console.log(
-      `[recycleEnergyDaily] 查询到 ${packageUsageRecords.length} 个符合条件的套餐使用记录`,
+      `[recycleEnergyDaily] 查询到 ${packageUsageRecords.length} 个给自己用的套餐使用记录`,
     );
 
     for (const packageUsageRecord of packageUsageRecords) {
@@ -70,25 +59,6 @@ export async function recycleEnergyDaily() {
 
       const used_energy = used_times * adminUser.energy_per_times;
 
-      const unRental = await UnRental.findOneAndUpdate(
-        {
-          bot: packageUsageRecord.bot,
-          botUser: packageUsageRecord.botUser,
-          proxy: packageUsageRecord.proxy,
-          packageUsageRecord: packageUsageRecord._id,
-        },
-        {
-          $set: {
-            energySendAddress: fromAddress,
-            from: adminUser.energy_address,
-            to: packageUsageRecord.address,
-            separation: used_times,
-            amount: used_energy,
-          },
-        },
-        { new: true, upsert: true },
-      );
-
       let tx_id = '';
 
       if (used_times >= adminUser.recycle_min) {
@@ -97,11 +67,6 @@ export async function recycleEnergyDaily() {
             used_energy,
             packageUsageRecord.address,
           );
-
-          unRental.hash = tx_id;
-          unRental.status = 'success';
-
-          await unRental.save();
 
           await EnergyUsage.updateMany(
             { _id: { $in: energyUsages.map((eu) => eu._id) } },
@@ -115,10 +80,6 @@ export async function recycleEnergyDaily() {
             `[recycleEnergyDaily] packageUsageRecord : ${packageUsageRecord.id} 回收能量成功, tx_id=${tx_id}`,
           );
         } catch (error) {
-          unRental.status = 'failed';
-
-          await unRental.save();
-
           console.log(`[recycleEnergyDaily] 回收能量失败, ${error}`);
         }
       }

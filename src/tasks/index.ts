@@ -30,6 +30,8 @@ import { checkExpiredPackageOrders } from './cron/checkExpiredPackageOrders';
 
 import { checkEnergyFlow } from './cron/checkEnergyFlow';
 import { recycleEnergy } from './cron/recycleEnergy';
+import { recycleEnergyWhenOtherUseEnergy } from './cron/recycleEnergyWhenOtherUseEnergy';
+import { recycleEnergyWhenOtherNotUseEnergy } from './cron/recycleEnergyWhenOtherNotUseEnergy';
 
 const task = async () => {
   await setupDB();
@@ -59,8 +61,9 @@ const task = async () => {
   await checkExpiredPackageOrders(); // 检查过期的套餐订单
   await checkEnergyFlow(); // 监听并生成能量使用记录
 
-  // 今天只要消费超过五笔（这个五不是写死的）。就立马回收能量
-  await recycleEnergy();
+  await recycleEnergy(); // 给自己用, 今天只要消费超过五笔（这个五不是写死的）。就立马回收能量
+  await recycleEnergyWhenOtherUseEnergy(); // 给他人用，如果他人用了，就创建能量使用记录后立马回收
+  await recycleEnergyWhenOtherNotUseEnergy(); // 给他人用，如果他人在一小时内没有用，就回收
 };
 
 // 执行任务并在完成后退出进程

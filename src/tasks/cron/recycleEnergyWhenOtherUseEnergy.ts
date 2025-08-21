@@ -1,30 +1,34 @@
+// 当他人用了能量就立即回收
+
 import PackageUsageRecord from '../../models/packageUsageRecord';
 import {
   fetchEnergyContractCalls,
-  genericSendEnergy,
+  genericRecycleEnergyByAmount,
 } from '../../utils/fetchTransactions';
 import EnergyUsage from '../../models/energyUsage';
 import createDebug from 'debug';
 
-const debug = createDebug('cron:checkEnergyFlow');
+const debug = createDebug('cron:recycleEnergyWhenOtherUseEnergy');
 
 /**
- * 检查所有已完成且到期的租赁订单，自动归还能量
+ *当他人用了能量就立即回收
  */
-export async function checkEnergyFlow() {
-  ``;
-  debug('checkEnergyFlow');
+export async function recycleEnergyWhenOtherUseEnergy() {
+  debug('recycleEnergyWhenOtherUseEnergy');
 
   try {
-    console.log('[checkEnergyFlow] 开始检查所有待处理的能量归还订单...');
+    console.log(
+      '[recycleEnergyWhenOtherUseEnergy] 开始检查所有待处理的能量归还订单...',
+    );
 
     const records = await PackageUsageRecord.find({
       status: 'success',
-      type: 'myself',
-      hash: { $in: null },
+      type: 'other',
     });
 
-    console.log(`[checkEnergyFlow] 查询到 ${records.length} 个套餐使用记录`);
+    console.log(
+      `[recycleEnergyWhenOtherUseEnergy] 查询到 ${records.length} 个给他人用的套餐使用记录`,
+    );
 
     for (const record of records) {
       try {
@@ -32,7 +36,7 @@ export async function checkEnergyFlow() {
 
         if (results.length === 0) {
           console.log(
-            `[recycleEnergyWhenOtherUseEnergy] PackageUsageRecord : ${record.id} 未使用能量, 跳过`,
+            `[recycleEnergyWhenOtherUseEnergy] PackageUsageRecord : ${record.id} 未发现能量使用, 跳过`,
           );
           continue;
         }
@@ -73,35 +77,46 @@ export async function checkEnergyFlow() {
             isRecycled: false,
           });
 
-          // 发过能量就不发了
-
           try {
-            tx_id = await genericSendEnergy(
-              record.address,
+            tx_id = await genericRecycleEnergyByAmount(
               energy,
+              record.address,
               record,
               pens,
             );
 
-            record.hash = tx_id;
-            await record.save();
+            energyUsage.isRecycled = true;
+            await energyUsage.save();
 
-            console.log(`[checkEnergyFlow] 发送能量成功, txid=${tx_id}`);
+            console.log(
+              `[recycleEnergyWhenOtherUseEnergy] 回收能量成功, txid=${tx_id}`,
+            );
           } catch (error) {
-            console.log(`[checkEnergyFlow] 发送能量失败, error=${error}`);
+            console.log(
+              `[recycleEnergyWhenOtherUseEnergy] 回收能量失败, error=${error}`,
+            );
           }
 
-          console.log(`[checkEnergyFlow] 能量使用记录成功`, energyUsage);
+          console.log(
+            `[recycleEnergyWhenOtherUseEnergy] 能量使用记录成功`,
+            energyUsage,
+          );
         }
       } catch (sendErr) {
-        console.error(`[checkEnergyFlow] 能量使用记录失败:`, sendErr);
+        console.error(
+          `[recycleEnergyWhenOtherUseEnergy] 能量使用记录失败:`,
+          sendErr,
+        );
 
         continue;
       }
     }
 
-    console.log('[checkEnergyFlow] 处理能量使用记录完成');
+    console.log('[recycleEnergyWhenOtherUseEnergy] 处理能量使用记录完成');
   } catch (error) {
-    console.error('[checkEnergyFlow] 处理能量使用记录出错:', error);
+    console.error(
+      '[recycleEnergyWhenOtherUseEnergy] 处理能量使用记录出错:',
+      error,
+    );
   }
 }

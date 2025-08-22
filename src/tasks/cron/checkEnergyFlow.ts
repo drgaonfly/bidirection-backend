@@ -20,7 +20,7 @@ export async function checkEnergyFlow() {
 
     const records = await PackageUsageRecord.find({
       status: 'success',
-      hash: { $in: null },
+      isRecycled: false,
     });
 
     console.log(`[checkEnergyFlow] 查询到 ${records.length} 个套餐使用记录`);
@@ -86,9 +86,9 @@ export async function checkEnergyFlow() {
             record.hash = tx_id;
             await record.save();
 
-            console.log(`[checkEnergyFlow] 发送能量成功, txid=${tx_id}`);
+            console.log(`[checkEnergyFlow] 能量使用记录成功, txid=${tx_id}`);
           } catch (error) {
-            console.log(`[checkEnergyFlow] 发送能量失败, error=${error}`);
+            console.log(`[checkEnergyFlow] 能量使用记录失败, error=${error}`);
           }
 
           console.log(`[checkEnergyFlow] 能量使用记录成功`, energyUsage);

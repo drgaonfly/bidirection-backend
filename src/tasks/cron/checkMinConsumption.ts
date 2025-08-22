@@ -31,7 +31,7 @@ export async function checkMinConsumption() {
     // 查询所有已完成的套餐使用记录
     const packageUsageRecords = await PackageUsageRecord.find({
       status: 'success',
-      type: 'myself',
+      isRecycle: false,
     });
 
     console.log(

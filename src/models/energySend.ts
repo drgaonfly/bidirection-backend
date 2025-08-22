@@ -66,7 +66,7 @@ const energySendSchema = new Schema<IEnergySend>(
     },
     price: {
       type: Number,
-      required: true,
+      required: false,
     },
     actual_price: {
       type: Number,

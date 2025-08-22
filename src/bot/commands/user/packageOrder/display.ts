@@ -17,12 +17,12 @@ export async function sendMyPackageOrders(ctx: MyContext) {
       status: 'using', // 目前 pending
     }).sort({ createdAt: -1 }); // 最新订单在前
 
-    if (!orders || orders.length === 0) {
+    const processed_orders = orders.filter((order) => order.current_times > 0);
+
+    if (!processed_orders || processed_orders.length === 0) {
       await ctx.reply('ℹ️ 您还没有任何套餐订单记录。');
       return;
     }
-
-    const processed_orders = orders.filter((order) => order.current_times > 0);
 
     // 构建 inline keyboard
     const keyboard = new InlineKeyboard();

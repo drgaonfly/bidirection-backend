@@ -21,7 +21,7 @@ export async function recycleEnergy() {
     const packageUsageRecords = await PackageUsageRecord.find({
       status: 'success',
       isRecycled: false,
-      type: 'myselft',
+      type: 'myself',
     });
 
     console.log(

@@ -89,7 +89,7 @@ export async function checkMinConsumption() {
           );
 
           console.log(
-            `[checkMinConsumption] packageUsageRecord : ${packageUsageRecord.id} 扣低消成`,
+            `[checkMinConsumption] packageUsageRecord : ${packageUsageRecord.id} 扣低消成功`,
           );
         } catch (error) {
           console.log(`[checkMinConsumption] 扣低消失败, ${error}`);

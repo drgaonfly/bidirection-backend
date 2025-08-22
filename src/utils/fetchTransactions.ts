@@ -939,6 +939,9 @@ async function genericRecycleEnergyByAmount(
     amount: amount,
   });
 
+  record.recycling_status = 'pending';
+  await record.save();
+
   try {
     const amountSunStr = tronWeb.toSun(amount);
     const amountSun = Number(amountSunStr) / 10;
@@ -985,6 +988,10 @@ async function genericRecycleEnergyByAmount(
     unRental.error = JSON.stringify(result);
     await unRental.save();
 
+    record.recycling_status = 'success';
+    record.recycling_hash = result.txid;
+    await record.save();
+
     console.log(
       '[genericRecycleEnergyByAmount] UnRental 状态已更新为 success, hash:',
       result.txid,
@@ -995,6 +1002,10 @@ async function genericRecycleEnergyByAmount(
     console.error('[genericRecycleEnergyByAmount] 解除能量失败:', error);
     unRental.status = 'failed';
     await unRental.save();
+
+    record.recycling_status = 'failed';
+    await record.save();
+
     console.log(
       '[genericRecycleEnergyByAmount] UnRental 状态已更新为 failed, unRentalId:',
       unRental._id,

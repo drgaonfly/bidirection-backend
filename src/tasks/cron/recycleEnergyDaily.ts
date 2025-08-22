@@ -74,9 +74,6 @@ export async function recycleEnergyDaily() {
             { $set: { isRecycled: true } },
           );
 
-          packageUsageRecord.isRecycled = true;
-          await packageUsageRecord.save();
-
           console.log(
             `[recycleEnergyDaily] packageUsageRecord : ${packageUsageRecord.id} 回收能量成功, tx_id=${tx_id}`,
           );

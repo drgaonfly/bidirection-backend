@@ -25,6 +25,16 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
       `[checkExpiredPackageOrders] 找到 ${expiredOrders.length} 个过期的套餐订单`,
     );
 
+    await PackageOrder.updateMany(
+      {
+        _id: { $in: expiredOrders.map((order) => order._id) },
+      },
+      {
+        status: 'expired',
+        current_times: 0,
+      },
+    );
+
     // 轮询过期的套餐订单
     for (const order of expiredOrders) {
       console.log(`[checkExpiredPackageOrders] 处理过期套餐订单: ${order.id}`);
@@ -70,9 +80,6 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
           console.log(
             `[checkExpiredPackageOrders] 能量回收成功, txid=${tx_id}`,
           );
-
-          record.isRecycled = true;
-          await record.save();
         } catch (error) {
           console.log(
             `[checkExpiredPackageOrders] 处理过期套餐订单: ${order.id} 的使用记录: ${record.id} 的交易记录失败, 跳过`,
@@ -81,10 +88,6 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
           continue;
         }
       }
-
-      order.status = 'expired';
-      order.current_times = 0;
-      await order.save();
 
       console.log(
         `[checkExpiredPackageOrders] 套餐订单: ${order.id} 已设置为过期，笔数清零`,

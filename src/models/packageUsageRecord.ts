@@ -12,14 +12,15 @@ export interface IPackageUsageRecord extends Document {
   botUser: mongoose.Schema.Types.ObjectId | IBotUser; // 机器人用户
   proxy: mongoose.Schema.Types.ObjectId | IUser; // 代理
   address: string; // 使用地址
-  status: 'success' | 'failed' | 'pending'; // 使用状态
+  status: 'success' | 'failed' | 'pending' | 'recycling' | 'recycled'; // 使用状态
+  recycling_status: 'success' | 'failed' | 'pending'; // 回收状态
   usedTimes: number; // 使用的笔数
   usedAt: Date; // 使用时间
   notes?: string; // 备注（可选）
   type: 'myself' | 'other'; // 使用类型
-  isRecycled: boolean; // 是否回收
   createdAt: Date;
   hash: string; // 接收发送能量方法生成的交易哈希的接收哈希
+  recycling_hash: string; // 接收回收能量方法生成的交易哈希的接收哈希
 }
 
 const packageUsageRecordSchema = new Schema<IPackageUsageRecord>(
@@ -55,8 +56,12 @@ const packageUsageRecordSchema = new Schema<IPackageUsageRecord>(
     },
     status: {
       type: String,
-      enum: ['success', 'failed', 'pending'],
       required: true,
+      default: 'pending',
+    },
+    recycling_status: {
+      type: String,
+      required: false,
       default: 'pending',
     },
     usedTimes: {
@@ -77,12 +82,13 @@ const packageUsageRecordSchema = new Schema<IPackageUsageRecord>(
       type: String,
       required: true,
     },
-    isRecycled: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
     hash: {
+      type: String,
+      required: false,
+      sparse: true,
+      unique: true,
+    },
+    recycling_hash: {
       type: String,
       required: false,
       sparse: true,

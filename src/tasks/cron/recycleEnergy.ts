@@ -65,9 +65,6 @@ export async function recycleEnergy() {
             { $set: { isRecycled: true } },
           );
 
-          packageUsageRecord.isRecycled = true;
-          await packageUsageRecord.save();
-
           console.log(
             `[recycleEnergy] packageUsageRecord : ${packageUsageRecord.id} 回收能量成功, tx_id=${tx_id}`,
           );

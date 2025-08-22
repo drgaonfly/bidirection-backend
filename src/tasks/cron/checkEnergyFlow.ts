@@ -52,7 +52,7 @@ export async function checkEnergyFlow() {
         const existingTxIds = new Set(existingEnergyUsages.map((e) => e.tx_id));
 
         const deepFilteredResults = results.filter(
-          (result) => result.txID && !existingTxIds.has(result.trade_id),
+          (result) => result.txID && !existingTxIds.has(result.txID),
         );
 
         for (const result of deepFilteredResults) {

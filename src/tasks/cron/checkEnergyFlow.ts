@@ -39,7 +39,7 @@ export async function checkEnergyFlow() {
 
         if (results.length === 0) {
           console.log(
-            `[recycleEnergyWhenOtherUseEnergy] PackageUsageRecord : ${record.id} 未使用能量, 跳过`,
+            `[checkEnergyFlow] PackageUsageRecord : ${record.id} 未使用能量, 跳过`,
           );
           continue;
         }

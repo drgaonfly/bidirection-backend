@@ -8,7 +8,7 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
   try {
     const now = new Date();
 
-    const adminuser = await getAdminUser();
+    const adminUser = await getAdminUser();
 
     // 查找所有已过期但状态不是expired的订单
     const expiredOrders = await PackageOrder.find({
@@ -43,11 +43,6 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
           status: 'expired',
         });
 
-        await PackageUsageRecord.updateMany(
-          { _id: { $in: packageUsageRecords.map((pur) => pur._id) } },
-          { isRecycled: true },
-        );
-
         continue;
       }
 
@@ -62,7 +57,7 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
 
         let tx_id = '';
 
-        const energy = adminuser.energy_per_times * record.usedTimes;
+        const energy = adminUser.energy_per_times * record.usedTimes;
 
         try {
           tx_id = await genericRecycleEnergyByAmount(

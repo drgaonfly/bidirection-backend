@@ -22,9 +22,11 @@ export async function sendMyPackageOrders(ctx: MyContext) {
       return;
     }
 
+    const processed_orders = orders.filter((order) => order.current_times > 0);
+
     // 构建 inline keyboard
     const keyboard = new InlineKeyboard();
-    orders.forEach((order) => {
+    processed_orders.forEach((order) => {
       keyboard
         .text(
           (() => {

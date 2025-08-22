@@ -26,6 +26,14 @@ export async function checkEnergyFlow() {
     console.log(`[checkEnergyFlow] 查询到 ${records.length} 个套餐使用记录`);
 
     for (const record of records) {
+      if (record.hash) {
+        console.log(
+          `[checkEnergyFlow]: paackageUsageRecord: ${record._id} 已经发送过能量`,
+        );
+
+        continue;
+      }
+
       try {
         const results = await fetchEnergyContractCalls(record.address, 1);
 
@@ -73,8 +81,6 @@ export async function checkEnergyFlow() {
             isRecycled: false,
           });
 
-          // 发过能量就不发了
-
           try {
             tx_id = await genericSendEnergy(
               record.address,
@@ -88,6 +94,9 @@ export async function checkEnergyFlow() {
 
             console.log(`[checkEnergyFlow] 能量使用记录成功, txid=${tx_id}`);
           } catch (error) {
+            record.status = 'failed';
+            await record.save();
+
             console.log(`[checkEnergyFlow] 能量使用记录失败, error=${error}`);
           }
 

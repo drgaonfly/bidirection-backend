@@ -54,7 +54,6 @@ usageCallack.callbackQuery(/^package_usages_(.+)$/, async (ctx) => {
                     : rec.status
             }`,
             `✏️ 使用笔数: ${rec.usedTimes}`,
-            `📌 类型: ${rec.type}`,
             rec.notes ? `📝 备注: ${rec.notes}` : null,
           ]
             .filter(Boolean)

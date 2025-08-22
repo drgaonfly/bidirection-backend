@@ -85,6 +85,8 @@ const packageUsageRecordSchema = new Schema<IPackageUsageRecord>(
     hash: {
       type: String,
       required: false,
+      sparse: true,
+      unique: true,
     },
   },
   {

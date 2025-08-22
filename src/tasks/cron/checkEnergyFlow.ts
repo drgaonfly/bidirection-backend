@@ -20,7 +20,6 @@ export async function checkEnergyFlow() {
 
     const records = await PackageUsageRecord.find({
       status: 'success',
-      type: 'myself',
       hash: { $in: null },
     });
 

@@ -34,9 +34,7 @@ export async function sendMyPackageOrders(ctx: MyContext) {
               0,
               Math.ceil(diffTime / (1000 * 60 * 60 * 24)),
             );
-            return `(${order.id}) ${order?.name} / 剩余${
-              order.times - order.current_times
-            }笔 / 剩余${diffDays}天`;
+            return `(${order.id}) ${order?.name} / 剩余${order.current_times}笔 / 剩余${diffDays}天`;
           })(),
           `packageOrder_record_${order.id}`,
         )

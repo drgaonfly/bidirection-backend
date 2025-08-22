@@ -14,10 +14,8 @@ export async function sendMyPackageOrders(ctx: MyContext) {
     const orders: IPackageOrder[] = await PackageOrder.find({
       botUser: ctx.currentBotUser._id,
       bot: ctx.currentBot._id,
-      status: 'pending', // 目前 pending
-    })
-      .sort({ createdAt: -1 }) // 最新订单在前
-      .populate('bot', 'name'); // 获取机器人名称
+      status: 'using', // 目前 pending
+    }).sort({ createdAt: -1 }); // 最新订单在前
 
     if (!orders || orders.length === 0) {
       await ctx.reply('ℹ️ 您还没有任何套餐订单记录。');

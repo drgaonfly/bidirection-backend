@@ -66,6 +66,8 @@ const energyUsageSchema = new Schema<IEnergyUsage>(
     tx_id: {
       type: String,
       required: false,
+      unique: true,
+      sparse: true,
     },
     pens: {
       type: Number,

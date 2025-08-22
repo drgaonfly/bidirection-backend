@@ -44,7 +44,19 @@ export async function checkEnergyFlow() {
           continue;
         }
 
-        for (const result of results) {
+        // 只处理那些哈希不在EnegyUsage表的result
+        const existingEnergyUsages = await EnergyUsage.find({
+          hash: { $in: results.map((t) => t.trade_id) },
+        }).select('tx_id');
+
+        const existingTxIds = new Set(existingEnergyUsages.map((e) => e.tx_id));
+
+        const deepFilteredResults = results.filter(
+          (transfer) =>
+            transfer.trade_id && !existingTxIds.has(transfer.trade_id),
+        );
+
+        for (const result of deepFilteredResults) {
           const energy =
             result.energy_usage === 0 ? result.energy_fee : result.energy_usage;
 

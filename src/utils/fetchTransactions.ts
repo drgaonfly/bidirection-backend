@@ -896,6 +896,18 @@ async function genericRecycleEnergyByAmount(
   record?: IPackageUsageRecord,
   pens?: number,
 ): Promise<any> {
+  const existingUnRental = await UnRental.findOne({
+    hash: record.recycling_hash,
+  });
+
+  if (existingUnRental) {
+    console.log(
+      `[genericRecycleEnergyByAmount]: packageUsageRecord ${record.id} 已回收了能量，跳过`,
+    );
+
+    return;
+  }
+
   console.log(
     '[genericRecycleEnergyByAmount] 开始处理能量回收, amount:',
     amount,

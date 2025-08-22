@@ -24,6 +24,7 @@ export async function recycleEnergyWhenOtherUseEnergy() {
     const records = await PackageUsageRecord.find({
       status: 'success',
       type: 'other',
+      recycling_status: 'pending',
     });
 
     console.log(

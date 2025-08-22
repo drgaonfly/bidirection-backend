@@ -20,8 +20,8 @@ export async function recycleEnergy() {
     // 查询所有已完成的套餐使用记录
     const packageUsageRecords = await PackageUsageRecord.find({
       status: 'success',
-      isRecycled: false,
       type: 'myself',
+      recycling_status: 'pending',
     });
 
     console.log(

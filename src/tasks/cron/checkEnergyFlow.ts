@@ -20,7 +20,7 @@ export async function checkEnergyFlow() {
 
     const records = await PackageUsageRecord.find({
       status: 'success',
-      isRecycled: false,
+      recycling_status: 'pending',
     });
 
     console.log(`[checkEnergyFlow] 查询到 ${records.length} 个套餐使用记录`);

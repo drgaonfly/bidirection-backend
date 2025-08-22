@@ -32,7 +32,7 @@ export async function checkMinConsumption() {
     const packageUsageRecords = await PackageUsageRecord.find({
       status: 'success',
       type: 'myself',
-      isRecycle: false,
+      recycling_status: 'pending',
     });
 
     console.log(

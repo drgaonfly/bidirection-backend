@@ -41,18 +41,13 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
 
       const packageUsageRecords = await PackageUsageRecord.find({
         packageOrder: order._id,
-        isRecycled: false,
+        recycling_status: 'pending',
       });
 
       if (packageUsageRecords.length === 0) {
         console.log(
           `[checkExpiredPackageOrders] 过期套餐订单: ${order.id} 的没有套餐使用记录, 直接标记为过期后跳过`,
         );
-
-        await PackageOrder.findByIdAndUpdate(order._id, {
-          status: 'expired',
-        });
-
         continue;
       }
 

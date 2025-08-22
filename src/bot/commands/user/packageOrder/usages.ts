@@ -27,6 +27,7 @@ usageCallack.callbackQuery(/^package_usages_(.+)$/, async (ctx) => {
     // 查找使用记录
     const usageRecords = await PackageUsageRecord.find({
       packageOrder: order._id,
+      status: 'success',
     }).sort({ usedAt: -1 });
 
     if (!usageRecords || usageRecords.length === 0) {

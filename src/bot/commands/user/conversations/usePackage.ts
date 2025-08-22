@@ -65,6 +65,7 @@ async function usePackageConversation(
   const exist = await PackageUsageRecord.find({
     packageOrder: order._id,
     address,
+    status: 'success',
   });
 
   if (exist.length > 0) {

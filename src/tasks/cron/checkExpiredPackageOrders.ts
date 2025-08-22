@@ -32,12 +32,11 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
       const packageUsageRecords = await PackageUsageRecord.find({
         packageOrder: order._id,
         isRecycled: false,
-        type: 'myself',
       });
 
       if (packageUsageRecords.length === 0) {
         console.log(
-          `[checkExpiredPackageOrders] 过期套餐订单: ${order.id} 的没有给自己用的套餐使用记录, 直接标记为过期后跳过`,
+          `[checkExpiredPackageOrders] 过期套餐订单: ${order.id} 的没有套餐使用记录, 直接标记为过期后跳过`,
         );
 
         await PackageOrder.findByIdAndUpdate(order._id, {
@@ -53,7 +52,7 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
       }
 
       console.log(
-        `[checkExpiredPackageOrders] 处理过期套餐订单: ${order.id} 的${packageUsageRecords.length}个给自己用的使用记录`,
+        `[checkExpiredPackageOrders] 处理过期套餐订单: ${order.id} 的${packageUsageRecords.length}个使用记录`,
       );
 
       for (const record of packageUsageRecords) {

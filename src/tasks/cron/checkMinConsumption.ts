@@ -35,7 +35,7 @@ export async function checkMinConsumption() {
     });
 
     console.log(
-      `[checkMinConsumption] 查询到 ${packageUsageRecords.length} 个给自己用的套餐使用记录`,
+      `[checkMinConsumption] 查询到 ${packageUsageRecords.length} 个套餐使用记录`,
     );
 
     for (const packageUsageRecord of packageUsageRecords) {

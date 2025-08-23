@@ -920,6 +920,11 @@ async function genericRecycleEnergyByAmount(
     hash: record.recycling_hash,
   });
 
+  console.log(
+    '[genericRecycleEnergyByAmount]: existingUnRental',
+    existingUnRental,
+  );
+
   if (existingUnRental) {
     console.log(
       `[genericRecycleEnergyByAmount]: packageUsageRecord ${record.id} 已回收了能量，跳过`,

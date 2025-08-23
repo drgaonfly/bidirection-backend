@@ -62,7 +62,7 @@ export async function checkEnergyFlow() {
 
         // 筛选出result.timestamp > record.createdAt (Date)的记录
         const results = allResults.filter(
-          (result) => result.timestamp > record.createdAt.getTime() / 1000,
+          (result) => result.timestamp > record.createdAt.getTime(),
         );
 
         console.log(

@@ -86,11 +86,8 @@ async function fetchTrc20Transactions(address: string, minutes = 1) {
   return response.data.data;
 }
 
-async function fetchEnergyContractCalls(address: string, minutes = 1) {
-  const now = Date.now();
-  const startTimestamp = now - minutes * 60 * 1000;
-
-  const url = `https://api.trongrid.io/v1/accounts/${address}/transactions?start_timestamp=${startTimestamp}`;
+async function fetchEnergyContractCalls(address: string) {
+  const url = `https://api.trongrid.io/v1/accounts/${address}/transactions`;
 
   const key = getNextApiKey();
 

@@ -110,6 +110,8 @@ export async function checkEnergyFlow() {
             `[checkEnergyFlow] 记录能量使用: txID=${result.txID}, energy=${energy}, bandwidth=${bandwidth}, pens=${pens}`,
           );
 
+          await EnergyUsage.collection.dropIndex('address_1');
+
           const temp = await EnergyUsage.create({
             tx_id: result.txID,
             bot: record.bot,

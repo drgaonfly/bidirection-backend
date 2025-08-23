@@ -60,8 +60,6 @@ const energyUsageSchema = new Schema<IEnergyUsage>(
     address: {
       type: String,
       required: false,
-      unique: true,
-      sparse: true,
     },
     tx_id: {
       type: String,

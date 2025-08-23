@@ -7,6 +7,7 @@ import { IBot } from '../../../../models/bot';
 import { IBotUser } from '../../../../models/botUser';
 import { getAdminUser } from '../../../../utils/buyTelegramPremium';
 import { genericSendEnergy } from '../../../../utils/fetchTransactions';
+import { isValidTronAddress } from '../../../../utils/TronAddressTest';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:package:use');
@@ -52,8 +53,11 @@ async function usePackageConversation(
   }
 
   const address = addressResult.message?.text;
-  if (!address) {
-    await ctx.reply('❌ 地址无效，请重新操作');
+  if (!address || !isValidTronAddress(address)) {
+    debug('Invalid address format received:', address);
+    await ctx.reply('❌ 请输入有效的Tron地址格式\n', {
+      reply_markup: cancelKeyboard,
+    });
     return await usePackageConversation(conversation, ctx, {
       bot,
       botUser,

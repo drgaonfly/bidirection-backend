@@ -59,7 +59,7 @@ const task = async () => {
   await checkAutoUnRentals(); // 解除闪租
   // await checkAutoUnPackageUsages(); // 解除日租
   await checkExpiredPackageOrders(); // 检查过期的套餐订单
-  await checkEnergyFlow(); // 监听并生成能量使用记录
+  await checkEnergyFlow(); // 给自己用, 监听并生成能量使用记录
 
   await recycleEnergy(); // 给自己用, 今天只要消费超过五笔（这个五不是写死的）。就立马回收能量
   // await recycleEnergyWhenOtherUseEnergy(); // 给他人用，如果他人用了，就创建能量使用记录后立马回收

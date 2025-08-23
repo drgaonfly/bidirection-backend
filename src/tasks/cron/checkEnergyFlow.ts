@@ -58,7 +58,12 @@ export async function checkEnergyFlow() {
       console.log('[checkEnergyFlow]: record_value:', record_value);
 
       try {
-        const results = await fetchEnergyContractCalls(record.address, 1);
+        const allResults = await fetchEnergyContractCalls(record.address, 1);
+
+        // 筛选出result.timestamp > record.createdAt (Date)的记录
+        const results = allResults.filter(
+          (result) => result.timestamp > record.createdAt.getTime() / 1000,
+        );
 
         console.log(
           `[checkEnergyFlow] 查询到 address: ${record.address} 的能量合约调用结果数量: ${results.length}`,

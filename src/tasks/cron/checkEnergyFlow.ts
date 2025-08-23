@@ -66,7 +66,7 @@ export async function checkEnergyFlow() {
 
         // 只处理那些哈希不在EnegyUsage表的result
         const existingEnergyUsages = await EnergyUsage.find({
-          hash: { $in: results.map((t) => t.txID) },
+          tx_id: { $in: results.map((t) => t.txID) },
         }).select('tx_id');
 
         const existingTxIds = new Set(existingEnergyUsages.map((e) => e.tx_id));

@@ -18,6 +18,11 @@ export async function recycleEnergy() {
 
   const quick_recycle_time = adminUser.quick_recycle_time;
 
+  if (!quick_recycle_time) {
+    console.log('[recycleEnergy] 没有预设快速回收时间');
+    return;
+  }
+
   try {
     console.log('[recycleEnergy] 开始检查所有待处理的套餐使用记录...');
 

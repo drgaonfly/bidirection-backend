@@ -2,10 +2,11 @@ import { Request, Response } from 'express';
 import EnergySend from '../models/energySend';
 import handleAsync from '../utils/handleAsync';
 import Bot from '../models/bot';
+import User from '../models/user';
 import BotUser from '../models/botUser';
 import { RequestCustom } from '../types/user';
 import { isEmployee, isProxy } from '../middlewares/authMiddleware';
-import User from '../models/user';
+import { resendEnergy } from '../utils/fetchTransactions';
 
 const buildQuery = async (
   queryParams: any,
@@ -199,6 +200,26 @@ export const deleteMultipleEnergySends = handleAsync(
     res.json({
       success: true,
       message: '能量发送记录批量删除成功',
+    });
+  },
+);
+
+export const resendEnergyById = handleAsync(
+  async (req: Request, res: Response) => {
+    console.log('req.params', req.params);
+
+    const energySend = await EnergySend.findByIdAndUpdate(req.params.id);
+
+    if (!energySend) {
+      res.status(404);
+      throw new Error('能量发送记录未找到');
+    }
+
+    await resendEnergy(energySend);
+
+    res.json({
+      success: true,
+      data: energySend,
     });
   },
 );

@@ -6,10 +6,13 @@ import {
   updateEnergySend,
   deleteEnergySend,
   deleteMultipleEnergySends,
+  resendEnergyById,
 } from '../controllers/energySendController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
+
+router.route('/:id/resend').put(protect, checkPermission, resendEnergyById);
 
 router
   .route('/')

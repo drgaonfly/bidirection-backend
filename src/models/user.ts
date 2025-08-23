@@ -59,6 +59,9 @@ export interface IUser extends Document {
    * 最低销回收时间 单位小时
    */
   recycle_min: number;
+
+  // 快速回收时间
+  quick_recycle_time: number; // 分钟
 }
 
 const pricePairSchema = new mongoose.Schema({
@@ -150,6 +153,9 @@ const userSchema = new mongoose.Schema(
     energy_per_times: { type: Number, default: 65000 },
 
     recycle_min: { type: Number, default: 5 },
+
+    // quick_recycle_time:
+    quick_recycle_time: { type: Number, default: 1 },
   },
   { timestamps: true },
 );

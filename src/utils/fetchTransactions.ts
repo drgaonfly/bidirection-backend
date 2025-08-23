@@ -12,6 +12,7 @@ import EnergySend, { IEnergySend } from '../models/energySend';
 import { getAdminUser } from './buyTelegramPremium';
 import { decrypt } from '../services/encrypt';
 import { IRental } from '../models/rental';
+// import { IUnRental } from '../models/unrental'
 import Deduction from '../models/deduction';
 import {
   checkAccountPermission,
@@ -763,6 +764,7 @@ async function genericSendEnergy(
     throw error;
   }
 }
+
 async function genericRecycleEnergy(energySend: IEnergySend): Promise<any> {
   const existUnRental = await UnRental.findOne({
     packageUsageRecord: energySend.packageUsageRecord,
@@ -1044,6 +1046,206 @@ async function genericRecycleEnergyByAmount(
   }
 }
 
+async function resendEnergy(energySend: IEnergySend): Promise<string> {
+  const amount = energySend.amount;
+
+  const toAddress = energySend.to_address;
+
+  const admin = await getAdminUser();
+
+  if (!admin.energy_address) {
+    throw new Error('管理员账户未设置 energy_address（放能量地址）');
+  }
+
+  console.log('[genericSendEnergy] 解密管理员 energy_privateKey...');
+  const decryptedPrivateKey = decrypt(admin.energy_privateKey);
+
+  console.log('[genericSendEnergy] 初始化 TronWeb...');
+  const tronWeb = new TronWeb({
+    fullHost: 'https://api.trongrid.io',
+    privateKey: decryptedPrivateKey,
+  });
+
+  const energyAddress = admin.energy_address; // B 地址，放能量
+  const fromAddress = tronWeb.address.fromPrivateKey(decryptedPrivateKey); // A 地址
+
+  if (!fromAddress || typeof fromAddress !== 'string') {
+    throw new Error('无法从私钥生成有效地址');
+  }
+
+  console.log('[genericSendEnergy] 地址信息:', { energyAddress, fromAddress });
+
+  console.log('[genericSendEnergy] 检查账户权限...');
+  const hasPermission = await checkAccountPermission(
+    energyAddress,
+    fromAddress,
+  );
+  if (!hasPermission) {
+    console.log('[genericSendEnergy] A 地址没有 B 地址的权限，开始设置权限...');
+    try {
+      await setupAccountPermission(decryptedPrivateKey, energyAddress);
+      console.log('[genericSendEnergy] 权限设置成功');
+    } catch (error) {
+      console.error('[genericSendEnergy] 权限设置失败:', error);
+      throw new Error('无法设置账户权限，能量发送失败');
+    }
+  } else {
+    console.log('[genericSendEnergy] A 地址已有 B 地址的权限');
+  }
+
+  try {
+    const amountSunStr = tronWeb.toSun(amount);
+    const amountSun = Number(amountSunStr) / 10;
+
+    console.log('[genericSendEnergy] 构建 delegateResource 交易...', {
+      toAddress,
+      amount,
+      amountSun,
+      fromAddress,
+      energyAddress,
+    });
+
+    tronWeb.setAddress(energyAddress);
+
+    const tx = await tronWeb.transactionBuilder.delegateResource(
+      amountSun,
+      toAddress,
+      'ENERGY',
+      energyAddress,
+    );
+
+    console.log('[genericSendEnergy] 多签交易...');
+    const stx = await tronWeb.trx.multiSign(tx, decryptedPrivateKey, 3);
+
+    console.log('[genericSendEnergy] 广播交易...');
+    const result = await tronWeb.trx.broadcast(stx);
+
+    if (!result || result.result !== true) {
+      throw new Error(
+        `[genericSendEnergy] 发送交易失败: ${JSON.stringify(result)}`,
+      );
+    }
+
+    console.log('[genericSendEnergy] 能量发送成功，交易ID:', result.txid);
+
+    energySend.status = 'success';
+    await energySend.save();
+
+    return result.txid;
+  } catch (error) {
+    console.error('[genericSendEnergy] 能量发送失败:', error);
+
+    throw error;
+  }
+}
+
+// async function reRecycle(unrental: IUnRental): Promise<any> {
+//   console.log('[unRentEnergy] 开始处理能量回收, rentalId:', unrental?._id);
+
+//   const amount = unrental.amount
+
+//   const
+
+//   // 获取管理员用户
+//   console.log('[unRentEnergy] 获取管理员用户...');
+//   const admin = await getAdminUser();
+
+//   // 检查管理员是否有 energy_address（B 地址，放能量的地址）
+//   if (!admin.energy_address) {
+//     throw new Error('管理员账户未设置 energy_address（放能量地址）');
+//   }
+
+//   // 解密私钥（A 地址的私钥）
+//   console.log('[unRentEnergy] 解密管理员能量私钥...');
+//   const decryptedPrivateKey = decrypt(admin.energy_privateKey);
+
+//   // 初始化 TronWeb，使用 A 地址的私钥
+//   console.log('[unRentEnergy] 初始化 TronWeb...');
+//   const tronWeb = new TronWeb({
+//     fullHost: 'https://api.trongrid.io',
+//     privateKey: decryptedPrivateKey,
+//   });
+
+//   // B 地址是放能量的地址，A 地址用私钥控制它
+//   const energyAddress = admin.energy_address; // B 地址
+//   const fromAddress = tronWeb.address.fromPrivateKey(decryptedPrivateKey); // A 地址
+//   console.log('[unRentEnergy] 管理员地址信息:', {
+//     energyAddress, // B 地址（放能量的地址）
+//     fromAddress, // A 地址（有私钥的地址）
+//   });
+
+//   try {
+//     const amountSunStr = tronWeb.toSun(amount); // 转为Sun单位字符串
+//     const amountSun = Number(amountSunStr) / 10;
+//     console.log(
+//       '[unRentEnergy] 解除租赁 amount:',
+//       amount,
+//       'Sun:',
+//       amountSun,
+//     );
+
+//     // 创建解除租赁交易（新方法，使用多签）
+//     console.log('[unRentEnergy] 创建解除租赁交易（多签）...');
+//     tronWeb.setAddress(energyAddress);
+//     const transaction = await tronWeb.transactionBuilder.undelegateResource(
+//       amountSun, // 解除租赁的能量数量（Sun单位）
+//       rental.from_address, // 被解除租赁的用户地址
+//       'ENERGY', // 资源类型，固定为 'ENERGY'
+//       energyAddress, // 管理员（发起解除租赁）的地址，使用 B 地址
+//     );
+//     console.log('[unRentEnergy] 解除租赁交易已构建:', transaction);
+
+//     // 多签交易（使用 A 的私钥进行多签，PERMISSION_ID 通常为 0 表示 active 权限）
+//     console.log('[unRentEnergy] 多签交易...');
+//     const signedTx = await tronWeb.trx.multiSign(
+//       transaction,
+//       decryptedPrivateKey,
+//       3, // PERMISSION_ID，通常为0或3，视合约配置而定
+//     );
+//     console.log('[unRentEnergy] 多签交易完成:', signedTx);
+
+//     // 广播交易
+//     console.log('[unRentEnergy] 广播交易...');
+//     const result = await tronWeb.trx.broadcast(signedTx);
+//     console.log('[unRentEnergy] 广播交易结果:', result);
+
+//     if (!result || result.result !== true) {
+//       throw new Error(
+//         `[unRentEnergy] 解除租赁交易失败: ${JSON.stringify(result)}`,
+//       );
+//     }
+
+//     unRental.error = JSON.stringify(result);
+//     unRental.status = 'success';
+//     unRental.hash = result.txid;
+//     await unRental.save();
+//     console.log(
+//       '[unRentEnergy] UnRental 状态已更新为 success, hash:',
+//       result.txid,
+//     );
+
+//     rental.status = 'recycled';
+//     await rental.save();
+//     console.log(
+//       '[unRentEnergy] Rental 状态已更新为 recycled, rentalId:',
+//       rental?._id,
+//     );
+
+//     return result.txid;
+//   } catch (error) {
+//     console.error('[unRentEnergy] 解除租赁能量失败:', error);
+
+//     unRental.status = 'failed';
+//     await unRental.save();
+//     console.log(
+//       '[unRentEnergy] UnRental 状态已更新为 failed, unRentalId:',
+//       unRental?._id,
+//     );
+
+//     throw error;
+//   }
+// }
+
 export {
   fetchTrxTransactions,
   fetchTrc20Transactions,
@@ -1055,4 +1257,5 @@ export {
   genericSendEnergy,
   genericRecycleEnergy,
   genericRecycleEnergyByAmount,
+  resendEnergy,
 };

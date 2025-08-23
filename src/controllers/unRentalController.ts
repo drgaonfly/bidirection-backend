@@ -200,3 +200,17 @@ export const deleteMultipleUnRentals = handleAsync(
     });
   },
 );
+
+export const reRecycle = handleAsync(async (req: Request, res: Response) => {
+  const unRental = await UnRental.findByIdAndUpdate(req.params.id);
+
+  if (!unRental) {
+    res.status(404);
+    throw new Error('解除租赁记录未找到');
+  }
+
+  res.json({
+    success: true,
+    data: unRental,
+  });
+});

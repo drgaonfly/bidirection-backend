@@ -916,20 +916,31 @@ async function genericRecycleEnergyByAmount(
   record?: IPackageUsageRecord,
   pens?: number,
 ): Promise<any> {
+  console.log('[genericRecycleEnergyByAmount] 入参:', {
+    amount,
+    address,
+    record,
+    pens,
+  });
+
   const existingUnRental = await UnRental.findOne({
+    packageUsageRecord: record._id,
     hash: record.recycling_hash,
   });
 
   console.log(
     '[genericRecycleEnergyByAmount]: existingUnRental',
-    existingUnRental,
+    existingUnRental.id,
+    'record.recycling_hash:',
+    record?.recycling_hash,
   );
 
   if (existingUnRental) {
     console.log(
       `[genericRecycleEnergyByAmount]: packageUsageRecord ${record.id} 已回收了能量，跳过`,
+      'existingUnRental:',
+      existingUnRental,
     );
-
     return;
   }
 

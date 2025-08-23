@@ -55,6 +55,8 @@ export async function checkEnergyFlow() {
 
       let record_value = record.usedTimes;
 
+      console.log('[checkEnergyFlow]: record_value:', record_value);
+
       try {
         const results = await fetchEnergyContractCalls(record.address, 1);
 

@@ -165,14 +165,8 @@ async function usePackageConversation(
     //     parse_mode: 'HTML',
     //   }
     // );
-    packageUsageRecord.hash = txId;
-    packageUsageRecord.status = 'success';
-    await packageUsageRecord.save();
   } catch (error) {
     console.error('能量发送失败:', error);
-
-    packageUsageRecord.status = 'failed';
-    await packageUsageRecord.save();
 
     await ctx.reply(['❌ 能量发送失败，请稍后重试'].join('\n'));
     return;

@@ -76,7 +76,6 @@ export async function recycleEnergyWhenOtherUseEnergy() {
             amount: result.data.amount,
             to_address: result.data.to,
             transactionAt: new Date(result.timestamp),
-            isRecycled: false,
           });
 
           try {

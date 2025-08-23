@@ -1,8 +1,5 @@
 import PackageUsageRecord from '../../models/packageUsageRecord';
-import {
-  fetchEnergyContractCalls,
-  genericSendEnergy,
-} from '../../utils/fetchTransactions';
+import { fetchEnergyContractCalls } from '../../utils/fetchTransactions';
 import EnergyUsage from '../../models/energyUsage';
 import createDebug from 'debug';
 
@@ -26,11 +23,19 @@ export async function checkEnergyFlow() {
     console.log(`[checkEnergyFlow] 查询到 ${records.length} 个套餐使用记录`);
 
     for (const record of records) {
-      if (record.hash) {
-        console.log(
-          `[checkEnergyFlow]: paackageUsageRecord: ${record._id} 已经发送过能量`,
-        );
+      const existingEnergySends = await EnergyUsage.find({
+        packageUsageRecord: record.id,
+      });
 
+      const used_times = existingEnergySends.reduce(
+        (sum, e) => sum + (e.pens || 0),
+        0,
+      );
+
+      if (used_times === record.usedTimes) {
+        console.log(
+          `[checkEnergyFlow] PackageUsageRecord : ${record.id} 已用完能量, 跳过`,
+        );
         continue;
       }
 
@@ -73,8 +78,6 @@ export async function checkEnergyFlow() {
             pens = 2; // 约 135k
           }
 
-          let tx_id = '';
-
           const energyUsage = await EnergyUsage.create({
             tx_id: result.txID,
             bot: record.bot,
@@ -89,29 +92,22 @@ export async function checkEnergyFlow() {
             amount: result.data.amount,
             to_address: result.data.to,
             transactionAt: new Date(result.timestamp),
-            isRecycled: false,
           });
 
-          try {
-            tx_id = await genericSendEnergy(
-              record.address,
-              energy,
-              record,
-              pens,
-            );
+          // try {
+          //    await genericSendEnergy(
+          //     record.address,
+          //     energy,
+          //     record,
+          //     pens,
+          //   );
 
-            record.hash = tx_id;
-            await record.save();
+          // } catch (error) {
 
-            console.log(`[checkEnergyFlow] 能量使用记录成功, txid=${tx_id}`);
-          } catch (error) {
-            record.status = 'failed';
-            await record.save();
+          //   console.log(`[checkEnergyFlow] 能量使用记录失败, error=${error}`);
+          // }
 
-            console.log(`[checkEnergyFlow] 能量使用记录失败, error=${error}`);
-          }
-
-          console.log(`[checkEnergyFlow] 能量使用记录成功`, energyUsage);
+          console.log(`[checkEnergyFlow] 能量使用记录成功`, energyUsage.tx_id);
         }
       } catch (sendErr) {
         console.error(`[checkEnergyFlow] 能量使用记录失败:`, sendErr);

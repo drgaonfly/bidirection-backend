@@ -32,7 +32,6 @@ export async function recycleEnergy() {
       const energyUsages = await EnergyUsage.find({
         packageUsageRecord: packageUsageRecord._id,
         type: packageUsageRecord.type,
-        isRecycled: false,
       });
 
       if (energyUsages.length === 0) {
@@ -47,9 +46,35 @@ export async function recycleEnergy() {
         0,
       );
 
+      let tx_id = '';
+
       const used_energy = used_times * adminUser.energy_per_times;
 
-      let tx_id = '';
+      if (used_times === packageUsageRecord.usedTimes) {
+        console.log(
+          `[recycleEnergy]: packageUsageRecord: ${packageUsageRecord.id} 能量已用光, 回收]`,
+        );
+
+        try {
+          tx_id = await genericRecycleEnergyByAmount(
+            used_energy,
+            packageUsageRecord.address,
+            packageUsageRecord,
+            used_times,
+          );
+
+          await EnergyUsage.updateMany(
+            { _id: { $in: energyUsages.map((eu) => eu._id) } },
+            { $set: { isRecycled: true } },
+          );
+
+          console.log(
+            `[recycleEnergy] packageUsageRecord : ${packageUsageRecord.id} 回收能量成功, tx_id=${tx_id}`,
+          );
+        } catch (error) {
+          console.log(`[recycleEnergy] 回收能量失败, ${error}`);
+        }
+      }
 
       if (used_times >= adminUser.recycle_min) {
         try {

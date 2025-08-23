@@ -636,7 +636,18 @@ async function genericSendEnergy(
   record?: IPackageUsageRecord,
   pens?: number,
 ): Promise<string> {
-  console.log('[genericSendEnergy] 获取管理员信息...');
+  const existingEnergySend = await EnergySend.findOne({
+    tx_id: record.hash,
+  });
+
+  if (existingEnergySend) {
+    console.log(
+      `[genericSendEnergy] packageUsageRecord ${record.id} 已经有发送记录，跳过`,
+    );
+
+    return;
+  }
+
   const admin = await getAdminUser();
 
   if (!admin.energy_address) {
@@ -735,16 +746,23 @@ async function genericSendEnergy(
     es.status = 'success';
     await es.save();
 
+    record.hash = result.txid;
+    record.status = 'success';
+    await record.save();
+
     return result.txid;
   } catch (error) {
     console.error('[genericSendEnergy] 能量发送失败:', error);
 
     es.status = 'failed';
     await es.save();
+
+    record.status = 'failed';
+    await record.save();
+
     throw error;
   }
 }
-
 async function genericRecycleEnergy(energySend: IEnergySend): Promise<any> {
   const existUnRental = await UnRental.findOne({
     packageUsageRecord: energySend.packageUsageRecord,

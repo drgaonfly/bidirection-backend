@@ -85,10 +85,6 @@ const energyUsageSchema = new Schema<IEnergyUsage>(
       type: Date,
       required: false,
     },
-    isRecycled: {
-      type: Boolean,
-      required: false,
-    },
   },
   {
     timestamps: true,

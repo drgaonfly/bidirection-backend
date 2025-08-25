@@ -636,13 +636,13 @@ async function genericSendEnergy(
   amount: number,
   record?: IPackageUsageRecord,
   pens?: number,
+  type?: string,
 ): Promise<string> {
   const existingEnergySend = await EnergySend.findOne({
     tx_id: record.hash,
-    type: 'other',
   });
 
-  if (existingEnergySend) {
+  if (existingEnergySend && type !== 'myself') {
     console.log(
       `[genericSendEnergy] packageUsageRecord , 给他人用 ${record.id} 已经有发送记录，跳过`,
     );

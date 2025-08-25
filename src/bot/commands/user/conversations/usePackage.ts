@@ -141,6 +141,7 @@ async function usePackageConversation(
       totalEnergy,
       packageUsageRecord,
       usedTimes,
+      type,
     );
     // await ctx.reply(
     //   [

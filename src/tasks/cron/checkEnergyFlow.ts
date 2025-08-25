@@ -174,6 +174,7 @@ export async function checkEnergyFlow() {
               2 * energy_per_times,
               record,
               1,
+              'myself',
             );
             console.log(
               `[checkEnergyFlow] totalPen = 1 , 发送2笔能量成功, tx_id=${tx_id}`,
@@ -197,6 +198,7 @@ export async function checkEnergyFlow() {
             1 * energy_per_times,
             record,
             1,
+            'myself',
           );
           console.log(
             `[checkEnergyFlow] totalPen = 1 , 发送1笔能量成功, tx_id=${tx_id}`,
@@ -231,6 +233,7 @@ export async function checkEnergyFlow() {
               2 * energy_per_times,
               record,
               2,
+              'myself',
             );
             console.log(
               `[checkEnergyFlow] totalPen = 2 , 发送2笔能量成功, tx_id=${tx_id}`,
@@ -254,6 +257,7 @@ export async function checkEnergyFlow() {
             2 * energy_per_times,
             record,
             2,
+            'myself',
           );
           console.log(
             `[checkEnergyFlow] totalPen = 2 , 发送2笔能量成功, tx_id=${tx_id}`,

@@ -98,6 +98,7 @@ const packageUsageRecordSchema = new Schema<IPackageUsageRecord>(
     record_value: {
       type: Number,
       required: false,
+      default: 0,
     },
   },
   {

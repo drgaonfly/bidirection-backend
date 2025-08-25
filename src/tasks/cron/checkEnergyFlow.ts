@@ -56,7 +56,7 @@ export async function checkEnergyFlow() {
         continue;
       }
 
-      const record_value = record.record_value || record.usedTimes;
+      const record_value = record.record_value || 0;
 
       console.log('[checkEnergyFlow]: record_value:', record_value);
 
@@ -153,7 +153,7 @@ export async function checkEnergyFlow() {
         );
 
         if (totalPens === 1) {
-          if (record_value > preset_value) {
+          if (record_value >= preset_value) {
             // 回收大小等于记录值的笔数
             console.log(
               `[checkEnergyFlow] record_value > preset_value, 回收能量: ${
@@ -205,15 +205,17 @@ export async function checkEnergyFlow() {
           );
 
           // 并记录+1
-          record.record_value += 1;
-          await record.save();
+          await PackageUsageRecord.findOneAndUpdate(
+            { _id: record._id },
+            { $inc: { record_value: 1 } },
+          );
           console.log(
             `[checkEnergyFlow] 发送1笔后, record_value 增加到: ${record_value}`,
           );
         }
 
         if (totalPens === 2) {
-          if (record_value > preset_value) {
+          if (record_value >= preset_value) {
             // 回收大小等于记录值得笔数
             console.log(
               `[checkEnergyFlow] record_value > preset_value, 回收能量: ${
@@ -264,8 +266,10 @@ export async function checkEnergyFlow() {
           );
 
           // 并记录值+2
-          record.record_value += 2;
-          await record.save();
+          await PackageUsageRecord.findOneAndUpdate(
+            { _id: record._id },
+            { $inc: { record_value: 2 } },
+          );
           console.log(
             `[checkEnergyFlow] 发送2笔后, record_value 增加到: ${record_value}`,
           );

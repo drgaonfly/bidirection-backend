@@ -136,7 +136,9 @@ export async function checkEnergyFlow() {
           console.log(`[checkEnergyFlow] 能量使用记录成功`, temp.tx_id);
         }
 
-        console.log(`[checkEnergyFlow] 能量使用记录成功, ${energyUsages}`);
+        console.log(
+          `[checkEnergyFlow] 能量使用记录成功, energyUsages.length: ${energyUsages.length}`,
+        );
 
         const totalPens = energyUsages.reduce(
           (sum, usage) => sum + (usage.pens || 0),

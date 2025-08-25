@@ -37,7 +37,10 @@ export async function checkEnergyFlow() {
       console.log(
         `[checkEnergyFlow] 正在处理套餐使用记录: ${record.id}, address: ${record.address}, usedTimes: ${record.usedTimes}`,
       );
-      const packageOrder = await PackageOrder.findById(record.packageOrder);
+      const packageOrder = await PackageOrder.findOne({
+        packageOrder: record.packageOrder,
+        status: 'using',
+      });
 
       if (!packageOrder) {
         console.log(

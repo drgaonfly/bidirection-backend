@@ -56,7 +56,7 @@ export async function checkEnergyFlow() {
         continue;
       }
 
-      const record_value = record.record_value || 0;
+      const record_value = record.usedTimes;
 
       console.log('[checkEnergyFlow]: record_value:', record_value);
 
@@ -153,7 +153,7 @@ export async function checkEnergyFlow() {
         );
 
         if (totalPens === 1) {
-          if (record_value >= preset_value) {
+          if (record_value > preset_value) {
             // 回收大小等于记录值的笔数
             console.log(
               `[checkEnergyFlow] record_value > preset_value, 回收能量: ${
@@ -215,7 +215,7 @@ export async function checkEnergyFlow() {
         }
 
         if (totalPens === 2) {
-          if (record_value >= preset_value) {
+          if (record_value > preset_value) {
             // 回收大小等于记录值得笔数
             console.log(
               `[checkEnergyFlow] record_value > preset_value, 回收能量: ${

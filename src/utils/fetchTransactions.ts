@@ -749,6 +749,7 @@ async function genericSendEnergy(
 
     record.hash = result.txid;
     record.status = 'success';
+    record.recycling_status = 'pending';
     await record.save();
 
     return result.txid;

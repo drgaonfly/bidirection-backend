@@ -53,7 +53,7 @@ export async function checkEnergyFlow() {
         continue;
       }
 
-      let record_value = record.usedTimes;
+      const record_value = record.record_value || record.usedTimes;
 
       console.log('[checkEnergyFlow]: record_value:', record_value);
 
@@ -164,16 +164,14 @@ export async function checkEnergyFlow() {
             );
 
             // 发送2笔
-            console.log(
-              `[checkEnergyFlow] 发送2笔能量: ${
-                2 * energy_per_times
-              } sun, address: ${record.address}`,
-            );
-            await genericSendEnergy(
+            const tx_id = await genericSendEnergy(
               record.address,
               2 * energy_per_times,
               record,
               1,
+            );
+            console.log(
+              `[checkEnergyFlow] totalPen = 1 , 发送2笔能量成功, tx_id=${tx_id}`,
             );
 
             // 扣 1 笔
@@ -181,27 +179,27 @@ export async function checkEnergyFlow() {
             await packageOrder.save();
 
             // 记录设为2
-            record_value = 2;
+            record.record_value = 2;
+            await record.save();
             console.log(
               `[checkEnergyFlow] 已回收并发送2笔, 扣减套餐1笔, 剩余 current_times: ${packageOrder.current_times}`,
             );
           }
 
           // 发送1笔
-          console.log(
-            `[checkEnergyFlow] 发送1笔能量: ${
-              1 * energy_per_times
-            } sun, address: ${record.address}`,
-          );
-          await genericSendEnergy(
+          const tx_id = await genericSendEnergy(
             record.address,
             1 * energy_per_times,
             record,
             1,
           );
+          console.log(
+            `[checkEnergyFlow] totalPen = 1 , 发送1笔能量成功, tx_id=${tx_id}`,
+          );
 
           // 并记录+1
-          record_value += 1;
+          record.record_value += 1;
+          await record.save();
           console.log(
             `[checkEnergyFlow] 发送1笔后, record_value 增加到: ${record_value}`,
           );
@@ -223,16 +221,14 @@ export async function checkEnergyFlow() {
             );
 
             // 发送2笔
-            console.log(
-              `[checkEnergyFlow] 发送2笔能量: ${
-                2 * energy_per_times
-              } sun, address: ${record.address}`,
-            );
-            await genericSendEnergy(
+            const tx_id = await genericSendEnergy(
               record.address,
               2 * energy_per_times,
               record,
               2,
+            );
+            console.log(
+              `[checkEnergyFlow] totalPen = 2 , 发送2笔能量成功, tx_id=${tx_id}`,
             );
 
             // 扣 2 笔
@@ -240,27 +236,27 @@ export async function checkEnergyFlow() {
             await packageOrder.save();
 
             // 记录设为2
-            record_value = 2;
+            record.record_value = 2;
+            await record.save();
             console.log(
               `[checkEnergyFlow] 已回收并发送2笔, 扣减套餐2笔, 剩余 current_times: ${packageOrder.current_times}`,
             );
           }
 
           // 发送2笔
-          console.log(
-            `[checkEnergyFlow] 发送2笔能量: ${
-              2 * energy_per_times
-            } sun, address: ${record.address}`,
-          );
-          await genericSendEnergy(
+          const tx_id = await genericSendEnergy(
             record.address,
             2 * energy_per_times,
             record,
             2,
           );
+          console.log(
+            `[checkEnergyFlow] totalPen = 2 , 发送2笔能量成功, tx_id=${tx_id}`,
+          );
 
           // 并记录值+2
-          record_value += 2;
+          record.record_value += 2;
+          await record.save();
           console.log(
             `[checkEnergyFlow] 发送2笔后, record_value 增加到: ${record_value}`,
           );

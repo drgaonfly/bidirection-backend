@@ -107,10 +107,18 @@ export async function checkEnergyFlow() {
 
           let pens = 0;
 
+          console.log(`[checkEnergyFlow] 当前能量符合: ${energy}`);
+
           if (energy <= 67000) {
+            console.log(
+              `[checkEnergyFlow] 当前能量符合 energy <= 67000 为 1 笔: ${energy}`,
+            );
             pens = 1; // 约 65k
           }
           if (energy >= 80000) {
+            console.log(
+              `[checkEnergyFlow] 当前能量符合 energy >= 80000 为 2 笔: ${energy}`,
+            );
             pens = 2; // 约 135k
           }
 

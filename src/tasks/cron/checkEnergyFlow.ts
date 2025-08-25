@@ -107,7 +107,7 @@ export async function checkEnergyFlow() {
 
           let pens = 0;
 
-          if (energy >= 60000 && energy <= 70000) {
+          if (energy <= 67000) {
             pens = 1; // 约 65k
           }
           if (energy >= 80000) {

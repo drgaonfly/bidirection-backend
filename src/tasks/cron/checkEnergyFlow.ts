@@ -27,7 +27,6 @@ export async function checkEnergyFlow() {
     console.log('[checkEnergyFlow] 开始检查所有待处理的能量归还订单...');
 
     const records = await PackageUsageRecord.find({
-      status: 'success',
       type: 'myself',
     });
 
@@ -37,10 +36,7 @@ export async function checkEnergyFlow() {
       console.log(
         `[checkEnergyFlow] 正在处理套餐使用记录: ${record.id}, address: ${record.address}, usedTimes: ${record.usedTimes}`,
       );
-      const packageOrder = await PackageOrder.findOne({
-        _id: record.packageOrder,
-        status: 'using',
-      });
+      const packageOrder = await PackageOrder.findById(record.packageOrder);
 
       if (!packageOrder) {
         console.log(

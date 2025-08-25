@@ -639,11 +639,12 @@ async function genericSendEnergy(
 ): Promise<string> {
   const existingEnergySend = await EnergySend.findOne({
     tx_id: record.hash,
+    type: 'other',
   });
 
   if (existingEnergySend) {
     console.log(
-      `[genericSendEnergy] packageUsageRecord ${record.id} 已经有发送记录，跳过`,
+      `[genericSendEnergy] packageUsageRecord , 给他人用 ${record.id} 已经有发送记录，跳过`,
     );
 
     return;

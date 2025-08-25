@@ -5,7 +5,7 @@ import { setupRedis } from '../utils/redis';
 // import { checkPendingOrders } from './cron/checkPendingOrders';
 
 import { checkMinConsumption } from './cron/checkMinConsumption';
-import { recycleEnergyDaily } from './cron/recycleEnergyDaily';
+// import { recycleEnergyDaily } from './cron/recycleEnergyDaily';
 
 // 每天 0 点 五分跑
 const task = async () => {
@@ -15,7 +15,7 @@ const task = async () => {
   console.log('开始执行扣低消任务...');
 
   await checkMinConsumption(); // 每日低消扣可用笔数，没用能量才触发
-  await recycleEnergyDaily(); // 给自己用，超过低消就立马回收能量
+  // await recycleEnergyDaily(); // 给自己用，超过低消就立马回收能量
 };
 
 // 执行任务并在完成后退出进程

@@ -129,48 +129,50 @@ export async function checkMinConsumption() {
         await createMinConsumptionRecord(packageUsageRecord, packageOrder, 2);
       }
 
-      if (used_times === 2) {
-        // 记录值 = 2 & 当天 = 0
-        await PackageUsageRecord.findByIdAndUpdate(
-          packageUsageRecord._id,
-          { $set: { record_value: 2, today_used_times: 0 } },
-          { new: true },
-        );
+      if (used_times >= 2) {
+        if (packageUsageRecord.record_value === 2) {
+          // 当天 = 0
+          await PackageUsageRecord.findByIdAndUpdate(
+            packageUsageRecord._id,
+            { $set: { today_used_times: 0 } },
+            { new: true },
+          );
 
-        await createMinConsumptionRecord(packageUsageRecord, packageOrder, 2);
-      }
+          await createMinConsumptionRecord(packageUsageRecord, packageOrder, 2);
+        }
 
-      if (used_times > 2) {
-        // 回收记录能量
-        await genericRecycleEnergyByAmount(
-          energy_per_times * packageUsageRecord.record_value,
-          packageUsageRecord.address,
-          packageUsageRecord,
-          packageUsageRecord.record_value,
-          'myself',
-        );
+        if (packageUsageRecord.record_value > 2) {
+          // 回收记录能量
+          await genericRecycleEnergyByAmount(
+            energy_per_times * packageUsageRecord.record_value,
+            packageUsageRecord.address,
+            packageUsageRecord,
+            packageUsageRecord.record_value,
+            'myself',
+          );
 
-        // 发送2笔
-        const tx_id = await genericSendEnergy(
-          packageUsageRecord.address,
-          2 * energy_per_times,
-          packageUsageRecord,
-          1,
-          'myself',
-        );
+          // 发送2笔
+          const tx_id = await genericSendEnergy(
+            packageUsageRecord.address,
+            2 * energy_per_times,
+            packageUsageRecord,
+            1,
+            'myself',
+          );
 
-        console.log(
-          `[checkMinConsumption] 当天使用超过2笔, 发送2笔能量成功, tx_id=${tx_id}`,
-        );
+          console.log(
+            `[checkMinConsumption] 当天使用超过2笔, 发送2笔能量成功, tx_id=${tx_id}`,
+          );
 
-        // 记录值 = 2 & 当天 = 0
-        await PackageUsageRecord.findByIdAndUpdate(
-          packageUsageRecord._id,
-          { $set: { record_value: 2, today_used_times: 0 } },
-          { new: true },
-        );
+          // 记录值 = 2 & 当天 = 0
+          await PackageUsageRecord.findByIdAndUpdate(
+            packageUsageRecord._id,
+            { $set: { record_value: 2, today_used_times: 0 } },
+            { new: true },
+          );
 
-        await createMinConsumptionRecord(packageUsageRecord, packageOrder, 2);
+          await createMinConsumptionRecord(packageUsageRecord, packageOrder, 2);
+        }
       }
     }
 

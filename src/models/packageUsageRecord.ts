@@ -97,7 +97,7 @@ const packageUsageRecordSchema = new Schema<IPackageUsageRecord>(
     },
     record_value: {
       type: Number,
-      required: true,
+      required: false,
     },
   },
   {

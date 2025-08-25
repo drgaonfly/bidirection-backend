@@ -56,10 +56,7 @@ export async function checkEnergyFlow() {
         continue;
       }
 
-      const record_value = record.usedTimes;
-
-      record.record_value = record_value;
-      await record.save();
+      const record_value = record.record_value;
 
       console.log('[checkEnergyFlow]: record_value:', record_value);
 

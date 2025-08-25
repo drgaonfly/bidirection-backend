@@ -42,6 +42,10 @@ export async function checkEnergyFlow() {
         status: 'using',
       });
 
+      console.log(
+        `[checkEnergyFlow] 找到套餐订单, packageOrder: ${packageOrder.id}`,
+      );
+
       if (!packageOrder) {
         console.log(
           `[checkEnergyFlow] 未找到对应的套餐订单, 跳过 record.id: ${record.id}`,

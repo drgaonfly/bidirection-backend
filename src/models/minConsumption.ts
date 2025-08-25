@@ -11,7 +11,7 @@ export interface IMinConsumption extends Document {
   proxy: mongoose.Schema.Types.ObjectId | IUser;
   packageOrder: mongoose.Schema.Types.ObjectId | IPackageOrder;
   packageUsageRecord: mongoose.Schema.Types.ObjectId | IPackageUsageRecord;
-  pens: number;
+  minus: number; // 扣订单可用笔数
 }
 
 const minConsumptionSchema = new mongoose.Schema(
@@ -27,7 +27,7 @@ const minConsumptionSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'PackageUsageRecord',
     },
-    pens: { type: Number, required: true },
+    minus: { type: Number, required: true },
   },
   {
     timestamps: true,

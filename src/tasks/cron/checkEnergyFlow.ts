@@ -169,6 +169,16 @@ export async function checkEnergyFlow() {
               } sun, address: ${record.address}`,
             );
 
+            // 先当天+1
+            const newRecord = await PackageUsageRecord.findByIdAndUpdate(
+              record._id,
+              { $inc: { today_used_times: 1 } },
+              { new: true },
+            );
+            console.log(
+              `[checkEnergyFlow] totalPens=1 , 当天+1: ${newRecord.today_used_times}`,
+            );
+
             await genericRecycleEnergyByAmount(
               energy_per_times * record_value,
               record.address,
@@ -200,6 +210,12 @@ export async function checkEnergyFlow() {
               `[checkEnergyFlow] 已回收并发送2笔, 扣减套餐1笔, 剩余 current_times: ${packageOrder.current_times}`,
             );
           }
+
+          await PackageUsageRecord.findByIdAndUpdate(
+            record._id,
+            { $inc: { today_used_times: 1 } },
+            { new: true },
+          );
 
           // 发送1笔
           const tx_id = await genericSendEnergy(
@@ -235,6 +251,17 @@ export async function checkEnergyFlow() {
                 energy_per_times * record_value
               } sun, address: ${record.address}`,
             );
+
+            // 先当天+2
+            const newRecord = await PackageUsageRecord.findByIdAndUpdate(
+              record._id,
+              { $inc: { today_used_times: 2 } },
+              { new: true },
+            );
+            console.log(
+              `[checkEnergyFlow] totalPens=1 , 当天+2: ${newRecord.today_used_times}`,
+            );
+
             await genericRecycleEnergyByAmount(
               energy_per_times * record_value,
               record.address,
@@ -266,6 +293,12 @@ export async function checkEnergyFlow() {
               `[checkEnergyFlow] 已回收并发送2笔, 扣减套餐2笔, 剩余 current_times: ${packageOrder.current_times}`,
             );
           }
+
+          await PackageUsageRecord.findByIdAndUpdate(
+            record._id,
+            { $inc: { today_used_times: 2 } },
+            { new: true },
+          );
 
           // 发送2笔
           const tx_id = await genericSendEnergy(

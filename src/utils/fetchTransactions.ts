@@ -917,6 +917,7 @@ async function genericRecycleEnergyByAmount(
   address: string,
   record?: IPackageUsageRecord,
   pens?: number,
+  type?: string,
 ): Promise<any> {
   console.log('[genericRecycleEnergyByAmount] 入参:', {
     amount,
@@ -930,7 +931,7 @@ async function genericRecycleEnergyByAmount(
     hash: record.recycling_hash,
   });
 
-  if (existingUnRental) {
+  if (existingUnRental && type !== 'myself') {
     console.log(
       `[genericRecycleEnergyByAmount]: packageUsageRecord ${record.id} 已回收了能量，跳过`,
       'existingUnRental:',

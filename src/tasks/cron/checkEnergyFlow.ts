@@ -166,6 +166,7 @@ export async function checkEnergyFlow() {
               record.address,
               record,
               record_value,
+              'myself',
             );
 
             // 发送2笔
@@ -227,6 +228,7 @@ export async function checkEnergyFlow() {
               record.address,
               record,
               record_value,
+              'myself',
             );
 
             // 发送2笔

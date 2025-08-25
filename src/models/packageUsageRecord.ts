@@ -22,6 +22,7 @@ export interface IPackageUsageRecord extends Document {
   hash: string; // 接收发送能量方法生成的交易哈希的接收哈希
   recycling_hash: string; // 接收回收能量方法生成的交易哈希的接收哈希
   record_value: number; // 记录值
+  today_used_times: number; // 当天使用的笔数
 }
 
 const packageUsageRecordSchema = new Schema<IPackageUsageRecord>(
@@ -96,6 +97,11 @@ const packageUsageRecordSchema = new Schema<IPackageUsageRecord>(
       unique: true,
     },
     record_value: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
+    today_used_times: {
       type: Number,
       required: false,
       default: 0,

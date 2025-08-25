@@ -205,13 +205,17 @@ export async function checkEnergyFlow() {
             `[checkEnergyFlow] totalPen = 1 , 发送1笔能量成功, tx_id=${tx_id}`,
           );
 
+          packageOrder.current_times -= 1;
+          await packageOrder.save();
+
           // 并记录+1
-          await PackageUsageRecord.findOneAndUpdate(
-            { _id: record._id },
+          const newRecord = await PackageUsageRecord.findByIdAndUpdate(
+            record._id,
             { $inc: { record_value: 1 } },
+            { new: true },
           );
           console.log(
-            `[checkEnergyFlow] 发送1笔后, record_value 增加到: ${record_value}`,
+            `[checkEnergyFlow] 发送1笔后, record_value 增加到: ${newRecord.record_value}`,
           );
         }
 
@@ -267,13 +271,17 @@ export async function checkEnergyFlow() {
             `[checkEnergyFlow] totalPen = 2 , 发送2笔能量成功, tx_id=${tx_id}`,
           );
 
+          packageOrder.current_times -= 2;
+          await packageOrder.save();
+
           // 并记录值+2
-          await PackageUsageRecord.findOneAndUpdate(
-            { _id: record._id },
+          const newRecord = await PackageUsageRecord.findByIdAndUpdate(
+            record._id,
             { $inc: { record_value: 2 } },
+            { new: true },
           );
           console.log(
-            `[checkEnergyFlow] 发送2笔后, record_value 增加到: ${record_value}`,
+            `[checkEnergyFlow] 发送2笔后, record_value 增加到: ${newRecord.record_value}`,
           );
         }
       } catch (sendErr) {

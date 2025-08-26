@@ -219,7 +219,11 @@ export async function checkMinConsumption() {
           );
 
           // 创建低销记录
-          await createMinConsumptionRecord(packageUsageRecord, packageOrder, 2);
+          await createMinConsumptionRecord(
+            packageUsageRecord,
+            packageOrder,
+            record_value,
+          );
 
           // 更新套餐订单状态
           packageOrder.status = 'expired';

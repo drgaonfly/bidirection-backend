@@ -66,7 +66,11 @@ async function usePackageConversation(
     });
   }
 
-  const exist = await PackageUsageRecord.findOne({ bot: bot._id, address });
+  const exist = await PackageUsageRecord.findOne({
+    bot: bot._id,
+    address,
+    status: { $ne: 'expired' },
+  });
 
   if (exist) {
     await ctx.reply('❌ 该地址以存在, 请重新输入');

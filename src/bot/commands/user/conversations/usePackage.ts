@@ -66,22 +66,6 @@ async function usePackageConversation(
     });
   }
 
-  const exist = await PackageUsageRecord.findOne({
-    bot: bot._id,
-    address,
-    status: { $ne: 'expired' },
-  });
-
-  if (exist) {
-    await ctx.reply('❌ 该地址以存在, 请重新输入');
-    return await usePackageConversation(conversation, ctx, {
-      bot,
-      botUser,
-      orderId,
-      type,
-    });
-  }
-
   // 2️⃣ 确定使用笔数
   let usedTimes = 0;
   if (type === 'myself') {

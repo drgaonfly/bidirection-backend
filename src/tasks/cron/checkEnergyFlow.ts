@@ -121,7 +121,6 @@ export async function checkEnergyFlow() {
 
     const records = await PackageUsageRecord.find({
       type: 'myself',
-      status: { $ne: 'expired' },
     });
 
     console.log(`[checkEnergyFlow] 查询到 ${records.length} 个套餐使用记录`);

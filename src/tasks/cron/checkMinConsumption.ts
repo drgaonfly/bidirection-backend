@@ -343,6 +343,20 @@ export async function checkMinConsumption() {
         }
 
         if (used_times === 0) {
+          // 回收记录能量
+          console.log(
+            `[checkMinConsumption][current_times=1][used_times=1] 能量回收成功, packageUsageRecord: [${
+              packageUsageRecord.id
+            }], 回收能量: ${energy_per_times * record_value}`,
+          );
+          await genericRecycleEnergyByAmount(
+            energy_per_times * record_value,
+            packageUsageRecord.address,
+            packageUsageRecord,
+            record_value,
+            'myself',
+          );
+
           // 发送 1 笔能量
           console.log(
             `[checkMinConsumption][current_times=1][used_times=0] 发送1笔能量成功, packageUsageRecord: [${

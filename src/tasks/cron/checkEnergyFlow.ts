@@ -407,7 +407,7 @@ export async function checkEnergyFlow() {
                 record.address,
                 2 * energy_per_times,
                 record,
-                1,
+                2,
                 'myself',
               );
               console.log(

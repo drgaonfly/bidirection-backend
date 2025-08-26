@@ -395,7 +395,7 @@ export async function checkMinConsumption() {
             await PackageOrder.findByIdAndUpdate(
               packageOrder._id,
               {
-                $set: { current_times: 0 },
+                $set: { today_used_times: 0 },
               },
               { new: true },
             );

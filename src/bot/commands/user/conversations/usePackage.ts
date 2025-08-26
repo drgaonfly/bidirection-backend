@@ -137,6 +137,7 @@ async function usePackageConversation(
     usedAt: new Date(),
     type,
     record_value: usedTimes,
+    today_used_times: 0,
   });
 
   let txId = '';

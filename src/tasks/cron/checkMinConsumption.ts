@@ -392,7 +392,7 @@ export async function checkMinConsumption() {
             `[checkMinConsumption][current_times>=2][used_times>=2][record_value=2] packageOrder: [${packageOrder._id}] current_times 设为0`,
           );
           if (record_value === 2) {
-            await PackageOrder.findByIdAndUpdate(
+            await PackageUsageRecord.findByIdAndUpdate(
               packageOrder._id,
               {
                 $set: { today_used_times: 0 },

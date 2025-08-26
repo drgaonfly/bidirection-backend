@@ -4,6 +4,7 @@ import {
   getPackageUsageRecordById,
   deletePackageUsageRecord,
   deleteMultiplePackageUsageRecords,
+  updatePackageUsageRecord,
 } from '../controllers/packageUsageRecordController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
@@ -19,6 +20,7 @@ router
 router
   .route('/:id')
   .get(protect, checkPermission, getPackageUsageRecordById)
+  .put(protect, checkPermission, updatePackageUsageRecord)
   .delete(protect, checkPermission, deletePackageUsageRecord);
 
 export default router;

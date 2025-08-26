@@ -150,3 +150,33 @@ export const deleteMultiplePackageUsageRecords = handleAsync(
     });
   },
 );
+
+export const updatePackageUsageRecord = handleAsync(
+  async (req: RequestCustom, res: Response) => {
+    const usageRecord = await PackageUsageRecord.findById(req.params.id)
+      .populate('bot')
+      .populate('botUser')
+      .populate('proxy');
+
+    if (!usageRecord) {
+      res.status(404);
+      throw new Error('使用记录未找到');
+    }
+
+    const updatedUsageRecord = await PackageUsageRecord.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+      },
+    )
+      .populate('bot')
+      .populate('botUser')
+      .populate('proxy');
+
+    res.json({
+      success: true,
+      data: updatedUsageRecord,
+    });
+  },
+);

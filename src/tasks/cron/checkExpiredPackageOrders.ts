@@ -62,19 +62,24 @@ export const checkExpiredPackageOrders = async (): Promise<void> => {
 
         let tx_id = '';
 
-        const energy = adminUser.energy_per_times * record.usedTimes;
+        const energy_per_times = adminUser.energy_per_times;
+
+        const record_value = record.record_value;
 
         try {
+          // 回收记录值能量
           tx_id = await genericRecycleEnergyByAmount(
-            energy,
+            energy_per_times * record_value,
             record.address,
             record,
-            record.usedTimes,
+            record_value,
+            'myself',
           );
-
           console.log(
             `[checkExpiredPackageOrders] 能量回收成功, txid=${tx_id}`,
           );
+
+          //
         } catch (error) {
           console.log(
             `[checkExpiredPackageOrders] 处理过期套餐订单: ${order.id} 的使用记录: ${record.id} 的交易记录失败, 跳过`,

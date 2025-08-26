@@ -1,9 +1,6 @@
 import setupDB from '../utils/db';
 import { setupRedis } from '../utils/redis';
 
-// import { trialExpired } from './cron/trialExpired';
-// import { checkPendingOrders } from './cron/checkPendingOrders';
-
 import { checkPendingExchanges } from './cron/checkPendingExchanges';
 import { checkExpiredExchanges } from './cron/expiredExchange';
 import { sendGroupMessages } from './cron/groupMessager';
@@ -26,7 +23,6 @@ import { checkTgStarsOrders } from './cron/checkTgStarsOrders';
 import { checkAutoRentals } from './cron/checkAutoRentals';
 import { checkAutoUnRentals } from './cron/checkAutoUnRentals';
 // import { checkAutoUnPackageUsages } from './cron/checkAutoUnPackageUsages';
-import { checkExpiredPackageOrders } from './cron/checkExpiredPackageOrders';
 
 import { checkEnergyFlow } from './cron/checkEnergyFlow';
 import { recycleEnergy } from './cron/recycleEnergy';
@@ -58,10 +54,9 @@ const task = async () => {
   await checkAutoRentals(); // 处理闪租
   await checkAutoUnRentals(); // 解除闪租
   // await checkAutoUnPackageUsages(); // 解除日租
-  await checkExpiredPackageOrders(); // 检查过期的套餐订单
   await checkEnergyFlow(); // 给自己用, 监听并生成能量使用记录
 
-  await recycleEnergy(); // 给自己用, 今天只要消费超过五笔（这个五不是写死的）。就立马回收能量
+  await recycleEnergy(); // 给他人用, 今天只要消费超过五笔（这个五不是写死的）。就立马回收能量
   // await recycleEnergyWhenOtherUseEnergy(); // 给他人用，如果他人用了，就创建能量使用记录后立马回收
   // await recycleEnergyWhenOtherNotUseEnergy(); // 给他人用，如果他人在一小时内没有用，就回收
 };

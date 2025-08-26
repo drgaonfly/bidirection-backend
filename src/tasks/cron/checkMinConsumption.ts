@@ -69,6 +69,8 @@ export async function checkMinConsumption() {
 
       const record_value = packageUsageRecord.record_value;
 
+      console.log(`[checkMinConsumption] record_value: ${record_value} `);
+
       // 判断套餐订单是否已过期
       if (
         packageOrder.expiredAt &&
@@ -113,6 +115,12 @@ export async function checkMinConsumption() {
         if (used_times >= 2) {
           if (record_value > 2) {
             // 回收记录值能量
+            console.log(
+              `[checkMinConsumption][current_times=0][used_times>=2][record_value>2] 能量回收成功, packageUsageRecord: [${
+                packageUsageRecord.id
+              }], 回收能量: ${energy_per_times * record_value}`,
+            );
+
             await genericRecycleEnergyByAmount(
               energy_per_times * record_value,
               packageUsageRecord.address,
@@ -120,13 +128,13 @@ export async function checkMinConsumption() {
               record_value,
               'myself',
             );
-            console.log(
-              `[checkMinConsumption][current_times=0][used_times>=2][record_value>2] 能量回收成功, packageUsageRecord: [${
-                packageUsageRecord.id
-              }], 回收能量: ${energy_per_times * record_value}`,
-            );
 
             // 发送 2 笔能量
+            console.log(
+              `[checkMinConsumption][current_times=0][used_times>=2][record_value>2] 发送2笔能量成功, packageUsageRecord: [${
+                packageUsageRecord.id
+              }], 发送能量: ${2 * energy_per_times}`,
+            );
             await genericSendEnergy(
               packageUsageRecord.address,
               2 * energy_per_times,
@@ -134,42 +142,37 @@ export async function checkMinConsumption() {
               2,
               'myself',
             );
-            console.log(
-              `[checkMinConsumption][current_times=0][used_times>=2][record_value>2] 发送2笔能量成功, packageUsageRecord: [${
-                packageUsageRecord.id
-              }], 发送能量: ${2 * energy_per_times}`,
-            );
 
             // 记录值 = 2 & 当天 = 0
+            console.log(
+              `[checkMinConsumption][current_times=0][used_times>=2][record_value>2] 更新record_value=2, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
+            );
             await PackageUsageRecord.findByIdAndUpdate(
               packageUsageRecord._id,
               { $set: { record_value: 2, today_used_times: 0 } },
               { new: true },
             );
-            console.log(
-              `[checkMinConsumption][current_times=0][used_times>=2][record_value>2] 更新record_value=2, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
-            );
           }
 
           if (record_value === 2) {
+            console.log(
+              `[checkMinConsumption][current_times=0][used_times>=2][record_value=2] 更新today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
+            );
             await PackageUsageRecord.findByIdAndUpdate(
               packageUsageRecord._id,
               { $set: { today_used_times: 0 } },
               { new: true },
             );
-            console.log(
-              `[checkMinConsumption][current_times=0][used_times>=2][record_value=2] 更新today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
-            );
           }
 
           if (record_value === 1) {
+            console.log(
+              `[checkMinConsumption][current_times=0][used_times>=2][record_value=1] 更新record_value=1, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
+            );
             await PackageUsageRecord.findByIdAndUpdate(
               packageUsageRecord._id,
               { $set: { record_value: 1, today_used_times: 0 } },
               { new: true },
-            );
-            console.log(
-              `[checkMinConsumption][current_times=0][used_times>=2][record_value=1] 更新record_value=1, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
             );
           }
         }
@@ -234,18 +237,23 @@ export async function checkMinConsumption() {
 
         if (used_times >= 2) {
           if (record_value === 2) {
+            console.log(
+              `[checkMinConsumption][current_times=1][used_times>=2][record_value=2] 更新today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
+            );
             await PackageUsageRecord.findByIdAndUpdate(
               packageUsageRecord._id,
               { $set: { today_used_times: 0 } },
               { new: true },
             );
-            console.log(
-              `[checkMinConsumption][current_times=1][used_times>=2][record_value=2] 更新today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
-            );
           }
 
           if (record_value > 2) {
             // 回收记录能量
+            console.log(
+              `[checkMinConsumption][current_times=1][used_times>=2][record_value>2] 能量回收成功, packageUsageRecord: [${
+                packageUsageRecord.id
+              }], 回收能量: ${energy_per_times * record_value}`,
+            );
             await genericRecycleEnergyByAmount(
               energy_per_times * record_value,
               packageUsageRecord.address,
@@ -253,13 +261,13 @@ export async function checkMinConsumption() {
               record_value,
               'myself',
             );
-            console.log(
-              `[checkMinConsumption][current_times=1][used_times>=2][record_value>2] 能量回收成功, packageUsageRecord: [${
-                packageUsageRecord.id
-              }], 回收能量: ${energy_per_times * record_value}`,
-            );
 
             // 发送 2 笔能量
+            console.log(
+              `[checkMinConsumption][current_times=1][used_times>=2][record_value>2] 发送2笔能量成功, packageUsageRecord: [${
+                packageUsageRecord.id
+              }], 发送能量: ${2 * energy_per_times}`,
+            );
             await genericSendEnergy(
               packageUsageRecord.address,
               2 * energy_per_times,
@@ -267,25 +275,25 @@ export async function checkMinConsumption() {
               2,
               'myself',
             );
-            console.log(
-              `[checkMinConsumption][current_times=1][used_times>=2][record_value>2] 发送2笔能量成功, packageUsageRecord: [${
-                packageUsageRecord.id
-              }], 发送能量: ${2 * energy_per_times}`,
-            );
 
+            console.log(
+              `[checkMinConsumption][current_times=1][used_times>=2][record_value>2] 更新record_value=2, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
+            );
             await PackageUsageRecord.findByIdAndUpdate(
               packageUsageRecord._id,
               { $set: { record_value: 2, today_used_times: 0 } },
               { new: true },
-            );
-            console.log(
-              `[checkMinConsumption][current_times=1][used_times>=2][record_value>2] 更新record_value=2, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
             );
           }
         }
 
         if (used_times === 1) {
           // 回收记录能量
+          console.log(
+            `[checkMinConsumption][current_times=1][used_times=1] 能量回收成功, packageUsageRecord: [${
+              packageUsageRecord.id
+            }], 回收能量: ${energy_per_times * record_value}`,
+          );
           await genericRecycleEnergyByAmount(
             energy_per_times * record_value,
             packageUsageRecord.address,
@@ -293,13 +301,13 @@ export async function checkMinConsumption() {
             record_value,
             'myself',
           );
-          console.log(
-            `[checkMinConsumption][current_times=1][used_times=1] 能量回收成功, packageUsageRecord: [${
-              packageUsageRecord.id
-            }], 回收能量: ${energy_per_times * record_value}`,
-          );
 
           // 发送 2 笔能量
+          console.log(
+            `[checkMinConsumption][current_times=1][used_times=1] 发送2笔能量成功, packageUsageRecord: [${
+              packageUsageRecord.id
+            }], 发送能量: ${2 * energy_per_times}`,
+          );
           await genericSendEnergy(
             packageUsageRecord.address,
             2 * energy_per_times,
@@ -307,13 +315,11 @@ export async function checkMinConsumption() {
             2,
             'myself',
           );
-          console.log(
-            `[checkMinConsumption][current_times=1][used_times=1] 发送2笔能量成功, packageUsageRecord: [${
-              packageUsageRecord.id
-            }], 发送能量: ${2 * energy_per_times}`,
-          );
 
           // 扣除可用笔数1笔
+          console.log(
+            `[checkMinConsumption][current_times=1][used_times=1] packageOrder: [${packageOrder._id}] current_times -1`,
+          );
           await PackageOrder.findByIdAndUpdate(
             packageOrder._id,
             {
@@ -321,18 +327,15 @@ export async function checkMinConsumption() {
             },
             { new: true },
           );
-          console.log(
-            `[checkMinConsumption][current_times=1][used_times=1] packageOrder: [${packageOrder._id}] current_times -1`,
-          );
 
           // 记录值 = 2 & 当天用量 = 0
+          console.log(
+            `[checkMinConsumption][current_times=1][used_times=1] 更新record_value=2, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
+          );
           await PackageUsageRecord.findByIdAndUpdate(
             packageUsageRecord._id,
             { $set: { record_value: 2, today_used_times: 0 } },
             { new: true },
-          );
-          console.log(
-            `[checkMinConsumption][current_times=1][used_times=1] 更新record_value=2, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
           );
 
           // 创建低销记录
@@ -341,6 +344,11 @@ export async function checkMinConsumption() {
 
         if (used_times === 0) {
           // 发送 1 笔能量
+          console.log(
+            `[checkMinConsumption][current_times=1][used_times=0] 发送1笔能量成功, packageUsageRecord: [${
+              packageUsageRecord.id
+            }], 发送能量: ${1 * energy_per_times}`,
+          );
           await genericSendEnergy(
             packageUsageRecord.address,
             1 * energy_per_times,
@@ -348,13 +356,12 @@ export async function checkMinConsumption() {
             1,
             'myself',
           );
-          console.log(
-            `[checkMinConsumption][current_times=1][used_times=0] 发送1笔能量成功, packageUsageRecord: [${
-              packageUsageRecord.id
-            }], 发送能量: ${1 * energy_per_times}`,
-          );
 
           // 扣可用笔数1笔
+          console.log(
+            `[checkMinConsumption][current_times=1][used_times=0] packageOrder: [${packageOrder._id}] current_times -1`,
+          );
+
           await PackageOrder.findByIdAndUpdate(
             packageOrder._id,
             {
@@ -362,18 +369,15 @@ export async function checkMinConsumption() {
             },
             { new: true },
           );
-          console.log(
-            `[checkMinConsumption][current_times=1][used_times=0] packageOrder: [${packageOrder._id}] current_times -1`,
-          );
 
           // 记录值 = 1 & 当天 = 0
+          console.log(
+            `[checkMinConsumption][current_times=1][used_times=0] 更新record_value=1, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
+          );
           await PackageUsageRecord.findByIdAndUpdate(
             packageUsageRecord._id,
             { $set: { record_value: 1, today_used_times: 0 } },
             { new: true },
-          );
-          console.log(
-            `[checkMinConsumption][current_times=1][used_times=0] 更新record_value=1, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
           );
 
           // 创建低销记录
@@ -384,6 +388,9 @@ export async function checkMinConsumption() {
       if (packageOrder.current_times >= 2) {
         if (used_times >= 2) {
           // 当天 = 0
+          console.log(
+            `[checkMinConsumption][current_times>=2][used_times>=2][record_value=2] packageOrder: [${packageOrder._id}] current_times 设为0`,
+          );
           if (record_value === 2) {
             await PackageOrder.findByIdAndUpdate(
               packageOrder._id,
@@ -392,13 +399,15 @@ export async function checkMinConsumption() {
               },
               { new: true },
             );
-            console.log(
-              `[checkMinConsumption][current_times>=2][used_times>=2][record_value=2] packageOrder: [${packageOrder._id}] current_times 设为0`,
-            );
           }
 
           if (record_value > 2) {
             // 回收记录能量
+            console.log(
+              `[checkMinConsumption][current_times>=2][used_times>=2][record_value>2] 能量回收成功, packageUsageRecord: [${
+                packageUsageRecord.id
+              }], 回收能量: ${energy_per_times * record_value}`,
+            );
             await genericRecycleEnergyByAmount(
               energy_per_times * record_value,
               packageUsageRecord.address,
@@ -406,13 +415,13 @@ export async function checkMinConsumption() {
               record_value,
               'myself',
             );
-            console.log(
-              `[checkMinConsumption][current_times>=2][used_times>=2][record_value>2] 能量回收成功, packageUsageRecord: [${
-                packageUsageRecord.id
-              }], 回收能量: ${energy_per_times * record_value}`,
-            );
 
             // 发送 2 笔能量
+            console.log(
+              `[checkMinConsumption][current_times>=2][used_times>=2][record_value>2] 发送2笔能量成功, packageUsageRecord: [${
+                packageUsageRecord.id
+              }], 发送能量: ${2 * energy_per_times}`,
+            );
             await genericSendEnergy(
               packageUsageRecord.address,
               2 * energy_per_times,
@@ -420,26 +429,26 @@ export async function checkMinConsumption() {
               2,
               'myself',
             );
-            console.log(
-              `[checkMinConsumption][current_times>=2][used_times>=2][record_value>2] 发送2笔能量成功, packageUsageRecord: [${
-                packageUsageRecord.id
-              }], 发送能量: ${2 * energy_per_times}`,
-            );
 
             // 记录值 = 2 & 当天 = 0
+            console.log(
+              `[checkMinConsumption][current_times>=2][used_times>=2][record_value>2] 更新record_value=2, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
+            );
             await PackageUsageRecord.findByIdAndUpdate(
               packageUsageRecord._id,
               { $set: { record_value: 2, today_used_times: 0 } },
               { new: true },
-            );
-            console.log(
-              `[checkMinConsumption][current_times>=2][used_times>=2][record_value>2] 更新record_value=2, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
             );
           }
         }
 
         if (used_times === 1) {
           // 回收记录能量
+          console.log(
+            `[checkMinConsumption][current_times>=2][used_times=1] 能量回收成功, packageUsageRecord: [${
+              packageUsageRecord.id
+            }], 回收能量: ${energy_per_times * record_value}`,
+          );
           await genericRecycleEnergyByAmount(
             energy_per_times * record_value,
             packageUsageRecord.address,
@@ -447,13 +456,13 @@ export async function checkMinConsumption() {
             record_value,
             'myself',
           );
-          console.log(
-            `[checkMinConsumption][current_times>=2][used_times=1] 能量回收成功, packageUsageRecord: [${
-              packageUsageRecord.id
-            }], 回收能量: ${energy_per_times * record_value}`,
-          );
 
           // 发送 2 笔能量
+          console.log(
+            `[checkMinConsumption][current_times>=2][used_times=1] 发送2笔能量成功, packageUsageRecord: [${
+              packageUsageRecord.id
+            }], 发送能量: ${2 * energy_per_times}`,
+          );
           await genericSendEnergy(
             packageUsageRecord.address,
             2 * energy_per_times,
@@ -461,13 +470,11 @@ export async function checkMinConsumption() {
             2,
             'myself',
           );
-          console.log(
-            `[checkMinConsumption][current_times>=2][used_times=1] 发送2笔能量成功, packageUsageRecord: [${
-              packageUsageRecord.id
-            }], 发送能量: ${2 * energy_per_times}`,
-          );
 
           // 扣可用笔数1笔
+          console.log(
+            `[checkMinConsumption][current_times>=2][used_times=1] packageOrder: [${packageOrder._id}] current_times -1`,
+          );
           await PackageOrder.findByIdAndUpdate(
             packageOrder._id,
             {
@@ -475,23 +482,23 @@ export async function checkMinConsumption() {
             },
             { new: true },
           );
-          console.log(
-            `[checkMinConsumption][current_times>=2][used_times=1] packageOrder: [${packageOrder._id}] current_times -1`,
-          );
 
           // 记录值 = 2 & 当天 = 0
+          console.log(
+            `[checkMinConsumption][current_times>=2][used_times=1] 更新record_value=2, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
+          );
           await PackageUsageRecord.findByIdAndUpdate(
             packageUsageRecord._id,
             { $set: { record_value: 2, today_used_times: 0 } },
             { new: true },
           );
-          console.log(
-            `[checkMinConsumption][current_times>=2][used_times=1] 更新record_value=2, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
-          );
         }
 
         if (used_times === 0) {
           // 扣除可用笔数2笔
+          console.log(
+            `[checkMinConsumption][current_times>=2][used_times=0] packageOrder: [${packageOrder._id}] current_times -2`,
+          );
           await PackageOrder.findByIdAndUpdate(
             packageOrder._id,
             {
@@ -499,18 +506,15 @@ export async function checkMinConsumption() {
             },
             { new: true },
           );
-          console.log(
-            `[checkMinConsumption][current_times>=2][used_times=0] packageOrder: [${packageOrder._id}] current_times -2`,
-          );
 
           // 记录值 = 2 & 当天 = 0
+          console.log(
+            `[checkMinConsumption][current_times>=2][used_times=0] 更新record_value=2, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
+          );
           await PackageUsageRecord.findByIdAndUpdate(
             packageUsageRecord._id,
             { $set: { record_value: 2, today_used_times: 0 } },
             { new: true },
-          );
-          console.log(
-            `[checkMinConsumption][current_times>=2][used_times=0] 更新record_value=2, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
           );
         }
       }

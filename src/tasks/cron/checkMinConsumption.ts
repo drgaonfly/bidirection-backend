@@ -532,6 +532,9 @@ export async function checkMinConsumption() {
             { $set: { record_value: 2, today_used_times: 0 } },
             { new: true },
           );
+
+          // 扣低销1
+          await createMinConsumptionRecord(packageUsageRecord, packageOrder, 1);
         }
 
         if (used_times === 0) {
@@ -556,6 +559,9 @@ export async function checkMinConsumption() {
             { $set: { record_value: 2, today_used_times: 0 } },
             { new: true },
           );
+
+          // 扣低销2
+          await createMinConsumptionRecord(packageUsageRecord, packageOrder, 2);
         }
       }
     }

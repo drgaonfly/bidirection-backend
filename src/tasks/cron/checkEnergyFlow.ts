@@ -7,6 +7,7 @@ import {
 import { getAdminUser } from '../../utils/buyTelegramPremium';
 import EnergyUsage from '../../models/energyUsage';
 import PackageOrder from '../../models/packageOrder';
+import { removeOrderUsagesIntoTrash } from '../../utils/removeIntoTrash';
 import createDebug from 'debug';
 
 const debug = createDebug('cron:checkEnergyFlow');
@@ -682,6 +683,7 @@ export async function checkEnergyFlow() {
               },
               { new: true },
             );
+            await removeOrderUsagesIntoTrash(packageOrder);
           }
 
           if (totalPens === 2) {
@@ -702,6 +704,7 @@ export async function checkEnergyFlow() {
               },
               { new: true },
             );
+            await removeOrderUsagesIntoTrash(packageOrder);
           }
         } catch (sendErr) {
           console.error(`[checkEnergyFlow] 能量使用记录失败:`, sendErr);

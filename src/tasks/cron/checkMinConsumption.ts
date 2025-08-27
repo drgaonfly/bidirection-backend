@@ -6,6 +6,7 @@ import {
   genericSendEnergy,
 } from '../../utils/fetchTransactions';
 import { getAdminUser } from '../../utils/buyTelegramPremium';
+import { removeOrderUsagesIntoTrash } from '../../utils/removeIntoTrash';
 import createDebug from 'debug';
 
 const debug = createDebug('cron:checkMinConsumption');
@@ -100,6 +101,8 @@ export async function checkMinConsumption() {
         // 更新套餐订单状态
         packageOrder.status = 'expired';
         await packageOrder.save();
+        await removeOrderUsagesIntoTrash(packageOrder);
+
         console.log(
           `[checkMinConsumption][expired] packageOrder: [${packageOrder._id}] 状态已更新为 expired`,
         );
@@ -198,6 +201,8 @@ export async function checkMinConsumption() {
           // 更新套餐订单状态
           packageOrder.status = 'expired';
           await packageOrder.save();
+          await removeOrderUsagesIntoTrash(packageOrder);
+
           console.log(
             `[checkMinConsumption][current_times=0][used_times=1] packageOrder: [${packageOrder._id}] 状态已更新为 expired`,
           );
@@ -228,6 +233,8 @@ export async function checkMinConsumption() {
           // 更新套餐订单状态
           packageOrder.status = 'expired';
           await packageOrder.save();
+          await removeOrderUsagesIntoTrash(packageOrder);
+
           console.log(
             `[checkMinConsumption][current_times=0][used_times=0] packageOrder: [${packageOrder._id}] 状态已更新为 expired`,
           );

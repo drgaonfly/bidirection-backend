@@ -66,6 +66,22 @@ async function usePackageConversation(
     });
   }
 
+  // 检查该地址是否已绑定过该套餐
+  const existingRecord = await PackageUsageRecord.findOne({
+    packageOrder: order._id,
+    address: address,
+  });
+
+  if (existingRecord) {
+    await ctx.reply('❌ 该地址已绑定过此套餐，请勿重复绑定');
+    return await usePackageConversation(conversation, ctx, {
+      bot,
+      botUser,
+      orderId,
+      type,
+    });
+  }
+
   // 2️⃣ 确定使用笔数
   let usedTimes = 0;
   if (type === 'myself') {

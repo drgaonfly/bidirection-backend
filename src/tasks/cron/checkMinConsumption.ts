@@ -99,8 +99,13 @@ export async function checkMinConsumption() {
         await createMinConsumptionRecord(packageUsageRecord, packageOrder, 2);
 
         // 更新套餐订单状态
-        packageOrder.status = 'expired';
-        await packageOrder.save();
+        await PackageOrder.findByIdAndUpdate(
+          packageOrder._id,
+          {
+            $set: { status: 'expired' },
+          },
+          { new: true },
+        );
         await removeOrderUsagesIntoTrash(packageOrder);
 
         console.log(
@@ -199,8 +204,13 @@ export async function checkMinConsumption() {
           await createMinConsumptionRecord(packageUsageRecord, packageOrder, 1);
 
           // 更新套餐订单状态
-          packageOrder.status = 'expired';
-          await packageOrder.save();
+          await PackageOrder.findByIdAndUpdate(
+            packageOrder._id,
+            {
+              $set: { status: 'expired' },
+            },
+            { new: true },
+          );
           await removeOrderUsagesIntoTrash(packageOrder);
 
           console.log(
@@ -231,8 +241,13 @@ export async function checkMinConsumption() {
           );
 
           // 更新套餐订单状态
-          packageOrder.status = 'expired';
-          await packageOrder.save();
+          await PackageOrder.findByIdAndUpdate(
+            packageOrder._id,
+            {
+              $set: { status: 'expired' },
+            },
+            { new: true },
+          );
           await removeOrderUsagesIntoTrash(packageOrder);
 
           console.log(
@@ -358,29 +373,29 @@ export async function checkMinConsumption() {
           console.log(
             `[checkMinConsumption][current_times=1][used_times=1] 能量回收成功, packageUsageRecord: [${
               packageUsageRecord.id
-            }], 回收能量: ${energy_per_times * record_value}`,
+            }], 回收能量: ${energy_per_times * 1}`,
           );
           await genericRecycleEnergyByAmount(
-            energy_per_times * record_value,
+            energy_per_times * 1,
             packageUsageRecord.address,
-            packageUsageRecord,
-            record_value,
-            'myself',
-          );
-
-          // 发送 1 笔能量
-          console.log(
-            `[checkMinConsumption][current_times=1][used_times=0] 发送1笔能量成功, packageUsageRecord: [${
-              packageUsageRecord.id
-            }], 发送能量: ${1 * energy_per_times}`,
-          );
-          await genericSendEnergy(
-            packageUsageRecord.address,
-            1 * energy_per_times,
             packageUsageRecord,
             1,
             'myself',
           );
+
+          // 发送 1 笔能量
+          // console.log(
+          //   `[checkMinConsumption][current_times=1][used_times=0] 发送1笔能量成功, packageUsageRecord: [${
+          //     packageUsageRecord.id
+          //   }], 发送能量: ${1 * energy_per_times}`,
+          // );
+          // await genericSendEnergy(
+          //   packageUsageRecord.address,
+          //   1 * energy_per_times,
+          //   packageUsageRecord,
+          //   1,
+          //   'myself',
+          // );
 
           // 扣可用笔数1笔
           console.log(

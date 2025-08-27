@@ -2,6 +2,7 @@ import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
 import PackageOrder from '../../../../models/packageOrder';
 import PackageUsageRecord from '../../../../models/packageUsageRecord';
+import Trash from '../../../../models/trash';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:record');
@@ -25,10 +26,19 @@ usageCallack.callbackQuery(/^package_usages_(.+)$/, async (ctx) => {
     }
 
     // 查找使用记录
-    const usageRecords = await PackageUsageRecord.find({
-      packageOrder: order._id,
-      status: 'success',
-    }).sort({ usedAt: -1 });
+    let usageRecords;
+    // 先判断order有没有过期，没有的话，在PackageUsageRecord中查找, 有的话，在Trash中查找
+    if (order.status === 'expired') {
+      usageRecords = await Trash.find({
+        packageOrder: order._id,
+        status: 'success',
+      }).sort({ usedAt: -1 });
+    } else {
+      usageRecords = await PackageUsageRecord.find({
+        packageOrder: order._id,
+        status: 'success',
+      }).sort({ usedAt: -1 });
+    }
 
     if (!usageRecords || usageRecords.length === 0) {
       await ctx.reply('ℹ️ 该订单还没有任何使用记录。');

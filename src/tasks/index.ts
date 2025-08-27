@@ -26,6 +26,7 @@ import { checkAutoUnRentals } from './cron/checkAutoUnRentals';
 
 import { checkEnergyFlow } from './cron/checkEnergyFlow';
 import { recycleEnergy } from './cron/recycleEnergy';
+import { checkExpiredPackageOrders } from './cron/checkExpiredPackageOrders';
 // import { recycleEnergyWhenOtherUseEnergy } from './cron/recycleEnergyWhenOtherUseEnergy';
 // import { recycleEnergyWhenOtherNotUseEnergy } from './cron/recycleEnergyWhenOtherNotUseEnergy';
 
@@ -47,6 +48,7 @@ const task = async () => {
   await checkTgStarsOrders(); //电报星星订单
 
   await checkExpiredRentals();
+  await checkExpiredPackageOrders;
   // await checkPendingTrxRental();
   await checkPendingUsdtRental(); // 处理日租
 

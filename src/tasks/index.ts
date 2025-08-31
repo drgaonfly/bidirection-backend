@@ -48,7 +48,7 @@ const task = async () => {
   await checkTgStarsOrders(); //电报星星订单
 
   await checkExpiredRentals();
-  await checkExpiredPackageOrders;
+  await checkExpiredPackageOrders();
   // await checkPendingTrxRental();
   await checkPendingUsdtRental(); // 处理日租
 

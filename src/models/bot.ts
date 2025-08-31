@@ -62,11 +62,11 @@ export interface ICommand extends Document {
 
 export interface IPricePair extends Document {
   name: string;
-  expenditure: number; // 花费多少 (trx)
-  // aqusition: number; // 得到多少能量(sun)，固定值
+  expenditure: number; // 来价
   expiration: number; // 有效时间 (hour)
   times: number; // 笔数
   type?: string; // 类型, 闪租还是日租
+  sale?: number; // 售价
 }
 
 const menuSchema = new mongoose.Schema({
@@ -102,6 +102,7 @@ const pricePairSchema = new mongoose.Schema({
   expiration: { type: Number, required: true },
   times: { type: Number, required: true },
   type: { type: String, enum: ['hourly', 'daily'], required: true },
+  sale: { type: Number, required: false },
 });
 
 const botSchema = new mongoose.Schema(

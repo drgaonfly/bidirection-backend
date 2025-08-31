@@ -1,11 +1,16 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
+import Bot from '../../../../models/bot';
+import BotUser from '../../../../models/botUser';
+import Integer from '../../../../models/integer';
+import BotUserConfig from '../../../../models/botUserConfig';
 import PackageOrder from '../../../../models/packageOrder';
 import Deduction from '../../../../models/deduction';
 import { IdGen } from '../../../../utils/idGen';
 import { getExchangeRate } from '../../../../utils/getExchange';
 import { getAdminUser } from '../../../../utils/buyTelegramPremium';
 import createDebug from 'debug';
+import User from '../../../../models/user';
 
 const balanceCallback = new Composer<MyContext>();
 const debug = createDebug('bot:confirm-package-order');
@@ -26,7 +31,7 @@ balanceCallback.callbackQuery(
 
     const bot_option_id = match![2];
 
-    const pricePair = ctx.currentBot.price_pairs.find(
+    const current_price_pair = ctx.currentBot.price_pairs.find(
       (pair) => pair._id.toString() === bot_option_id,
     );
 
@@ -35,9 +40,9 @@ balanceCallback.callbackQuery(
 
     const fee_for_trx = 1 + ctx.currentBot.fee / 100;
 
-    const usdt_price = pricePair.expenditure;
+    const usdt_price = current_price_pair.expenditure;
     const trx_price = +(
-      pricePair.expenditure *
+      current_price_pair.expenditure *
       processed_rate *
       fee_for_trx
     ).toFixed(2);
@@ -69,9 +74,13 @@ balanceCallback.callbackQuery(
     }
 
     if (paymentType === 'trx') {
+      // 给当前机器人的配置加余额
       ctx.currentBotUserConfig.trx_balance = newBalance;
     } else {
+      //给当前机器人的配置加余额
       ctx.currentBotUserConfig.usdt_balance = newBalance;
+
+      // 递归给上级加余额
     }
     await ctx.currentBotUserConfig.save();
 
@@ -80,19 +89,19 @@ balanceCallback.callbackQuery(
     // ✅ 真正创建订单
     const order = await PackageOrder.create({
       id: await IdGen.next(PackageOrder, 'id', 6),
-      name: pricePair.name,
+      name: current_price_pair.name,
       bot: ctx.currentBot._id,
       botUser: ctx.currentBotUser._id,
       proxy: ctx.currentBot.user,
-      times: pricePair.times,
-      current_times: pricePair.times,
-      energy: pricePair.times * adminUser.energy_per_times,
-      validityDays: pricePair.expiration,
+      times: current_price_pair.times,
+      current_times: current_price_pair.times,
+      energy: current_price_pair.times * adminUser.energy_per_times,
+      validityDays: current_price_pair.expiration,
       minConsumption: adminUser.recharge_min,
       price: priceToDeduct,
       paymentType,
       expiredAt: new Date(
-        Date.now() + pricePair.expiration * 24 * 60 * 60 * 1000,
+        Date.now() + current_price_pair.expiration * 24 * 60 * 60 * 1000,
       ),
       status: 'using',
     });
@@ -105,7 +114,7 @@ balanceCallback.callbackQuery(
       proxy: ctx.currentBot.user,
       amount: priceToDeduct,
       currency: paymentType.toUpperCase(),
-      reason: `购买能量套餐 ${pricePair.times} 笔`,
+      reason: `购买能量套餐 ${current_price_pair.times} 笔`,
       type: 'PackageOrder',
       status: 'completed',
       balance_before,
@@ -117,6 +126,76 @@ balanceCallback.callbackQuery(
       processedAt: new Date(),
       deductable: order._id,
     });
+
+    // 递归给上级加余额
+    async function distributeProfitToSuperiors(botId, level = 1) {
+      const currentBot = await Bot.findById(botId);
+      if (!currentBot || !currentBot.clonedFrom) return;
+
+      const superiorBot = await Bot.findById(currentBot.clonedFrom);
+      if (!superiorBot) return;
+
+      const superiorBot_pricePairs = superiorBot.price_pairs || [];
+      const filtered_superiorBot_pricePair = superiorBot_pricePairs.find(
+        (pair) =>
+          pair.times === current_price_pair.times &&
+          pair.type === current_price_pair.type &&
+          pair.expiration === current_price_pair.expiration,
+      );
+
+      if (!filtered_superiorBot_pricePair) return;
+
+      const profit =
+        filtered_superiorBot_pricePair.sale -
+        filtered_superiorBot_pricePair.expenditure;
+
+      const superior = await User.findById(superiorBot.user); // 机器人绑定的后台用户，代理
+
+      const superiorBotUser = await BotUser.findOne({
+        bound_proxy: superior,
+      });
+
+      if (profit > 0) {
+        await BotUserConfig.findOneAndUpdate(
+          {
+            bot: superiorBot._id,
+            botUser: superiorBotUser._id,
+          },
+          {
+            $inc: {
+              ...(paymentType === 'trx'
+                ? { trx_balance: profit }
+                : { usdt_balance: profit }),
+            },
+          },
+          {
+            new: true,
+          },
+        );
+        // 打印每一级加了多少
+        console.log(
+          `分润第${level}级: proxy=${superior?.name}, botUser=${superiorBotUser?.userName}, bot=${superiorBot?.botName}, 加了${profit}${
+            paymentType === 'trx' ? ' TRX' : ' USDT'
+          }`,
+        );
+      } else {
+        await Integer.create({
+          id: await IdGen.next(Integer, 'id', 6),
+          bot: superiorBot._id,
+          user: superiorBot.user,
+          amount: 1,
+        });
+        // 也可以打印没有分润的情况
+        console.log(
+          `分润第${level}级: proxy=${superior?.name}, botUser=${superiorBotUser?.userName}, bot=${superiorBot?.botName}, 没有分润`,
+        );
+      }
+
+      // 递归到上一级
+      await distributeProfitToSuperiors(superiorBot._id, level + 1);
+    }
+
+    await distributeProfitToSuperiors(ctx.currentBot._id);
 
     await ctx.editMessageText(
       [

@@ -58,12 +58,8 @@ async function packageOrderConversation(
 
   const fee_for_trx = 1 + bot.fee / 100;
 
-  const usdt_price = pricePair.expenditure;
-  const trx_price = +(
-    pricePair.expenditure *
-    processed_rate *
-    fee_for_trx
-  ).toFixed(2);
+  const usdt_price = pricePair.sale || pricePair.expenditure;
+  const trx_price = +(usdt_price * processed_rate * fee_for_trx).toFixed(2);
 
   const trxEnough = botUserConfig.trx_balance >= trx_price;
   const usdtEnough = botUserConfig.usdt_balance >= usdt_price;

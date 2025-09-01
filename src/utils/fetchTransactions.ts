@@ -638,6 +638,15 @@ async function genericSendEnergy(
   pens?: number,
   type?: string,
 ): Promise<string> {
+  if (process.env.NODE_ENV === 'development') {
+    // 生成随机的 TRON tx_id (64位十六进制字符串)
+    const randomTxId = [...Array(64)]
+      .map(() => Math.floor(Math.random() * 16).toString(16))
+      .join('');
+
+    return randomTxId;
+  }
+
   const existingEnergySend = await EnergySend.findOne({
     tx_id: record.hash,
   });
@@ -919,6 +928,17 @@ async function genericRecycleEnergyByAmount(
   pens?: number,
   type?: string,
 ): Promise<any> {
+  if (process.env.NODE_ENV === 'development') {
+    // 生成随机的 TRON tx_id (64位十六进制字符串)
+    const randomTxId = [...Array(64)]
+      .map(() => Math.floor(Math.random() * 16).toString(16))
+      .join('');
+
+    console.log('[genericRecycleEnergyByAmount] 本地开发，跳过，直接给txid');
+
+    return randomTxId;
+  }
+
   console.log('[genericRecycleEnergyByAmount] 入参:', {
     amount,
     address,

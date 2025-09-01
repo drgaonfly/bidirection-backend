@@ -20,7 +20,11 @@ const revenueShareSchema = new mongoose.Schema(
     }, // User who is receiving the revenue share
     bot: { type: mongoose.Schema.Types.ObjectId, ref: 'Bot', required: true },
     amount: { type: Number, required: true },
-    balance_type: { type: String, required: true, enum: ['usdt', 'trx'] },
+    balance_type: {
+      type: String,
+      required: true,
+      enum: ['usdt_balance', 'trx_balance'],
+    },
     type: {
       type: String,
       required: true,

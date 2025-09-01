@@ -5,13 +5,8 @@ import { IdGen } from '../utils/idGen';
 import Bot from '../models/bot';
 import BotUser from '../models/botUser';
 import { RequestCustom } from '../types/user';
-import { isEmployee, isProxy } from '../middlewares/authMiddleware';
-import User from '../models/user';
 
-const buildQuery = async (
-  queryParams: any,
-  req: RequestCustom,
-): Promise<any> => {
+const buildQuery = async (queryParams: any): Promise<any> => {
   const query: any = {};
 
   if (queryParams.bot) {
@@ -49,29 +44,6 @@ const buildQuery = async (
     query.amount = Number(queryParams.amount);
   }
 
-  if (queryParams.approach) {
-    query.approach = queryParams.approach;
-  }
-
-  if (queryParams.id) {
-    query.id = queryParams.id;
-  }
-
-  if (queryParams.proxy) {
-    query.proxy = queryParams.proxy;
-  }
-
-  // 代理查询逻辑
-  if (isProxy(req.user)) {
-    const employees = await User.find({ proxy: req.user._id });
-    const employeeIds = employees.map((employee) => employee._id);
-    query.proxy = { $in: [...employeeIds, req.user._id] };
-  }
-
-  if (isEmployee(req.user)) {
-    query.proxy = req.user._id;
-  }
-
   return query;
 };
 
@@ -79,16 +51,14 @@ export const getIntegers = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const { current = '1', pageSize = '10' } = req.query;
 
-    const query = await buildQuery(req.query, req);
+    const query = await buildQuery(req.query);
 
     const integers = await Integer.find(query)
       .populate('botUser')
       .populate('bot')
-      .populate('proxy')
       .sort('-createdAt')
       .skip((+current - 1) * +pageSize)
       .limit(+pageSize)
-
       .lean()
       .exec();
 

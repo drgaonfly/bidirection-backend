@@ -34,6 +34,7 @@ export interface IBotUserConfig extends Document {
   spread_code: string;
   invited_counts: number; // 邀请人数
   available_separations: number; // 可用笔数
+  point: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -113,6 +114,11 @@ const botUserConfigSchema = new mongoose.Schema(
     invited_counts: {
       type: Number,
       required: true,
+      default: 0,
+    },
+    point: {
+      type: Number,
+      required: false,
       default: 0,
     },
     available_separations: {

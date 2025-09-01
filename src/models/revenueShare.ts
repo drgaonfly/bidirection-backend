@@ -6,6 +6,7 @@ export interface IRevenueShare extends Document {
   proxy: mongoose.Schema.Types.ObjectId | IUser;
   bot: mongoose.Schema.Types.ObjectId | IBot;
   amount: number;
+  balance_type: string; // 余额类型
   type: string; // 多态
   deductable: mongoose.Types.ObjectId;
 }
@@ -19,6 +20,7 @@ const revenueShareSchema = new mongoose.Schema(
     }, // User who is receiving the revenue share
     bot: { type: mongoose.Schema.Types.ObjectId, ref: 'Bot', required: true },
     amount: { type: Number, required: true },
+    balance_type: { type: String, required: true, enum: ['usdt', 'trx'] },
     type: {
       type: String,
       required: true,

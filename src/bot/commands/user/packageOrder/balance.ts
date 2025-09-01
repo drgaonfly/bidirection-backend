@@ -153,12 +153,14 @@ balanceCallback.callbackQuery(
         superior.proxyBotUserConfig[
           paymentType === 'trx' ? 'trx_balance' : 'usdt_balance'
         ] += profit;
+
         await superior.proxyBotUserConfig.save();
 
         await RevenueShare.create({
           proxy: superior.proxyUser._id,
           bot: superiorBot._id,
           amount: profit,
+          balance_type: paymentType === 'trx' ? 'trx_balance' : 'usdt_balance',
           type: 'PackageOrder',
           deductable: order._id,
         });

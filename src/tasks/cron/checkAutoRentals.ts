@@ -1,5 +1,6 @@
 import Bot from '../../models/bot';
 import Rental from '../../models/rental';
+import Integer from '../../models/integer';
 import {
   fetchTrxTransactions,
   deductProxyTrxBalance,
@@ -11,6 +12,8 @@ import { setupBot } from '../../bot/botSetup';
 import { InlineKeyboard } from 'grammy';
 import { findBotProxy } from '../../services/findBotProxy';
 import { getAdminUser } from '../../utils/buyTelegramPremium';
+import { IRental } from '../../models/rental';
+import BotUserConfig from '../../models/botUserConfig';
 import createDebug from 'debug';
 
 const tronWeb = new TronWeb({
@@ -18,6 +21,41 @@ const tronWeb = new TronWeb({
 });
 
 const debug = createDebug('cron:checkAutoRentals');
+
+async function awardProxyPoints(
+  botId: any,
+  pens: number,
+  rental: IRental,
+  level: number = 0,
+) {
+  // 级别对应的积分比例
+  const ratios = [0.5, 0.3, 0.1];
+  if (!botId || level >= ratios.length) return;
+
+  const bot = await Bot.findById(botId);
+  if (!bot) return;
+
+  const proxy = await findBotProxy(bot);
+  if (proxy && proxy.proxyBotUser) {
+    await BotUserConfig.findByIdAndUpdate(proxy.proxyBotUserConfig._id, {
+      $inc: {
+        point: pens * ratios[level],
+      },
+    });
+
+    await Integer.create({
+      bot: bot._id,
+      botUser: proxy.proxyBotUser,
+      amount: pens * ratios[level],
+      type: 'Rental',
+      deductable: rental,
+    });
+  }
+
+  if (bot.clonedFrom) {
+    await awardProxyPoints(bot.clonedFrom, pens, rental, level + 1);
+  }
+}
 
 /**
  * 检查所有 pending 的充值订单，只有当 bot.trx20_address 收到正确金额，才为用户充值
@@ -298,6 +336,11 @@ export async function checkAutoRentals() {
               transfer.from_address,
               rental.amount,
             );
+
+            if (!bot.isCreatedByAdmin) {
+              // 给代理们积分
+              await awardProxyPoints(bot._id, 1, rental);
+            }
 
             console.log(`[checkAutoRentals] 能量租赁成功, txid=${txid}`);
 

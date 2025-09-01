@@ -6,10 +6,11 @@ import {
 } from '../../utils/fetchTransactions';
 import { getAdminUser } from '../../utils/buyTelegramPremium';
 import EnergyUsage from '../../models/energyUsage';
-import PackageOrder from '../../models/packageOrder';
+import PackageOrder, { IPackageOrder } from '../../models/packageOrder';
 import { removeOrderUsagesIntoTrash } from '../../utils/removeIntoTrash';
 import { findBotProxy } from '../../services/findBotProxy';
 import Bot from '../../models/bot';
+import BotUserConfig from '../../models/botUserConfig';
 import Integer from '../../models/integer';
 
 import createDebug from 'debug';
@@ -109,8 +110,43 @@ async function processEnergyUsage(record: any) {
   return totalPens;
 }
 
+async function awardUserPoints(
+  bot,
+  botUser,
+  amount: number,
+  order: IPackageOrder,
+) {
+  await Integer.create({
+    bot: bot,
+    botUser: botUser,
+    amount: amount,
+    type: 'PackageOrder',
+    deductable: order,
+  });
+
+  await BotUserConfig.findOneAndUpdate(
+    {
+      bot: bot,
+      botUser: botUser,
+    },
+    {
+      $inc: {
+        point: amount,
+      },
+    },
+    {
+      new: true,
+    },
+  );
+}
+
 // 抽象成一个方法
-async function awardProxyPoints(botId: any, pens: number, level: number = 0) {
+async function awardProxyPoints(
+  botId: any,
+  pens: number,
+  order: IPackageOrder,
+  level: number = 0,
+) {
   // 级别对应的积分比例
   const ratios = [0.5, 0.3, 0.1];
   if (!botId || level >= ratios.length) return;
@@ -120,14 +156,23 @@ async function awardProxyPoints(botId: any, pens: number, level: number = 0) {
 
   const proxy = await findBotProxy(bot);
   if (proxy && proxy.proxyBotUser) {
+    await BotUserConfig.findByIdAndUpdate(proxy.proxyBotUserConfig._id, {
+      $inc: {
+        point: pens * ratios[level],
+      },
+    });
+
     await Integer.create({
+      bot: bot._id,
       botUser: proxy.proxyBotUser,
       amount: pens * ratios[level],
+      type: 'PackageOrder',
+      deductable: order._id,
     });
   }
 
   if (bot.clonedFrom) {
-    await awardProxyPoints(bot.clonedFrom, pens, level + 1);
+    await awardProxyPoints(bot.clonedFrom, pens, order, level + 1);
   }
 }
 
@@ -232,13 +277,15 @@ export async function checkEnergyFlow() {
               );
 
               // 给买单的用户2个积分
-              await Integer.create({
-                botUser: record.botUser,
-                amount: 2,
-              });
+              await awardUserPoints(
+                record.bot,
+                record.botUser,
+                2,
+                packageOrder,
+              );
 
               // 给代理们积分
-              await awardProxyPoints(record.bot, 2);
+              await awardProxyPoints(record.bot, 2, packageOrder);
 
               // 扣 1 笔
               await PackageOrder.findByIdAndUpdate(
@@ -277,13 +324,10 @@ export async function checkEnergyFlow() {
             );
 
             // 给买单的用户1个积分
-            await Integer.create({
-              botUser: record.botUser,
-              amount: 1,
-            });
+            await awardUserPoints(record.bot, record.botUser, 1, packageOrder);
 
             // 给代理们积分
-            await awardProxyPoints(record.bot, 1);
+            await awardProxyPoints(record.bot, 1, packageOrder);
 
             await PackageOrder.findByIdAndUpdate(
               packageOrder._id,
@@ -344,13 +388,15 @@ export async function checkEnergyFlow() {
               );
 
               // 给买单的用户2个积分
-              await Integer.create({
-                botUser: record.botUser,
-                amount: 2,
-              });
+              await awardUserPoints(
+                record.bot,
+                record.botUser,
+                2,
+                packageOrder,
+              );
 
               // 给代理们积分
-              await awardProxyPoints(record.bot, 2);
+              await awardProxyPoints(record.bot, 2, packageOrder);
 
               // 扣 2 笔
               await PackageOrder.findByIdAndUpdate(
@@ -389,13 +435,10 @@ export async function checkEnergyFlow() {
             );
 
             // 给买单的用户2个积分
-            await Integer.create({
-              botUser: record.botUser,
-              amount: 2,
-            });
+            await awardUserPoints(record.bot, record.botUser, 2, packageOrder);
 
             // 给代理们积分
-            await awardProxyPoints(record.bot, 2);
+            await awardProxyPoints(record.bot, 2, packageOrder);
 
             await PackageOrder.findByIdAndUpdate(
               packageOrder._id,
@@ -478,13 +521,15 @@ export async function checkEnergyFlow() {
               );
 
               // 给买单的用户2个积分
-              await Integer.create({
-                botUser: record.botUser,
-                amount: 2,
-              });
+              await awardUserPoints(
+                record.bot,
+                record.botUser,
+                2,
+                packageOrder,
+              );
 
               // 给代理们积分
-              await awardProxyPoints(record.bot, 2);
+              await awardProxyPoints(record.bot, 2, packageOrder);
 
               // 扣 1 笔
               await PackageOrder.findByIdAndUpdate(
@@ -524,13 +569,10 @@ export async function checkEnergyFlow() {
             );
 
             // 给买单的用户1个积分
-            await Integer.create({
-              botUser: record.botUser,
-              amount: 1,
-            });
+            await awardUserPoints(record.bot, record.botUser, 1, packageOrder);
 
             // 给代理们积分
-            await awardProxyPoints(record.bot, 1);
+            await awardProxyPoints(record.bot, 1, packageOrder);
 
             // 扣1笔可用笔数
             await PackageOrder.findByIdAndUpdate(
@@ -593,13 +635,15 @@ export async function checkEnergyFlow() {
               );
 
               // 给买单的用户1个积分
-              await Integer.create({
-                botUser: record.botUser,
-                amount: 1,
-              });
+              await awardUserPoints(
+                record.bot,
+                record.botUser,
+                1,
+                packageOrder,
+              );
 
               // 给代理们积分
-              await awardProxyPoints(record.bot, 1);
+              await awardProxyPoints(record.bot, 1, packageOrder);
 
               // 扣 1 笔
               await PackageOrder.findByIdAndUpdate(
@@ -638,13 +682,9 @@ export async function checkEnergyFlow() {
             );
 
             // 给买单的用户1个积分
-            await Integer.create({
-              botUser: record.botUser,
-              amount: 1,
-            });
-
+            await awardUserPoints(record.bot, record.botUser, 1, packageOrder);
             // 给代理们积分
-            await awardProxyPoints(record.bot, 1);
+            await awardProxyPoints(record.bot, 1, packageOrder);
 
             // 扣可用笔数1笔
             await PackageOrder.findByIdAndUpdate(
@@ -729,13 +769,15 @@ export async function checkEnergyFlow() {
               );
 
               // 给买单的用户1个积分
-              await Integer.create({
-                botUser: record.botUser,
-                amount: 1,
-              });
+              await awardUserPoints(
+                record.bot,
+                record.botUser,
+                1,
+                packageOrder,
+              );
 
               // 给代理们积分
-              await awardProxyPoints(record.bot, 1);
+              await awardProxyPoints(record.bot, 1, packageOrder);
 
               // 记录设为1
               await PackageUsageRecord.findByIdAndUpdate(record._id, {

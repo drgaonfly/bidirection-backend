@@ -2,16 +2,14 @@ import mongoose, { Document } from 'mongoose';
 import { IBot } from './bot';
 import { IBotUser } from './botUser';
 
-export interface IInteger extends Document {
-  id: string;
+export interface IRevenueShare extends Document {
   bot: mongoose.Schema.Types.ObjectId | IBot;
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   amount: number;
 }
 
-const integerSchema = new mongoose.Schema(
+const revenueShareSchema = new mongoose.Schema(
   {
-    id: { type: String, required: true, unique: true },
     bot: { type: mongoose.Schema.Types.ObjectId, ref: 'Bot', required: true },
     botUser: {
       type: mongoose.Schema.Types.ObjectId,
@@ -20,9 +18,14 @@ const integerSchema = new mongoose.Schema(
     },
     amount: { type: Number, required: true },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+  },
 );
 
-const Integer = mongoose.model<IInteger>('Integer', integerSchema);
+const RevenueShare = mongoose.model<IRevenueShare>(
+  'RevenueShare',
+  revenueShareSchema,
+);
 
-export default Integer;
+export default RevenueShare;

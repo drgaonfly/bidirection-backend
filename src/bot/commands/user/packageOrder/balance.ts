@@ -9,6 +9,7 @@ import { getExchangeRate } from '../../../../utils/getExchange';
 import { getAdminUser } from '../../../../utils/buyTelegramPremium';
 import { findBotProxy } from '../../../../services/findBotProxy';
 import createDebug from 'debug';
+import RevenueShare from '../../../../models/revenueShare';
 
 const balanceCallback = new Composer<MyContext>();
 const debug = createDebug('bot:confirm-package-order');
@@ -155,6 +156,12 @@ balanceCallback.callbackQuery(
         ] += profit;
         await superior.proxyBotUserConfig.save();
 
+        await RevenueShare.create({
+          bot: superiorBot._id,
+          botUser: superior.proxyBotUser._id,
+          amount: profit,
+        });
+
         // 打印每一级加了多少
         console.log(
           `分润第${level}级: proxy=${superior?.proxyUser?.name}, botUser=${
@@ -169,7 +176,7 @@ balanceCallback.callbackQuery(
         await Integer.create({
           id: await IdGen.next(Integer, 'id', 6),
           bot: superiorBot._id,
-          user: superiorBot.user,
+          botUser: superior.proxyBotUser._id,
           amount: 1,
         });
         // 也可以打印没有分润的情况

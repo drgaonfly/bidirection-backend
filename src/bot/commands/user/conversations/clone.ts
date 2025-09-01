@@ -148,6 +148,7 @@ async function addBot(
     newBot.creator = botUser?._id || null;
     newBot.botUser = botUser?._id || null;
     newBot.user = bound_proxy;
+    newBot.canBeCloned = true;
 
     // 如果clonedFrom存在，就要将clonedFrom的price_pairs做处理，将每个price_pair 的出价作为newBot.price_pairs的每个price_pair的来价且售价也默认为来价
     if (newBot.clonedFrom) {

@@ -1,16 +1,14 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import Bot from '../../../../models/bot';
-import BotUser from '../../../../models/botUser';
 import Integer from '../../../../models/integer';
-import BotUserConfig from '../../../../models/botUserConfig';
 import PackageOrder from '../../../../models/packageOrder';
 import Deduction from '../../../../models/deduction';
 import { IdGen } from '../../../../utils/idGen';
 import { getExchangeRate } from '../../../../utils/getExchange';
 import { getAdminUser } from '../../../../utils/buyTelegramPremium';
+import { findBotProxy } from '../../../../services/findBotProxy';
 import createDebug from 'debug';
-import User from '../../../../models/user';
 
 const balanceCallback = new Composer<MyContext>();
 const debug = createDebug('bot:confirm-package-order');
@@ -128,8 +126,8 @@ balanceCallback.callbackQuery(
     });
 
     // 递归给上级加余额
-    async function distributeProfitToSuperiors(botId, level = 1) {
-      const currentBot = await Bot.findById(botId);
+    async function distributeProfitToSuperiors(bot, level = 1) {
+      const currentBot = bot;
       if (!currentBot || !currentBot.clonedFrom) return;
 
       const superiorBot = await Bot.findById(currentBot.clonedFrom);
@@ -149,32 +147,21 @@ balanceCallback.callbackQuery(
         filtered_superiorBot_pricePair.sale -
         filtered_superiorBot_pricePair.expenditure;
 
-      const superior = await User.findById(superiorBot.user); // 机器人绑定的后台用户，代理
-
-      const superiorBotUser = await BotUser.findOne({
-        bound_proxy: superior,
-      });
+      const superior = await findBotProxy(superiorBot); // 机器人绑定的后台用户，代理
 
       if (profit > 0) {
-        await BotUserConfig.findOneAndUpdate(
-          {
-            bot: superiorBot._id,
-            botUser: superiorBotUser._id,
-          },
-          {
-            $inc: {
-              ...(paymentType === 'trx'
-                ? { trx_balance: profit }
-                : { usdt_balance: profit }),
-            },
-          },
-          {
-            new: true,
-          },
-        );
+        superior.proxyBotUserConfig[
+          paymentType === 'trx' ? 'trx_balance' : 'usdt_balance'
+        ] += profit;
+        await superior.proxyBotUserConfig.save();
+
         // 打印每一级加了多少
         console.log(
-          `分润第${level}级: proxy=${superior?.name}, botUser=${superiorBotUser?.userName}, bot=${superiorBot?.botName}, 加了${profit}${
+          `分润第${level}级: proxy=${superior?.proxyUser?.name}, botUser=${
+            superior?.proxyBotUser?.userName ||
+            (superior?.proxyBotUser?.firstName || '') +
+              (superior?.proxyBotUser?.lastName || '')
+          }, bot=${superiorBot?.botName}, 加了${profit}${
             paymentType === 'trx' ? ' TRX' : ' USDT'
           }`,
         );
@@ -187,15 +174,15 @@ balanceCallback.callbackQuery(
         });
         // 也可以打印没有分润的情况
         console.log(
-          `分润第${level}级: proxy=${superior?.name}, botUser=${superiorBotUser?.userName}, bot=${superiorBot?.botName}, 没有分润`,
+          `分润第${level}级: proxy=${superior?.proxyUser?.name}, botUser=${superior?.proxyBotUser?.userName}, bot=${superiorBot?.botName}, 没有分润`,
         );
       }
 
       // 递归到上一级
-      await distributeProfitToSuperiors(superiorBot._id, level + 1);
+      await distributeProfitToSuperiors(superiorBot, level + 1);
     }
 
-    await distributeProfitToSuperiors(ctx.currentBot._id);
+    await distributeProfitToSuperiors(ctx.currentBot);
 
     await ctx.editMessageText(
       [

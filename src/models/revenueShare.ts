@@ -1,22 +1,34 @@
 import mongoose, { Document } from 'mongoose';
+import { IUser } from './user';
 import { IBot } from './bot';
-import { IBotUser } from './botUser';
 
 export interface IRevenueShare extends Document {
+  proxy: mongoose.Schema.Types.ObjectId | IUser;
   bot: mongoose.Schema.Types.ObjectId | IBot;
-  botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   amount: number;
+  type: string; // 多态
+  deductable: mongoose.Types.ObjectId;
 }
 
 const revenueShareSchema = new mongoose.Schema(
   {
-    bot: { type: mongoose.Schema.Types.ObjectId, ref: 'Bot', required: true },
-    botUser: {
+    proxy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'BotUser',
+      ref: 'User',
       required: true,
-    },
+    }, // User who is receiving the revenue share
+    bot: { type: mongoose.Schema.Types.ObjectId, ref: 'Bot', required: true },
     amount: { type: Number, required: true },
+    type: {
+      type: String,
+      required: true,
+      enum: ['Rental', 'PackageOrder'],
+    },
+    deductable: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      refPath: 'type', // 多态关联
+    },
   },
   {
     timestamps: true,

@@ -8,6 +8,10 @@ import { getAdminUser } from '../../utils/buyTelegramPremium';
 import EnergyUsage from '../../models/energyUsage';
 import PackageOrder from '../../models/packageOrder';
 import { removeOrderUsagesIntoTrash } from '../../utils/removeIntoTrash';
+import { findBotProxy } from '../../services/findBotProxy';
+import Bot from '../../models/bot';
+import Integer from '../../models/integer';
+
 import createDebug from 'debug';
 
 const debug = createDebug('cron:checkEnergyFlow');
@@ -105,6 +109,28 @@ async function processEnergyUsage(record: any) {
   return totalPens;
 }
 
+// 抽象成一个方法
+async function awardProxyPoints(botId: any, pens: number, level: number = 0) {
+  // 级别对应的积分比例
+  const ratios = [0.5, 0.3, 0.1];
+  if (!botId || level >= ratios.length) return;
+
+  const bot = await Bot.findById(botId);
+  if (!bot) return;
+
+  const proxy = await findBotProxy(bot);
+  if (proxy && proxy.proxyBotUser) {
+    await Integer.create({
+      botUser: proxy.proxyBotUser,
+      amount: pens * ratios[level],
+    });
+  }
+
+  if (bot.clonedFrom) {
+    await awardProxyPoints(bot.clonedFrom, pens, level + 1);
+  }
+}
+
 /**
  * 检查所有已完成且到期的租赁订单，自动归还能量
  */
@@ -122,7 +148,7 @@ export async function checkEnergyFlow() {
 
     const records = await PackageUsageRecord.find({
       type: 'myself',
-    });
+    }).populate('bot');
 
     console.log(`[checkEnergyFlow] 查询到 ${records.length} 个套餐使用记录`);
 
@@ -205,6 +231,15 @@ export async function checkEnergyFlow() {
                 `[checkEnergyFlow] totalPen = 1 , 发送2笔能量成功, tx_id=${tx_id}`,
               );
 
+              // 给买单的用户2个积分
+              await Integer.create({
+                botUser: record.botUser,
+                amount: 2,
+              });
+
+              // 给代理们积分
+              await awardProxyPoints(record.bot, 2);
+
               // 扣 1 笔
               await PackageOrder.findByIdAndUpdate(
                 packageOrder._id,
@@ -240,6 +275,15 @@ export async function checkEnergyFlow() {
             console.log(
               `[checkEnergyFlow] totalPen = 1 , 发送1笔能量成功, tx_id=${tx_id}`,
             );
+
+            // 给买单的用户1个积分
+            await Integer.create({
+              botUser: record.botUser,
+              amount: 1,
+            });
+
+            // 给代理们积分
+            await awardProxyPoints(record.bot, 1);
 
             await PackageOrder.findByIdAndUpdate(
               packageOrder._id,
@@ -299,6 +343,15 @@ export async function checkEnergyFlow() {
                 `[checkEnergyFlow] totalPen = 2 , 发送2笔能量成功, tx_id=${tx_id}`,
               );
 
+              // 给买单的用户2个积分
+              await Integer.create({
+                botUser: record.botUser,
+                amount: 2,
+              });
+
+              // 给代理们积分
+              await awardProxyPoints(record.bot, 2);
+
               // 扣 2 笔
               await PackageOrder.findByIdAndUpdate(
                 packageOrder._id,
@@ -334,6 +387,15 @@ export async function checkEnergyFlow() {
             console.log(
               `[checkEnergyFlow] totalPen = 2 , 发送2笔能量成功, tx_id=${tx_id}`,
             );
+
+            // 给买单的用户2个积分
+            await Integer.create({
+              botUser: record.botUser,
+              amount: 2,
+            });
+
+            // 给代理们积分
+            await awardProxyPoints(record.bot, 2);
 
             await PackageOrder.findByIdAndUpdate(
               packageOrder._id,
@@ -415,6 +477,15 @@ export async function checkEnergyFlow() {
                 `[checkEnergyFlow] totalPen = 1 , 发送2笔能量成功, tx_id=${tx_id}`,
               );
 
+              // 给买单的用户2个积分
+              await Integer.create({
+                botUser: record.botUser,
+                amount: 2,
+              });
+
+              // 给代理们积分
+              await awardProxyPoints(record.bot, 2);
+
               // 扣 1 笔
               await PackageOrder.findByIdAndUpdate(
                 packageOrder._id,
@@ -451,6 +522,15 @@ export async function checkEnergyFlow() {
             console.log(
               `[checkEnergyFlow]可用笔数余1 totalPen = 1 , 发送1笔能量成功, tx_id=${tx_id}`,
             );
+
+            // 给买单的用户1个积分
+            await Integer.create({
+              botUser: record.botUser,
+              amount: 1,
+            });
+
+            // 给代理们积分
+            await awardProxyPoints(record.bot, 1);
 
             // 扣1笔可用笔数
             await PackageOrder.findByIdAndUpdate(
@@ -512,6 +592,15 @@ export async function checkEnergyFlow() {
                 `[checkEnergyFlow] totalPen = 2 , 发送2笔能量成功, tx_id=${tx_id}`,
               );
 
+              // 给买单的用户1个积分
+              await Integer.create({
+                botUser: record.botUser,
+                amount: 1,
+              });
+
+              // 给代理们积分
+              await awardProxyPoints(record.bot, 1);
+
               // 扣 1 笔
               await PackageOrder.findByIdAndUpdate(
                 packageOrder._id,
@@ -547,6 +636,15 @@ export async function checkEnergyFlow() {
             console.log(
               `[checkEnergyFlow]可用笔数余1 totalPen = 2 , 发送2笔能量成功, tx_id=${tx_id}`,
             );
+
+            // 给买单的用户1个积分
+            await Integer.create({
+              botUser: record.botUser,
+              amount: 1,
+            });
+
+            // 给代理们积分
+            await awardProxyPoints(record.bot, 1);
 
             // 扣可用笔数1笔
             await PackageOrder.findByIdAndUpdate(
@@ -629,6 +727,15 @@ export async function checkEnergyFlow() {
               console.log(
                 `[checkEnergyFlow] 可用笔数余0 totalPen = 1 , 发送1笔能量成功, tx_id=${tx_id}`,
               );
+
+              // 给买单的用户1个积分
+              await Integer.create({
+                botUser: record.botUser,
+                amount: 1,
+              });
+
+              // 给代理们积分
+              await awardProxyPoints(record.bot, 1);
 
               // 记录设为1
               await PackageUsageRecord.findByIdAndUpdate(record._id, {

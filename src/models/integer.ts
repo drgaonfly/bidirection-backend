@@ -1,18 +1,13 @@
 import mongoose, { Document } from 'mongoose';
-import { IBot } from './bot';
 import { IBotUser } from './botUser';
 
 export interface IInteger extends Document {
-  id: string;
-  bot: mongoose.Schema.Types.ObjectId | IBot;
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   amount: number;
 }
 
 const integerSchema = new mongoose.Schema(
   {
-    id: { type: String, required: true, unique: true },
-    bot: { type: mongoose.Schema.Types.ObjectId, ref: 'Bot', required: true },
     botUser: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'BotUser',

@@ -1,7 +1,6 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import Bot from '../../../../models/bot';
-import Integer from '../../../../models/integer';
 import PackageOrder from '../../../../models/packageOrder';
 import Deduction from '../../../../models/deduction';
 import { IdGen } from '../../../../utils/idGen';
@@ -157,9 +156,11 @@ balanceCallback.callbackQuery(
         await superior.proxyBotUserConfig.save();
 
         await RevenueShare.create({
+          proxy: superior.proxyUser._id,
           bot: superiorBot._id,
-          botUser: superior.proxyBotUser._id,
           amount: profit,
+          type: 'PackageOrder',
+          deductable: order._id,
         });
 
         // 打印每一级加了多少
@@ -173,12 +174,6 @@ balanceCallback.callbackQuery(
           }`,
         );
       } else {
-        await Integer.create({
-          id: await IdGen.next(Integer, 'id', 6),
-          bot: superiorBot._id,
-          botUser: superior.proxyBotUser._id,
-          amount: 1,
-        });
         // 也可以打印没有分润的情况
         console.log(
           `分润第${level}级: proxy=${superior?.proxyUser?.name}, botUser=${superior?.proxyBotUser?.userName}, bot=${superiorBot?.botName}, 没有分润`,

@@ -8,7 +8,7 @@ export interface IRevenueShare extends Document {
   amount: number;
   balance_type: string; // 余额类型
   type: string; // 多态
-  deductable: mongoose.Types.ObjectId;
+  revenue_shareable: mongoose.Types.ObjectId;
 }
 
 const revenueShareSchema = new mongoose.Schema(
@@ -26,7 +26,7 @@ const revenueShareSchema = new mongoose.Schema(
       required: true,
       enum: ['Rental', 'PackageOrder'],
     },
-    deductable: {
+    revenue_shareable: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       refPath: 'type', // 多态关联

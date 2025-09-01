@@ -162,7 +162,7 @@ balanceCallback.callbackQuery(
           amount: profit,
           balance_type: paymentType === 'trx' ? 'trx_balance' : 'usdt_balance',
           type: 'PackageOrder',
-          deductable: order._id,
+          revenue_shareable: order._id,
         });
 
         // 打印每一级加了多少

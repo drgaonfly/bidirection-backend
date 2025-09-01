@@ -41,7 +41,7 @@ export const getRevenueShares = handleAsync(
     const query = await buildQuery(req.query);
 
     const revenueShares = await RevenueShare.find(query)
-      .populate('deductable')
+      .populate('revenue_shareable')
       .populate('bot')
       .populate('proxy')
       .sort('-createdAt')
@@ -67,7 +67,7 @@ export const getRevenueShareById = handleAsync(
     const revenueShare = await RevenueShare.findOne({
       _id: req.params.id,
     })
-      .populate('deductable')
+      .populate('revenue_shareable')
       .populate('bot')
       .lean();
 

@@ -7,7 +7,7 @@ export interface IInteger extends Document {
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   amount: number;
   type: string; // 多态
-  deductable: mongoose.Types.ObjectId; // 关联的对象ID，比如 rental
+  integrable: mongoose.Types.ObjectId; // 关联的对象ID，比如 rental
 }
 
 const integerSchema = new mongoose.Schema(
@@ -28,7 +28,7 @@ const integerSchema = new mongoose.Schema(
       required: true,
       enum: ['Rental', 'PackageOrder'],
     },
-    deductable: {
+    integrable: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       refPath: 'type', // 多态关联

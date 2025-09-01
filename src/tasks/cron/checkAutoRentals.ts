@@ -48,7 +48,7 @@ async function awardProxyPoints(
       botUser: proxy.proxyBotUser,
       amount: pens * ratios[level],
       type: 'Rental',
-      deductable: rental,
+      integrable: rental,
     });
   }
 

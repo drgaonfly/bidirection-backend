@@ -121,7 +121,7 @@ async function awardUserPoints(
     botUser: botUser,
     amount: amount,
     type: 'PackageOrder',
-    deductable: order,
+    integrable: order,
   });
 
   await BotUserConfig.findOneAndUpdate(
@@ -167,7 +167,7 @@ async function awardProxyPoints(
       botUser: proxy.proxyBotUser,
       amount: pens * ratios[level],
       type: 'PackageOrder',
-      deductable: order._id,
+      integrable: order._id,
     });
   }
 

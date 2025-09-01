@@ -221,17 +221,6 @@ export async function checkMinConsumption() {
               'myself',
             );
 
-            // 给买单的用户2个积分
-            await awardUserPoints(
-              packageUsageRecord.bot,
-              packageUsageRecord.botUser,
-              2,
-              packageOrder,
-            );
-
-            // 给代理们 2 个 积分
-            await awardProxyPoints(packageUsageRecord.bot, 2, packageOrder);
-
             // 记录值 = 2 & 当天 = 0
             console.log(
               `[checkMinConsumption][current_times=0][used_times>=2][record_value>2] 更新record_value=2, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
@@ -383,17 +372,6 @@ export async function checkMinConsumption() {
               'myself',
             );
 
-            // 给买单的用户2个积分
-            await awardUserPoints(
-              packageUsageRecord.bot,
-              packageUsageRecord.botUser,
-              2,
-              packageOrder,
-            );
-
-            // 给代理们 2 个 积分
-            await awardProxyPoints(packageUsageRecord.bot, 2, packageOrder);
-
             console.log(
               `[checkMinConsumption][current_times=1][used_times>=2][record_value>2] 更新record_value=2, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
             );
@@ -434,17 +412,6 @@ export async function checkMinConsumption() {
             'myself',
           );
 
-          // 给买单的用户2个积分
-          await awardUserPoints(
-            packageUsageRecord.bot,
-            packageUsageRecord.botUser,
-            2,
-            packageOrder,
-          );
-
-          // 给代理们 2 个 积分
-          await awardProxyPoints(packageUsageRecord.bot, 2, packageOrder);
-
           // 扣除可用笔数1笔
           console.log(
             `[checkMinConsumption][current_times=1][used_times=1] packageOrder: [${packageOrder._id}] current_times -1`,
@@ -456,6 +423,17 @@ export async function checkMinConsumption() {
             },
             { new: true },
           );
+
+          // 给买单的用户1个积分
+          await awardUserPoints(
+            packageUsageRecord.bot,
+            packageUsageRecord.botUser,
+            1,
+            packageOrder,
+          );
+
+          // 给代理们 1 个 积分
+          await awardProxyPoints(packageUsageRecord.bot, 1, packageOrder);
 
           // 记录值 = 2 & 当天用量 = 0
           console.log(
@@ -512,6 +490,17 @@ export async function checkMinConsumption() {
             },
             { new: true },
           );
+
+          // 给买单的用户1个积分
+          await awardUserPoints(
+            packageUsageRecord.bot,
+            packageUsageRecord.botUser,
+            1,
+            packageOrder,
+          );
+
+          // 给代理们 1 个 积分
+          await awardProxyPoints(packageUsageRecord.bot, 1, packageOrder);
 
           // 记录值 = 1 & 当天 = 0
           console.log(
@@ -573,17 +562,6 @@ export async function checkMinConsumption() {
               'myself',
             );
 
-            // 给买单的用户2个积分
-            await awardUserPoints(
-              packageUsageRecord.bot,
-              packageUsageRecord.botUser,
-              2,
-              packageOrder,
-            );
-
-            // 给代理们 2 个 积分
-            await awardProxyPoints(packageUsageRecord.bot, 2, packageOrder);
-
             // 记录值 = 2 & 当天 = 0
             console.log(
               `[checkMinConsumption][current_times>=2][used_times>=2][record_value>2] 更新record_value=2, today_used_times=0, packageUsageRecord: [${packageUsageRecord.id}]`,
@@ -625,17 +603,6 @@ export async function checkMinConsumption() {
             'myself',
           );
 
-          // 给买单的用户2个积分
-          await awardUserPoints(
-            packageUsageRecord.bot,
-            packageUsageRecord.botUser,
-            2,
-            packageOrder,
-          );
-
-          // 给代理们 2 个 积分
-          await awardProxyPoints(packageUsageRecord.bot, 2, packageOrder);
-
           // 扣可用笔数1笔
           console.log(
             `[checkMinConsumption][current_times>=2][used_times=1] packageOrder: [${packageOrder._id}] current_times -1`,
@@ -647,6 +614,17 @@ export async function checkMinConsumption() {
             },
             { new: true },
           );
+
+          // 给买单的用户1个积分
+          await awardUserPoints(
+            packageUsageRecord.bot,
+            packageUsageRecord.botUser,
+            1,
+            packageOrder,
+          );
+
+          // 给代理们 1 个 积分
+          await awardProxyPoints(packageUsageRecord.bot, 1, packageOrder);
 
           // 记录值 = 2 & 当天 = 0
           console.log(
@@ -674,6 +652,17 @@ export async function checkMinConsumption() {
             },
             { new: true },
           );
+
+          // 给买单的用户2个积分
+          await awardUserPoints(
+            packageUsageRecord.bot,
+            packageUsageRecord.botUser,
+            2,
+            packageOrder,
+          );
+
+          // 给代理们 2 个 积分
+          await awardProxyPoints(packageUsageRecord.bot, 2, packageOrder);
 
           // 记录值 = 2 & 当天 = 0
           console.log(

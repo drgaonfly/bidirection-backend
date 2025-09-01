@@ -1,13 +1,16 @@
-import PackageOrder from '../../../../models/packageOrder';
+import PackageOrder, { IPackageOrder } from '../../../../models/packageOrder';
 import PackageUsageRecord from '../../../../models/packageUsageRecord';
 import { Composer, InlineKeyboard } from 'grammy';
 import { createConversation, Conversation } from '@grammyjs/conversations';
 import { MyContext } from '../../../types';
-import { IBot } from '../../../../models/bot';
+import Bot, { IBot } from '../../../../models/bot';
 import { IBotUser } from '../../../../models/botUser';
 import { getAdminUser } from '../../../../utils/buyTelegramPremium';
 import { genericSendEnergy } from '../../../../utils/fetchTransactions';
 import { isValidTronAddress } from '../../../../utils/TronAddressTest';
+import { findBotProxy } from '../../../../services/findBotProxy';
+import Integer from '../../../../models/integer';
+import BotUserConfig from '../../../../models/botUserConfig';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:package:use');
@@ -15,6 +18,72 @@ const debug = createDebug('bot:package:use');
 const usePackageCallback = new Composer<MyContext>();
 const TIMEOUT = 5 * 60 * 1000; // 5 分钟
 const cancelKeyboard = new InlineKeyboard().text('❌ 取消', 'close');
+
+async function awardUserPoints(
+  bot,
+  botUser,
+  amount: number,
+  order: IPackageOrder,
+) {
+  await Integer.create({
+    bot: bot,
+    botUser: botUser,
+    amount: amount,
+    type: 'PackageOrder',
+    integrable: order,
+  });
+
+  await BotUserConfig.findOneAndUpdate(
+    {
+      bot: bot,
+      botUser: botUser,
+    },
+    {
+      $inc: {
+        point: amount,
+      },
+    },
+    {
+      new: true,
+    },
+  );
+}
+
+// 抽象成一个方法
+async function awardProxyPoints(
+  botId: any,
+  pens: number,
+  order: IPackageOrder,
+  level: number = 0,
+) {
+  // 级别对应的积分比例
+  const ratios = [0.5, 0.3, 0.1];
+  if (!botId || level >= ratios.length) return;
+
+  const bot = await Bot.findById(botId);
+  if (!bot) return;
+
+  const proxy = await findBotProxy(bot);
+  if (proxy && proxy.proxyBotUser) {
+    await BotUserConfig.findByIdAndUpdate(proxy.proxyBotUserConfig._id, {
+      $inc: {
+        point: pens * ratios[level],
+      },
+    });
+
+    await Integer.create({
+      bot: bot._id,
+      botUser: proxy.proxyBotUser,
+      amount: pens * ratios[level],
+      type: 'PackageOrder',
+      integrable: order._id,
+    });
+  }
+
+  if (bot.clonedFrom) {
+    await awardProxyPoints(bot.clonedFrom, pens, order, level + 1);
+  }
+}
 
 async function usePackageConversation(
   conversation: Conversation<MyContext>,
@@ -171,6 +240,17 @@ async function usePackageConversation(
     //     parse_mode: 'HTML',
     //   }
     // );
+
+    // 给买单的用户2个积分
+    await awardUserPoints(
+      packageUsageRecord.bot,
+      packageUsageRecord.botUser,
+      2,
+      order,
+    );
+
+    // 给代理们 2 个 积分
+    await awardProxyPoints(packageUsageRecord.bot, 2, order);
   } catch (error) {
     console.error('能量发送失败:', error);
 

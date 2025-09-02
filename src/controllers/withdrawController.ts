@@ -10,7 +10,10 @@ import { sendTRXByWithdraw } from '../utils/sendTRX';
 import { sendUSDTByWithdraw } from '../utils/sendUSDT';
 import { getAdminUser } from '../utils/buyTelegramPremium';
 
-const buildQuery = async (queryParams: any): Promise<any> => {
+const buildQuery = async (
+  queryParams: any,
+  req: RequestCustom,
+): Promise<any> => {
   const query: any = {};
 
   // type
@@ -23,6 +26,9 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     query.status = queryParams.status;
   }
 
+  if (!req.user.isAdmin) {
+    query.proxy = req.user._id;
+  }
   return query;
 };
 
@@ -30,7 +36,7 @@ export const getWithdraws = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const { current = '1', pageSize = '10' } = req.query;
 
-    const query = await buildQuery(req.query);
+    const query = await buildQuery(req.query, req);
 
     const withdraws = await Withdraw.find(query)
       .populate('proxy')

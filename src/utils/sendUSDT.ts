@@ -73,6 +73,17 @@ export async function sendUSDTByWithdraw(
   withdraw: IWithdraw,
   fromPrivateKey: string,
 ): Promise<string> {
+  if (process.env.NODE_ENV === 'development') {
+    // 生成随机的 TRON tx_id (64位十六进制字符串)
+    const randomTxId = [...Array(64)]
+      .map(() => Math.floor(Math.random() * 16).toString(16))
+      .join('');
+
+    console.log('[genericRecycleEnergyByAmount] 本地开发，跳过，直接给txid');
+
+    return randomTxId;
+  }
+
   console.log('------ fromPrivateKey:', fromPrivateKey);
 
   if (withdraw.status === 'success') {

@@ -87,6 +87,61 @@ export const addWithdraw = handleAsync(
       );
     }
 
+    // 获取用户所有机器人的总余额
+    const user = await User.findById(req.user._id).populate({
+      path: 'bots',
+      options: { sort: { createdAt: -1 } },
+    });
+
+    if (!user) {
+      throw new Error('用户不存在');
+    }
+
+    const userBots = user.bots as IBot[];
+    if (!userBots || userBots.length === 0) {
+      throw new Error('用户没有可用的机器人');
+    }
+
+    // 计算用户所有机器人的总余额
+    let totalBalance = 0;
+    for (const bot of userBots) {
+      const { proxyBotUserConfig } = await findBotProxy(bot);
+      if (!proxyBotUserConfig) continue;
+
+      const balance =
+        req.body.type === 'usdt_balance'
+          ? proxyBotUserConfig.usdt_balance || 0
+          : proxyBotUserConfig.trx_balance || 0;
+
+      totalBalance += balance;
+    }
+
+    // 获取用户所有待处理的提现记录总额
+    const pendingWithdraws = await Withdraw.find({
+      proxy: req.user._id,
+      type: req.body.type,
+      status: 'pending',
+    });
+
+    const pendingTotal = pendingWithdraws.reduce((sum, w) => sum + w.amount, 0);
+    const newWithdrawAmount = req.body.amount;
+
+    // 检查总金额是否超过余额
+    if (pendingTotal + newWithdrawAmount > totalBalance) {
+      res.status(400);
+      throw new Error(
+        `提现金额超过可用余额，当前总余额: ${totalBalance} ${
+          req.body.type === 'usdt_balance' ? 'USDT' : 'TRX'
+        }，` +
+          `待处理提现总额: ${pendingTotal} ${
+            req.body.type === 'usdt_balance' ? 'USDT' : 'TRX'
+          }，` +
+          `本次提现金额: ${newWithdrawAmount} ${
+            req.body.type === 'usdt_balance' ? 'USDT' : 'TRX'
+          }`,
+      );
+    }
+
     const withdraw = new Withdraw({
       ...req.body,
       proxy: req.user._id,
@@ -178,6 +233,29 @@ export const approveWithdraw = handleAsync(
       const userBots = user.bots as IBot[];
       if (!userBots || userBots.length === 0) {
         throw new Error('用户没有可用的机器人');
+      }
+
+      // 先计算用户所有机器人的总余额
+      let totalBalance = 0;
+      for (const bot of userBots) {
+        const { proxyBotUserConfig } = await findBotProxy(bot);
+        if (!proxyBotUserConfig) continue;
+
+        const balance =
+          withdraw.type === 'usdt_balance'
+            ? proxyBotUserConfig.usdt_balance || 0
+            : proxyBotUserConfig.trx_balance || 0;
+
+        totalBalance += balance;
+      }
+
+      // 检查总余额是否足够
+      if (totalBalance < withdraw.amount) {
+        throw new Error(
+          `用户余额不足，当前总余额: ${totalBalance} ${
+            withdraw.type === 'usdt_balance' ? 'USDT' : 'TRX'
+          }`,
+        );
       }
 
       let remainingAmount = withdraw.amount;

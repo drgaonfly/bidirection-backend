@@ -5,6 +5,8 @@ import handleAsync from '../utils/handleAsync';
 import bcrypt from 'bcrypt';
 import { exclude } from '../utils/handleData';
 import { RequestCustom } from 'user';
+import { findBotProxy } from '../services/findBotProxy';
+import { IBot } from '../models/bot';
 import crypto from 'crypto';
 import { isEmployee, isProxy } from '../middlewares/authMiddleware';
 import Role from '../models/role';
@@ -282,6 +284,59 @@ export const deleteUser = handleAsync(async (req: Request, res: Response) => {
     data: { message: 'User deleted successfully' },
   });
 });
+
+export const getUserTotalBalance = handleAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    // 获取用户并填充 bots 虚拟字段
+    const user = await User.findById(id).populate('bots');
+
+    if (!user) {
+      res.status(404);
+      throw new Error('用户未找到');
+    }
+
+    let totalUSDT = 0;
+    let totalTRX = 0;
+
+    // 获取所有机器人
+    const userBots = user.bots as IBot[];
+
+    console.log('userBots', userBots);
+
+    if (!userBots || userBots.length === 0) {
+      res.json({
+        success: true,
+        data: { usdt_balance: totalUSDT, trx_balance: totalTRX },
+      });
+      return;
+    }
+
+    // 对每个机器人获取其配置和余额
+    for (const bot of userBots) {
+      const { proxyBotUserConfig } = await findBotProxy(bot);
+
+      console.log('proxyBotUserConfig', proxyBotUserConfig);
+
+      if (proxyBotUserConfig) {
+        totalUSDT += proxyBotUserConfig.usdt_balance || 0;
+        totalTRX += proxyBotUserConfig.trx_balance || 0;
+      }
+    }
+
+    console.log('totalUSDT', totalUSDT);
+    console.log('totalTRX', totalTRX);
+
+    res.json({
+      success: true,
+      data: {
+        usdt_balance: totalUSDT,
+        trx_balance: totalTRX,
+      },
+    });
+  },
+);
 
 export const deleteMultipleUsers = handleAsync(
   async (req: Request, res: Response) => {

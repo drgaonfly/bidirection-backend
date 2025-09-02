@@ -52,6 +52,7 @@ import packageUsageRecordRoutes from './routes/packageUsageRecordRoutes';
 import energyUsageRoutes from './routes/energyUsageRoutes';
 import minConsumptionRoutes from './routes/minConsumptionRoutes';
 import revenueShareRoutes from './routes/revenueShareRoutes';
+import withdrawRoutes from './routes/withdrawRoutes';
 
 dotenv.config();
 
@@ -115,6 +116,7 @@ app.use('/api/package-usage-records', packageUsageRecordRoutes);
 app.use('/api/energy-usages', energyUsageRoutes);
 app.use('/api/min-consumptions', minConsumptionRoutes);
 app.use('/api/revenue-shares', revenueShareRoutes);
+app.use('/api/withdraws', withdrawRoutes);
 
 app.use('/api/static', express.static('tmp'));
 

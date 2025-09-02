@@ -6,10 +6,15 @@ import {
   getUsers,
   deleteMultipleUsers,
   addUser,
+  getUserTotalBalance,
 } from '../controllers/userController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
+
+router
+  .route('/:id/get-balances')
+  .get(protect, checkPermission, getUserTotalBalance);
 
 router
   .route('/')

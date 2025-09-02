@@ -1,5 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 import { IBotUser } from './botUser';
+import { IBot } from './bot';
 
 export interface IPricePair extends Document {
   name: string;
@@ -14,6 +15,7 @@ export interface IUser extends Document {
   id: string;
   isAdmin: boolean;
   roles: any;
+  bots?: mongoose.Schema.Types.ObjectId[] | IBot[];
   email: string;
   password: string;
   name: string;
@@ -65,6 +67,9 @@ export interface IUser extends Document {
 
   // 快速回收时间
   quick_recycle_time: number; // 分钟
+
+  total_usdt_balance: number;
+  total_trx_balance: number;
 }
 
 const pricePairSchema = new mongoose.Schema({
@@ -161,9 +166,23 @@ const userSchema = new mongoose.Schema(
 
     // quick_recycle_time:
     quick_recycle_time: { type: Number, default: 1 },
+
+    total_usdt_balance: { type: Number, default: 0 },
+    total_trx_balance: { type: Number, default: 0 },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
 );
+
+// Virtual field for bots
+userSchema.virtual('bots', {
+  ref: 'Bot',
+  localField: '_id',
+  foreignField: 'user',
+});
 
 const User = mongoose.model<IUser>('User', userSchema);
 

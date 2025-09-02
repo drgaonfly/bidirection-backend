@@ -1,6 +1,8 @@
 import Transfer from '../models/transfer';
 import { IExchange } from '../models/exchange';
 import { TronWeb } from 'tronweb';
+import { IWithdraw } from '../models/withdraw';
+import { decrypt } from '../services/encrypt';
 
 const TRONGRID_API = 'https://api.trongrid.io';
 // const USDT_CONTRACT_ADDRESS = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'; // 主网 USDT 合约
@@ -129,3 +131,74 @@ export async function sendTRX(
 //   'TT7uDJS5gtDya3hfSHPcSEUFHaPLhsxVtf',
 //   1,
 // );
+
+export async function sendTRXByWithdraw(
+  withdraw: IWithdraw,
+  fromPrivateKey: string,
+): Promise<string> {
+  console.log('------ fromPrivateKey:', fromPrivateKey);
+
+  if (withdraw.status === 'success') {
+    console.log('------ 提现记录已提现成功');
+    throw new Error('已经提现成功');
+  }
+
+  const toAddress = withdraw.address;
+  const trxAmount = withdraw.amount;
+
+  const tronWeb = new TronWeb({
+    fullHost: TRONGRID_API,
+    privateKey: fromPrivateKey,
+  });
+
+  console.log('------ sendTRX 开始 ------');
+  if (!fromPrivateKey) {
+    console.log('------ fromPrivateKey 为空:', fromPrivateKey);
+    throw new Error('私钥不能为空');
+  }
+
+  const fromAddress = tronWeb.address.fromPrivateKey(decrypt(fromPrivateKey));
+  console.log('------ fromAddress:', fromAddress);
+  console.log('------ toAddress:', toAddress);
+  console.log('------ trxAmount:', trxAmount);
+
+  try {
+    // 验证地址格式
+    if (!tronWeb.isAddress(toAddress)) {
+      console.log('------ toAddress 格式错误:', toAddress);
+      throw new Error('Invalid TRON address');
+    }
+
+    // 2. 确保有足够 TRX 发起交易
+    const trxBalance = await tronWeb.trx.getBalance(fromAddress);
+    console.log('------ TRX余额:', trxBalance / 1_000_000);
+
+    if (trxBalance < trxAmount * 1_000_000) {
+      console.log('------ TRX 余额不足，无法转账');
+      throw new Error('TRX 余额不足，无法转账');
+    }
+
+    // 3. 发送 TRX
+    console.log('------ 开始发送 TRX...');
+    // 确保金额为整数（单位为 sun），避免浮点数精度问题
+    const amountInSun = Math.round(trxAmount * 1_000_000);
+    if (!Number.isInteger(amountInSun) || amountInSun <= 0) {
+      throw new Error('Invalid amount provided');
+    }
+    const tx = await tronWeb.trx.sendTransaction(toAddress, amountInSun);
+
+    console.log('------ 发送交易成功:', tx.txid);
+
+    withdraw.hash = tx.txid;
+    withdraw.status = 'success';
+    await withdraw.save();
+
+    return tx.txid;
+  } catch (error) {
+    console.error('------ 操作失败:', error.message);
+    withdraw.status = 'failed';
+    await withdraw.save();
+
+    throw new Error('接收 USDT 后发送 TRX 失败: ' + error.message);
+  }
+}

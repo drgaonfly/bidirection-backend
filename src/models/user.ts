@@ -28,6 +28,9 @@ export interface IUser extends Document {
   energy_address?: string; // 放能量地址
   mnemonic?: string; // 助记词
 
+  withdraw_address?: string; // 提款地址，这是用来给代理发送提款的地址
+  withdraw_privateKey?: string; // 提款发送私钥, 这是用来给代理发送提款地址的私钥
+
   twoFAEnabled: boolean; // 是否启用双因素认证
   twoFASecret?: string; // 加密后的TOTP密钥（正式）
   temp2FASecret?: string; // 临时存储的TOTP密钥（用于激活过程）
@@ -100,8 +103,13 @@ const userSchema = new mongoose.Schema(
     },
 
     rechargeAddress: { type: String, required: false }, // 充值地址
+
+    energy_address: { type: String, required: false }, // TRX20 地址
     energy_privateKey: { type: String, required: false, select: false }, // 能量发送私钥
     mnemonic: { type: String, required: false, select: false }, // 购买会员助记词
+
+    withdraw_address: { type: String, required: false }, //  提现地址
+    withdraw_privateKey: { type: String, required: false, select: false }, //  提现地址私钥
 
     twoFAEnabled: {
       type: Boolean,
@@ -130,9 +138,6 @@ const userSchema = new mongoose.Schema(
     lastLoginIp: { type: String },
 
     lastOnline: { type: Date },
-
-    energy_address: { type: String, required: false }, // TRX20 地址
-    energy_address_privateKey: { type: String, required: false, select: false }, // TRX20 地址私钥
 
     price_pairs: {
       type: [pricePairSchema],

@@ -233,6 +233,8 @@ const updateUserProfile = handleAsync(
       energy_address,
       quick_recycle_time,
       recycle_min,
+      withdraw_address,
+      withdraw_privateKey,
     } = req.body;
     const user = await User.findById(req.user._id).select('+password');
 
@@ -276,6 +278,7 @@ const updateUserProfile = handleAsync(
       energy_address: energy_address,
       quick_recycle_time: quick_recycle_time,
       recycle_min: recycle_min,
+      withdraw_address: withdraw_address,
     };
 
     if (energy_privateKey) {
@@ -283,6 +286,9 @@ const updateUserProfile = handleAsync(
     }
     if (mnemonic) {
       updateFields.mnemonic = encrypt(mnemonic);
+    }
+    if (withdraw_privateKey) {
+      updateFields.withdraw_privateKey = encrypt(withdraw_privateKey);
     }
 
     const updatedUser = await User.findByIdAndUpdate(user._id, updateFields, {

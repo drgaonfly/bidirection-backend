@@ -1,10 +1,7 @@
 import Bot from '../../models/bot';
 import Rental from '../../models/rental';
 import Integer from '../../models/integer';
-import {
-  fetchTrxTransactions,
-  deductProxyTrxBalance,
-} from '../../utils/fetchTransactions';
+import { fetchTrxTransactions } from '../../utils/fetchTransactions';
 import { IdGen } from '../../utils/idGen';
 import { rentEnergy } from '../../utils/fetchTransactions';
 import { TronWeb } from 'tronweb';
@@ -298,35 +295,35 @@ export async function checkAutoRentals() {
           console.log('paid rental', rental);
 
           // 如果不是管理员创建的机器人，需要扣减代理用户 TRX 余额
-          if (!bot.isCreatedByAdmin) {
-            const { proxyBotUser, proxyBotUserConfig, proxyUser } =
-              await findBotProxy(bot);
+          // if (!bot.isCreatedByAdmin) {
+          //   const { proxyBotUser, proxyBotUserConfig, proxyUser } =
+          //     await findBotProxy(bot);
 
-            // 获取佣金金额
-            const userPricePair = Array.isArray(proxyUser.price_pairs)
-              ? proxyUser.price_pairs.find(
-                  (pair) => pair.times === matchedPricePair.times,
-                )
-              : undefined;
-            const commission = userPricePair ? userPricePair.commission : 0;
+          //   // 获取佣金金额
+          //   const userPricePair = Array.isArray(proxyUser.price_pairs)
+          //     ? proxyUser.price_pairs.find(
+          //         (pair) => pair.times === matchedPricePair.times,
+          //       )
+          //     : undefined;
+          //   const commission = userPricePair ? userPricePair.commission : 0;
 
-            const success = await deductProxyTrxBalance(
-              'Rental',
-              bot,
-              proxyBotUser,
-              proxyBotUserConfig,
-              proxyUser,
-              commission,
-              rental,
-            );
+          //   const success = await deductProxyTrxBalance(
+          //     'Rental',
+          //     bot,
+          //     proxyBotUser,
+          //     proxyBotUserConfig,
+          //     proxyUser,
+          //     commission,
+          //     rental,
+          //   );
 
-            if (!success) {
-              console.log(
-                `[checkAutoRentals] bot: ${bot.id} 扣减代理用户 TRX 余额失败，跳过`,
-              );
-              continue;
-            }
-          }
+          //   if (!success) {
+          //     console.log(
+          //       `[checkAutoRentals] bot: ${bot.id} 扣减代理用户 TRX 余额失败，跳过`,
+          //     );
+          //     continue;
+          //   }
+          // }
 
           // 发起 能量租赁
           try {

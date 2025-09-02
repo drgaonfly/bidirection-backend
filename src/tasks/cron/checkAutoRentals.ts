@@ -90,7 +90,7 @@ export async function checkAutoRentals() {
       let transfers;
 
       try {
-        const { data } = await fetchTrxTransactions(receiveAddress);
+        const { data } = await fetchTrxTransactions(receiveAddress, 3 * 60);
 
         const rawTransfers = data as any[];
 

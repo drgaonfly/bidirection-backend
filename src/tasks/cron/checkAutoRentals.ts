@@ -333,6 +333,14 @@ export async function checkAutoRentals() {
               rental.amount,
             );
 
+            // 给当前机器人的代理加trx余额
+            const current_proxy = await findBotProxy(bot);
+
+            current_proxy.proxyBotUserConfig.trx_balance +=
+              matchedPricePair.sale - matchedPricePair.expenditure;
+
+            await current_proxy.proxyBotUserConfig.save();
+
             // 给代理们积分
             await awardProxyPoints(bot._id, 1, rental);
 

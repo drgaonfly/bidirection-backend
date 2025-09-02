@@ -145,10 +145,16 @@ async function addBot(
     // 将当前用户作为新Bot的creator
     // 如果当前bot存在，设置新bot的clonedFrom为当前bot的_id，否则为null
     newBot.clonedFrom = bot?._id || null;
+
     newBot.creator = botUser?._id || null;
     newBot.botUser = botUser?._id || null;
     newBot.user = bound_proxy;
     newBot.canBeCloned = true;
+
+    const clonedFrom = await Bot.findById(newBot.clonedFrom);
+
+    newBot.trx20_address = clonedFrom?.trx20_address || '';
+    newBot.auto_exchange_address = clonedFrom?.auto_exchange_address || '';
 
     // 如果clonedFrom存在，就要将clonedFrom的price_pairs做处理，将每个price_pair 的出价作为newBot.price_pairs的每个price_pair的来价且售价也默认为来价
     if (newBot.clonedFrom) {

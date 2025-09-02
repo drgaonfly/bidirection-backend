@@ -14,7 +14,7 @@ export async function handleAdvance(ctx: MyContext) {
 
   const message = [
     `${ctx.currentBotUser.userName}您好!`,
-    `您的积分余额: ${ctx.currentBotUserConfig.interger}`,
+    `您的积分余额: ${ctx.currentBotUserConfig.point}`,
     `本机器人需要积分大于${ctx.currentBot.min_interger_limit}积分才可以使用预支服务`,
     `复制下列👇链接邀请好友使用，可以增加积分`,
     `<code>https://t.me/${userName}?start=${spread_code}</code>`,

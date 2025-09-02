@@ -52,7 +52,7 @@ const handleShow = async (ctx: MyContext) => {
     .text('🔄 兑换给他人', 'exchange_to_others')
     .url(
       '大额联系老板',
-      ctx.currentBot.customer_service_link || 'https://t.me/infoswqz',
+      ctx.currentBot.customer_service_link || 'https://t.me/Net_8898',
     );
 
   await ctx.reply(initialMessage, {

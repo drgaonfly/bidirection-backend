@@ -203,7 +203,7 @@ balanceCallback.callbackQuery(
         reply_markup: new InlineKeyboard()
           .url(
             '联系客服',
-            ctx.currentBot.customer_service_link || 'https://t.me/infoswqz',
+            ctx.currentBot.customer_service_link || 'https://t.me/Net_8898',
           )
           .text('📝 我的笔数套餐', 'my_packageOrder'),
       },

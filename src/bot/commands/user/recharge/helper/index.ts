@@ -199,7 +199,7 @@ export async function handleRechargeRequest(
 
   const keyboard = new InlineKeyboard()
     .text('❌ 取消订单', `recharge:cancel_${payment._id}`)
-    .url('联系客服', bot.customer_service_link || 'https://t.me/infoswqz')
+    .url('联系客服', bot.customer_service_link || 'https://t.me/Net_8898')
     .row()
     .text('🔄 再充一笔', 'recharge:again');
 

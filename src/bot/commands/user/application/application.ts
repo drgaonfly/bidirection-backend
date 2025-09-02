@@ -2,6 +2,7 @@ import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
 import { checkInBot } from '../../../../bot/middlewares/checkInBot';
 import { IdGen } from '../../../../utils/idGen';
+import { InlineKeyboard } from 'grammy';
 import Application from '../../../../models/application';
 import createDebug from 'debug';
 
@@ -22,7 +23,13 @@ export async function handleApplicationCommand(ctx: MyContext) {
   });
 
   if (ctx.currentBotUser.bound_proxy) {
-    await ctx.reply('您已经是代理了, 无须再次申请');
+    await ctx.reply('您已经是代理了, 无须再次申请', {
+      parse_mode: 'HTML',
+      reply_markup: new InlineKeyboard().url(
+        '📞 联系客服',
+        ctx.currentBot.customer_service_link || 'https://t.me/Net_8898',
+      ),
+    });
     return;
   }
 

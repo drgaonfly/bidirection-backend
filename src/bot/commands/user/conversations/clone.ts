@@ -152,6 +152,7 @@ async function addBot(
     newBot.canBeCloned = true;
     newBot.fee = bot?.fee;
     newBot.downStream_fee = bot?.fee;
+    newBot.customer_service_link = bot?.customer_service_link;
 
     const clonedFrom = await Bot.findById(newBot.clonedFrom);
 

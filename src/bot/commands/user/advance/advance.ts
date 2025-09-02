@@ -22,7 +22,12 @@ export async function handleAdvance(ctx: MyContext) {
 
   await ctx.reply(message, {
     parse_mode: 'HTML',
-    reply_markup: new InlineKeyboard().text('预支能量', 'advance:confirm'),
+    reply_markup: new InlineKeyboard()
+      .text('预支能量', 'advance:confirm')
+      .url(
+        '📞 联系客服',
+        ctx.currentBot.customer_service_link || 'https://t.me/Net_8898',
+      ),
   });
 }
 

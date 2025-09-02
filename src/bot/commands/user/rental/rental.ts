@@ -18,12 +18,24 @@ export async function handleRentalCommand(
   await ctx.conversation.exitAll();
 
   if (!ctx.currentBot.energy_address) {
-    await ctx.reply('请先设置该机器人的能量地址');
+    await ctx.reply('请先设置该机器人的能量地址', {
+      parse_mode: 'HTML',
+      reply_markup: new InlineKeyboard().url(
+        '📞 联系客服',
+        ctx.currentBot.customer_service_link || 'https://t.me/Net_8898',
+      ),
+    });
     return;
   }
 
   if (!ctx.currentBot.price_pairs) {
-    await ctx.reply('请先设置该机器人的闪兑套餐');
+    await ctx.reply('请先设置该机器人的闪兑套餐', {
+      parse_mode: 'HTML',
+      reply_markup: new InlineKeyboard().url(
+        '📞 联系客服',
+        ctx.currentBot.customer_service_link || 'https://t.me/Net_8898',
+      ),
+    });
     return;
   }
   const price_pairs =

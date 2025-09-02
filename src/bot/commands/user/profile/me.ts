@@ -66,6 +66,7 @@ async function sendUserProfile(ctx: MyContext) {
     usdt_balance: botUserConfig.usdt_balance,
     trx_balance: botUserConfig.trx_balance,
     available_separations: botUserConfig.available_separations,
+    point: botUserConfig.point,
   });
 
   // 添加联系客服按钮，使用url参数直接跳转到客服链接

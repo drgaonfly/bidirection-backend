@@ -200,6 +200,10 @@ const addBot = handleAsync(async (req: RequestCustom, res: Response) => {
     }
   }
 
+  if (req.body.downStream_fee < req.body.fee) {
+    throw new Error('下游闪兑费率不能小于闪对费率');
+  }
+
   await botManager.save();
 
   res.status(201).json({

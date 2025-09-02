@@ -151,6 +151,7 @@ async function addBot(
     newBot.user = bound_proxy;
     newBot.canBeCloned = true;
     newBot.fee = bot?.fee;
+    newBot.downStream_fee = bot?.fee;
 
     const clonedFrom = await Bot.findById(newBot.clonedFrom);
 

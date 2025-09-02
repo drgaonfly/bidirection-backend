@@ -184,7 +184,7 @@ export async function checkAutoRentals() {
           // 检查 transfer.money 是否和 price_pairs 里任意 expenditure 相等
           const matchedPricePair = Array.isArray(bot.price_pairs)
             ? bot.price_pairs.find(
-                (pair) => pair.expenditure === Number(transfer.money),
+                (pair) => pair.sale === Number(transfer.money),
               )
             : undefined;
 
@@ -337,10 +337,8 @@ export async function checkAutoRentals() {
               rental.amount,
             );
 
-            if (!bot.isCreatedByAdmin) {
-              // 给代理们积分
-              await awardProxyPoints(bot._id, 1, rental);
-            }
+            // 给代理们积分
+            await awardProxyPoints(bot._id, 1, rental);
 
             console.log(`[checkAutoRentals] 能量租赁成功, txid=${txid}`);
 

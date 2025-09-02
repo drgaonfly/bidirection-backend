@@ -40,13 +40,7 @@ export async function handleRentalCommand(
       return `🔸${energy} 能量 (${hour}小时) :  ${trx} TRX   (${hour}小时内有效)`;
     });
   } else {
-    pricePairLines = ['未配置闪兑套餐，请联系管理员。'];
-  }
-
-  const currentTrxBalance = ctx.currentBotUserConfig?.trx_balance || 0;
-
-  if (currentTrxBalance < 1 && !ctx.currentBot.isCreatedByAdmin) {
-    pricePairLines = ['该地址能量不足，请联系在线客服。'];
+    pricePairLines = ['未配置闪兑套餐，请登录后台配置'];
   }
 
   const message = [

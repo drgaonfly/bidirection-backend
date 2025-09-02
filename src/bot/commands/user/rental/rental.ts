@@ -34,7 +34,7 @@ export async function handleRentalCommand(
     pricePairLines = price_pairs.map((pair) => {
       // 1 trx = 1_000_000 sun
       const energy = energy_per_times * pair.times;
-      const trx = pair.expenditure;
+      const trx = pair.sale;
       const hour = pair.expiration;
       // 能量显示为整数
       return `🔸${energy} 能量 (${hour}小时) :  ${trx} TRX   (${hour}小时内有效)`;

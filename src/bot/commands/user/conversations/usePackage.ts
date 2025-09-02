@@ -71,6 +71,7 @@ async function usePackageConversation(
   const existingRecord = await PackageUsageRecord.findOne({
     packageOrder: order._id,
     address: address,
+    status: 'success',
   });
 
   if (existingRecord) {
@@ -183,6 +184,10 @@ async function usePackageConversation(
 
     // 给代理们 2 个 积分
     await awardProxyPoints(packageUsageRecord.bot, 2, order);
+
+    await ctx.reply('地址绑定该套餐成功', {
+      parse_mode: 'HTML',
+    });
   } catch (error) {
     console.error('能量发送失败:', error);
 

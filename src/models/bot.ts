@@ -98,7 +98,6 @@ const commandSchema = new mongoose.Schema({
 const pricePairSchema = new mongoose.Schema({
   name: { type: String, required: false },
   expenditure: { type: Number, required: true },
-  // aqusition: { type: Number, required: true },
   expiration: { type: Number, required: true },
   times: { type: Number, required: true },
   type: { type: String, enum: ['hourly', 'daily'], required: true },

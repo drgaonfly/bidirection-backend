@@ -156,8 +156,7 @@ export async function checkAutoRentals() {
       );
 
       console.log('[checkAutoRentals] filteredTransfers:', filteredTransfers);
-      console.log('[checkAutoRentals] existingRentals:', existingRentals);
-      console.log('[checkAutoRentals] existingHashes:', existingHashes);
+
       console.log(
         '[checkAutoRentals] deepFilteredTransfers:',
         deepFilteredTransfers,

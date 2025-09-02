@@ -38,9 +38,9 @@ balanceCallback.callbackQuery(
 
     const fee_for_trx = 1 + ctx.currentBot.fee / 100;
 
-    const usdt_price = current_price_pair.expenditure;
+    const usdt_price = current_price_pair.sale;
     const trx_price = +(
-      current_price_pair.expenditure *
+      current_price_pair.sale *
       processed_rate *
       fee_for_trx
     ).toFixed(2);
@@ -95,7 +95,7 @@ balanceCallback.callbackQuery(
       current_times: current_price_pair.times,
       energy: current_price_pair.times * adminUser.energy_per_times,
       validityDays: current_price_pair.expiration,
-      minConsumption: adminUser.recharge_min,
+      minConsumption: 2,
       price: priceToDeduct,
       paymentType,
       expiredAt: new Date(

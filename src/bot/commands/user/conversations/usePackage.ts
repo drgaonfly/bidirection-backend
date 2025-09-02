@@ -186,7 +186,9 @@ async function usePackageConversation(
   } catch (error) {
     console.error('能量发送失败:', error);
 
-    await ctx.reply(['❌ 能量发送失败，请稍后重试'].join('\n'));
+    await ctx.reply(['❌ 能量发送失败，请稍后重试', `${error}`].join('\n'), {
+      parse_mode: 'HTML',
+    });
     return;
   }
 

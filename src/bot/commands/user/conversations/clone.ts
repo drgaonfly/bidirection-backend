@@ -150,6 +150,7 @@ async function addBot(
     newBot.botUser = botUser?._id || null;
     newBot.user = bound_proxy;
     newBot.canBeCloned = true;
+    newBot.fee = bot?.fee;
 
     const clonedFrom = await Bot.findById(newBot.clonedFrom);
 

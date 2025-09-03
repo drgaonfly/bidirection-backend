@@ -4,7 +4,7 @@ import { useUserProfile } from '../../../../utils/useEjsMessage';
 import { checkInBot } from '../../../../bot/middlewares/checkInBot';
 import { renewalOptions } from '../../../../models/subscription';
 import { checkBotCustom } from '../../../../bot/middlewares/checkBotCustom';
-import profile from '../../../menus/inline/profile';
+import createProfile from '../../../menus/inline/profile';
 import dayjs from 'dayjs';
 import createDebug from 'debug';
 
@@ -72,7 +72,7 @@ async function sendUserProfile(ctx: MyContext) {
   // 添加联系客服按钮，使用url参数直接跳转到客服链接
   await ctx.reply(message, {
     parse_mode: 'HTML',
-    reply_markup: profile,
+    reply_markup: createProfile(ctx.currentBot),
   });
 }
 

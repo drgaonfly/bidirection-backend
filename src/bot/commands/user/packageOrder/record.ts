@@ -36,8 +36,8 @@ recordCallback.callbackQuery(/^packageOrder_record_(.+)$/, async (ctx) => {
   ].join('\n');
 
   const menus = new InlineKeyboard()
-    .text('🛠️ 给他人使用套餐', `packageOrder_use_${orderId}_other`)
-    .text('🛠️ 自己使用套餐', `packageOrder_use_${orderId}_myself`)
+    .text('🛠️ 分享他人使用套笔数', `packageOrder_use_${orderId}_other`)
+    .text('🛠️ 绑定自用地址', `packageOrder_use_${orderId}_myself`)
     .row()
     .text('🔙 返回菜单', 'packageOrder_back')
     .text('📖 使用记录', `package_usages_${orderId}`)

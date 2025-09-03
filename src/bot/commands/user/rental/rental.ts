@@ -1,8 +1,10 @@
-import { Composer, InlineKeyboard } from 'grammy';
+import { Composer, InlineKeyboard, InputFile } from 'grammy';
 import { MyContext } from '../../../types';
 import { checkInBot } from '../../../middlewares/checkInBot';
 import { getAdminUser } from '../../../../utils/buyTelegramPremium';
 import createDebug from 'debug';
+import fs from 'fs';
+import path from 'path';
 
 const rentalCommand = new Composer<MyContext>();
 
@@ -73,10 +75,26 @@ export async function handleRentalCommand(
     .text('💳 预支能量', 'energy_advance')
     .text('💎 充值余额', 'recharge');
 
-  ctx.reply(message, {
-    parse_mode: 'HTML',
-    reply_markup: inline,
-  });
+  // Check if rentImage exists and send with image, otherwise send text message
+  if (ctx.currentBot.rentImage) {
+    const imagePath = path.join(process.cwd(), 'tmp', ctx.currentBot.rentImage);
+
+    if (fs.existsSync(imagePath)) {
+      await ctx.replyWithPhoto(new InputFile(imagePath), {
+        caption: message,
+        parse_mode: 'HTML',
+        reply_markup: inline,
+      });
+    } else {
+      await ctx.reply('没有找到后台上传的图片，是否已经被删除？');
+      return;
+    }
+  } else {
+    await ctx.reply(message, {
+      parse_mode: 'HTML',
+      reply_markup: inline,
+    });
+  }
 }
 
 // 开始命令处理

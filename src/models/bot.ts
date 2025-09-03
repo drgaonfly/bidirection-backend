@@ -42,6 +42,7 @@ export interface IBot extends Document {
   min_interger_limit: number; // 使用预支功能的最少积分数
   isCreatedByAdmin?: boolean; // 是否由管理员创建，由管理创建的机器人就是平台机器人
   botUser: mongoose.Schema.Types.ObjectId | IBotUser; // 机器人用户
+  rentImage?: string; // 闪租图片
 }
 
 export interface IMenu extends Document {
@@ -270,6 +271,11 @@ const botSchema = new mongoose.Schema(
     isCreatedByAdmin: {
       type: Boolean,
       default: false,
+    },
+    rentImage: {
+      type: String,
+      trim: true,
+      required: false,
     },
   },
   {

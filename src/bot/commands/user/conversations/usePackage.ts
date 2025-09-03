@@ -185,9 +185,9 @@ async function usePackageConversation(
     // 给代理们 2 个 积分
     await awardProxyPoints(packageUsageRecord.bot, 2, order);
 
-    await ctx.reply('地址绑定该套餐成功', {
-      parse_mode: 'HTML',
-    });
+    // await ctx.reply('地址绑定该套餐成功', {
+    //   parse_mode: 'HTML',
+    // });
   } catch (error) {
     console.error('能量发送失败:', error);
 
@@ -204,6 +204,8 @@ async function usePackageConversation(
   // 6️⃣ 回复用户
   const message = [
     '✅ 套餐使用记录创建成功！',
+    '',
+    '🕐请在1小时内使用能量，1小时未使用，将回收能量',
     '',
     `🆔 订单ID: <code>${order.id}</code>`,
     '',

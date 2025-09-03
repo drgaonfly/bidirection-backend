@@ -12,6 +12,8 @@ import { encrypt } from '../services/encrypt';
 import { createTrxWallet } from '../utils/generateWallet';
 import { InputFile } from 'grammy';
 import dotenv from 'dotenv';
+import { generateSignedUrl } from '../utils/generateSignedUrl';
+import { transformDocumentImage } from '../utils/transformUtils';
 
 dotenv.config();
 
@@ -136,9 +138,19 @@ const getBots = handleAsync(async (req: RequestCustom, res: Response) => {
 
   const total = await Bot.countDocuments(query).exec();
 
+  const processed_bots = await Promise.all(
+    bots.map(async (bot) => {
+      if (bot.rentImage) {
+        const signedUrl = await generateSignedUrl(bot.rentImage);
+        return { ...bot, rentImage: signedUrl };
+      }
+      return bot;
+    }),
+  );
+
   res.json({
     success: true,
-    data: bots,
+    data: processed_bots,
     total,
     current: +current,
     pageSize: +pageSize,
@@ -228,7 +240,7 @@ const getBotById = handleAsync(async (req: Request, res: Response) => {
 
 const updateBot = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { private_key, ...restBody } = req.body;
+  const { private_key, rentImage, ...restBody } = req.body;
 
   console.log('req.body', req.body);
 
@@ -239,7 +251,10 @@ const updateBot = handleAsync(async (req: Request, res: Response) => {
     throw new Error('机器人不存在');
   }
 
-  const updateData = {
+  const updateData: any = {
+    ...(rentImage &&
+      typeof rentImage === 'string' &&
+      !rentImage.startsWith('http') && { rentImage }),
     ...restBody,
   };
 
@@ -247,21 +262,23 @@ const updateBot = handleAsync(async (req: Request, res: Response) => {
     updateData.private_key = encrypt(private_key);
   }
 
-  const updatedBot = await Bot.findByIdAndUpdate(
-    id,
-    {
-      ...updateData,
-    },
-    { new: true },
-  ).exec();
+  const updatedBot = await Bot.findByIdAndUpdate(id, updateData, {
+    new: true,
+    runValidators: true,
+  });
 
   if (updatedBot.isOnline !== botManager.isOnline && updatedBot.isOnline) {
     await setWebhook(updatedBot);
   }
 
+  // 处理图片路径
+  const processedBot = updatedBot
+    ? await transformDocumentImage(updatedBot, ['rentImage'])
+    : null;
+
   res.json({
     success: true,
-    data: updatedBot,
+    data: processedBot,
   });
 });
 

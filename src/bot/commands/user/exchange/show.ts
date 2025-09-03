@@ -49,7 +49,7 @@ const handleShow = async (ctx: MyContext) => {
   ].join('\n');
 
   const inline_menu = new InlineKeyboard()
-    .text('🔄 兑换给他人', 'exchange_to_others')
+    // .text('🔄 兑换给他人', 'exchange_to_others')
     .url(
       '大额联系老板',
       ctx.currentBot.customer_service_link || 'https://t.me/Net_8898',

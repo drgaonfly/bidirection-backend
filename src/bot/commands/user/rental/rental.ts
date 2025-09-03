@@ -49,22 +49,28 @@ export async function handleRentalCommand(
       // 1 trx = 1_000_000 sun
       const energy = energy_per_times * pair.times;
       const trx = pair.sale;
-      const hour = pair.expiration;
       // 能量显示为整数
-      return `🔸${energy} 能量 (${hour}小时) :  ${trx} TRX   (${hour}小时内有效)`;
+      return `🔸${energy} 能量 (${pair.times}笔) :  ${trx} TRX  （对方${
+        pair.times === 1 ? '🈶U' : '🈚️U'
+      }）`;
     });
   } else {
     pricePairLines = ['未配置闪兑套餐，请登录后台配置'];
   }
 
   const message = [
-    '【🔋能量闪租🔋】',
+    '【<b>🔋能量闪租🔋</b>】 (<b>1小时内有效</b>)',
+    '<b>功能说明：</b>',
+    '用户只需向我们下面提供的地址转入指定TRX即可获得对应的能量。此功能可以节省90%的转账手续费。',
+    '',
     ...pricePairLines,
-    `\n`,
-    '1.向无U地址转账, 需要双倍能量。',
-    '2.请在1小时内转账, 否则过期回收。',
-    `\n`,
-    '🔸<b>闪租能量收款地址:</b>',
+    '',
+    '1.对方🈶U，需要一笔',
+    '2.对方🈚️U或交易所，需要两笔',
+    '3.请在1小时内转账, 否则过期回收。',
+    '',
+    '',
+    '🔸闪租能量收款地址:(点击地址自动复制)',
     `<code>${ctx.currentBot.energy_address}</code>`,
     '➖➖➖➖➖➖➖➖➖',
     '发送 /start 可以更新最新功能列表',

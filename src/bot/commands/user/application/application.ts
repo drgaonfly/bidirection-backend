@@ -23,13 +23,29 @@ export async function handleApplicationCommand(ctx: MyContext) {
   });
 
   if (ctx.currentBotUser.bound_proxy) {
-    await ctx.reply('您已经是代理了, 无须再次申请', {
-      parse_mode: 'HTML',
-      reply_markup: new InlineKeyboard().url(
-        '📞 联系客服',
-        ctx.currentBot.customer_service_link || 'https://t.me/Net_8898',
-      ),
-    });
+    await ctx.reply(
+      [
+        '<b>您已经是代理了, 无须再次申请</b>',
+        '',
+        '💎 <b>零成本 · 副业新风口！</b>',
+        '<b>TRX能量代理上线啦</b> 🚀',
+        '',
+        '✅ 客户下单，你直接赚钱',
+        '✅ 下级代理裂变，持续分润',
+        '✅ 不投一分钱，轻松开启被动收入模式',
+        '✅ 📈 收益无上限，长期可持续',
+        '',
+        '👉 现在加入 = 提前锁定长期收益！',
+        '👉 动动手指，分享给身边用波场的朋友，就能开始赚钱！',
+      ].join('\n'),
+      {
+        parse_mode: 'HTML',
+        reply_markup: new InlineKeyboard().url(
+          '📞 联系客服',
+          ctx.currentBot.customer_service_link || 'https://t.me/Net_8898',
+        ),
+      },
+    );
     return;
   }
 

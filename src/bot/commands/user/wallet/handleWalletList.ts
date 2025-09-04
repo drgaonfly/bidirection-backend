@@ -130,7 +130,10 @@ export const handleWalletListWithoutInlineMenu = async (
       ? `（第 ${page}/${totalPages} 页）, 每页 ${ITEMS_PER_PAGE} 条记录`
       : '';
 
-  const replyText = `\n<b>🏦 您的监控地址列表：</b>\n\n${wallets
+  const replyText = `\n功能说明：
+     添加地址后，可查地址是否多签，可实时监听USDT入账，防收到假U，
+
+🏦 您的监控地址列表：\n\n${wallets
     .map(
       (wallet) =>
         `<code>${wallet.address}</code> ${

@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import { decrypt } from '../services/encrypt';
 import { TronWeb } from 'tronweb';
 
 const ethProvider = new ethers.JsonRpcProvider('https://eth.llamarpc.com');
@@ -74,4 +75,34 @@ export const createTrxWallet = async (): Promise<any> => {
     ...walletInfo,
     // balance: balanceTRX,
   };
+};
+
+export const getBalanceByAddress = async (address: string): Promise<any> => {
+  // 获取实时余额
+  const balanceInSun = await tronWeb.trx.getBalance(address);
+  const balanceTRX = balanceInSun / 1000000; // Convert from SUN to TRX
+
+  return balanceTRX;
+};
+
+export const getBalanceByPrivateKey = async (
+  privateKey: string,
+): Promise<number> => {
+  try {
+    // 通过私钥生成地址
+    const address = tronWeb.address.fromPrivateKey(decrypt(privateKey));
+
+    console.log('address', address);
+
+    // 获取余额（单位是 SUN）
+    const balanceInSun = await tronWeb.trx.getBalance(address);
+
+    // 转换为 TRX
+    const balanceTRX = balanceInSun / 1_000_000;
+
+    return balanceTRX;
+  } catch (error) {
+    console.error('获取余额失败:', error);
+    throw error;
+  }
 };

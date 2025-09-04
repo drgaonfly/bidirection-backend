@@ -2,6 +2,7 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import createBug from 'debug';
 import { getExchangeRate } from '../../../../utils/getExchange';
+import { getBalanceByPrivateKey } from '../../../../utils/generateWallet';
 const exchangeShowComposer = new Composer<MyContext>();
 
 const debug = createBug('bot:exchange');
@@ -28,6 +29,10 @@ const handleShow = async (ctx: MyContext) => {
 
   const realPrice = ((1 / price) * (1 - ctx.currentBot.fee / 100)).toFixed(2);
 
+  const available_balance = await getBalanceByPrivateKey(
+    ctx.currentBot.private_key,
+  );
+
   const initialMessage = [
     `📈实时汇率`,
     [
@@ -45,7 +50,7 @@ const handleShow = async (ctx: MyContext) => {
     '🏪转账即兑,全自动返,等值1U起兑，全网最高汇率',
     'U→TRX 即转即兑',
     '\n',
-    `当前可兑余额：${ctx.currentBotUserConfig.usdt_balance} USDT`,
+    `当前可兑余额：${available_balance.toFixed(6)} TRX`,
     '注：交易经过多次网络确认，两分钟内到账！',
   ].join('\n');
 

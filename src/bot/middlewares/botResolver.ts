@@ -19,7 +19,7 @@ const botResolver: Middleware<MyContext> = async (ctx, next) => {
   const currentBot = await Bot.findOne({
     token,
     isOnline: true,
-  });
+  }).select('+private_key');
 
   if (!currentBot) {
     await ctx.reply('机器人已离线或不存在');

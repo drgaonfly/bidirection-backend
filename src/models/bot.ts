@@ -239,7 +239,7 @@ const botSchema = new mongoose.Schema(
     private_key: {
       type: String,
       trim: true,
-      select: true,
+      select: false,
     }, // 私钥
     exchange_rate: {
       type: Number,

@@ -20,7 +20,10 @@ export const checkInProxy = async (
       parse_mode: 'HTML',
       reply_markup: new InlineKeyboard()
         .text('🤝代理申请', 'application')
-        .text('💬联系客服', 'contact'),
+        .url(
+          '📞 联系客服',
+          ctx.currentBot.customer_service_link || 'https://t.me/Net_8898',
+        ),
     });
     return;
   }

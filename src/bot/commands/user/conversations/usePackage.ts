@@ -205,7 +205,7 @@ async function usePackageConversation(
   const message = [
     '✅ 套餐使用记录创建成功！',
     '',
-    '🕐请在1小时内使用能量，1小时未使用，将回收能量',
+    type === 'myself' ? '' : '🕐请在1小时内使用能量，1小时未使用，将回收能量',
     '',
     `🆔 订单ID: <code>${order.id}</code>`,
     '',

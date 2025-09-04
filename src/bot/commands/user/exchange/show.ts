@@ -45,7 +45,8 @@ const handleShow = async (ctx: MyContext) => {
     '🏪转账即兑,全自动返,等值1U起兑，全网最高汇率',
     'U→TRX 即转即兑',
     '\n',
-    '📌<b>请输入兑换数量,例如:"20U"</b>',
+    `当前可兑余额：${ctx.currentBotUserConfig.usdt_balance} USDT`,
+    '注：交易经过多次网络确认，两分钟内到账！',
   ].join('\n');
 
   const inline_menu = new InlineKeyboard()

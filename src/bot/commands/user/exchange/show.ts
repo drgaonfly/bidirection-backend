@@ -29,9 +29,14 @@ const handleShow = async (ctx: MyContext) => {
 
   const realPrice = ((1 / price) * (1 - ctx.currentBot.fee / 100)).toFixed(2);
 
-  const available_balance = await getBalanceByPrivateKey(
-    ctx.currentBot.private_key,
-  );
+  let available_balance = 0;
+  try {
+    available_balance = await getBalanceByPrivateKey(
+      ctx.currentBot.private_key,
+    );
+  } catch (error) {
+    debug('请先在后台上传机器人私钥');
+  }
 
   const initialMessage = [
     `📈实时汇率`,

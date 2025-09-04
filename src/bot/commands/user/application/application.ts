@@ -65,7 +65,20 @@ export async function handleApplicationCommand(ctx: MyContext) {
   await application.save();
 
   await ctx.reply(
-    `代理申请已提交，请等待审核, 申请ID为 <code>${application.id}</code>`,
+    [
+      `代理申请已提交，请等待审核, 申请ID为 <code>${application.id}</code>`,
+      '',
+      '💎 零成本 · 副业新风口！',
+      'TRX能量代理上线啦 🚀',
+      '',
+      '✅ 客户下单，你直接赚钱',
+      '✅ 下级代理裂变，持续分润',
+      '✅ 不投一分钱，轻松开启被动收入模式',
+      '✅ 📈 收益无上限，长期可持续',
+      '',
+      '👉 现在加入 = 提前锁定长期收益！',
+      '👉 动动手指，分享给身边用波场的朋友，就能开始赚钱！',
+    ].join('\n'),
     {
       parse_mode: 'HTML',
     },

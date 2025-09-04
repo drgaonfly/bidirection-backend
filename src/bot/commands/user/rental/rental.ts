@@ -61,7 +61,7 @@ export async function handleRentalCommand(
   const message = [
     '【<b>🔋能量闪租🔋</b>】 (<b>1小时内有效</b>)',
     '<b>功能说明：</b>',
-    '用户只需向我们下面提供的地址转入指定TRX即可获得对应的能量。此功能可以节省90%的转账手续费。',
+    '用户只需向我们下面提供的地址转入指定TRX即可获得对应的能量。此功能可以<b>节省90%</b>的<b>转账手续费</b>。',
     '',
     ...pricePairLines,
     '',
@@ -70,7 +70,7 @@ export async function handleRentalCommand(
     '3.请在1小时内转账, 否则过期回收。',
     '',
     '',
-    '🔸闪租能量收款地址:(点击地址自动复制)',
+    '🔸<b>闪租能量收款地址:(点击地址自动复制)</b>',
     `<code>${ctx.currentBot.energy_address}</code>`,
     '➖➖➖➖➖➖➖➖➖',
     '发送 /start 可以更新最新功能列表',

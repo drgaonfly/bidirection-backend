@@ -792,12 +792,12 @@ async function genericRecycleEnergyByAmount(
 
   const existingUnRental = await UnRental.findOne({
     packageUsageRecord: record._id,
-    hash: record.recycling_hash,
+    status: 'success', // 只有成功的回收记录才算
   });
 
   if (existingUnRental && type !== 'myself') {
     console.log(
-      `[genericRecycleEnergyByAmount]: packageUsageRecord ${record.id} 已回收了能量，跳过`,
+      `[genericRecycleEnergyByAmount]: packageUsageRecord ${record.id} 已成功回收了能量，跳过`,
       'existingUnRental:',
       existingUnRental,
     );

@@ -13,6 +13,7 @@ import { createTrxWallet } from '../utils/generateWallet';
 import { InputFile } from 'grammy';
 import { generateSignedUrl } from '../utils/generateSignedUrl';
 import { transformDocumentImage } from '../utils/transformUtils';
+import { getAdminUser } from '../utils/buyTelegramPremium';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -511,7 +512,9 @@ const sendMessage = handleAsync(async (req: Request, res: Response) => {
 
   const superAdminBot = setupBot(process.env.SUPER_ADMIN_BOT_TOKEN);
 
-  await superAdminBot.api.sendMessage(5119955519, message, {
+  const admin = await getAdminUser();
+
+  await superAdminBot.api.sendMessage(admin.feedback_id, message, {
     parse_mode: 'HTML',
   });
 

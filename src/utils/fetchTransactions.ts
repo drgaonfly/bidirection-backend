@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { IdGen } from './idGen';
 import { TronWeb } from 'tronweb';
-import Bot, { IBot } from '../models/bot';
+import { IBot } from '../models/bot';
 import { IUser } from '../models/user';
 import { IBotUser } from '../models/botUser';
 import { IBotUserConfig } from '../models/botUserConfig';
@@ -13,7 +13,6 @@ import { getAdminUser } from './buyTelegramPremium';
 import { decrypt } from '../services/encrypt';
 import { IRental } from '../models/rental';
 import { setupBot } from '../bot/botSetup';
-import { findBotProxy } from '../services/findBotProxy';
 import Deduction from '../models/deduction';
 import {
   checkAccountPermission,
@@ -535,13 +534,9 @@ async function unRentEnergy(rental: IRental): Promise<any> {
 
     const superAdminBot = setupBot(process.env.SUPER_ADMIN_BOT_TOKEN);
 
-    const bot = await Bot.findOne({ token: process.env.SUPER_ADMIN_BOT_TOKEN });
+    const admin = await getAdminUser();
 
-    const superAdminProxy = await findBotProxy(bot);
-
-    const superAdminBotUser = superAdminProxy.proxyBotUser;
-
-    await superAdminBot.api.sendMessage(superAdminBotUser.id, errorMsg, {
+    await superAdminBot.api.sendMessage(admin.feedback_id, errorMsg, {
       parse_mode: 'HTML',
     });
 
@@ -928,13 +923,9 @@ async function genericRecycleEnergyByAmount(
 
     const superAdminBot = setupBot(process.env.SUPER_ADMIN_BOT_TOKEN);
 
-    const bot = await Bot.findOne({ token: process.env.SUPER_ADMIN_BOT_TOKEN });
+    const admin = await getAdminUser();
 
-    const superAdminProxy = await findBotProxy(bot);
-
-    const superAdminBotUser = superAdminProxy.proxyBotUser;
-
-    await superAdminBot.api.sendMessage(superAdminBotUser.id, errorMsg, {
+    await superAdminBot.api.sendMessage(admin.feedback_id, errorMsg, {
       parse_mode: 'HTML',
     });
 

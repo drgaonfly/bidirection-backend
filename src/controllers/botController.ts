@@ -13,7 +13,6 @@ import { createTrxWallet } from '../utils/generateWallet';
 import { InputFile } from 'grammy';
 import { generateSignedUrl } from '../utils/generateSignedUrl';
 import { transformDocumentImage } from '../utils/transformUtils';
-import { getAdminUser } from '../utils/buyTelegramPremium';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -510,42 +509,36 @@ const sendMessage = handleAsync(async (req: Request, res: Response) => {
     throw new Error('机器人不存在');
   }
 
-  const superAdminBot = setupBot(process.env.SUPER_ADMIN_BOT_TOKEN);
+  const telegramBot = setupBot(botManager.token);
 
-  const admin = await getAdminUser();
+  const results = await Promise.allSettled(
+    botManager.botUsers.map(async (botUser: any) => {
+      try {
+        await telegramBot.api.sendMessage(botUser.id, message);
+        return { userId: botUser.id, success: true };
+      } catch (error: any) {
+        return {
+          userId: botUser.id,
+          success: false,
+          error: error.message,
+        };
+      }
+    }),
+  );
 
-  await superAdminBot.api.sendMessage(admin.feedback_id, message, {
-    parse_mode: 'HTML',
-  });
-
-  // const results = await Promise.allSettled(
-  //   botManager.botUsers.map(async (botUser: any) => {
-  //     try {
-  //       await telegramBot.api.sendMessage(botUser.id, message);
-  //       return { userId: botUser.id, success: true };
-  //     } catch (error: any) {
-  //       return {
-  //         userId: botUser.id,
-  //         success: false,
-  //         error: error.message,
-  //       };
-  //     }
-  //   }),
-  // );
-
-  // const successful = results.filter(
-  //   (r) => r.status === 'fulfilled' && (r.value as any).success,
-  // ).length;
-  // const failed = results.filter(
-  //   (r) => r.status === 'rejected' || !(r.value as any).success,
-  // ).length;
+  const successful = results.filter(
+    (r) => r.status === 'fulfilled' && (r.value as any).success,
+  ).length;
+  const failed = results.filter(
+    (r) => r.status === 'rejected' || !(r.value as any).success,
+  ).length;
 
   res.json({
     success: true,
-    // data: {
-    //   message: `消息发送完成：${successful} 个成功，${failed} 个失败`,
-    //   details: results,
-    // },
+    data: {
+      message: `消息发送完成：${successful} 个成功，${failed} 个失败`,
+      details: results,
+    },
   });
 });
 

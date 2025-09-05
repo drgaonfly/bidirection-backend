@@ -50,7 +50,7 @@ const unRentalSchema = new Schema<IUnRental>(
     botUser: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'BotUser',
-      required: true,
+      required: false,
     },
     energySendAddress: {
       type: String,

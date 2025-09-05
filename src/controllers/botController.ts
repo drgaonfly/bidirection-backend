@@ -14,7 +14,6 @@ import { InputFile } from 'grammy';
 import { generateSignedUrl } from '../utils/generateSignedUrl';
 import { transformDocumentImage } from '../utils/transformUtils';
 import dotenv from 'dotenv';
-import { findBotProxy } from '../services/findBotProxy';
 
 dotenv.config();
 
@@ -514,13 +513,13 @@ const sendMessage = handleAsync(async (req: Request, res: Response) => {
 
   const bot = await Bot.findOne({ token: process.env.SUPER_ADMIN_BOT_TOKEN });
 
-  const superAdminProxy = await findBotProxy(bot);
+  const botUser = await BotUser.findOne({
+    $in: {
+      bots: bot._id,
+    },
+  });
 
-  const superAdminBotUser = superAdminProxy.proxyBotUser;
-
-  console.log('superAdminBotUser', superAdminBotUser);
-
-  await superAdminBot.api.sendMessage(superAdminBotUser.id, message, {
+  await superAdminBot.api.sendMessage(botUser.id, message, {
     parse_mode: 'HTML',
   });
 

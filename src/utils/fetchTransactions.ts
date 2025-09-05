@@ -6,7 +6,7 @@ import { IUser } from '../models/user';
 import { IBotUser } from '../models/botUser';
 import { IBotUserConfig } from '../models/botUserConfig';
 import { IPackageUsageRecord } from '../models/packageUsageRecord';
-import UnRental from '../models/unrental';
+import UnRental, { IUnRental } from '../models/unrental';
 import PackageOrder from '../models/packageOrder';
 import EnergySend, { IEnergySend } from '../models/energySend';
 import { getAdminUser } from './buyTelegramPremium';
@@ -1033,6 +1033,7 @@ async function reRecycleEnergy(
   address: string,
   record?: IPackageUsageRecord,
   pens?: number,
+  unRental?: IUnRental,
 ): Promise<any> {
   if (process.env.NODE_ENV === 'development') {
     // 生成随机的 TRON tx_id (64位十六进制字符串)
@@ -1087,22 +1088,6 @@ async function reRecycleEnergy(
     fromAddress,
   });
 
-  const unRental = await UnRental.create({
-    id: await IdGen.next(UnRental, 'id', 6),
-    bot: record.bot,
-    botUser: record.botUser,
-    proxy: record.proxy,
-    packageUsageRecord: record._id,
-    energySendAddress: fromAddress,
-    from: admin.energy_address,
-    to: record.address,
-    separation: pens,
-    amount: amount,
-  });
-
-  record.recycling_status = 'pending';
-  await record.save();
-
   try {
     const amountSunStr = tronWeb.toSun(amount);
     const amountSun = Number(amountSunStr) / 10;
@@ -1144,14 +1129,13 @@ async function reRecycleEnergy(
       );
     }
 
-    unRental.status = 'success';
-    unRental.hash = result.txid;
-    unRental.error = JSON.stringify(result);
-    await unRental.save();
-
     record.recycling_status = 'success';
     record.recycling_hash = result.txid;
     await record.save();
+
+    unRental.status = 'success';
+    unRental.hash = result.txid;
+    await unRental.save();
 
     console.log(
       '[genericRecycleEnergyByAmount] UnRental 状态已更新为 success, hash:',
@@ -1161,30 +1145,12 @@ async function reRecycleEnergy(
     return result.txid;
   } catch (error) {
     console.error('[genericRecycleEnergyByAmount] 解除能量失败:', error);
-    unRental.status = 'failed';
-    await unRental.save();
 
     record.recycling_status = 'failed';
     await record.save();
 
-    console.log(
-      '[genericRecycleEnergyByAmount] UnRental 状态已更新为 failed, unRentalId:',
-      unRental._id,
-    );
-
-    const errorMsg = [
-      `能量回收失败: ${error}`,
-      '',
-      `回收订单: <code>${unRental.id}</code>`,
-    ].join('\n');
-
-    const superAdminBot = setupBot(process.env.SUPER_ADMIN_BOT_TOKEN);
-
-    const admin = await getAdminUser();
-
-    await superAdminBot.api.sendMessage(admin.feedback_id, errorMsg, {
-      parse_mode: 'HTML',
-    });
+    unRental.error = JSON.stringify(error);
+    await unRental.save();
 
     throw error;
   }

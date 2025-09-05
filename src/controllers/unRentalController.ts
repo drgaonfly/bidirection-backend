@@ -272,6 +272,7 @@ export const reRecycle = handleAsync(async (req: Request, res: Response) => {
           record.address,
           record,
           unRental.separation,
+          'reRecycle',
         );
 
         // 重新发送能量

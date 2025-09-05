@@ -1,5 +1,4 @@
 import mongoose, { Document } from 'mongoose';
-import { IBotUser } from './botUser';
 import { IBot } from './bot';
 
 export interface IPricePair extends Document {
@@ -47,7 +46,6 @@ export interface IUser extends Document {
 
   price_pairs: IPricePair[];
 
-  botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   /**
    * 充值涨最小值
    */
@@ -144,11 +142,6 @@ const userSchema = new mongoose.Schema(
     price_pairs: {
       type: [pricePairSchema],
       default: [],
-    },
-
-    botUser: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
     },
 
     // 充值涨最小值

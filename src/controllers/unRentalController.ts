@@ -6,6 +6,15 @@ import BotUser from '../models/botUser';
 import { RequestCustom } from '../types/user';
 import { isEmployee, isProxy } from '../middlewares/authMiddleware';
 import User from '../models/user';
+import {
+  unRentEnergy,
+  genericRecycleEnergyByAmount,
+  resendEnergy,
+} from '../utils/fetchTransactions';
+import PackageUsageRecord from '../models/packageUsageRecord';
+import Rental from '../models/rental';
+import EnergySend from '../models/energySend';
+import PackageOrder from '../models/packageOrder';
 
 const buildQuery = async (
   queryParams: any,
@@ -202,12 +211,69 @@ export const deleteMultipleUnRentals = handleAsync(
 );
 
 export const reRecycle = handleAsync(async (req: Request, res: Response) => {
-  const unRental = await UnRental.findByIdAndUpdate(req.params.id);
+  const unRental = await UnRental.findById(req.params.id)
+    .populate('rental')
+    .populate({
+      path: 'packageUsageRecord',
+      populate: 'packageOrder',
+    });
 
   if (!unRental) {
     res.status(404);
     throw new Error('解除租赁记录未找到');
   }
+
+  let txid;
+
+  let energySend;
+
+  if (unRental.rental) {
+    const rental = await Rental.findById(unRental.rental);
+
+    energySend = await EnergySend.findOne({
+      rental: rental._id,
+    });
+    // 如果是租赁记录，使用 unRentEnergy
+    txid = await unRentEnergy(rental);
+
+    // 重新发送能量
+    await resendEnergy(energySend);
+  } else if (unRental.packageUsageRecord) {
+    // 如果是套餐使用记录，使用 genericRecycleEnergyByAmount
+    const record = await PackageUsageRecord.findById(
+      unRental.packageUsageRecord,
+    );
+
+    energySend = await EnergySend.findOne({
+      packageUsageRecord: record._id,
+    });
+
+    txid = await genericRecycleEnergyByAmount(
+      unRental.amount,
+      record.address,
+      record,
+      unRental.separation,
+    );
+
+    // 重新发送能量
+    await resendEnergy(energySend);
+
+    // 扣减套餐使用记录
+    await PackageOrder.findByIdAndUpdate(
+      record.packageOrder,
+      {
+        $inc: { current_times: -unRental.separation },
+      },
+      { new: true },
+    );
+  } else {
+    throw new Error('无效的解除租赁记录类型');
+  }
+
+  // 更新 unRental 记录
+  unRental.hash = txid;
+  unRental.status = 'success';
+  await unRental.save();
 
   res.json({
     success: true,

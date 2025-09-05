@@ -7,6 +7,7 @@ import { IPackageUsageRecord } from './packageUsageRecord';
 
 // 能量解除租用接口定义
 export interface IUnRental extends Document {
+  id: string;
   rental: mongoose.Schema.Types.ObjectId | IRental;
   packageUsageRecord: mongoose.Schema.Types.ObjectId | IPackageUsageRecord;
   proxy: mongoose.Schema.Types.ObjectId | IUser;
@@ -28,6 +29,10 @@ export interface IUnRental extends Document {
 
 const unRentalSchema = new Schema<IUnRental>(
   {
+    id: {
+      type: String,
+      required: false,
+    },
     rental: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Rental',

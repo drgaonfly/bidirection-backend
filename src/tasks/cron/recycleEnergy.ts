@@ -40,23 +40,6 @@ export async function recycleEnergy() {
     const now = Date.now();
 
     for (const packageUsageRecord of packageUsageRecords) {
-      // const energyUsages = await EnergyUsage.find({
-      //   packageUsageRecord: packageUsageRecord._id,
-      //   type: packageUsageRecord.type,
-      // });
-
-      // if (energyUsages.length === 0) {
-      //   console.log(
-      //     `[recycleEnergy]: packageUsageRecord: ${packageUsageRecord.id} 没有能量使用记录，跳过]`,
-      //   );
-      //   continue;
-      // }
-
-      // const used_times = energyUsages.reduce(
-      //   (sum, eu) => sum + (eu.pens || 0),
-      //   0,
-      // );
-
       let tx_id = '';
 
       const used_energy =
@@ -78,11 +61,6 @@ export async function recycleEnergy() {
             packageUsageRecord,
             packageUsageRecord.usedTimes,
           );
-
-          // await EnergyUsage.updateMany(
-          //   { _id: { $in: energyUsages.map((eu) => eu._id) } },
-          //   { $set: { isRecycled: true } },
-          // );
 
           console.log(
             `[recycleEnergy] packageUsageRecord : ${packageUsageRecord.id} 回收能量成功, tx_id=${tx_id}`,

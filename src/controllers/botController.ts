@@ -11,9 +11,9 @@ import { getUserByUsername } from '../bot/commands/user/operator/add';
 import { encrypt } from '../services/encrypt';
 import { createTrxWallet } from '../utils/generateWallet';
 import { InputFile } from 'grammy';
-import dotenv from 'dotenv';
 import { generateSignedUrl } from '../utils/generateSignedUrl';
 import { transformDocumentImage } from '../utils/transformUtils';
+import dotenv from 'dotenv';
 
 dotenv.config();
 

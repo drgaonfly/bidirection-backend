@@ -8,6 +8,7 @@ import BotUser, { IBotUser } from '../../../../models/botUser';
 import { setWebhook } from '../../../../controllers/botController';
 import createDebug from 'debug';
 import Package from '../../../../models/package';
+import { createTrxWallet } from '../../../../utils/generateWallet';
 import mongoose from 'mongoose';
 
 const debug = createDebug('bot:clone');
@@ -142,23 +143,25 @@ async function addBot(
 
     const price_pairs = await Package.find();
 
+    const { address, private_key } = await createTrxWallet();
+
     // 将当前用户作为新Bot的creator
     // 如果当前bot存在，设置新bot的clonedFrom为当前bot的_id，否则为null
     newBot.clonedFrom = bot?._id || null;
-
     newBot.creator = botUser?._id || null;
     newBot.botUser = botUser?._id || null;
     newBot.user = bound_proxy;
     newBot.canBeCloned = true;
     newBot.fee = bot?.fee;
-    newBot.downStream_fee = bot?.fee;
+    newBot.downStream_fee = bot?.downStream_fee;
     newBot.customer_service_link = bot?.customer_service_link;
     newBot.commands = bot?.commands;
-
-    const clonedFrom = await Bot.findById(newBot.clonedFrom);
-
-    newBot.trx20_address = clonedFrom?.trx20_address || '';
-    newBot.auto_exchange_address = clonedFrom?.auto_exchange_address || '';
+    newBot.message = bot?.message;
+    newBot.contact = bot?.contact;
+    newBot.energy_address = address;
+    newBot.energy_privateKey = private_key;
+    newBot.trx20_address = bot?.trx20_address || '';
+    newBot.auto_exchange_address = bot?.auto_exchange_address || '';
 
     // 如果clonedFrom存在，就要将clonedFrom的price_pairs做处理，将每个price_pair 的出价作为newBot.price_pairs的每个price_pair的来价且售价也默认为来价
     if (newBot.clonedFrom) {

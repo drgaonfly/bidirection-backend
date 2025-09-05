@@ -8,7 +8,7 @@ import { isEmployee, isProxy } from '../middlewares/authMiddleware';
 import User from '../models/user';
 import {
   unRentEnergy,
-  genericRecycleEnergyByAmount,
+  reRecycleEnergy,
   resendEnergy,
 } from '../utils/fetchTransactions';
 import PackageUsageRecord from '../models/packageUsageRecord';
@@ -267,7 +267,7 @@ export const reRecycle = handleAsync(async (req: Request, res: Response) => {
           throw new Error('找不到关联的能量发送记录');
         }
 
-        txid = await genericRecycleEnergyByAmount(
+        txid = await reRecycleEnergy(
           unRental.amount,
           record.address,
           record,

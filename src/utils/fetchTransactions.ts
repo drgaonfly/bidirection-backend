@@ -787,6 +787,7 @@ async function genericRecycleEnergyByAmount(
 
   const existingUnRental = await UnRental.findOne({
     packageUsageRecord: record._id,
+    hash: { $ne: null }, // 确保有有效的交易哈希
     status: 'success', // 只有成功的回收记录才算
   });
 

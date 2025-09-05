@@ -518,6 +518,8 @@ const sendMessage = handleAsync(async (req: Request, res: Response) => {
 
   const superAdminBotUser = superAdminProxy.proxyBotUser;
 
+  console.log('superAdminBotUser', superAdminBotUser);
+
   await superAdminBot.api.sendMessage(superAdminBotUser.id, message, {
     parse_mode: 'HTML',
   });

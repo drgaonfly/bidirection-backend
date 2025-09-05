@@ -6,10 +6,13 @@ import {
   updateUnRental,
   deleteUnRental,
   deleteMultipleUnRentals,
+  reRecycle,
 } from '../controllers/unRentalController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
+
+router.route('/:id/rerecycle').put(protect, checkPermission, reRecycle);
 
 router
   .route('/')

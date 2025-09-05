@@ -211,72 +211,106 @@ export const deleteMultipleUnRentals = handleAsync(
 );
 
 export const reRecycle = handleAsync(async (req: Request, res: Response) => {
-  const unRental = await UnRental.findById(req.params.id)
-    .populate('rental')
-    .populate({
-      path: 'packageUsageRecord',
-      populate: 'packageOrder',
-    });
+  try {
+    const unRental = await UnRental.findById(req.params.id)
+      .populate('rental')
+      .populate({
+        path: 'packageUsageRecord',
+        populate: 'packageOrder',
+      });
 
-  if (!unRental) {
-    res.status(404);
-    throw new Error('解除租赁记录未找到');
+    if (!unRental) {
+      res.status(404);
+      throw new Error('解除租赁记录未找到');
+    }
+
+    // 检查是否已经成功处理过
+    if (unRental.status === 'success') {
+      throw new Error('该记录已经成功处理过，请勿重复操作');
+    }
+
+    let txid;
+    let energySend;
+
+    try {
+      if (unRental.rental) {
+        const rental = await Rental.findById(unRental.rental);
+        if (!rental) {
+          throw new Error('找不到关联的租赁记录');
+        }
+
+        energySend = await EnergySend.findOne({
+          rental: rental._id,
+        });
+        if (!energySend) {
+          throw new Error('找不到关联的能量发送记录');
+        }
+
+        // 如果是租赁记录，使用 unRentEnergy
+        txid = await unRentEnergy(rental);
+
+        // 重新发送能量
+        await resendEnergy(energySend);
+      } else if (unRental.packageUsageRecord) {
+        // 如果是套餐使用记录，使用 genericRecycleEnergyByAmount
+        const record = await PackageUsageRecord.findById(
+          unRental.packageUsageRecord,
+        );
+        if (!record) {
+          throw new Error('找不到关联的套餐使用记录');
+        }
+
+        energySend = await EnergySend.findOne({
+          packageUsageRecord: record._id,
+        });
+        if (!energySend) {
+          throw new Error('找不到关联的能量发送记录');
+        }
+
+        txid = await genericRecycleEnergyByAmount(
+          unRental.amount,
+          record.address,
+          record,
+          unRental.separation,
+        );
+
+        // 重新发送能量
+        await resendEnergy(energySend);
+
+        // 扣减套餐使用记录
+        const updatedPackageOrder = await PackageOrder.findByIdAndUpdate(
+          record.packageOrder,
+          {
+            $inc: { current_times: -unRental.separation },
+          },
+          { new: true },
+        );
+        if (!updatedPackageOrder) {
+          throw new Error('套餐订单更新失败');
+        }
+      } else {
+        throw new Error('无效的解除租赁记录类型');
+      }
+
+      // 更新 unRental 记录
+      unRental.hash = txid;
+      unRental.status = 'success';
+      await unRental.save();
+
+      res.json({
+        success: true,
+        data: unRental,
+      });
+    } catch (error) {
+      // 操作失败，更新状态为失败
+      unRental.status = 'failed';
+      unRental.error = error.message;
+      await unRental.save();
+
+      throw error; // 继续向上抛出错误
+    }
+  } catch (error) {
+    res.status(error.status || 500);
+    throw new Error(`重新回收能量失败: ${error.message}`);
   }
-
-  let txid;
-
-  let energySend;
-
-  if (unRental.rental) {
-    const rental = await Rental.findById(unRental.rental);
-
-    energySend = await EnergySend.findOne({
-      rental: rental._id,
-    });
-    // 如果是租赁记录，使用 unRentEnergy
-    txid = await unRentEnergy(rental);
-
-    // 重新发送能量
-    await resendEnergy(energySend);
-  } else if (unRental.packageUsageRecord) {
-    // 如果是套餐使用记录，使用 genericRecycleEnergyByAmount
-    const record = await PackageUsageRecord.findById(
-      unRental.packageUsageRecord,
-    );
-
-    energySend = await EnergySend.findOne({
-      packageUsageRecord: record._id,
-    });
-
-    txid = await genericRecycleEnergyByAmount(
-      unRental.amount,
-      record.address,
-      record,
-      unRental.separation,
-    );
-
-    // 重新发送能量
-    await resendEnergy(energySend);
-
-    // 扣减套餐使用记录
-    await PackageOrder.findByIdAndUpdate(
-      record.packageOrder,
-      {
-        $inc: { current_times: -unRental.separation },
-      },
-      { new: true },
-    );
-  } else {
-    throw new Error('无效的解除租赁记录类型');
-  }
-
-  // 更新 unRental 记录
-  unRental.hash = txid;
-  unRental.status = 'success';
-  await unRental.save();
-
-  res.json({
-    success: true,
-    data: unRental,
-  });
 });

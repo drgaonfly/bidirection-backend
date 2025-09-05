@@ -785,14 +785,13 @@ async function genericRecycleEnergyByAmount(
     pens,
   });
 
-  // 对于普通调用，检查是否存在成功的回收记录
   const existingUnRental = await UnRental.findOne({
     packageUsageRecord: record._id,
-    hash: { $ne: null },
-    status: 'success',
+    status: { $ne: 'success' }, // 只跳过已经成功的回收记录
+    hash: { $ne: null }, // 确保已回收到能量的记录才会跳过
   });
 
-  if ((existingUnRental && type !== 'myself') || type !== 'reRecycle') {
+  if (existingUnRental && type !== 'myself') {
     console.log(
       `[genericRecycleEnergyByAmount]: packageUsageRecord ${record.id} 已成功回收了能量，跳过`,
       'existingUnRental:',

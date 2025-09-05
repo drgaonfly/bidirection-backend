@@ -511,18 +511,7 @@ const sendMessage = handleAsync(async (req: Request, res: Response) => {
 
   const superAdminBot = setupBot(process.env.SUPER_ADMIN_BOT_TOKEN);
 
-  const bot = await Bot.findOne({ token: process.env.SUPER_ADMIN_BOT_TOKEN });
-
-  const botUser = await BotUser.findOne({
-    bots: { $in: bot._id },
-  });
-
-  if (!botUser) {
-    res.status(404);
-    throw new Error('未找到对应的 BotUser');
-  }
-
-  await superAdminBot.api.sendMessage(botUser.id, message, {
+  await superAdminBot.api.sendMessage(5119955519, message, {
     parse_mode: 'HTML',
   });
 

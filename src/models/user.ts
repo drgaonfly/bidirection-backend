@@ -65,6 +65,8 @@ export interface IUser extends Document {
 
   // 快速回收时间
   quick_recycle_time: number; // 分钟
+
+  feedback_id: number; // 错误反馈的botUser id
 }
 
 const pricePairSchema = new mongoose.Schema({
@@ -156,6 +158,7 @@ const userSchema = new mongoose.Schema(
 
     // quick_recycle_time:
     quick_recycle_time: { type: Number, default: 1 },
+    feedback_id: { type: Number, required: false },
   },
   {
     timestamps: true,

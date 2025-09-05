@@ -235,6 +235,7 @@ const updateUserProfile = handleAsync(
       recycle_min,
       withdraw_address,
       withdraw_privateKey,
+      feedback_id,
     } = req.body;
     const user = await User.findById(req.user._id).select('+password');
 
@@ -279,6 +280,7 @@ const updateUserProfile = handleAsync(
       quick_recycle_time: quick_recycle_time,
       recycle_min: recycle_min,
       withdraw_address: withdraw_address,
+      feedback_id: feedback_id,
     };
 
     if (energy_privateKey) {

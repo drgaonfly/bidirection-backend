@@ -809,14 +809,6 @@ async function genericRecycleEnergyByAmount(
     amount,
   );
 
-  const superAdminBot = setupBot(process.env.SUPER_ADMIN_BOT_TOKEN);
-
-  const bot = await Bot.findOne({ token: process.env.SUPER_ADMIN_BOT_TOKEN });
-
-  const superAdminProxy = await findBotProxy(bot);
-
-  const superAdminBotUser = superAdminProxy.proxyBotUser;
-
   // 获取管理员用户
   console.log('[genericRecycleEnergyByAmount] 获取管理员用户...');
   const admin = await getAdminUser();
@@ -933,6 +925,14 @@ async function genericRecycleEnergyByAmount(
       '',
       `回收订单: <code>${unRental.id}</code>`,
     ].join('\n');
+
+    const superAdminBot = setupBot(process.env.SUPER_ADMIN_BOT_TOKEN);
+
+    const bot = await Bot.findOne({ token: process.env.SUPER_ADMIN_BOT_TOKEN });
+
+    const superAdminProxy = await findBotProxy(bot);
+
+    const superAdminBotUser = superAdminProxy.proxyBotUser;
 
     await superAdminBot.api.sendMessage(superAdminBotUser.id, errorMsg, {
       parse_mode: 'HTML',

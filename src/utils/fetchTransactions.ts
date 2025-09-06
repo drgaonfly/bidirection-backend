@@ -388,7 +388,7 @@ async function unRentEnergy(rental: IRental): Promise<any> {
   console.log('[unRentEnergy] 开始处理能量回收, rentalId:', rental?._id);
   const existUnRental = await UnRental.findOne({
     rental: rental._id,
-    status: 'success',
+    status: { $in: ['success', 'failed'] },
   });
 
   if (existUnRental) {

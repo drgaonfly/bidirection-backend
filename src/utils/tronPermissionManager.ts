@@ -15,21 +15,16 @@ export async function checkAccountPermission(
   fromAddress: string,
 ): Promise<boolean> {
   try {
-    const tronWeb = new TronWeb({
-      fullHost: 'https://api.trongrid.io',
-    });
+    // 使用 getAccountPermissions 获取账户权限信息
+    const permissionInfo = await getAccountPermissions(energyAddress);
 
-    const accountInfo = await tronWeb.trx.getAccount(energyAddress);
-
-    if (
-      !accountInfo.active_permission ||
-      accountInfo.active_permission.length === 0
-    ) {
+    // 如果没有 active permission，直接返回 false
+    if (!permissionInfo.hasActivePermission) {
       return false;
     }
 
     // 检查所有 active permission 中是否包含 fromAddress
-    return accountInfo.active_permission.some((perm) =>
+    return permissionInfo.permissions.some((perm) =>
       perm.keys.some((key) => key.address === fromAddress),
     );
   } catch (error) {

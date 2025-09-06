@@ -1041,7 +1041,7 @@ async function reRecycleEnergy(
       .map(() => Math.floor(Math.random() * 16).toString(16))
       .join('');
 
-    console.log('[genericRecycleEnergyByAmount] 本地开发，跳过，直接给txid');
+    console.log('[reRecycleEnergy] 本地开发，跳过，直接给txid');
 
     record.recycling_status = 'success';
     record.recycling_hash = randomTxId;
@@ -1050,20 +1050,17 @@ async function reRecycleEnergy(
     return randomTxId;
   }
 
-  console.log('[genericRecycleEnergyByAmount] 入参:', {
+  console.log('[reRecycleEnergy] 入参:', {
     amount,
     address,
     record,
     pens,
   });
 
-  console.log(
-    '[genericRecycleEnergyByAmount] 开始处理能量回收, amount:',
-    amount,
-  );
+  console.log('[reRecycleEnergy] 开始处理能量回收, amount:', amount);
 
   // 获取管理员用户
-  console.log('[genericRecycleEnergyByAmount] 获取管理员用户...');
+  console.log('[reRecycleEnergy] 获取管理员用户...');
   const admin = await getAdminUser();
 
   if (!admin.energy_address) {
@@ -1071,11 +1068,11 @@ async function reRecycleEnergy(
   }
 
   // 解密私钥
-  console.log('[genericRecycleEnergyByAmount] 解密管理员能量私钥...');
+  console.log('[reRecycleEnergy] 解密管理员能量私钥...');
   const decryptedPrivateKey = decrypt(admin.energy_privateKey);
 
   // 初始化 TronWeb
-  console.log('[genericRecycleEnergyByAmount] 初始化 TronWeb...');
+  console.log('[reRecycleEnergy] 初始化 TronWeb...');
   const tronWeb = new TronWeb({
     fullHost: 'https://api.trongrid.io',
     privateKey: decryptedPrivateKey,
@@ -1083,23 +1080,46 @@ async function reRecycleEnergy(
 
   const energyAddress = admin.energy_address; // B 地址
   const fromAddress = tronWeb.address.fromPrivateKey(decryptedPrivateKey); // A 地址
-  console.log('[genericRecycleEnergyByAmount] 管理员地址信息:', {
+
+  if (!fromAddress || typeof fromAddress !== 'string') {
+    throw new Error('无法从私钥生成有效地址');
+  }
+
+  console.log('[reRecycleEnergy] 管理员地址信息:', {
     energyAddress,
     fromAddress,
   });
+
+  console.log('[reRecycleEnergy] 检查账户权限...');
+  const hasPermission = await checkAccountPermission(
+    energyAddress,
+    fromAddress,
+  );
+  if (!hasPermission) {
+    console.log('[reRecycleEnergy] A 地址没有 B 地址的权限，开始设置权限...');
+    try {
+      await setupAccountPermission(decryptedPrivateKey, energyAddress);
+      console.log('[reRecycleEnergy] 权限设置成功');
+    } catch (error) {
+      console.error('[reRecycleEnergy] 权限设置失败:', error);
+      throw new Error('无法设置账户权限，能量回收失败');
+    }
+  } else {
+    console.log('[reRecycleEnergy] A 地址已有 B 地址的权限');
+  }
 
   try {
     const amountSunStr = tronWeb.toSun(amount);
     const amountSun = Number(amountSunStr) / 10;
     console.log(
-      '[genericRecycleEnergyByAmount] 解除租赁 amount:',
+      '[reRecycleEnergy] 解除租赁 amount:',
       amount,
       'Sun:',
       amountSun,
     );
 
     // 构建解除能量交易
-    console.log('[genericRecycleEnergyByAmount] 创建解除能量交易...');
+    console.log('[reRecycleEnergy] 创建解除能量交易...');
     tronWeb.setAddress(energyAddress);
     const transaction = await tronWeb.transactionBuilder.undelegateResource(
       amountSun,
@@ -1107,26 +1127,24 @@ async function reRecycleEnergy(
       'ENERGY',
       energyAddress,
     );
-    console.log('[genericRecycleEnergyByAmount] 交易已构建:', transaction);
+    console.log('[reRecycleEnergy] 交易已构建:', transaction);
 
     // 多签
-    console.log('[genericRecycleEnergyByAmount] 多签交易...');
+    console.log('[reRecycleEnergy] 多签交易...');
     const signedTx = await tronWeb.trx.multiSign(
       transaction,
       decryptedPrivateKey,
       3,
     );
-    console.log('[genericRecycleEnergyByAmount] 多签完成:', signedTx);
+    console.log('[reRecycleEnergy] 多签完成:', signedTx);
 
     // 广播
-    console.log('[genericRecycleEnergyByAmount] 广播交易...');
+    console.log('[reRecycleEnergy] 广播交易...');
     const result = await tronWeb.trx.broadcast(signedTx);
-    console.log('[genericRecycleEnergyByAmount] 广播结果:', result);
+    console.log('[reRecycleEnergy] 广播结果:', result);
 
     if (!result || result.result !== true) {
-      throw new Error(
-        `[genericRecycleEnergyByAmount] 交易失败: ${JSON.stringify(result)}`,
-      );
+      throw new Error(`[reRecycleEnergy] 交易失败: ${JSON.stringify(result)}`);
     }
 
     record.recycling_status = 'success';
@@ -1138,13 +1156,13 @@ async function reRecycleEnergy(
     await unRental.save();
 
     console.log(
-      '[genericRecycleEnergyByAmount] UnRental 状态已更新为 success, hash:',
+      '[reRecycleEnergy] UnRental 状态已更新为 success, hash:',
       result.txid,
     );
 
     return result.txid;
   } catch (error) {
-    console.error('[genericRecycleEnergyByAmount] 解除能量失败:', error);
+    console.error('[reRecycleEnergy] 解除能量失败:', error);
 
     record.recycling_status = 'failed';
     await record.save();

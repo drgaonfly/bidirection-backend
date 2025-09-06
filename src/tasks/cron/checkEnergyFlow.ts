@@ -235,6 +235,7 @@ export async function checkEnergyFlow() {
               );
             }
 
+            // 当天+1
             await PackageUsageRecord.findByIdAndUpdate(
               record._id,
               { $inc: { today_used_times: 1 } },
@@ -346,6 +347,7 @@ export async function checkEnergyFlow() {
               );
             }
 
+            // 当天+2
             await PackageUsageRecord.findByIdAndUpdate(
               record._id,
               { $inc: { today_used_times: 2 } },

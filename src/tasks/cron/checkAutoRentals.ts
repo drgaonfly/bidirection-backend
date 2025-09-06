@@ -336,6 +336,11 @@ export async function checkAutoRentals() {
             // 给当前机器人的代理加trx余额
             const current_proxy = await findBotProxy(bot);
 
+            if (matchedPricePair.sale - matchedPricePair.expenditure < 0) {
+              console.error('[checkAutoRentals] 销售价格小于支出价格，跳过');
+              continue;
+            }
+
             current_proxy.proxyBotUserConfig.trx_balance +=
               matchedPricePair.sale - matchedPricePair.expenditure;
 

@@ -426,10 +426,36 @@ async function unRentEnergy(rental: IRental): Promise<any> {
   // B 地址是放能量的地址，A 地址用私钥控制它
   const energyAddress = admin.energy_address; // B 地址
   const fromAddress = tronWeb.address.fromPrivateKey(decryptedPrivateKey); // A 地址
+
+  // 确保 fromAddress 是有效的字符串
+  if (!fromAddress || typeof fromAddress !== 'string') {
+    throw new Error('无法从私钥生成有效地址');
+  }
+
   console.log('[unRentEnergy] 管理员地址信息:', {
     energyAddress, // B 地址（放能量的地址）
     fromAddress, // A 地址（有私钥的地址）
   });
+
+  // 检查 A 地址是否已经在 B 地址的 activePermission 中
+  console.log('[unRentEnergy] 检查账户权限...');
+  const hasPermission = await checkAccountPermission(
+    energyAddress,
+    fromAddress,
+  );
+
+  if (!hasPermission) {
+    console.log('[unRentEnergy] A 地址没有 B 地址的权限，开始设置权限...');
+    try {
+      await setupAccountPermission(decryptedPrivateKey, energyAddress);
+      console.log('[unRentEnergy] 权限设置成功');
+    } catch (error) {
+      console.error('[unRentEnergy] 权限设置失败:', error);
+      throw new Error('无法设置账户权限，能量回收失败');
+    }
+  } else {
+    console.log('[unRentEnergy] A 地址已有 B 地址的权限');
+  }
 
   const unRental = await UnRental.findOneAndUpdate(
     {

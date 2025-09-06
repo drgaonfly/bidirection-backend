@@ -152,7 +152,7 @@ async function addBot(
     newBot.botUser = botUser?._id || null;
     newBot.user = bound_proxy;
     newBot.canBeCloned = true;
-    newBot.fee = bot?.fee;
+    newBot.fee = bot?.downStream_fee;
     newBot.downStream_fee = bot?.downStream_fee;
     newBot.customer_service_link = bot?.customer_service_link;
     newBot.commands = bot?.commands;

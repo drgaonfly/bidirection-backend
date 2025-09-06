@@ -28,7 +28,14 @@ export async function checkAccountPermission(
       return false;
     }
 
+    // 打印 active_permission
+    console.log(
+      '[checkAccountPermission] active_permission:',
+      JSON.stringify(accountInfo.active_permission, null, 2),
+    );
+
     // 检查所有 active permission 中是否包含 fromAddress
+
     return accountInfo.active_permission.some((perm) =>
       perm.keys.some((key) => key.address === fromAddress),
     );

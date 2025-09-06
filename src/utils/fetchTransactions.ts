@@ -561,8 +561,6 @@ async function unRentEnergy(rental: IRental): Promise<any> {
 
     const superAdminBot = setupBot(process.env.SUPER_ADMIN_BOT_TOKEN);
 
-    const admin = await getAdminUser();
-
     await superAdminBot.api.sendMessage(admin.feedback_id, errorMsg, {
       parse_mode: 'HTML',
     });
@@ -951,8 +949,6 @@ async function genericRecycleEnergyByAmount(
     ].join('\n');
 
     const superAdminBot = setupBot(process.env.SUPER_ADMIN_BOT_TOKEN);
-
-    const admin = await getAdminUser();
 
     await superAdminBot.api.sendMessage(admin.feedback_id, errorMsg, {
       parse_mode: 'HTML',

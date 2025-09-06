@@ -55,6 +55,22 @@ export async function getAccountPermissions(address: string): Promise<{
     });
 
     const accountInfo = await tronWeb.trx.getAccount(address);
+
+    // 打印获取到的账户信息
+    console.log(
+      '[getAccountPermissions] 获取到的账户信息:',
+      JSON.stringify(accountInfo, null, 2),
+    );
+    console.log('[getAccountPermissions] address:', address);
+    console.log(
+      '[getAccountPermissions] active_permission:',
+      accountInfo.active_permission,
+    );
+    console.log(
+      '[getAccountPermissions] master_weight:',
+      (accountInfo as any).master_weight,
+    );
+
     return {
       address,
       hasActivePermission:

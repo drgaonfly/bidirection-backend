@@ -94,7 +94,6 @@ export const getUsers = handleAsync(
       .populate('proxy')
       .populate('creator')
       .populate('roles')
-      .populate('botUser')
       .sort('-createdAt') // 按创建时间降序排序
       .limit(+pageSize)
       .skip((+current - 1) * +pageSize)

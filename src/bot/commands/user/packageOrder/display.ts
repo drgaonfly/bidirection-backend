@@ -14,7 +14,7 @@ export async function sendMyPackageOrders(ctx: MyContext) {
     const orders: IPackageOrder[] = await PackageOrder.find({
       botUser: ctx.currentBotUser._id,
       bot: ctx.currentBot._id,
-      status: 'using', // 目前 pending
+      status: 'using',
     }).sort({ createdAt: -1 }); // 最新订单在前
 
     const processed_orders = orders.filter((order) => order.current_times > 0);

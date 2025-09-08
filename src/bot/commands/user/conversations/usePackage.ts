@@ -148,14 +148,6 @@ async function usePackageConversation(
 
   let txId = '';
   try {
-    // await ctx.reply(
-    //   [
-    //     `⚡ 正在向地址 <code>${address}</code> 发送能量 ${totalEnergy} sun, 请稍等...`
-    //   ].join('\n'),
-    //   {
-    //     parse_mode: 'HTML',
-    //   },
-    // );
     txId = await genericSendEnergy(
       address,
       totalEnergy,
@@ -163,16 +155,6 @@ async function usePackageConversation(
       usedTimes,
       type,
     );
-    // await ctx.reply(
-    //   [
-    //     `✅ 能量发送成功!`,
-    //     '',
-    //     `交易ID: <code>${txId}</code>`
-    //   ].join('\n'),
-    //   {
-    //     parse_mode: 'HTML',
-    //   }
-    // );
 
     // 给买单的用户2个积分
     await awardUserPoints(

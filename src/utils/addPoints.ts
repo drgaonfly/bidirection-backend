@@ -1,5 +1,7 @@
 import { IPackageOrder } from '../models/packageOrder';
+import Rental, { IRental } from '../models/rental';
 import { findBotProxy } from '../services/findBotProxy';
+import { setupBot } from '../bot/botSetup';
 import BotUserConfig from '../models/botUserConfig';
 import Integer from '../models/integer';
 import Bot from '../models/bot';
@@ -32,13 +34,30 @@ export async function awardUserPoints(
       new: true,
     },
   );
+
+  const telegramBot = await setupBot(bot.token);
+
+  // 发送信息
+  try {
+    await telegramBot.api.sendMessage(
+      botUser.id,
+      [`您在笔数套餐交易中获取到了 ${amount} 个积分, 请查看个人信息`].join(
+        '\n',
+      ),
+      {
+        parse_mode: 'HTML',
+      },
+    );
+  } catch (error) {
+    console.error('发送消息失败:', error);
+  }
 }
 
 // 抽象成一个方法
 export async function awardProxyPoints(
   botId: any,
   pens: number,
-  order: IPackageOrder,
+  order: IPackageOrder | IRental,
   level: number = 0,
 ) {
   // 级别对应的积分比例
@@ -48,6 +67,8 @@ export async function awardProxyPoints(
   const bot = await Bot.findById(botId);
   if (!bot) return;
 
+  const telegramBot = await setupBot(bot.token);
+
   const proxy = await findBotProxy(bot);
   if (proxy && proxy.proxyBotUser) {
     await BotUserConfig.findByIdAndUpdate(proxy.proxyBotUserConfig._id, {
@@ -56,13 +77,30 @@ export async function awardProxyPoints(
       },
     });
 
-    await Integer.create({
+    const integer = await Integer.create({
       bot: bot._id,
       botUser: proxy.proxyBotUser,
       amount: pens * ratios[level],
-      type: 'PackageOrder',
+      type: order instanceof Rental ? 'Rental' : 'PackageOrder',
       integrable: order._id,
     });
+
+    // 发送信息
+    try {
+      await telegramBot.api.sendMessage(
+        proxy.proxyBotUser.id,
+        [
+          `您在${
+            integer.type === 'Rental' ? '闪租' : '笔数套餐'
+          }交易中获取到了 ${pens * ratios[level]} 个积分, 请查看个人信息`,
+        ].join('\n'),
+        {
+          parse_mode: 'HTML',
+        },
+      );
+    } catch (error) {
+      console.error('发送消息失败:', error);
+    }
   }
 
   if (bot.clonedFrom) {

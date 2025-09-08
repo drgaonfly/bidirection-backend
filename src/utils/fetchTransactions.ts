@@ -644,19 +644,22 @@ async function genericSendEnergy(
       .map(() => Math.floor(Math.random() * 16).toString(16))
       .join('');
 
-    record.hash = randomTxId;
-    record.status = 'success';
-    record.recycling_status = 'pending';
+    console.log('[genericRecycleEnergyByAmount] 本地开发，跳过，直接给txid');
+
+    record.recycling_status = 'success';
+    record.recycling_hash = randomTxId;
     await record.save();
 
     return randomTxId;
   }
 
   const existingEnergySend = await EnergySend.findOne({
-    tx_id: record.hash,
+    packageUsageRecord: record._id,
+    hash: { $ne: null },
+    status: 'success',
   });
 
-  if (existingEnergySend && type !== 'myself') {
+  if (existingEnergySend && type === 'other') {
     console.log(
       `[genericSendEnergy] packageUsageRecord , 给他人用 ${record.id} 已经有发送记录，跳过`,
     );

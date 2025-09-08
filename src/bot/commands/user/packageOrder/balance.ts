@@ -9,6 +9,7 @@ import { getAdminUser } from '../../../../utils/buyTelegramPremium';
 import { findBotProxy } from '../../../../services/findBotProxy';
 import createDebug from 'debug';
 import RevenueShare from '../../../../models/revenueShare';
+import { setupBot } from '../../../../bot/botSetup';
 
 const balanceCallback = new Composer<MyContext>();
 const debug = createDebug('bot:confirm-package-order');
@@ -164,6 +165,24 @@ balanceCallback.callbackQuery(
           type: 'PackageOrder',
           revenue_shareable: order._id,
         });
+
+        try {
+          const telegramBot = await setupBot(superiorBot.token);
+
+          await telegramBot.api.sendMessage(
+            superior.proxyBotUser.id,
+            [
+              `您在笔数套餐交易 ${
+                order.id
+              } 中分润到了 ${profit} ${paymentType.toUpperCase()} 余额, 请查看个人信息`,
+            ].join('\n'),
+            {
+              parse_mode: 'HTML',
+            },
+          );
+        } catch (error) {
+          console.error('发送消息失败:', error);
+        }
 
         // 打印每一级加了多少
         console.log(

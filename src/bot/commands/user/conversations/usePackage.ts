@@ -72,6 +72,7 @@ async function usePackageConversation(
     packageOrder: order._id,
     address: address,
     status: 'success',
+    type: 'myself',
   });
 
   if (existingRecord && type !== 'other') {

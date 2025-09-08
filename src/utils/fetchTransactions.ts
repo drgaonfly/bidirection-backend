@@ -646,8 +646,9 @@ async function genericSendEnergy(
 
     console.log('[genericRecycleEnergyByAmount] 本地开发，跳过，直接给txid');
 
-    record.recycling_status = 'success';
-    record.recycling_hash = randomTxId;
+    record.hash = randomTxId;
+    record.status = 'success';
+    record.recycling_status = 'pending';
     await record.save();
 
     return randomTxId;

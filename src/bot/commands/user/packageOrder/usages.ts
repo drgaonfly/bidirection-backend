@@ -34,10 +34,17 @@ usageCallack.callbackQuery(/^package_usages_(.+)$/, async (ctx) => {
         status: 'success',
       }).sort({ usedAt: -1 });
     } else {
-      usageRecords = await PackageUsageRecord.find({
+      const records_1 = await PackageUsageRecord.find({
         packageOrder: order._id,
         status: 'success',
       }).sort({ usedAt: -1 });
+
+      const records_2 = await Trash.find({
+        packageOrder: order._id,
+        status: 'success',
+      });
+
+      usageRecords = [...records_1, ...records_2];
     }
 
     if (!usageRecords || usageRecords.length === 0) {

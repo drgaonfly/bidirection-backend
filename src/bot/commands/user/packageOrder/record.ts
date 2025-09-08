@@ -39,9 +39,10 @@ recordCallback.callbackQuery(/^packageOrder_record_(.+)$/, async (ctx) => {
     .text('🛠️ 分享他人使用套笔数', `packageOrder_use_${orderId}_other`)
     .text('🛠️ 绑定自用地址', `packageOrder_use_${orderId}_myself`)
     .row()
-    .text('🔙 返回菜单', 'packageOrder_back')
     .text('📖 使用记录', `package_usages_${orderId}`)
+    .text('🛠️ 删除绑定过的自用地址', `packageOrder_remove_${orderId}`)
     .row()
+    .text('🔙 返回菜单', 'packageOrder_back')
     .text('❌ 关闭', 'close');
 
   await ctx.editMessageText(details, {

@@ -9,7 +9,6 @@ import { getAdminUser } from '../../../../utils/buyTelegramPremium';
 import { genericSendEnergy } from '../../../../utils/fetchTransactions';
 import { isValidTronAddress } from '../../../../utils/TronAddressTest';
 import { awardUserPoints, awardProxyPoints } from '../../../../utils/addPoints';
-import { removeOrderUsagesIntoTrash } from '../../../../utils/removeIntoTrash';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:package:use');
@@ -75,7 +74,7 @@ async function usePackageConversation(
     status: 'success',
   });
 
-  if (existingRecord) {
+  if (existingRecord && type !== 'other') {
     await ctx.reply('❌ 该地址已绑定过此套餐，请勿重复绑定');
     return await usePackageConversation(conversation, ctx, {
       bot,
@@ -204,10 +203,6 @@ async function usePackageConversation(
   ].join('\n');
 
   await ctx.reply(message, { parse_mode: 'HTML' });
-
-  if (type === 'other') {
-    await removeOrderUsagesIntoTrash(order);
-  }
 }
 
 usePackageCallback.use(createConversation(usePackageConversation));

@@ -237,7 +237,7 @@ export const generateBoundProxy = handleAsync(
         [
           `🎉 您的代理已生成！`,
           `\n`,
-          `🔗 后台: <a>https://admin.trx-usdt.vip/authorizations</a>`,
+          `🔗 后台: <a>https://admin.trx-usdt.vip</a>`,
           ``,
           `👤 账号: <code>${newUser.email}</code>`,
           ``,

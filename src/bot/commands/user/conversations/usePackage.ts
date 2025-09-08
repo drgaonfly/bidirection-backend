@@ -161,12 +161,12 @@ async function usePackageConversation(
     await awardUserPoints(
       packageUsageRecord.bot,
       packageUsageRecord.botUser,
-      2,
+      usedTimes,
       order,
     );
 
     // 给代理们 2 个 积分
-    await awardProxyPoints(packageUsageRecord.bot, 2, order);
+    await awardProxyPoints(packageUsageRecord.bot, usedTimes, order);
 
     // await ctx.reply('地址绑定该套餐成功', {
     //   parse_mode: 'HTML',

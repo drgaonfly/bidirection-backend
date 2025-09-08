@@ -2,10 +2,12 @@ import mongoose, { Document, Schema } from 'mongoose';
 import { IBot } from './bot';
 import { IBotUser } from './botUser';
 import { IUser } from './user';
+import { IPackageOrder } from './packageOrder';
 
 // 垃圾记录接口定义
 export interface ITrash extends Document {
   id: string;
+  packageOrder: mongoose.Schema.Types.ObjectId | IPackageOrder; // 关联的套餐订单
   bot: mongoose.Schema.Types.ObjectId | IBot; // 机器人
   botUser: mongoose.Schema.Types.ObjectId | IBotUser; // 机器人用户
   proxy: mongoose.Schema.Types.ObjectId | IUser; // 代理
@@ -29,6 +31,11 @@ const trashSchema = new Schema<ITrash>(
       type: String,
       required: true,
       unique: true,
+    },
+    packageOrder: {
+      type: Schema.Types.ObjectId,
+      ref: 'PackageOrder',
+      required: true,
     },
     bot: {
       type: Schema.Types.ObjectId,

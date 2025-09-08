@@ -7,14 +7,14 @@ import Integer from '../models/integer';
 import Bot from '../models/bot';
 
 export async function awardUserPoints(
-  bot,
-  botUser,
+  botId,
+  botUserId,
   amount: number,
   order: IPackageOrder,
 ) {
   await Integer.create({
-    bot: bot,
-    botUser: botUser,
+    bot: botId,
+    botUser: botUserId,
     amount: amount,
     type: 'PackageOrder',
     integrable: order,
@@ -22,8 +22,8 @@ export async function awardUserPoints(
 
   await BotUserConfig.findOneAndUpdate(
     {
-      bot: bot,
-      botUser: botUser,
+      bot: botId,
+      botUser: botUserId,
     },
     {
       $inc: {
@@ -34,6 +34,10 @@ export async function awardUserPoints(
       new: true,
     },
   );
+
+  const bot = await Bot.findById(botId);
+
+  const botUser = await BotUserConfig.findById(botUserId);
 
   const telegramBot = await setupBot(bot.token);
 
@@ -66,6 +70,8 @@ export async function awardProxyPoints(
 
   const bot = await Bot.findById(botId);
   if (!bot) return;
+
+  console.log('[awardProxyPoints]', bot.token);
 
   const telegramBot = await setupBot(bot.token);
 

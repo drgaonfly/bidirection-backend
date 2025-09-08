@@ -644,7 +644,7 @@ async function genericSendEnergy(
       .map(() => Math.floor(Math.random() * 16).toString(16))
       .join('');
 
-    console.log('[genericRecycleEnergyByAmount] 本地开发，跳过，直接给txid');
+    console.log('[genericSendEnergy] 本地开发，跳过，直接给txid');
 
     record.hash = randomTxId;
     record.status = 'success';

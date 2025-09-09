@@ -3,14 +3,16 @@ import { IPackageUsageRecord } from './packageUsageRecord';
 import { IBot } from './bot';
 import { IBotUser } from './botUser';
 import { IUser } from './user';
+import { IRental } from './rental';
 
 // 能量使用接口定义
 export interface IEnergyUsage extends Document {
   bot: mongoose.Schema.Types.ObjectId | IBot;
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
-  proxy: mongoose.Schema.Types.ObjectId | IUser;
+  proxy: mongoose.Schema.Types.ObjectId | IRental;
   packageUsageRecord: mongoose.Schema.Types.ObjectId | IPackageUsageRecord;
-  type: 'myself' | 'other'; // 使用类型, 给自己用，还是给他人用
+  rental: mongoose.Schema.Types.ObjectId | IUser;
+  type: string; // 使用类型, 给自己用，还是给他人用，闪租
   address: string; // 被监控的地址，也就是套餐使用记录存储的address
   energy: number; // 消耗的能量
   bandwidth: number; // 消耗的带宽
@@ -43,11 +45,17 @@ const energyUsageSchema = new Schema<IEnergyUsage>(
     packageUsageRecord: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'PackageUsageRecord',
-      required: true,
+      required: false,
+    },
+    rental: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Rental',
+      required: false,
     },
     type: {
       type: String,
       required: true,
+      enum: ['PackageOrder', 'Rental'],
     },
     energy: {
       type: Number,

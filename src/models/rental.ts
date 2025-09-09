@@ -17,6 +17,7 @@ export interface IRental extends Document {
   to_address: string;
   amount: number; // 租赁能量数
   separation: number; // 笔数
+  used_times: number; // 已使用次数
   price: number; // 租赁价格，单位trx
   tx_id: string; // 交易哈希
   hash: string; // 接收哈希
@@ -52,6 +53,11 @@ const rentalSchema = new Schema<IRental>(
       required: false,
       default: 1,
     },
+    used_times: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
     from_address: {
       type: String,
       required: false,
@@ -85,7 +91,6 @@ const rentalSchema = new Schema<IRental>(
       type: Schema.Types.ObjectId,
       ref: 'BotUser',
     },
-
     type: {
       type: String,
       enum: ['manual', 'bot', 'auto'],

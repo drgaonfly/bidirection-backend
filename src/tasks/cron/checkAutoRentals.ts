@@ -152,82 +152,6 @@ export async function checkAutoRentals() {
             continue;
           }
 
-          // if (!bot.isCreatedByAdmin) {
-          //   // 调用 findBotProxy 并取值, 如果有一个没有就打印并 continue
-          //   const { proxyBotUser, proxyBotUserConfig, proxyUser } =
-          //     await findBotProxy(bot);
-
-          //   console.log('[checkAutoRentals] 代理信息:');
-          //   console.log('proxyBotUser:', proxyBotUser);
-          //   console.log('proxyBotUserConfig:', proxyBotUserConfig);
-          //   console.log('proxyUser:', proxyUser);
-
-          //   if (!proxyBotUser || !proxyBotUserConfig || !proxyUser) {
-          //     console.log(
-          //       `[checkAutoRentals] bot: ${
-          //         bot.id
-          //       } 下的收入 缺少代理信息, proxyBotUser: ${!!proxyBotUser}, proxyBotUserConfig: ${!!proxyBotUserConfig}, proxyUser: ${!!proxyUser}，跳过`,
-          //     );
-          //     continue;
-          //   }
-
-          //   // 用户下的要匹配 separation: matchedPricePair.times,
-          //   // 查找用户 price_pairs 里 times 匹配的套餐
-          //   const userPricePair = Array.isArray(proxyUser.price_pairs)
-          //     ? proxyUser.price_pairs.find(
-          //         (pair) => pair.times === matchedPricePair.times,
-          //       )
-          //     : undefined;
-
-          //   // 修复：userPricePair 可能为 undefined，且 userPricePair.userPricePair 不存在
-          //   const commission = userPricePair
-          //     ? userPricePair.commission
-          //     : undefined;
-
-          //   if (!commission) {
-          //     console.log(
-          //       `[checkAutoRentals] bot: ${bot.id} 下的收入 没有代理用户配置, 跳过`,
-          //     );
-          //     continue;
-          //   }
-
-          //   if (proxyBotUserConfig.trx_balance < Number(commission)) {
-          //     console.log(
-          //       `[checkAutoRentals] bot: ${bot.id} 下的收入 代理用户 ${proxyUser.id} 的 TRX 余额不足, 跳过`,
-          //     );
-
-          //     // 余额不足，通知代理用户充值
-          //     const telegramBot = setupBot(bot.token);
-
-          //     try {
-          //       await telegramBot.api.sendMessage(
-          //         proxyBotUser.id, // 代理电报用户id
-          //         [
-          //           `⚠️ 您的 TRX 余额不足，无法为下级用户自动闪租能量。`,
-          //           '',
-          //           `当前余额：<b>${proxyBotUserConfig.trx_balance}</b> TRX`,
-          //           `所需金额：<b>${commission}</b> TRX`,
-          //           '',
-          //           `请及时充值以保证正常为下级用户自动闪租能量。`,
-          //         ].join('\n'),
-          //         {
-          //           parse_mode: 'HTML',
-          //           reply_markup: new InlineKeyboard()
-          //             .text('⚡️ 我要充值', 'recharge')
-          //             .text('📞 联系客服', 'contact'),
-          //         },
-          //       );
-          //       continue;
-          //     } catch (err) {
-          //       console.error(
-          //         '[checkAutoRentals] 通知代理用户余额不足失败:',
-          //         err,
-          //       );
-          //       continue;
-          //     }
-          //   }
-          // }
-
           const adminUser = await getAdminUser();
 
           // 计算总能量：每笔能量 × 笔数
@@ -243,7 +167,6 @@ export async function checkAutoRentals() {
             separation: matchedPricePair.times,
             price: transfer.money,
             bot: bot._id,
-            // botUser: botUser._id,
             status: 'pending', // 这个实际上是发送能量的状态
             type: 'auto',
             crypto_type: 'trx',
@@ -254,37 +177,6 @@ export async function checkAutoRentals() {
           });
 
           console.log('paid rental', rental);
-
-          // 如果不是管理员创建的机器人，需要扣减代理用户 TRX 余额
-          // if (!bot.isCreatedByAdmin) {
-          //   const { proxyBotUser, proxyBotUserConfig, proxyUser } =
-          //     await findBotProxy(bot);
-
-          //   // 获取佣金金额
-          //   const userPricePair = Array.isArray(proxyUser.price_pairs)
-          //     ? proxyUser.price_pairs.find(
-          //         (pair) => pair.times === matchedPricePair.times,
-          //       )
-          //     : undefined;
-          //   const commission = userPricePair ? userPricePair.commission : 0;
-
-          //   const success = await deductProxyTrxBalance(
-          //     'Rental',
-          //     bot,
-          //     proxyBotUser,
-          //     proxyBotUserConfig,
-          //     proxyUser,
-          //     commission,
-          //     rental,
-          //   );
-
-          //   if (!success) {
-          //     console.log(
-          //       `[checkAutoRentals] bot: ${bot.id} 扣减代理用户 TRX 余额失败，跳过`,
-          //     );
-          //     continue;
-          //   }
-          // }
 
           // 发起 能量租赁
           try {

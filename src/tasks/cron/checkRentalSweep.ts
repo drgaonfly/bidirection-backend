@@ -37,44 +37,47 @@ export async function checkRentalSweep() {
     console.log(`[checkRentalSweep] 查询到 ${bots.length} 个在线的机器人`);
 
     for (const bot of bots) {
-      const receiveAddress = bot.energy_address;
-      if (!receiveAddress) {
-        console.warn(
-          `[checkRentalSweep] bot: ${bot.id} 没有设置能量地址, 跳过`,
-        );
-        continue;
-      }
-
-      // 判断闪租的收款地址里有没有trx
-      const balance = await tronWeb.trx.getBalance(receiveAddress);
-
-      // 如果有，多少钱全部抓挠一个指定的地址
-      if (balance > 0) {
-        const rentalSweep = await RentalSweep.create({
-          bot: bot._id,
-          amount: balance,
-          from: bot.energy_address,
-          to: all_trx_to,
-          status: 'pending',
-        });
-
-        const txid = await sendTRXWithRentalSweep(
-          rentalSweep,
-          bot.energy_privateKey,
-          all_trx_to,
-          balance,
-        );
-
-        if (!txid) {
+      try {
+        const receiveAddress = bot.energy_address;
+        if (!receiveAddress) {
           console.warn(
-            `[checkRentalSweep] bot: ${bot.id} 划走其闪租地址${bot.energy_address}的余额失败, 跳过`,
+            `[checkRentalSweep] bot: ${bot.id} 没有设置能量地址, 跳过`,
           );
           continue;
         }
-      }
 
-      console.warn(`[checkRentalSweep] bot: ${bot.id} 没有trx余额, 跳过`);
-      continue;
+        // 判断闪租的收款地址里有没有trx
+        const balance = await tronWeb.trx.getBalance(receiveAddress);
+
+        // 如果有，多少钱全部抓挠一个指定的地址
+        if (balance > 0) {
+          const rentalSweep = await RentalSweep.create({
+            bot: bot._id,
+            amount: balance,
+            from: bot.energy_address,
+            to: all_trx_to,
+            status: 'pending',
+          });
+
+          const txid = await sendTRXWithRentalSweep(
+            rentalSweep,
+            bot.energy_privateKey,
+            all_trx_to,
+            balance,
+          );
+
+          if (!txid) {
+            console.warn(
+              `[checkRentalSweep] bot: ${bot.id} 划走其闪租地址${bot.energy_address}的余额失败, 跳过`,
+            );
+            continue;
+          }
+        }
+
+        console.warn(`[checkRentalSweep] bot: ${bot.id} 没有trx余额, 跳过`);
+      } catch (error) {
+        console.error(`[checkRentalSweep] bot: ${bot.id} 处理时出错:`, error);
+      }
     }
 
     console.log('[checkRentalSweep] 待处理能量租赁处理完成');

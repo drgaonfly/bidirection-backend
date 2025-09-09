@@ -171,14 +171,16 @@ export async function checkAutoRentals() {
             type: 'auto',
             crypto_type: 'trx',
             limit_hour: matchedPricePair.expiration,
-            expiredAt: new Date(Date.now() + 30 * 60 * 1000),
+            expiredAt: new Date(
+              Date.now() + adminUser.quick_recycle_time * 60 * 1000,
+            ),
             hash: transfer.trade_id,
             proxy: bot.user,
           });
 
           console.log('paid rental', rental);
 
-          // 发起 能量租赁
+          // 发起 能量闪租
           try {
             const txid = await rentEnergy(
               rental,
@@ -201,28 +203,28 @@ export async function checkAutoRentals() {
             // 给代理们积分
             await awardProxyPoints(bot._id, 1, rental);
 
-            console.log(`[checkAutoRentals] 能量租赁成功, txid=${txid}`);
+            console.log(`[checkAutoRentals] 能量闪租成功, txid=${txid}`);
 
             console.log(
-              `[checkAutoRentals] 已创建租赁记录 id=${rental.id}, hash=${rental.hash}`,
+              `[checkAutoRentals] 已创建闪租记录 id=${rental.id}, hash=${rental.hash}`,
             );
           } catch (sendErr) {
-            console.error(`[checkAutoRentals] 能量租赁成功失败:`, sendErr);
+            console.error(`[checkAutoRentals] 能量闪租成功失败:`, sendErr);
             // 这里可以考虑更新兑换状态为失败
 
             continue;
           }
 
-          console.log(`[checkAutoRentals] 租赁记录 id=${rental.id} 已保存`);
+          console.log(`[checkAutoRentals] 闪租记录 id=${rental.id} 已保存`);
         } catch (err) {
-          console.error('[checkAutoRentals] 处理租赁记录时出错:', err);
+          console.error('[checkAutoRentals] 处理闪租记录时出错:', err);
           continue;
         }
       }
     }
 
-    console.log('[checkAutoRentals] 待处理能量租赁处理完成');
+    console.log('[checkAutoRentals] 待处理能量闪租处理完成');
   } catch (error) {
-    console.error('[checkAutoRentals] 处理能量租赁时出错:', error);
+    console.error('[checkAutoRentals] 处理能量闪租时出错:', error);
   }
 }

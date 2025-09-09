@@ -386,17 +386,6 @@ async function rentEnergy(
 
 async function unRentEnergy(rental: IRental): Promise<any> {
   console.log('[unRentEnergy] 开始处理能量回收, rentalId:', rental?._id);
-  const existUnRental = await UnRental.findOne({
-    rental: rental._id,
-    status: { $in: ['success', 'failed'] },
-  });
-
-  if (existUnRental) {
-    console.log(`[unRentEnergy]: ${rental._id} 能量回收已完成，无需再次回收]`);
-    throw new Error(
-      `[unRentEnergy]: ${rental._id} 能量回收已完成，无需再次回收]`,
-    );
-  }
 
   if (rental.status === 'recycled') {
     console.log('[unRentEnergy] ------ 当前状态是 recycled:', rental.status);

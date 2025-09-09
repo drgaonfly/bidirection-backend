@@ -103,6 +103,7 @@ export const getUnRentals = handleAsync(
         path: 'packageUsageRecord',
         populate: 'packageOrder',
       })
+      .populate('rental')
       .populate('proxy')
       .sort('-createdAt')
       .skip((+current - 1) * +pageSize)

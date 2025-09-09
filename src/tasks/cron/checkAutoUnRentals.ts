@@ -80,6 +80,7 @@ async function processEnergyUsage(rental: any) {
       amount: result.data.amount,
       to_address: result.data.to,
       transactionAt: new Date(result.timestamp),
+      status: 'pending',
     });
 
     energyUsages.push(temp);

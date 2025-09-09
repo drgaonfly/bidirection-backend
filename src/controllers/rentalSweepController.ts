@@ -23,6 +23,10 @@ const buildQuery = async (queryParams: any): Promise<any> => {
     }
   }
 
+  if (queryParams.tx_id) {
+    query.tx_id = queryParams.tx_id;
+  }
+
   return query;
 };
 

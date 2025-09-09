@@ -139,6 +139,8 @@ export async function checkAutoUnRentals() {
           if (totalPens > 0) {
             rental.used_times += totalPens;
 
+            await rental.save();
+
             if (rental.used_times >= rental.separation) {
               txid = await unRentEnergy(rental);
               console.log(`[checkAutoUnRentals] 能量回收成功,txid=${txid}`);

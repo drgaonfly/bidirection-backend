@@ -9,9 +9,9 @@ import { IRental } from './rental';
 export interface IEnergyUsage extends Document {
   bot: mongoose.Schema.Types.ObjectId | IBot;
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
-  proxy: mongoose.Schema.Types.ObjectId | IRental;
+  proxy: mongoose.Schema.Types.ObjectId | IUser;
   packageUsageRecord: mongoose.Schema.Types.ObjectId | IPackageUsageRecord;
-  rental: mongoose.Schema.Types.ObjectId | IUser;
+  rental: mongoose.Schema.Types.ObjectId | IRental;
   type: string; // 使用类型, 给自己用，还是给他人用，闪租
   address: string; // 被监控的地址，也就是套餐使用记录存储的address
   energy: number; // 消耗的能量

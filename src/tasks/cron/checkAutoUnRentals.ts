@@ -144,6 +144,7 @@ export async function checkAutoUnRentals() {
             if (rental.used_times >= rental.separation) {
               txid = await unRentEnergy(rental);
               console.log(`[checkAutoUnRentals] 能量回收成功,txid=${txid}`);
+
               await EnergyUsage.updateMany(
                 {
                   rental: rental._id,

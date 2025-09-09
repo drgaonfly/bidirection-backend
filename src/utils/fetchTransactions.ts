@@ -284,8 +284,7 @@ async function rentEnergy(
         botUser: rental.botUser,
         rental: rental._id,
         energySendAddress: fromAddress, // 使用 A 地址（有私钥的地址）
-        // proxy 字段可选，若 rental.proxy 存在则赋值
-        ...(rental.proxy ? { proxy: rental.proxy } : {}),
+        proxy: rental.proxy,
         from_address: energyAddress, // 使用 B 地址（放能量的地址）
         to_address: rental.from_address,
         amount: amount,
@@ -293,7 +292,7 @@ async function rentEnergy(
         price: rental.price,
         actual_price: rental.actual_price,
         limit_hour: rental.limit_hour,
-        type: 'flash',
+        type: 'Rental',
       },
     },
     {
@@ -713,7 +712,7 @@ async function genericSendEnergy(
     amount,
     separation: pens,
     limit_day: packageOrder.validityDays,
-    type: 'daily',
+    type: 'PackageOrder',
     status: 'pending',
   });
 

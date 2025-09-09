@@ -99,7 +99,7 @@ const energySendSchema = new Schema<IEnergySend>(
     type: {
       type: String,
       required: true,
-      enum: ['flash', 'daily'], // flash=闪租, daily=日租
+      enum: ['Rental', 'PackageOrder'], // flash=闪租, daily=日租
     },
     packageUsageRecord: {
       type: Schema.Types.ObjectId,

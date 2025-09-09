@@ -72,7 +72,7 @@ async function processEnergyUsage(rental: any) {
       botUser: rental.botUser,
       proxy: rental.proxy,
       rental: rental._id,
-      type: 'rental',
+      type: 'Rental',
       address: rental.from_address,
       energy,
       bandwidth,

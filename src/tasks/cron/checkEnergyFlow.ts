@@ -79,7 +79,7 @@ async function processEnergyUsage(record: any) {
       botUser: record.botUser,
       proxy: record.proxy,
       packageUsageRecord: record._id,
-      type: record.type,
+      type: 'PackageOrder',
       address: record.address,
       energy,
       bandwidth,

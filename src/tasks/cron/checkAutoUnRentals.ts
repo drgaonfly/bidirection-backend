@@ -153,6 +153,9 @@ export async function checkAutoUnRentals() {
                 {
                   $set: { isRecycled: true },
                 },
+                {
+                  new: true,
+                },
               );
             }
           }

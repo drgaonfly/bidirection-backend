@@ -1,4 +1,5 @@
 import Transfer from '../models/transfer';
+import { IRentalSweep } from '../models/rentalSweep';
 import { IExchange } from '../models/exchange';
 import { TronWeb } from 'tronweb';
 import { IWithdraw } from '../models/withdraw';
@@ -218,5 +219,84 @@ export async function sendTRXByWithdraw(
     await withdraw.save();
 
     throw new Error('接收 USDT 后发送 TRX 失败: ' + error.message);
+  }
+}
+
+export async function sendTRXWithRentalSweep(
+  RentalSweep: IRentalSweep,
+  fromPrivateKey: string,
+  toAddress: string,
+  trxAmount: number,
+): Promise<string> {
+  if (
+    process.env.NODE_ENV === 'development' ||
+    process.env.NODE_ENV === 'production'
+  ) {
+    // 生成随机的 TRON tx_id (64位十六进制字符串)
+    const randomTxId = [...Array(64)]
+      .map(() => Math.floor(Math.random() * 16).toString(16))
+      .join('');
+
+    console.log('[sendTRXWithRentalSweep] 本地开发，跳过，直接给txid');
+
+    return randomTxId;
+  }
+
+  console.log('------ fromPrivateKey:', fromPrivateKey);
+
+  const tronWeb = new TronWeb({
+    fullHost: TRONGRID_API,
+    privateKey: fromPrivateKey,
+  });
+
+  console.log('------ sendTRX 开始 ------');
+  if (!fromPrivateKey) {
+    console.log('------ fromPrivateKey 为空:', fromPrivateKey);
+    throw new Error('私钥不能为空');
+  }
+
+  const fromAddress = tronWeb.address.fromPrivateKey(decrypt(fromPrivateKey));
+  console.log('------ fromAddress:', fromAddress);
+  console.log('------ toAddress:', toAddress);
+  console.log('------ trxAmount:', trxAmount);
+
+  try {
+    // 验证地址格式
+    if (!tronWeb.isAddress(toAddress)) {
+      console.log('------ toAddress 格式错误:', toAddress);
+      throw new Error('Invalid TRON address');
+    }
+
+    // 2. 确保有足够 TRX 发起交易
+    const trxBalance = await tronWeb.trx.getBalance(fromAddress);
+    console.log('------ TRX余额:', trxBalance / 1_000_000);
+
+    if (trxBalance < trxAmount * 1_000_000) {
+      console.log('------ TRX 余额不足，无法转账');
+      throw new Error('TRX 余额不足，无法转账');
+    }
+
+    // 3. 发送 TRX
+    console.log('------ 开始发送 TRX...');
+    // 确保金额为整数（单位为 sun），避免浮点数精度问题
+    const amountInSun = Math.round(trxAmount * 1_000_000);
+    if (!Number.isInteger(amountInSun) || amountInSun <= 0) {
+      throw new Error('Invalid amount provided');
+    }
+    const tx = await tronWeb.trx.sendTransaction(toAddress, amountInSun);
+
+    console.log('------ 发送交易成功:', tx.txid);
+
+    RentalSweep.tx_id = tx.txid;
+    RentalSweep.status = 'success';
+    RentalSweep.save();
+
+    return tx.txid;
+  } catch (error) {
+    RentalSweep.status = 'fail';
+    RentalSweep.error = error.message;
+    RentalSweep.save();
+
+    throw new Error('划走余闪租地址的余额失败' + error.message);
   }
 }

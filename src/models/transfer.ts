@@ -20,7 +20,7 @@ const transferSchema = new mongoose.Schema(
     exchange: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Exchange',
-      required: true,
+      required: false,
       unique: true,
     },
     trxAmount: {
@@ -60,9 +60,6 @@ const transferSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   },
 );
-
-// 添加联合索引: sending_hash, receiving_hash
-transferSchema.index({ hash: 1, txid: 1 }, { unique: true });
 
 const Transfer = mongoose.model<ITransfer>('Transfer', transferSchema);
 

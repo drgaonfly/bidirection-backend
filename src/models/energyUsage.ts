@@ -35,7 +35,7 @@ const energyUsageSchema = new Schema<IEnergyUsage>(
     botUser: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'BotUser',
-      required: true,
+      required: false,
     },
     proxy: {
       type: mongoose.Schema.Types.ObjectId,

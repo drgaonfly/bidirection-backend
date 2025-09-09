@@ -93,6 +93,7 @@ export const getEnergyUsages = handleAsync(
 
     const energyUsages = await EnergyUsage.find(query)
       .populate('packageUsageRecord')
+      .populate('rental')
       .populate('bot')
       .populate('botUser')
       .populate('proxy')

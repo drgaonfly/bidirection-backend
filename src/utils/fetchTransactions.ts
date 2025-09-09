@@ -9,6 +9,7 @@ import { IPackageUsageRecord } from '../models/packageUsageRecord';
 import UnRental, { IUnRental } from '../models/unrental';
 import PackageOrder from '../models/packageOrder';
 import EnergySend, { IEnergySend } from '../models/energySend';
+import EnergyUsage from '../models/energyUsage';
 import { getAdminUser } from './buyTelegramPremium';
 import { decrypt } from '../services/encrypt';
 import { IRental } from '../models/rental';
@@ -471,6 +472,7 @@ async function unRentEnergy(rental: IRental): Promise<any> {
       new: true,
     },
   );
+
   console.log('[unRentEnergy] UnRental 记录已创建/更新:', unRental?._id);
 
   try {
@@ -528,6 +530,17 @@ async function unRentEnergy(rental: IRental): Promise<any> {
     console.log(
       '[unRentEnergy] Rental 状态已更新为 recycled, rentalId:',
       rental?._id,
+    );
+
+    await EnergyUsage.updateMany(
+      {
+        rental: rental._id,
+        isRecycled: false,
+        tx_id: { $ne: null },
+      },
+      {
+        isRecycled: true,
+      },
     );
 
     return result.txid;

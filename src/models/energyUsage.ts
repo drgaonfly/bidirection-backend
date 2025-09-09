@@ -22,7 +22,6 @@ export interface IEnergyUsage extends Document {
   to_address: string; // 转出地址
   transactionAt: Date;
   createdAt: Date;
-  isRecycled: boolean;
 }
 
 const energyUsageSchema = new Schema<IEnergyUsage>(

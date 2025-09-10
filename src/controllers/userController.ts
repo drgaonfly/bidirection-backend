@@ -1,18 +1,19 @@
 // controllers/userController.ts
 import { Request, Response } from 'express';
-import User from '../models/user';
+import { isEmployee, isProxy } from '../middlewares/authMiddleware';
 import handleAsync from '../utils/handleAsync';
+import User from '../models/user';
+import Role from '../models/role';
+import Customer from '../models/customer';
+import Package from '../models/package';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
+import { encrypt } from '../services/encrypt';
 import { exclude } from '../utils/handleData';
 import { RequestCustom } from 'user';
 import { findBotProxy } from '../services/findBotProxy';
 import { IBot } from '../models/bot';
-import crypto from 'crypto';
-import { isEmployee, isProxy } from '../middlewares/authMiddleware';
-import Role from '../models/role';
 import { IdGen } from '../utils/idGen';
-import Customer from '../models/customer';
-import Package from '../models/package';
 
 //user
 export async function generateInviteCode(length: number = 5): Promise<string> {
@@ -250,7 +251,7 @@ export const updateUser = handleAsync(async (req: Request, res: Response) => {
     {
       ...req.body,
       password: hashPassword,
-      plain_password: password,
+      plain_password: encrypt(password),
       roles: newRoles,
     },
     { new: true },

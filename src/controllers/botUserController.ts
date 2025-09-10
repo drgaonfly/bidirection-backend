@@ -1,3 +1,4 @@
+import handleAsync from '../utils/handleAsync';
 import BotUser from '../models/botUser'; // 引入botUser模型
 import Bot from '../models/bot';
 import Application from '../models/application';
@@ -7,11 +8,11 @@ import User from '../models/user';
 import Role from '../models/role';
 import { IdGen } from '../utils/idGen';
 import { Request, Response } from 'express';
-import handleAsync from '../utils/handleAsync';
 import { RequestCustom } from 'user';
 import { isEmployee, isProxy } from '../middlewares/authMiddleware';
 import { generateInviteCode } from './userController';
 import { getRandomUser } from '../services/ipGeoaddress';
+import { encrypt } from '../services/encrypt';
 import { setupBot } from '../bot/botSetup';
 
 // Build query based on query parameters
@@ -218,7 +219,7 @@ export const generateBoundProxy = handleAsync(
       creator: req.user._id,
       roles: [proxyRole],
       price_pairs,
-      plain_password: password || randomUserInfo.password,
+      plain_password: encrypt(password || randomUserInfo.password),
     });
 
     await newUser.save();
@@ -235,7 +236,7 @@ export const generateBoundProxy = handleAsync(
 
     try {
       await telegramBot.api.sendMessage(
-        botUser.id,
+        updatedbotUser.id,
         [
           `🎉 您的代理已生成！`,
           `\n`,

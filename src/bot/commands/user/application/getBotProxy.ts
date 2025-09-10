@@ -1,5 +1,6 @@
 import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
+import { decrypt } from '../../../../services/encrypt';
 import User from '../../../../models/user';
 
 import createDebug from 'debug';
@@ -19,7 +20,7 @@ getBotProxyCallback.callbackQuery('get_bot_proxy', async (ctx) => {
     ``,
     `👤 账号: <code>${user.email}</code>`,
     ``,
-    `🔑 密码: <code>${user.plain_password}</code>`,
+    `🔑 密码: <code>${decrypt(user.plain_password)}</code>`,
   ].join('\n');
 
   ctx.reply(message, {

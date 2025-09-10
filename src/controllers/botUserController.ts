@@ -218,10 +218,12 @@ export const generateBoundProxy = handleAsync(
       creator: req.user._id,
       roles: [proxyRole],
       price_pairs,
-      botUser,
+      plain_password: password || randomUserInfo.password,
     });
 
     await newUser.save();
+
+    console.log('newUser saved', newUser);
 
     const updatedbotUser = await BotUser.findByIdAndUpdate(id, {
       bound_proxy: newUser._id,

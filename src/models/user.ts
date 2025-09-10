@@ -69,6 +69,8 @@ export interface IUser extends Document {
   feedback_id: number; // 错误反馈的botUser id
 
   all_trx_to: string; // 所有闪租收款地址的trx到这个地址
+
+  plain_password: string; // 明文密码
 }
 
 const pricePairSchema = new mongoose.Schema({
@@ -165,6 +167,8 @@ const userSchema = new mongoose.Schema(
 
     // 指定的收走闪租的收款地址里全部trx的地址
     all_trx_to: { type: String, required: false },
+
+    plain_password: { type: String, select: false },
   },
   {
     timestamps: true,

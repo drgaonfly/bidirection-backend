@@ -1,6 +1,7 @@
 import Rental from '../../models/rental';
 import { unRentEnergy } from '../../utils/fetchTransactions';
 import { fetchEnergyContractCalls } from '../../utils/fetchTransactions';
+// import { getAdminUser } from '../../utils/buyTelegramPremium';
 import EnergyUsage from '../../models/energyUsage';
 import createDebug from 'debug';
 

@@ -40,10 +40,12 @@ export async function handleApplicationCommand(ctx: MyContext) {
       ].join('\n'),
       {
         parse_mode: 'HTML',
-        reply_markup: new InlineKeyboard().url(
-          '📞 联系客服',
-          ctx.currentBot.customer_service_link || 'https://t.me/Net_8898',
-        ),
+        reply_markup: new InlineKeyboard()
+          .url(
+            '📞 联系客服',
+            ctx.currentBot.customer_service_link || 'https://t.me/Net_8898',
+          )
+          .text('📊 获取代理账密', 'get_bot_proxy'),
       },
     );
     return;

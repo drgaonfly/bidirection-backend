@@ -22,7 +22,12 @@ export async function handleApplicationCommand(ctx: MyContext) {
     botUser: botUser._id,
   });
 
-  if (ctx.currentBotUser.bound_proxy) {
+  if (existApplication && !ctx.currentBotUser.bound_proxy) {
+    await ctx.reply('您已经提交过代理申请了，请勿重复提交');
+    return;
+  }
+
+  if (existApplication && ctx.currentBotUser.bound_proxy) {
     await ctx.reply(
       [
         '<b>您已经是代理了, 无须再次申请</b>',
@@ -48,11 +53,6 @@ export async function handleApplicationCommand(ctx: MyContext) {
           .text('📊 获取代理账密', 'get_bot_proxy'),
       },
     );
-    return;
-  }
-
-  if (existApplication) {
-    await ctx.reply('您已经提交过代理申请了，请勿重复提交');
     return;
   }
 

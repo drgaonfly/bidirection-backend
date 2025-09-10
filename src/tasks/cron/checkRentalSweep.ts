@@ -49,6 +49,9 @@ export async function checkRentalSweep() {
         // 判断闪租的收款地址里有没有trx
         const balance = await tronWeb.trx.getBalance(receiveAddress);
 
+        //  // 判断闪租的收款地址里有没有usdt
+        //   const usdtBalance = await tronWeb.trx.getBalance(receiveAddress, 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
+
         // 如果有，多少钱全部抓挠一个指定的地址
         if (balance > 0) {
           const rentalSweep = await RentalSweep.create({

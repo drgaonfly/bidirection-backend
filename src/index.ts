@@ -54,6 +54,7 @@ import minConsumptionRoutes from './routes/minConsumptionRoutes';
 import revenueShareRoutes from './routes/revenueShareRoutes';
 import withdrawRoutes from './routes/withdrawRoutes';
 import rentalSweepRoutes from './routes/rentalSweepRoutes';
+import tronBalanceRoutes from './routes/tronBalanceRoutes';
 
 dotenv.config();
 
@@ -119,6 +120,7 @@ app.use('/api/min-consumptions', minConsumptionRoutes);
 app.use('/api/revenue-shares', revenueShareRoutes);
 app.use('/api/withdraws', withdrawRoutes);
 app.use('/api/rental-sweeps', rentalSweepRoutes);
+app.use('/api/tron-balances', tronBalanceRoutes);
 
 app.use('/api/static', express.static('tmp'));
 

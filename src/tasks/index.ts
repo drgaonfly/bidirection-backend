@@ -10,9 +10,6 @@ import { newCheckUsdtWallets } from './cron/newCheckUsdtWallets';
 import { checkPendingUsdtRecharge } from './cron/checkPendingUsdtRecharge';
 import { checkPendingTrxRecharge } from './cron/checkPendingTrxRecharge';
 import { checkExpiredPayments } from './cron/expiredRecharges';
-import { checkMemberOrders } from './cron/checkMemberOrders';
-import { checkExpiredAnynoumy } from './cron/expiredAnynoumy';
-import { checkTgStarsOrders } from './cron/checkTgStarsOrders';
 
 const task = async () => {
   await setupDB();
@@ -28,9 +25,6 @@ const task = async () => {
   await checkExpiredPayments();
   await checkPendingUsdtRecharge();
   await checkPendingTrxRecharge();
-  await checkMemberOrders(); // 检查购买会员订单
-  await checkTgStarsOrders(); //电报星星订单
-  await checkExpiredAnynoumy();
 };
 
 // 执行任务并在完成后退出进程

@@ -1,102 +1,52 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import TgStarsOrder from '../models/tgStarsOrder';
-import { decrypt } from '../services/encrypt';
-import { getAdminUser } from './buyTelegramPremium';
-
-const execAsync = promisify(exec);
+import axios from 'axios';
+import TgStarOrder from '../models/tgStarsOrder';
 
 /**
- * 根据已支付订单为用户购买 Telegram Stars
- * @param orderId 订单的 MongoDB ID
- * @returns Promise，返回操作结果
+ * 调用 Telegram Stars API 给用户充值
+ * @param botToken - 机器人的 token
+ * @param userId - Telegram 用户 ID
+ * @param orderId - 我们系统的订单 ID
+ * @param stars - 要充值的星星数量
  */
-export async function buyTelegramStars(orderId: string): Promise<boolean> {
+export async function buyTgStars(
+  botToken: string,
+  userId: number,
+  orderId: number,
+  stars: number,
+) {
   try {
-    // 查找订单并填充 botUser 字段
-    const order = await TgStarsOrder.findById(orderId).populate('botUser');
+    const url = `https://api.telegram.org/bot${botToken}/sendStars`;
 
-    if (!order) {
-      console.error(`[buyTelegramStars] 未找到订单 ${orderId}`);
-      return false;
+    const response = await axios.post(url, {
+      user_id: userId,
+      stars: stars,
+    });
+
+    const data = response.data;
+
+    if (!data.ok) {
+      throw new Error(`Telegram API error: ${JSON.stringify(data)}`);
     }
 
-    if (order.status !== 'paid') {
-      console.error(
-        `[buyTelegramStars] 订单 ${orderId} 未支付，当前状态: ${order.status}`,
-      );
-      return false;
-    }
-
-    if (order.hasPurchased) {
-      console.log(`[buyTelegramStars] 订单 ${orderId} 已经购买过 Stars`);
-      return true;
-    }
-
-    // 获取用户名并加上 @ 前缀
-    const botUser = order.botUser as any; // 用 any 访问 userName 属性
-    if (!botUser || !botUser.userName) {
-      console.error(
-        `[buyTelegramStars] 订单 ${orderId} 的 botUser 无效或缺少 userName`,
-      );
-      return false;
-    }
-
-    // 获取超级管理员的加密助记词
-    const admin = await getAdminUser();
-    if (!admin || !admin.mnemonic) {
-      console.error('[buyTelegramStars] 无法获取管理员助记词');
-      return false;
-    }
-
-    // 使用decrypt函数解密管理员助记词
-    const encryptedMnemonic = admin.mnemonic;
-    const plainMnemonic = decrypt(encryptedMnemonic);
-
-    if (!plainMnemonic) {
-      console.error('[buyTelegramStars] 管理员助记词解密失败');
-      return false;
-    }
-
-    const username = `@${botUser.userName}`;
-    console.log(
-      `[buyTelegramStars] 正在为用户购买 Stars: ${username}, 数量: ${order.starsAmount}`,
+    // 更新订单状态
+    await TgStarOrder.findOneAndUpdate(
+      { id: orderId },
+      {
+        $set: {
+          status: 'success',
+          tx_id: data.result.transaction_id,
+          stars: stars,
+        },
+      },
     );
-
-    // 设置 Go 脚本所需的环境变量
-    const env = {
-      OpenUserName: username, // 需要购买 Stars 的 Telegram 用户名（带@）
-      StarsAmount: String(order.starsAmount), // Stars 数量
-      WalletMnemonic: plainMnemonic, // 使用解密后的助记词
-    };
-
-    // 执行 Go 脚本购买 Telegram Stars
-    console.log(
-      `[buyTelegramStars] 执行订单 ${order.orderNumber} 的 Stars 购买`,
-    );
-    const { stdout, stderr } = await execAsync(
-      'go run path/to/stars_purchase_script.go',
-      { env },
-    );
-
-    if (stderr) {
-      console.error(`[buyTelegramStars] 购买 Stars 出错: ${stderr}`);
-      return false;
-    }
-
-    console.log(`[buyTelegramStars] 购买结果: ${stdout}`);
-
-    // 如果执行到这里，说明购买成功
-    // 更新订单，标记为已购买
-    order.hasPurchased = true;
-    await order.save();
 
     console.log(
-      `[buyTelegramStars] 成功为 ${username} 购买 ${order.starsAmount} Stars，订单号: ${order.orderNumber}`,
+      `[buyTgStars] 订单 ${orderId} 充值 ${stars} 星星成功, tx_id=${data.result.transaction_id}`,
     );
-    return true;
-  } catch (error) {
-    console.error('[buyTelegramStars] 购买 Telegram Stars 时出错:', error);
-    return false;
+
+    return data.result;
+  } catch (err) {
+    console.error(`[buyTgStars] 订单 ${orderId} 充值失败:`, err.message);
+    throw err;
   }
 }

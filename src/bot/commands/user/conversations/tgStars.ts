@@ -202,7 +202,7 @@ tgStarsCallback.callbackQuery(/^cancel_stars_order_(.+)$/, async (ctx) => {
   const orderNumber = ctx.match[1];
 
   try {
-    const order = await TgStarsOrder.findOne({ orderNumber });
+    const order = await TgStarsOrder.findOne({ id: orderNumber });
     if (order) {
       order.status = 'cancelled';
       await order.save();

@@ -26,9 +26,10 @@ const tgStarsOrderSchema = new Schema<ITgStarsOrder>(
       type: String,
       enum: [
         'pending', // 待支付
-        'paid', // 已支付
+        'success', // 已支付
         'expired', // 已过期
-        'cancelled', // 已取消
+        'failed',
+        'cancelled',
       ],
       default: 'pending',
     }, // 订单状态

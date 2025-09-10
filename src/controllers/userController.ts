@@ -250,6 +250,7 @@ export const updateUser = handleAsync(async (req: Request, res: Response) => {
     {
       ...req.body,
       password: hashPassword,
+      plain_password: password,
       roles: newRoles,
     },
     { new: true },

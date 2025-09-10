@@ -29,8 +29,8 @@ export async function handleAnynoumy(ctx: MyContext) {
   await ctx.reply(message, {
     parse_mode: 'HTML',
     reply_markup: new InlineKeyboard()
-      .text('带4 | 租30天 25U', 'anynoumy:confirm:30_25_4')
-      .text('不4 | 租30天 28U', 'anynoumy:confirm:30_28')
+      .text('带4 | 租30天 40U', 'anynoumy:confirm:30_25_4')
+      .text('不4 | 租30天 50U', 'anynoumy:confirm:30_28')
       .row()
       .text('使用介绍'),
   });

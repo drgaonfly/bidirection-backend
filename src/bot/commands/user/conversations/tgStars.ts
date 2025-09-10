@@ -1,13 +1,14 @@
+import TgStarsOrder from '../../../../models/tgStarsOrder';
+import { IUser } from '../../../../models/user';
 import { MyContext } from '../../../types';
 import { Composer, InlineKeyboard } from 'grammy';
 import { createConversation, Conversation } from '@grammyjs/conversations';
-import createDebug from 'debug';
 import { getUserByUsername } from '../operator/add';
 import { findBotAndUser } from '../../../services/findBotAndUser';
-import TgStarsOrder from '../../../../models/tgStarsOrder';
 import { generateOrderNumber } from '../../../../utils/generateOrderNumber';
 import { renderFile } from 'ejs';
 import { join } from 'path';
+import createDebug from 'debug';
 
 // 创建一个新的 Composer 实例
 const tgStarsCallback = new Composer<MyContext>();
@@ -43,7 +44,7 @@ function isValidTelegramFormat(input: string): {
 async function tgStarsConversation(
   conversation: Conversation<MyContext>,
   ctx: MyContext,
-  { amount }: { amount: number },
+  { amount, proxy }: { amount: number; proxy: IUser },
 ) {
   debug('等待用户输入Telegram账号');
 
@@ -77,7 +78,7 @@ async function tgStarsConversation(
         reply_markup: new InlineKeyboard().text('❌ 取消', 'close'),
       },
     );
-    return await tgStarsConversation(conversation, ctx, { amount });
+    return await tgStarsConversation(conversation, ctx, { amount, proxy });
   }
 
   const { isValid, username } = isValidTelegramFormat(message.text);
@@ -89,7 +90,7 @@ async function tgStarsConversation(
         reply_markup: new InlineKeyboard().text('❌ 取消', 'close'),
       },
     );
-    return await tgStarsConversation(conversation, ctx, { amount });
+    return await tgStarsConversation(conversation, ctx, { amount, proxy });
   }
 
   try {
@@ -100,7 +101,7 @@ async function tgStarsConversation(
       await ctx.reply('❗ 账号不存在或异常，请重新输入', {
         reply_markup: new InlineKeyboard().text('❌ 取消', 'close'),
       });
-      return await tgStarsConversation(conversation, ctx, { amount });
+      return await tgStarsConversation(conversation, ctx, { amount, proxy });
     }
 
     debug('用户信息:', JSON.stringify(user));
@@ -108,7 +109,6 @@ async function tgStarsConversation(
     // 用户验证成功，可以继续处理
     // 创建星星订单
     const generatedOrderNumber = await generateOrderNumber();
-    const endDate = new Date(Date.now() + 10 * 60 * 1000); // 当前时间 + 10分钟
     const price = (amount / 50).toFixed(2); // 50颗星星 = 1U
 
     await ctx.reply(
@@ -134,14 +134,15 @@ async function tgStarsConversation(
     );
 
     const tgStarsOrder = new TgStarsOrder({
-      orderNumber: generatedOrderNumber,
+      id: generatedOrderNumber,
       botUser: botUser._id,
       bot: bot._id,
+      proxy: proxy._id,
       status: 'pending',
       amount: parseFloat(price),
-      starsAmount: amount,
-      endDate,
+      stars: amount,
       paymentAddress: bot.trx20_address,
+      expiredAt: new Date(Date.now() + 10 * 60 * 1000), // 当前时间 + 10分钟
     });
 
     debug('tgStarsOrder', JSON.stringify(tgStarsOrder));
@@ -152,7 +153,7 @@ async function tgStarsConversation(
     await ctx.reply('❗ 验证账号时出现错误，请重新输入', {
       reply_markup: new InlineKeyboard().text('❌ 取消', 'close'),
     });
-    return await tgStarsConversation(conversation, ctx, { amount });
+    return await tgStarsConversation(conversation, ctx, { amount, proxy });
   }
 }
 
@@ -185,7 +186,10 @@ tgStarsCallback.callbackQuery(/^buy_stars_/, async (ctx) => {
       parse_mode: 'HTML',
     });
 
-    await ctx.conversation.enter('tgStarsConversation', { amount });
+    await ctx.conversation.enter('tgStarsConversation', {
+      amount: amount,
+      proxy: ctx.currentProxyUser,
+    });
   } catch (error) {
     debug('渲染buyStars模板出错:', error);
     await ctx.reply('抱歉，处理您的请求时出现错误。请稍后再试。');

@@ -59,6 +59,10 @@ export async function checkRentalSweep() {
             status: 'pending',
           });
 
+          console.warn(
+            `[checkRentalSweep] bot: ${bot.id} 闪租地址 ${bot.energy_address}  ${balance} TRX, 开始转移`,
+          );
+
           const txid = await sendTRXWithRentalSweep(
             rentalSweep,
             bot.energy_privateKey,

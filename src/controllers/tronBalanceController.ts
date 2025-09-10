@@ -34,6 +34,9 @@ const buildQuery = async (queryParams: any): Promise<any> => {
   return query;
 };
 
+// TRC20 USDT 合约地址（主网）
+const USDT_CONTRACT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
+
 async function getUsdtBalance(address: string): Promise<number> {
   try {
     const result = await tronWeb.transactionBuilder.triggerSmartContract(
@@ -52,9 +55,6 @@ async function getUsdtBalance(address: string): Promise<number> {
     return 0;
   }
 }
-
-// TRC20 USDT 合约地址（主网）
-const USDT_CONTRACT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';
 
 export const getTronBalances = handleAsync(
   async (req: Request, res: Response) => {

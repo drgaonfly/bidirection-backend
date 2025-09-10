@@ -14,6 +14,12 @@ const debug = createDebug('bot:membership');
 export async function handleMembershipCommand(ctx: MyContext) {
   debug('membership');
 
+  if (!ctx.currentBot.trx20_address) {
+    await ctx.reply('请先设置该机器人的TRX20地址');
+
+    return;
+  }
+
   const inline = new InlineKeyboard()
     .text('🌟 购买星星', 'buy_stars')
     .text('🔒 匿名号码')

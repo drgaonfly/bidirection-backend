@@ -47,16 +47,18 @@ export async function checkRentalSweep() {
         }
 
         // 判断闪租的收款地址里有没有trx
-        const balance = await tronWeb.trx.getBalance(receiveAddress);
+        const balance = await tronWeb.trx.getBalance(receiveAddress); // (sun)
+
+        const processed_balance = balance / 1e6; // (trx)
 
         //  // 判断闪租的收款地址里有没有usdt
         //   const usdtBalance = await tronWeb.trx.getBalance(receiveAddress, 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
 
         // 如果有，多少钱全部抓挠一个指定的地址
-        if (balance > 0) {
+        if (processed_balance > 0) {
           const rentalSweep = await RentalSweep.create({
             bot: bot._id,
-            amount: balance,
+            amount: processed_balance,
             from: bot.energy_address,
             to: all_trx_to,
             status: 'pending',
@@ -70,7 +72,7 @@ export async function checkRentalSweep() {
             rentalSweep,
             bot.energy_privateKey,
             all_trx_to,
-            balance,
+            processed_balance,
           );
 
           if (!txid) {

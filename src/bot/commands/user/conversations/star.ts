@@ -5,7 +5,7 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { createConversation, Conversation } from '@grammyjs/conversations';
 import { getUserByUsername } from '../operator/add';
 import { findBotAndUser } from '../../../services/findBotAndUser';
-import { generateOrderNumber } from '../../../../utils/generateOrderNumber';
+import { IdGen } from '../../../../utils/idGen';
 import { isValidTelegramFormat } from '../../../../utils/validateTelegramFormat';
 import createDebug from 'debug';
 
@@ -83,7 +83,7 @@ async function starConversation(
 
     // 用户验证成功，可以继续处理
     // 创建星星订单
-    const generatedOrderNumber = await generateOrderNumber();
+    const orderId = await IdGen.next(Star, 'id', 6);
     const price = (amount / 50).toFixed(2); // 50颗星星 = 1U
 
     await ctx.reply(
@@ -103,13 +103,13 @@ async function starConversation(
         parse_mode: 'HTML',
         reply_markup: new InlineKeyboard().text(
           '❌ 取消订单',
-          `cancel_stars_order_${generatedOrderNumber}`,
+          `cancel_stars_order_${orderId}`,
         ),
       },
     );
 
     const newStar = new Star({
-      id: generatedOrderNumber,
+      id: orderId,
       botUser: botUser._id,
       bot: bot._id,
       proxy: proxy._id,

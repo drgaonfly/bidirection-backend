@@ -28,9 +28,9 @@ export async function getAdminUser() {
  * @returns Promise，返回操作结果
  */
 export async function buyTelegramPremium(orderId: string): Promise<boolean> {
+  const order = await Premium.findById(orderId).populate('botUser');
   try {
     // 查找订单并填充 botUser 字段
-    const order = await Premium.findById(orderId).populate('botUser');
 
     if (!order) {
       console.error(`[buyTelegramPremium] 未找到订单 ${orderId}`);
@@ -115,6 +115,10 @@ export async function buyTelegramPremium(orderId: string): Promise<boolean> {
     return true;
   } catch (error) {
     console.error('[buyTelegramPremium] 购买 Telegram Premium 时出错:', error);
+
+    order.status = 'failed';
+    await order.save();
+
     return false;
   }
 }

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import TgStarOrder from '../models/tgStarsOrder';
+import TgStarOrder from '../models/tgStar';
 
 /**
  * 调用 Telegram Stars API 给用户充值

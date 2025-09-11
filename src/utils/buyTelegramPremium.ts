@@ -1,6 +1,6 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import MemberOrder from '../models/memberOrder';
+import Premium from '../models/premium';
 import User from '../models/user';
 import { decrypt } from '../services/encrypt';
 
@@ -30,21 +30,21 @@ export async function getAdminUser() {
 export async function buyTelegramPremium(orderId: string): Promise<boolean> {
   try {
     // 查找订单并填充 botUser 字段
-    const order = await MemberOrder.findById(orderId).populate('botUser');
+    const order = await Premium.findById(orderId).populate('botUser');
 
     if (!order) {
       console.error(`[buyTelegramPremium] 未找到订单 ${orderId}`);
       return false;
     }
 
-    if (order.status !== 'paid') {
+    if (order.status !== 'success') {
       console.error(
         `[buyTelegramPremium] 订单 ${orderId} 未支付，当前状态: ${order.status}`,
       );
       return false;
     }
 
-    if (order.hasPurchased) {
+    if (order.tx_id) {
       console.log(`[buyTelegramPremium] 订单 ${orderId} 已经购买过 premium`);
       return true;
     }
@@ -91,9 +91,7 @@ export async function buyTelegramPremium(orderId: string): Promise<boolean> {
     console.log('env: Go 脚本所需的参数', env);
 
     // 执行 Go 脚本购买 Telegram Premium
-    console.log(
-      `[buyTelegramPremium] 执行订单 ${order.orderNumber} 的 premium 购买`,
-    );
+    console.log(`[buyTelegramPremium] 执行订单 ${order.id} 的 premium 购买`);
     const { stdout, stderr } = await execAsync(
       'go run path/to/premium_purchase_script.go',
       { env },
@@ -108,11 +106,11 @@ export async function buyTelegramPremium(orderId: string): Promise<boolean> {
 
     // 如果执行到这里，说明购买成功
     // 更新订单，标记为已购买
-    order.hasPurchased = true;
+    order.status = 'success';
     await order.save();
 
     console.log(
-      `[buyTelegramPremium] 成功为 ${username} 购买 premium，订单号: ${order.orderNumber}`,
+      `[buyTelegramPremium] 成功为 ${username} 购买 premium，订单号: ${order.id}`,
     );
     return true;
   } catch (error) {

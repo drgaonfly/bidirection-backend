@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import TgStarsOrder from '../models/tgStarsOrder';
+import TgStar from '../models/tgStar';
 import handleAsync from '../utils/handleAsync';
 import Bot from '../models/bot';
 import BotUser from '../models/botUser';
@@ -69,13 +69,13 @@ const buildQuery = async (
   return query;
 };
 
-export const getTgStarsOrders = handleAsync(
+export const getTgStars = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const { current = '1', pageSize = '10' } = req.query;
 
     const query = await buildQuery(req.query, req);
 
-    const tgStarsOrders = await TgStarsOrder.find(query)
+    const tgStars = await TgStar.find(query)
       .populate('botUser')
       .populate('bot')
       .populate('proxy')
@@ -86,11 +86,11 @@ export const getTgStarsOrders = handleAsync(
       .lean()
       .exec();
 
-    const total = await TgStarsOrder.countDocuments(query).exec();
+    const total = await TgStar.countDocuments(query).exec();
 
     res.json({
       success: true,
-      data: tgStarsOrders,
+      data: tgStars,
       total,
       current: +current,
       pageSize: +pageSize,
@@ -98,87 +98,77 @@ export const getTgStarsOrders = handleAsync(
   },
 );
 
-export const getTgStarsOrderById = handleAsync(
+export const getTgStarById = handleAsync(
   async (req: Request, res: Response) => {
-    const tgStarsOrder = await TgStarsOrder.findOne({
+    const tgStar = await TgStar.findOne({
       _id: req.params.id,
     })
       .populate('botUser')
       .populate('bot')
       .lean();
 
-    if (!tgStarsOrder) {
+    if (!tgStar) {
       res.status(404);
       throw new Error('TG Stars订单未找到');
     }
 
     res.json({
       success: true,
-      data: tgStarsOrder,
+      data: tgStar,
     });
   },
 );
 
-export const createTgStarsOrder = handleAsync(
-  async (req: Request, res: Response) => {
-    const tgStarsOrder = new TgStarsOrder({
-      ...req.body,
-      createdAt: new Date(),
-    });
+export const createTgStar = handleAsync(async (req: Request, res: Response) => {
+  const tgStar = new TgStar({
+    ...req.body,
+    createdAt: new Date(),
+  });
 
-    const savedTgStarsOrder = await tgStarsOrder.save();
+  const savedTgStar = await tgStar.save();
 
-    res.status(201).json({
-      success: true,
-      data: savedTgStarsOrder,
-    });
-  },
-);
+  res.status(201).json({
+    success: true,
+    data: savedTgStar,
+  });
+});
 
-export const updateTgStarsOrder = handleAsync(
-  async (req: Request, res: Response) => {
-    const tgStarsOrder = await TgStarsOrder.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-      },
-    );
+export const updateTgStar = handleAsync(async (req: Request, res: Response) => {
+  const tgStar = await TgStar.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+  });
 
-    if (!tgStarsOrder) {
-      res.status(404);
-      throw new Error('TG Stars订单未找到');
-    }
+  if (!tgStar) {
+    res.status(404);
+    throw new Error('TG Stars订单未找到');
+  }
 
-    res.json({
-      success: true,
-      data: tgStarsOrder,
-    });
-  },
-);
+  res.json({
+    success: true,
+    data: tgStar,
+  });
+});
 
-export const deleteTgStarsOrder = handleAsync(
-  async (req: Request, res: Response) => {
-    const tgStarsOrder = await TgStarsOrder.deleteOne({
-      _id: req.params.id,
-    });
+export const deleteTgStar = handleAsync(async (req: Request, res: Response) => {
+  const tgStar = await TgStar.deleteOne({
+    _id: req.params.id,
+  });
 
-    if (!tgStarsOrder) {
-      res.status(404);
-      throw new Error('TG Stars订单未找到');
-    }
+  if (!tgStar) {
+    res.status(404);
+    throw new Error('TG Stars订单未找到');
+  }
 
-    res.json({
-      success: true,
-      message: 'TG Stars订单已删除',
-    });
-  },
-);
+  res.json({
+    success: true,
+    message: 'TG Stars订单已删除',
+  });
+});
 
-export const deleteMultipleTgStarsOrders = handleAsync(
+export const deleteMultipleTgStars = handleAsync(
   async (req: Request, res: Response) => {
     const { ids } = req.body;
-    await TgStarsOrder.deleteMany({ _id: { $in: ids } });
+    await TgStar.deleteMany({ _id: { $in: ids } });
 
     res.json({
       success: true,

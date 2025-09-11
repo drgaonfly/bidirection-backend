@@ -262,6 +262,7 @@ const botSchema = new mongoose.Schema(
     energy_privateKey: {
       type: String,
       trim: true,
+      select: false,
     },
     min_interger_limit: {
       type: Number,

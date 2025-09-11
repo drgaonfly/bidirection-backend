@@ -1,4 +1,4 @@
-import TgStarsOrder from '../../../../models/tgStarsOrder';
+import TgStar from '../../../../models/tgStar';
 import { IUser } from '../../../../models/user';
 import { MyContext } from '../../../types';
 import { Composer, InlineKeyboard } from 'grammy';
@@ -6,8 +6,7 @@ import { createConversation, Conversation } from '@grammyjs/conversations';
 import { getUserByUsername } from '../operator/add';
 import { findBotAndUser } from '../../../services/findBotAndUser';
 import { generateOrderNumber } from '../../../../utils/generateOrderNumber';
-import { renderFile } from 'ejs';
-import { join } from 'path';
+import { isValidTelegramFormat } from '../../../../utils/validateTelegramFormat';
 import createDebug from 'debug';
 
 // 创建一个新的 Composer 实例
@@ -16,30 +15,6 @@ const tgStarsCallback = new Composer<MyContext>();
 const debug = createDebug('bot:tgStars');
 
 const TIMEOUT = 5 * 60 * 1000;
-
-// 验证TG用户名格式
-function isValidTelegramFormat(input: string): {
-  isValid: boolean;
-  username: string;
-} {
-  // 移除可能的@符号和t.me链接前缀
-  let username = input.trim();
-
-  // 处理t.me链接格式
-  if (username.includes('t.me/')) {
-    username = username.split('t.me/')[1];
-  }
-
-  // 移除开头的@符号
-  if (username.startsWith('@')) {
-    username = username.substring(1);
-  }
-
-  // Telegram用户名规则：5-32个字符，只允许字母数字和下划线
-  const isValid = /^[a-zA-Z0-9_]{5,32}$/.test(username);
-
-  return { isValid, username };
-}
 
 async function tgStarsConversation(
   conversation: Conversation<MyContext>,
@@ -133,7 +108,7 @@ async function tgStarsConversation(
       },
     );
 
-    const tgStarsOrder = new TgStarsOrder({
+    const newTgStar = new TgStar({
       id: generatedOrderNumber,
       botUser: botUser._id,
       bot: bot._id,
@@ -145,9 +120,9 @@ async function tgStarsConversation(
       expiredAt: new Date(Date.now() + 10 * 60 * 1000), // 当前时间 + 10分钟
     });
 
-    debug('tgStarsOrder', JSON.stringify(tgStarsOrder));
+    debug('TgStar', JSON.stringify(TgStar));
 
-    await tgStarsOrder.save();
+    await newTgStar.save();
   } catch (error) {
     debug('验证账号时出错:', error);
     await ctx.reply('❗ 验证账号时出现错误，请重新输入', {
@@ -159,13 +134,6 @@ async function tgStarsConversation(
 
 tgStarsCallback.use(createConversation(tgStarsConversation));
 
-// Handle stars button clicks
-// tgStarsCallback.callbackQuery(/^buy_stars_(.+)$/, async (ctx) => {
-//   await ctx.answerCallbackQuery();
-//   const amount = parseInt(ctx.match[1]);
-//   await ctx.conversation.enter('tgStarsConversation', { amount });
-// });
-
 tgStarsCallback.callbackQuery(/^buy_stars_/, async (ctx) => {
   const amount = parseInt(ctx.callbackQuery.data.replace('buy_stars_', ''));
   await ctx.answerCallbackQuery();
@@ -173,45 +141,30 @@ tgStarsCallback.callbackQuery(/^buy_stars_/, async (ctx) => {
   // 计算价格（50星星=1U）
   const price = (amount / 50).toFixed(2);
 
-  try {
-    const message = await renderFile(
-      join(__dirname, '../../../../templates/buyStars.ejs'),
-      {
-        membershipName: `${amount}颗星星`,
-        price: parseFloat(price),
-      },
-    );
+  const message = [
+    '🎉 尊敬的用户您好！',
+    '',
+    `📌 您已选择订购 ${amount}颗星星 服务`,
+    `💰 套餐价格：${price}U`,
+    '',
+    '✨ 开通步骤：',
+    '1️⃣ 请复制并发送您的Telegram账号信息，格式如下：',
+    '📤 用户名：@test',
+    '🔗 个人链接：https://t.me/test',
+    '',
+    '⚠️ 温馨提示：',
+    '• 请确保发送的账号信息准确无误',
+    '• 如有疑问请联系客服',
+  ].join('\n');
 
-    await ctx.reply(message, {
-      parse_mode: 'HTML',
-    });
+  await ctx.reply(message, {
+    parse_mode: 'HTML',
+  });
 
-    await ctx.conversation.enter('tgStarsConversation', {
-      amount: amount,
-      proxy: ctx.currentProxyUser,
-    });
-  } catch (error) {
-    debug('渲染buyStars模板出错:', error);
-    await ctx.reply('抱歉，处理您的请求时出现错误。请稍后再试。');
-  }
-});
-
-// 处理取消订单按钮点击
-tgStarsCallback.callbackQuery(/^cancel_stars_order_(.+)$/, async (ctx) => {
-  await ctx.answerCallbackQuery('订单已取消');
-  const orderNumber = ctx.match[1];
-
-  try {
-    const order = await TgStarsOrder.findOne({ id: orderNumber });
-    if (order) {
-      order.status = 'cancelled';
-      await order.save();
-      await ctx.editMessageText('订单已取消');
-    }
-  } catch (error) {
-    debug('取消订单时出错:', error);
-    await ctx.reply('取消订单时出现错误，请联系客服');
-  }
+  await ctx.conversation.enter('tgStarsConversation', {
+    amount: amount,
+    proxy: ctx.currentProxyUser,
+  });
 });
 
 export default tgStarsCallback;

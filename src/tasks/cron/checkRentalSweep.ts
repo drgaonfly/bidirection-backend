@@ -51,9 +51,6 @@ export async function checkRentalSweep() {
 
         const processed_balance = balance / 1e6; // (trx)
 
-        //  // 判断闪租的收款地址里有没有usdt
-        //   const usdtBalance = await tronWeb.trx.getBalance(receiveAddress, 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t');
-
         // 如果有，多少钱全部抓挠一个指定的地址
         if (processed_balance > 0) {
           const rentalSweep = await RentalSweep.create({

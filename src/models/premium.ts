@@ -1,40 +1,57 @@
-import mongoose, { Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 import { IBotUser } from './botUser';
 import { IBot } from './bot';
 import { IUser } from './user';
 
 export interface IPremium extends Document {
   id: string;
-  bot: mongoose.Schema.Types.ObjectId | IBot;
-  botUser: mongoose.Schema.Types.ObjectId | IBotUser;
-  limit_month: number; // 1, 3, 12
-  from_address: string;
-  to_address: string;
-  crypto_type: string;
+  botUser: Schema.Types.ObjectId | IBotUser;
+  bot: Schema.Types.ObjectId | IBot;
+  proxy: mongoose.Types.ObjectId | IUser;
+  status: string;
+  amount: number; // usdt
+  actualAmount: number; // 实际收款金额, usdt
+  months: number; // 开通月数
+  from: string;
+  to: string;
+  hash: string;
   tx_id: string;
   expiredAt: Date;
-  transactionAt: Date;
-  proxy: mongoose.Types.ObjectId | IUser;
 }
 
-const premiumSchema = new mongoose.Schema(
+const premiumSchema = new Schema<IPremium>(
   {
-    id: { type: String, required: true, unique: true },
-    bot: { type: mongoose.Schema.Types.ObjectId, ref: 'Bot', required: true },
+    id: { type: String, required: true, unique: true }, // 订单号
     botUser: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'BotUser',
       required: true,
-    },
-    limit_month: { type: Number, required: true, enum: [1, 3, 12] },
-    from_address: { type: String, required: true },
-    to_address: { type: String, required: false },
-    crypto_type: { type: String, required: true, enum: ['usdt', 'trx'] },
-    tx_id: { type: String, required: false },
-    expiredAt: { type: Date, required: true },
-    transactionAt: { type: Date, required: false },
-
+    }, // 关联的BotUser
+    bot: {
+      type: Schema.Types.ObjectId,
+      ref: 'Bot',
+      required: true,
+    }, // 关联的Bot
     proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
+    status: {
+      type: String,
+      enum: [
+        'pending', // 待支付
+        'success', // 已支付
+        'expired', // 已过期
+        'cancelled', // 已取消
+        'failed',
+      ],
+      default: 'pending',
+    }, // 订单状态
+    amount: { type: Number, required: true }, // 金额
+    actualAmount: { type: Number, required: false }, // 实际收款金额
+    months: { type: Number, required: false }, // 开通月数
+    from: { type: String, required: false }, // 付款地址
+    to: { type: String, required: true }, // 收款地址
+    hash: { type: String, required: false }, // 交易哈希
+    tx_id: { type: String, required: false }, // 交易ID
+    expiredAt: { type: Date, required: true }, // 过期日期
   },
   { timestamps: true },
 );

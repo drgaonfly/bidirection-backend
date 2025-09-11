@@ -3,13 +3,14 @@ import { createConversation, Conversation } from '@grammyjs/conversations';
 import { MyContext } from '../../../types';
 import { checkInProxy } from '../../../middlewares/checkInProxy';
 import { cancelKeyboard } from '../../../menus/inline/cacel';
+import { IUser } from '../../../../models/user';
+import { setWebhook } from '../../../../controllers/botController';
+import { createTrxWallet } from '../../../../utils/generateWallet';
 import Bot from '../../../../models/bot';
 import BotUser, { IBotUser } from '../../../../models/botUser';
-import { setWebhook } from '../../../../controllers/botController';
-import createDebug from 'debug';
 import Package from '../../../../models/package';
-import { createTrxWallet } from '../../../../utils/generateWallet';
-import mongoose from 'mongoose';
+import { encrypt } from '../../../../services/encrypt';
+import createDebug from 'debug';
 
 const debug = createDebug('bot:clone');
 const cloneConversationComposer = new Composer<MyContext>();
@@ -96,7 +97,7 @@ async function addBot(
   token: string,
   ctx: MyContext,
   botUser: IBotUser,
-  bound_proxy: mongoose.Schema.Types.ObjectId,
+  bound_proxy: IUser,
 ): Promise<{ success: boolean; message?: string }> {
   try {
     let bot = ctx.currentBot;
@@ -143,7 +144,7 @@ async function addBot(
 
     const price_pairs = await Package.find();
 
-    const { address, private_key } = await createTrxWallet();
+    const { address, privateKey } = await createTrxWallet();
 
     // 将当前用户作为新Bot的creator
     // 如果当前bot存在，设置新bot的clonedFrom为当前bot的_id，否则为null
@@ -159,7 +160,7 @@ async function addBot(
     newBot.message = bot?.message;
     newBot.contact = bot?.contact;
     newBot.energy_address = address;
-    newBot.energy_privateKey = private_key;
+    newBot.energy_privateKey = encrypt(privateKey);
     newBot.trx20_address = bot?.trx20_address || '';
     newBot.auto_exchange_address = bot?.auto_exchange_address || '';
 

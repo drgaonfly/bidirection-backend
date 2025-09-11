@@ -130,7 +130,6 @@ const getBots = handleAsync(async (req: RequestCustom, res: Response) => {
     .populate('clonedFrom')
     .populate('creator')
     .sort('-createdAt')
-    .select('-private_key -energy_privateKey')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
     .lean()

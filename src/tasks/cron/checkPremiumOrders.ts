@@ -1,5 +1,5 @@
 import { fetchTrc20Transactions } from '../../utils/fetchTransactions';
-import MemberOrder from '../../models/memberOrder';
+import Premium from '../../models/premium';
 import { buyTelegramPremium } from '../../utils/buyTelegramPremium';
 
 export async function checkPremiumOrders() {
@@ -7,7 +7,7 @@ export async function checkPremiumOrders() {
     console.log('[checkPremiumOrders] 开始检查所有待处理的会员订单...');
 
     // 查找所有pending状态的订单
-    const pendingOrders = await MemberOrder.find({
+    const pendingOrders = await Premium.find({
       status: 'pending',
     })
       .populate('botUser')
@@ -21,9 +21,9 @@ export async function checkPremiumOrders() {
 
     for (const order of pendingOrders) {
       // 检查是否过期
-      if (now > order.endDate) {
+      if (now > order.expiredAt) {
         console.log(
-          `[checkPremiumOrders] 订单 ${order.orderNumber} 已过期，更新状态为expired`,
+          `[checkPremiumOrders] 订单 ${order.id} 已过期，更新状态为expired`,
         );
         order.status = 'expired';
         await order.save();
@@ -31,10 +31,10 @@ export async function checkPremiumOrders() {
       }
 
       // 获取收款地址的USDT交易记录
-      const response = await fetchTrc20Transactions(order.paymentAddress);
+      const response = await fetchTrc20Transactions(order.to);
 
       console.log(
-        `[checkPremiumOrders] 订单 ${order.orderNumber} 收到 ${response.length} 条转账记录`,
+        `[checkPremiumOrders] 订单 ${order.id} 收到 ${response.length} 条转账记录`,
       );
 
       // 过滤出USDT转入记录
@@ -50,7 +50,7 @@ export async function checkPremiumOrders() {
 
       // 只计算转入的USDT
       const incomingTransfers = transfers.filter(
-        (t) => t.to_address === order.paymentAddress,
+        (t) => t.to_address === order.to,
       );
 
       // 计算总收到的USDT金额
@@ -67,40 +67,44 @@ export async function checkPremiumOrders() {
       const previousStatus = order.status;
       if (Math.abs(totalReceived - order.amount) <= AMOUNT_TOLERANCE) {
         console.log(
-          `[checkPremiumOrders] 订单 ${order.orderNumber} 收到足够金额，更新状态为paid`,
+          `[checkPremiumOrders] 订单 ${order.id} 收到足够金额，更新状态为paid`,
         );
         order.status = 'paid';
+
+        // 记录交易信息
+        if (incomingTransfers.length > 0) {
+          const latestTransfer =
+            incomingTransfers[incomingTransfers.length - 1];
+          order.from = latestTransfer.from_address;
+          order.hash = latestTransfer.transaction_id;
+        }
       }
 
       await order.save();
       console.log(
-        `[checkPremiumOrders] 订单 ${order.orderNumber} 更新完成，实际收到: ${totalReceived} USDT`,
+        `[checkPremiumOrders] 订单 ${order.id} 更新完成，实际收到: ${totalReceived} USDT`,
       );
 
       // 如果订单状态刚刚从pending变为paid，则为用户购买Telegram Premium
-      if (
-        previousStatus !== 'paid' &&
-        order.status === 'paid' &&
-        !order.hasPurchased
-      ) {
+      if (previousStatus !== 'paid' && order.status === 'paid') {
         console.log(
-          `[checkPremiumOrders] 订单 ${order.orderNumber} 状态变为已支付，开始为用户购买Telegram Premium`,
+          `[checkPremiumOrders] 订单 ${order.id} 状态变为已支付，开始为用户购买Telegram Premium`,
         );
 
         try {
           const purchased = await buyTelegramPremium(order._id.toString());
           if (purchased) {
             console.log(
-              `[checkPremiumOrders] 订单 ${order.orderNumber} 已成功购买Telegram Premium`,
+              `[checkPremiumOrders] 订单 ${order.id} 已成功购买Telegram Premium`,
             );
           } else {
             console.error(
-              `[checkPremiumOrders] 订单 ${order.orderNumber} 购买Telegram Premium失败`,
+              `[checkPremiumOrders] 订单 ${order.id} 购买Telegram Premium失败`,
             );
           }
         } catch (error) {
           console.error(
-            `[checkPremiumOrders] 为订单 ${order.orderNumber} 购买Telegram Premium时出错:`,
+            `[checkPremiumOrders] 为订单 ${order.id} 购买Telegram Premium时出错:`,
             error,
           );
         }

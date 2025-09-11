@@ -1,7 +1,7 @@
 import mongoose, { Schema, model, Document } from 'mongoose';
 import { IUser } from './user';
 
-interface ITgStarsOrder extends Document {
+interface ITgStar extends Document {
   id: string;
   botUser: Schema.Types.ObjectId;
   bot: Schema.Types.ObjectId;
@@ -16,7 +16,7 @@ interface ITgStarsOrder extends Document {
   expiredAt: Date;
 }
 
-const tgStarsOrderSchema = new Schema<ITgStarsOrder>(
+const tgStarSchema = new Schema<ITgStar>(
   {
     id: { type: String, required: true, unique: true }, // 订单号
     botUser: { type: Schema.Types.ObjectId, ref: 'BotUser', required: true }, // 关联BotUser
@@ -46,6 +46,6 @@ const tgStarsOrderSchema = new Schema<ITgStarsOrder>(
   },
 );
 
-const TgStarsOrder = model<ITgStarsOrder>('TgStarsOrder', tgStarsOrderSchema);
+const TgStar = model<ITgStar>('TgStar', tgStarSchema);
 
-export default TgStarsOrder;
+export default TgStar;

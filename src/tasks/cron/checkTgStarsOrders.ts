@@ -1,4 +1,4 @@
-import TgStarOrder from '../../models/tgStarsOrder';
+import TgStarOrder from '../../models/tgStar';
 import BotUser from '../../models/botUser';
 import Bot from '../../models/bot';
 import { setupBot } from '../../bot/botSetup';

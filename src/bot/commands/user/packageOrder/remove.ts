@@ -3,7 +3,7 @@ import { MyContext } from '../../../types';
 import Trash from '../../../../models/trash';
 import PackageOrder from '../../../../models/packageOrder';
 import PackageUsageRecord from '../../../../models/packageUsageRecord';
-import { getAdminUser } from '../../../../utils/buyTelegramPremium';
+import { getAdminUser } from '../../../../utils/getAdminUser';
 import { genericRecycleEnergyByAmount } from '../../../../utils/fetchTransactions';
 import createDebug from 'debug';
 

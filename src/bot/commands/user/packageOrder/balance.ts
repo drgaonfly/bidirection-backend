@@ -5,7 +5,7 @@ import PackageOrder from '../../../../models/packageOrder';
 import Deduction from '../../../../models/deduction';
 import { IdGen } from '../../../../utils/idGen';
 import { getExchangeRate } from '../../../../utils/getExchange';
-import { getAdminUser } from '../../../../utils/buyTelegramPremium';
+import { getAdminUser } from '../../../../utils/getAdminUser';
 import { findBotProxy } from '../../../../services/findBotProxy';
 import createDebug from 'debug';
 import RevenueShare from '../../../../models/revenueShare';

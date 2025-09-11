@@ -4,7 +4,7 @@ import {
   genericRecycleEnergyByAmount,
   genericSendEnergy,
 } from '../../utils/fetchTransactions';
-import { getAdminUser } from '../../utils/buyTelegramPremium';
+import { getAdminUser } from '../../utils/getAdminUser';
 import EnergyUsage from '../../models/energyUsage';
 import PackageOrder from '../../models/packageOrder';
 import { removeOrderUsagesIntoTrash } from '../../utils/removeIntoTrash';

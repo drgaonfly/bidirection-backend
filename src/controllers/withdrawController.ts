@@ -8,7 +8,7 @@ import { findBotProxy } from '../services/findBotProxy';
 import { isValidTronAddress } from '../utils/TronAddressTest';
 import { sendTRXByWithdraw } from '../utils/sendTRX';
 import { sendUSDTByWithdraw } from '../utils/sendUSDT';
-import { getAdminUser } from '../utils/buyTelegramPremium';
+import { getAdminUser } from '../utils/getAdminUser';
 
 const buildQuery = async (
   queryParams: any,

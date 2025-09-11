@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import Package from '../models/package';
 import handleAsync from '../utils/handleAsync';
 import { IdGen } from '../utils/idGen';
-import { getAdminUser } from '../utils/buyTelegramPremium';
+import { getAdminUser } from '../utils/getAdminUser';
 
 // 构建查询参数
 const buildQuery = (queryParams: any): any => {

@@ -9,7 +9,7 @@ import { IPackageUsageRecord } from '../models/packageUsageRecord';
 import UnRental, { IUnRental } from '../models/unrental';
 import PackageOrder from '../models/packageOrder';
 import EnergySend, { IEnergySend } from '../models/energySend';
-import { getAdminUser } from './buyTelegramPremium';
+import { getAdminUser } from './getAdminUser';
 import { decrypt } from '../services/encrypt';
 import { IRental } from '../models/rental';
 import { setupBot } from '../bot/botSetup';

@@ -4,7 +4,7 @@ import createDebug from 'debug';
 import Rental from '../../../../../models/rental';
 import * as QRCode from 'qrcode';
 import { InputFile } from 'grammy';
-import { getAdminUser } from '../../../../../utils/buyTelegramPremium';
+import { getAdminUser } from '../../../../../utils/getAdminUser';
 
 const confirmRentalCommand = new Composer<MyContext>();
 const debug = createDebug('bot:confirm-rental');

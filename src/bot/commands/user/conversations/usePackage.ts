@@ -5,7 +5,7 @@ import { createConversation, Conversation } from '@grammyjs/conversations';
 import { MyContext } from '../../../types';
 import { IBot } from '../../../../models/bot';
 import { IBotUser } from '../../../../models/botUser';
-import { getAdminUser } from '../../../../utils/buyTelegramPremium';
+import { getAdminUser } from '../../../../utils/getAdminUser';
 import { genericSendEnergy } from '../../../../utils/fetchTransactions';
 import { isValidTronAddress } from '../../../../utils/TronAddressTest';
 import { awardUserPoints, awardProxyPoints } from '../../../../utils/addPoints';

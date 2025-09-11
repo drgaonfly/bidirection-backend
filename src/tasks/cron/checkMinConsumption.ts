@@ -6,7 +6,7 @@ import {
   genericSendEnergy,
 } from '../../utils/fetchTransactions';
 import { awardUserPoints, awardProxyPoints } from '../../utils/addPoints';
-import { getAdminUser } from '../../utils/buyTelegramPremium';
+import { getAdminUser } from '../../utils/getAdminUser';
 import { removeOrderUsagesIntoTrash } from '../../utils/removeIntoTrash';
 import createDebug from 'debug';
 

@@ -11,7 +11,7 @@ import { exclude } from '../utils/handleData';
 import { RequestCustom } from 'user';
 import { redis } from '../utils/redis';
 import { v4 as uuidv4 } from 'uuid';
-import { getAdminUser } from '../utils/buyTelegramPremium';
+import { getAdminUser } from '../utils/getAdminUser';
 
 const login = handleAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;

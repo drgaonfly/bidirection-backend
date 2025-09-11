@@ -1,7 +1,7 @@
 import Bot from '../../models/bot';
 import RentalSweep from '../../models/rentalSweep';
 import { TronWeb } from 'tronweb';
-import { getAdminUser } from '../../utils/buyTelegramPremium';
+import { getAdminUser } from '../../utils/getAdminUser';
 import { sendTRXWithRentalSweep } from '../../utils/sendTRX';
 import createDebug from 'debug';
 

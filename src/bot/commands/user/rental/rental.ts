@@ -1,7 +1,7 @@
 import { Composer, InlineKeyboard, InputFile } from 'grammy';
 import { MyContext } from '../../../types';
 import { checkInBot } from '../../../middlewares/checkInBot';
-import { getAdminUser } from '../../../../utils/buyTelegramPremium';
+import { getAdminUser } from '../../../../utils/getAdminUser';
 import createDebug from 'debug';
 import fs from 'fs';
 import path from 'path';

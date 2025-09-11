@@ -4,7 +4,7 @@ import { MyContext } from '../../../types';
 import { IBot, IPricePair } from '../../../../models/bot';
 import { IBotUser } from '../../../../models/botUser';
 import { IBotUserConfig } from '../../../../models/botUserConfig';
-import { getAdminUser } from '../../../../utils/buyTelegramPremium';
+import { getAdminUser } from '../../../../utils/getAdminUser';
 import { getExchangeRate } from '../../../../utils/getExchange';
 import createDebug from 'debug';
 

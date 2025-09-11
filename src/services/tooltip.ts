@@ -1,5 +1,5 @@
 import { TronWeb } from 'tronweb';
-import { getAdminUser } from '../utils/buyTelegramPremium';
+import { getAdminUser } from '../utils/getAdminUser';
 
 // Initialize TronWeb with null private key, will be set after getting admin
 const tronWeb = new TronWeb({

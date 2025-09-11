@@ -9,7 +9,7 @@ import createDebug from 'debug';
 import { chargeOptions } from '../../../../../models/payment';
 import BotUser from '../../../../../models/botUser';
 import Bot, { IBot } from '../../../../../models/bot';
-import { getAdminUser } from '../../../../../utils/buyTelegramPremium';
+import { getAdminUser } from '../../../../../utils/getAdminUser';
 
 const debug = createDebug('bot:recharge:callback');
 

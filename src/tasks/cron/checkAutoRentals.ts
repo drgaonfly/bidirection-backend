@@ -6,7 +6,7 @@ import { rentEnergy } from '../../utils/fetchTransactions';
 import { TronWeb } from 'tronweb';
 import { findBotProxy } from '../../services/findBotProxy';
 import { awardProxyPoints } from '../../utils/addPoints';
-import { getAdminUser } from '../../utils/buyTelegramPremium';
+import { getAdminUser } from '../../utils/getAdminUser';
 import createDebug from 'debug';
 
 const tronWeb = new TronWeb({

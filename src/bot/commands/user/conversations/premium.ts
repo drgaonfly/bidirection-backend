@@ -164,7 +164,7 @@ async function premiumConversation(
       id: orderId,
       bot: bot._id,
       botUser: botUser._id,
-      proxy: proxy._id,
+      proxy: proxy?._id,
       months: limit_month,
       to: bot.trx20_address,
       status: 'pending',

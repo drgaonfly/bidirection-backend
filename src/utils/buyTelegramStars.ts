@@ -1,5 +1,5 @@
 import axios from 'axios';
-import TgStarOrder from '../models/star';
+import Star from '../models/star';
 
 /**
  * 调用 Telegram Stars API 给用户充值
@@ -8,7 +8,7 @@ import TgStarOrder from '../models/star';
  * @param orderId - 我们系统的订单 ID
  * @param stars - 要充值的星星数量
  */
-export async function buyTgStars(
+export async function buyTelegramStars(
   botToken: string,
   userId: number,
   orderId: number,
@@ -29,7 +29,7 @@ export async function buyTgStars(
     }
 
     // 更新订单状态
-    await TgStarOrder.findOneAndUpdate(
+    await Star.findOneAndUpdate(
       { id: orderId },
       {
         $set: {
@@ -41,12 +41,12 @@ export async function buyTgStars(
     );
 
     console.log(
-      `[buyTgStars] 订单 ${orderId} 充值 ${stars} 星星成功, tx_id=${data.result.transaction_id}`,
+      `[buyStars] 订单 ${orderId} 充值 ${stars} 星星成功, tx_id=${data.result.transaction_id}`,
     );
 
     return data.result;
   } catch (err) {
-    console.error(`[buyTgStars] 订单 ${orderId} 充值失败:`, err.message);
+    console.error(`[buyStars] 订单 ${orderId} 充值失败:`, err.message);
     throw err;
   }
 }

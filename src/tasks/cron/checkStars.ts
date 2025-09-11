@@ -1,10 +1,10 @@
-import StarOrder from '../../models/star';
-import BotUser from '../../models/botUser';
-import Bot from '../../models/bot';
 import { setupBot } from '../../bot/botSetup';
 import { fetchTrc20Transactions } from '../../utils/fetchTransactions';
-import { buyTgStars } from '../../utils/buyTelegramStars';
+import { buyTelegramStars } from '../../utils/buyTelegramStars';
+import StarOrder from '../../models/star';
+import BotUser from '../../models/botUser';
 import Group from '../../models/group';
+import Bot from '../../models/bot';
 import axios from 'axios';
 import createDebug from 'debug';
 
@@ -117,7 +117,7 @@ export async function checkStars() {
           continue;
         }
 
-        const result = await buyTgStars(
+        const result = await buyTelegramStars(
           process.env.SUPER_ADMIN_BOT_TOKEN,
           botUser.id,
           star.id,

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import TgStar from '../models/tgStar';
+import Star from '../models/star';
 import handleAsync from '../utils/handleAsync';
 import Bot from '../models/bot';
 import BotUser from '../models/botUser';
@@ -69,13 +69,13 @@ const buildQuery = async (
   return query;
 };
 
-export const getTgStars = handleAsync(
+export const getStars = handleAsync(
   async (req: RequestCustom, res: Response) => {
     const { current = '1', pageSize = '10' } = req.query;
 
     const query = await buildQuery(req.query, req);
 
-    const tgStars = await TgStar.find(query)
+    const stars = await Star.find(query)
       .populate('botUser')
       .populate('bot')
       .populate('proxy')
@@ -86,11 +86,11 @@ export const getTgStars = handleAsync(
       .lean()
       .exec();
 
-    const total = await TgStar.countDocuments(query).exec();
+    const total = await Star.countDocuments(query).exec();
 
     res.json({
       success: true,
-      data: tgStars,
+      data: stars,
       total,
       current: +current,
       pageSize: +pageSize,
@@ -98,81 +98,79 @@ export const getTgStars = handleAsync(
   },
 );
 
-export const getTgStarById = handleAsync(
-  async (req: Request, res: Response) => {
-    const tgStar = await TgStar.findOne({
-      _id: req.params.id,
-    })
-      .populate('botUser')
-      .populate('bot')
-      .lean();
+export const getStarById = handleAsync(async (req: Request, res: Response) => {
+  const star = await Star.findOne({
+    _id: req.params.id,
+  })
+    .populate('botUser')
+    .populate('bot')
+    .lean();
 
-    if (!tgStar) {
-      res.status(404);
-      throw new Error('TG Stars订单未找到');
-    }
+  if (!star) {
+    res.status(404);
+    throw new Error('Stars订单未找到');
+  }
 
-    res.json({
-      success: true,
-      data: tgStar,
-    });
-  },
-);
+  res.json({
+    success: true,
+    data: star,
+  });
+});
 
-export const createTgStar = handleAsync(async (req: Request, res: Response) => {
-  const tgStar = new TgStar({
+export const createStar = handleAsync(async (req: Request, res: Response) => {
+  const star = new Star({
     ...req.body,
     createdAt: new Date(),
   });
 
-  const savedTgStar = await tgStar.save();
+  const savedStar = await star.save();
 
   res.status(201).json({
     success: true,
-    data: savedTgStar,
+    data: savedStar,
   });
 });
 
-export const updateTgStar = handleAsync(async (req: Request, res: Response) => {
-  const tgStar = await TgStar.findByIdAndUpdate(req.params.id, req.body, {
+export const updateStar = handleAsync(async (req: Request, res: Response) => {
+  const star = await Star.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
   });
 
-  if (!tgStar) {
+  if (!star) {
     res.status(404);
-    throw new Error('TG Stars订单未找到');
+    throw new Error('Stars订单未找到');
   }
 
   res.json({
     success: true,
-    data: tgStar,
+    data: star,
   });
 });
 
-export const deleteTgStar = handleAsync(async (req: Request, res: Response) => {
-  const tgStar = await TgStar.deleteOne({
+export const deleteStar = handleAsync(async (req: Request, res: Response) => {
+  const star = await Star.deleteOne({
     _id: req.params.id,
   });
 
-  if (!tgStar) {
+  if (!star) {
     res.status(404);
-    throw new Error('TG Stars订单未找到');
+    throw new Error('Stars订单未找到');
   }
 
   res.json({
     success: true,
-    message: 'TG Stars订单已删除',
+    message: 'Stars订单已删除',
   });
 });
 
-export const deleteMultipleTgStars = handleAsync(
+export const deleteMultipleStars = handleAsync(
   async (req: Request, res: Response) => {
     const { ids } = req.body;
-    await TgStar.deleteMany({ _id: { $in: ids } });
+    await Star.deleteMany({ _id: { $in: ids } });
 
     res.json({
       success: true,
-      message: 'TG Stars订单批量删除成功',
+      message: 'Stars订单批量删除成功',
     });
   },
 );

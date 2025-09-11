@@ -1,18 +1,17 @@
 import setupDB from '../utils/db';
 import { setupRedis } from '../utils/redis';
-import { checkPremiumOrders } from './cron/checkPremiumOrders';
+import { checkPremiums } from './cron/checkPremiums';
 import { checkExpiredAnynoumy } from './cron/expiredAnynoumy';
-import { checkTgStarsOrders } from './cron/checkTgStarsOrders';
+import { checkStars } from './cron/checkStars';
 
-// 每天 0 点 五分跑
 const task = async () => {
   await setupDB();
   await setupRedis();
   console.log('当前时间:', new Date().toLocaleString());
-  console.log('开始执行扣低消任务...');
+  console.log('开始执行电报会员任务...');
 
-  await checkPremiumOrders(); // 检查购买会员订单
-  await checkTgStarsOrders(); //电报星星订单
+  await checkPremiums(); // 检查购买会员订单
+  await checkStars(); //电报星星订单
   await checkExpiredAnynoumy();
 };
 

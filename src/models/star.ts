@@ -1,7 +1,7 @@
 import mongoose, { Schema, model, Document } from 'mongoose';
 import { IUser } from './user';
 
-interface ITgStar extends Document {
+interface IStar extends Document {
   id: string;
   botUser: Schema.Types.ObjectId;
   bot: Schema.Types.ObjectId;
@@ -9,14 +9,14 @@ interface ITgStar extends Document {
   status: string;
   paymentAddress: string;
   amount: number;
-  stars: number;
+  count: number;
   actualAmount: number;
   hash: string; // 接受哈希
   tx_id: string; // api完成交易后发送的哈希
   expiredAt: Date;
 }
 
-const tgStarSchema = new Schema<ITgStar>(
+const starSchema = new Schema<IStar>(
   {
     id: { type: String, required: true, unique: true }, // 订单号
     botUser: { type: Schema.Types.ObjectId, ref: 'BotUser', required: true }, // 关联BotUser
@@ -36,7 +36,7 @@ const tgStarSchema = new Schema<ITgStar>(
     paymentAddress: { type: String, required: true }, // 收款地址
     amount: { type: Number, required: true }, // 支付金额
     actualAmount: { type: Number, required: false }, // 实际收款金额
-    stars: { type: Number, required: true }, // 星星数量
+    count: { type: Number, required: true }, // 星星数量
     hash: { type: String, required: false }, // 接受哈希
     tx_id: { type: String, required: false }, // api完成交易后发送的哈希
     expiredAt: { type: Date, required: true }, // 订单结束时间
@@ -46,6 +46,6 @@ const tgStarSchema = new Schema<ITgStar>(
   },
 );
 
-const TgStar = model<ITgStar>('TgStar', tgStarSchema);
+const Star = model<IStar>('Star', starSchema);
 
-export default TgStar;
+export default Star;

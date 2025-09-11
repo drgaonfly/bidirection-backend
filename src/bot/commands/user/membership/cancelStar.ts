@@ -1,6 +1,6 @@
 import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
-import TgStar from '../../../../models/tgStar';
+import TgStar from '../../../../models/star';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:cancelStar');

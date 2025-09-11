@@ -1,69 +1,70 @@
 import axios from 'axios';
-import BotUser from '../models/botUser';
 import { IPremium } from '../models/premium';
 
-/**
- * 赠送Telegram Premium订阅
- * @param userId - 接收者的用户ID
- * @param monthCount - 月数（3、6或12）
- * @param starCount - 订阅所需的星星数量（3个月1000颗，6个月1500颗，12个月2500颗）
- * @param text - 可选的附带文本（0-128个字符）
- * @param textParseMode - 可选的文本解析模式（如粗体、斜体）
- * @param textEntities - 可选的消息格式化特殊实体数组
- * @returns Promise<boolean> - 如果赠送成功返回true，失败返回false
- */
+async function callFragmentAPI(data: any): Promise<any> {
+  const response = await axios.post(
+    `https://fragment.com/api?hash=${process.env.PREMIUM_COOKIE}`,
+    data,
+  );
+  return response.data;
+}
 
 export async function buyTelegramPremium(order: IPremium): Promise<boolean> {
-  const userId = await BotUser.findById(order.botUser);
-  const monthCount = order.months;
-  const starCount = monthCount === 3 ? 1000 : monthCount === 6 ? 1500 : 2500;
-
-  // 验证月数和星星数量参数
-  if (![3, 6, 12].includes(monthCount)) {
-    console.error('无效的月数。应该是3、6或12。');
-    return false;
-  }
-
-  if (![1000, 1500, 2500].includes(starCount)) {
-    console.error(
-      '无效的星星数量。3个月应该是1000颗，6个月应该是1500颗，12个月应该是2500颗。',
-    );
-    return false;
-  }
-
   try {
-    // 准备订阅数据
-    const data = {
-      user_id: userId,
-      month_count: monthCount,
-      star_count: starCount,
+    console.warn('开始处理Premium订单:', order.id);
+
+    const searchRecipientData = {
+      query: order.userName,
+      months: order.months,
+      method: 'searchPremiumGiftRecipient',
     };
 
-    // 向Telegram Premium赠送服务发送模拟API请求
-    const response = await axios.post(
-      `https://api.telegram.org/bot<${process.env.SUPER_ADMIN_BOT_TOKEN}>/giftPremiumSubscription`,
-      data,
-    );
+    console.warn('搜索接收者:', searchRecipientData);
+    const searchResult = await callFragmentAPI(searchRecipientData);
 
-    if (response.data.ok) {
-      console.log(`成功为用户 ${userId} 赠送了 ${monthCount} 个月的Premium`);
-
-      order.status = 'success';
-      await order.save();
-
-      return true;
-    } else {
-      console.error(
-        `为用户 ${userId} 赠送Telegram Premium失败: ${response.data.error}`,
-      );
-
+    if (!searchResult.ok) {
+      console.warn('搜索失败:', searchResult);
       order.status = 'failed';
       await order.save();
-
       return false;
     }
+
+    const initRequestData = {
+      recipient: searchResult.found.recipient,
+      months: order.months,
+      method: 'initGiftPremiumRequest',
+    };
+
+    console.warn('初始化请求:', initRequestData);
+    const initResult = await callFragmentAPI(initRequestData);
+
+    if (!initResult.ok) {
+      console.warn('初始化失败:', initResult);
+      return false;
+    }
+
+    const getLinkData = {
+      id: initResult.req_id,
+      show_sender: 1,
+      method: 'getGiftPremiumLink',
+    };
+
+    console.warn('获取链接:', getLinkData);
+    const linkResult = await callFragmentAPI(getLinkData);
+
+    if (linkResult.body.params.response_options.broadcast) {
+      console.warn('订阅成功:', order.id);
+      order.status = 'success';
+      order.isPurchased = true;
+      order.callback_url = linkResult.body.params.response_options.callback_url;
+      await order.save();
+      return true;
+    }
+
+    console.warn('订阅失败:', order.id);
+    return false;
   } catch (error) {
-    console.error('赠送Telegram Premium订阅时发生错误:', error);
+    console.warn('处理异常:', order.id, error.message);
     return false;
   }
 }

@@ -8,6 +8,7 @@ export interface IPremium extends Document {
   botUser: Schema.Types.ObjectId | IBotUser;
   bot: Schema.Types.ObjectId | IBot;
   proxy: mongoose.Types.ObjectId | IUser;
+  userName: string;
   status: string;
   amount: number; // usdt
   actualAmount: number; // 实际收款金额, usdt
@@ -15,7 +16,9 @@ export interface IPremium extends Document {
   from: string;
   to: string;
   hash: string;
-  tx_id: string;
+  callback_url: string;
+  error: string;
+  isPurchased: boolean;
   expiredAt: Date;
 }
 
@@ -32,7 +35,12 @@ const premiumSchema = new Schema<IPremium>(
       ref: 'Bot',
       required: true,
     }, // 关联的Bot
-    proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
+    proxy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
+    }, // 代理
+    userName: { type: String, required: false }, // 用户名
     status: {
       type: String,
       enum: [
@@ -50,7 +58,9 @@ const premiumSchema = new Schema<IPremium>(
     from: { type: String, required: false }, // 付款地址
     to: { type: String, required: true }, // 收款地址
     hash: { type: String, required: false }, // 交易哈希
-    tx_id: { type: String, required: false }, // 交易ID
+    callback_url: { type: String, required: false },
+    isPurchased: { type: Boolean, required: false }, // 交易ID
+    error: { type: String, required: false },
     expiredAt: { type: Date, required: true }, // 过期日期
   },
   { timestamps: true },

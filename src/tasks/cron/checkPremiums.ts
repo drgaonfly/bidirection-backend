@@ -1,6 +1,9 @@
 import { fetchTrc20Transactions } from '../../utils/fetchTransactions';
 import { buyTelegramPremium } from '../../utils/buyTelegramPremium';
+import { setupBot } from '../../bot/botSetup';
 import Premium from '../../models/premium';
+import BotUser from '../../models/botUser';
+import Bot from '../../models/bot';
 
 export async function checkPremiums() {
   try {
@@ -20,6 +23,10 @@ export async function checkPremiums() {
     const now = new Date();
 
     for (const order of pendingOrders) {
+      const bot = await Bot.findById(order.bot);
+
+      const botUser = await BotUser.findById(order.botUser);
+
       // 检查是否过期
       if (now > order.expiredAt) {
         console.log(
@@ -97,6 +104,19 @@ export async function checkPremiums() {
             console.log(
               `[checkPremiums] 订单 ${order.id} 已成功购买Telegram Premium`,
             );
+
+            try {
+              const telegramBot = await setupBot(bot.token);
+
+              const message = [`${order.callback_url}`].join('\n');
+
+              await telegramBot.api.sendMessage(botUser.id, message);
+            } catch (error) {
+              console.error(
+                `[checkPremiums] 发送Telegram消息失败, 订单 ${order.id}:`,
+                error,
+              );
+            }
           } else {
             console.error(
               `[checkPremiums] 订单 ${order.id} 购买Telegram Premium失败`,
@@ -107,6 +127,10 @@ export async function checkPremiums() {
             `[checkPremiums] 为订单 ${order.id} 购买Telegram Premium时出错:`,
             error,
           );
+
+          order.error = error;
+
+          await order.save();
         }
       }
     }

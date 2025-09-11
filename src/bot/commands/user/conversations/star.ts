@@ -60,7 +60,7 @@ async function starConversation(
 
   if (!isValid) {
     await ctx.reply(
-      '❗ 账号格式无效，请重新输入\n例如：@username 或 https://t.me/username',
+      '❗ 账号格式无效，请重新输入\n例如: @username 或 https://t.me/username',
       {
         reply_markup: new InlineKeyboard().text('❌ 取消', 'close'),
       },

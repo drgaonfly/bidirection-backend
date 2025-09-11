@@ -92,10 +92,11 @@ export const getPremiums = handleAsync(
 
     const premiums = await Premium.find(query)
       .sort('-createdAt')
-      .skip((+current - 1) * +pageSize)
-      .limit(+pageSize)
       .populate('botUser')
       .populate('bot')
+      .populate('proxy')
+      .skip((+current - 1) * +pageSize)
+      .limit(+pageSize)
       .lean()
       .exec();
 

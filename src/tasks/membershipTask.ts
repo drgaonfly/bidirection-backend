@@ -1,7 +1,7 @@
 import setupDB from '../utils/db';
 import { setupRedis } from '../utils/redis';
 import { checkPremiums } from './cron/checkPremiums';
-import { checkExpiredAnynoumy } from './cron/expiredAnynoumy';
+// import { checkExpiredAnynoumy } from './cron/expiredAnynoumy';
 import { checkStars } from './cron/checkStars';
 
 const task = async () => {
@@ -12,7 +12,7 @@ const task = async () => {
 
   await checkPremiums(); // 检查购买会员订单
   await checkStars(); //电报星星订单
-  await checkExpiredAnynoumy();
+  // await checkExpiredAnynoumy();
 };
 
 // 执行任务并在完成后退出进程

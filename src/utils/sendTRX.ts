@@ -241,18 +241,23 @@ export async function sendTRXWithRentalSweep(
 
   console.log('------ fromPrivateKey:', fromPrivateKey);
 
-  const tronWeb = new TronWeb({
-    fullHost: TRONGRID_API,
-    privateKey: fromPrivateKey,
-  });
-
-  console.log('------ sendTRX 开始 ------');
   if (!fromPrivateKey) {
     console.log('------ fromPrivateKey 为空:', fromPrivateKey);
     throw new Error('私钥不能为空');
   }
 
-  const fromAddress = tronWeb.address.fromPrivateKey(decrypt(fromPrivateKey));
+  const decrypted_fromPrivateKey = decrypt(fromPrivateKey);
+
+  console.log('------ decrypted_fromPrivateKey:', decrypted_fromPrivateKey);
+
+  const tronWeb = new TronWeb({
+    fullHost: TRONGRID_API,
+    privateKey: decrypted_fromPrivateKey,
+  });
+
+  console.log('------ sendTRX 开始 ------');
+
+  const fromAddress = tronWeb.address.fromPrivateKey(decrypted_fromPrivateKey);
   console.log('------ fromAddress:', fromAddress);
   console.log('------ toAddress:', toAddress);
   console.log('------ trxAmount:', trxAmount);

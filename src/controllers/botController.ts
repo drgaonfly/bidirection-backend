@@ -1,18 +1,19 @@
 import { Request, Response } from 'express';
 import Bot, { IBot } from '../models/bot';
-import handleAsync from '../utils/handleAsync';
-import User from '../models/user';
-import Package from '../models/package';
-import BotUser from '../models/botUser';
 import { printWebhookInfo, setupBot } from '../bot/botSetup';
 import { RequestCustom } from 'user';
 import { isProxy, isEmployee } from '../middlewares/authMiddleware';
 import { getUserByUsername } from '../bot/commands/user/operator/add';
-import { encrypt } from '../services/encrypt';
+import { encrypt, decrypt } from '../services/encrypt';
 import { createTrxWallet } from '../utils/generateWallet';
 import { InputFile } from 'grammy';
 import { generateSignedUrl } from '../utils/generateSignedUrl';
 import { transformDocumentImage } from '../utils/transformUtils';
+import RentalChange from '../models/rentalChange';
+import handleAsync from '../utils/handleAsync';
+import User from '../models/user';
+import Package from '../models/package';
+import BotUser from '../models/botUser';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -624,6 +625,13 @@ const addTronAddress = handleAsync(
       res.status(400);
       throw new Error('bot不存在');
     }
+
+    new RentalChange({
+      energy_address: bot.energy_address,
+      energy_privateKey: bot.energy_privateKey
+        ? decrypt(bot.energy_privateKey)
+        : null,
+    });
 
     const { address, privateKey } = await createTrxWallet();
 

@@ -625,22 +625,17 @@ const addTronAddress = handleAsync(
       throw new Error('bot不存在');
     }
 
-    if (!bot.energy_address) {
-      const { address, private_key } = await createTrxWallet();
+    const { address, privateKey } = await createTrxWallet();
 
-      bot.energy_address = address;
-      bot.energy_privateKey = private_key;
+    bot.energy_address = address;
+    bot.energy_privateKey = privateKey;
 
-      await bot.save();
+    await bot.save();
 
-      res.status(201).json({
-        success: true,
-        data: bot,
-      });
-    } else {
-      res.status(400);
-      throw new Error('bot已经存在能量地址');
-    }
+    res.status(201).json({
+      success: true,
+      data: bot,
+    });
   },
 );
 

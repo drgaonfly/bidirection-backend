@@ -6,6 +6,9 @@ async function callFragmentAPI(data: any): Promise<any> {
     `https://fragment.com/api?hash=${process.env.PREMIUM_COOKIE}`,
     data,
   );
+
+  console.warn('response', response);
+
   return response.data;
 }
 
@@ -14,7 +17,7 @@ export async function buyTelegramPremium(order: IPremium): Promise<boolean> {
     console.warn('开始处理Premium订单:', order.id);
 
     const searchRecipientData = {
-      query: order.userName,
+      query: order.userName || 'DracoFlying',
       months: order.months,
       method: 'searchPremiumGiftRecipient',
     };

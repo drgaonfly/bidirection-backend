@@ -534,6 +534,9 @@ async function unRentEnergy(rental: IRental): Promise<any> {
   } catch (error) {
     console.error('[unRentEnergy] 解除租赁能量失败:', error);
 
+    rental.status = 'failed';
+    await rental.save();
+
     unRental.status = 'failed';
     unRental.error = JSON.stringify(error);
     await unRental.save();

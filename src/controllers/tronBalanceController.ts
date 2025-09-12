@@ -61,7 +61,10 @@ export const getTronBalances = handleAsync(
     const { current = '1', pageSize = '10' } = req.query;
 
     // 先查出在线 bot
-    const bots = await Bot.find({ isOnline: true }).select('+energy_address');
+    const bots = await Bot.find({
+      isOnline: true,
+      energy_privateKey: { $exists: true, $ne: '' },
+    }).select('+energy_privateKey +energy_address');
 
     for (const bot of bots) {
       if (!bot.energy_address) continue;

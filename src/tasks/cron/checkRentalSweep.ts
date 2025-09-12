@@ -62,7 +62,7 @@ export async function checkRentalSweep() {
           });
 
           console.warn(
-            `[checkRentalSweep] bot: ${bot.id} 闪租地址 ${bot.energy_address}  ${balance} TRX, 开始转移`,
+            `[checkRentalSweep] bot: ${bot.id} 闪租地址 ${bot.energy_address}  ${processed_balance} TRX, 开始转移`,
           );
 
           const txid = await sendTRXWithRentalSweep(

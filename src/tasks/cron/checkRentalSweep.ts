@@ -32,7 +32,7 @@ export async function checkRentalSweep() {
     // 查询所有待处理的充值订单（pending 且 type 为 recharge）
     const bots = await Bot.find({
       isOnline: true,
-      energy_privateKey: { $ne: null, exists: true },
+      energy_privateKey: { $exists: true, $ne: null },
     }).select('+energy_privateKey');
 
     console.log(`[checkRentalSweep] 查询到 ${bots.length} 个在线的机器人`);

@@ -208,6 +208,17 @@ export const generateBoundProxy = handleAsync(
 
     const botUser = await BotUser.findById(id);
 
+    // 检查该用户是否已经在任何机器人中绑定了代理
+    const existingBotUserWithProxy = await BotUser.findOne({
+      id: botUser.id,
+      bound_proxy: { $exists: true, $ne: null },
+    });
+
+    if (existingBotUserWithProxy) {
+      res.status(400);
+      throw new Error('该用户已经拥有代理账户，无法重复生成');
+    }
+
     const newUser = new User({
       ...req.body,
       id: newId,
@@ -230,7 +241,23 @@ export const generateBoundProxy = handleAsync(
       bound_proxy: newUser._id,
     }).exec();
 
-    const botManager = await Bot.findOne({ botUsers: { $in: id } });
+    // 首先通过 BotUser 的 bots 字段或者通过 Application 记录来找到对应的机器人
+    let botManager = await Bot.findOne({ botUsers: { $in: [botUser._id] } });
+
+    if (!botManager) {
+      // 如果通过 botUsers 找不到，尝试通过 Application 记录找到机器人
+      const existingApplication = await Application.findOne({
+        botUser: botUser._id,
+      }).populate('bot');
+      if (existingApplication && existingApplication.bot) {
+        botManager = existingApplication.bot as any;
+        console.log('通过 Application 找到机器人:', botManager._id);
+      } else {
+        console.error('无法找到对应的机器人');
+        res.status(400);
+        throw new Error('无法找到对应的机器人');
+      }
+    }
 
     const telegramBot = setupBot(botManager.token);
 
@@ -257,16 +284,52 @@ export const generateBoundProxy = handleAsync(
       throw new Error('发送消息失败');
     }
 
-    const app = await Application.findOneAndUpdate(
-      { botUser: botUser._id },
-      {
-        $set: {
-          status: 'approved',
-        },
-      },
-    );
+    // 更新对应机器人的申请状态为已批准
+    console.log('botManager:', botManager?._id);
+    console.log('botUser._id:', botUser._id);
 
-    console.log('app', app);
+    // 先查找申请记录，如果没有指定机器人则查找任意待审批的申请
+    let app = null;
+    if (botManager) {
+      app = await Application.findOneAndUpdate(
+        {
+          botUser: botUser._id,
+          bot: botManager._id,
+          status: 'pending',
+        },
+        {
+          $set: {
+            status: 'approved',
+          },
+        },
+        { new: true },
+      );
+    }
+
+    // 如果上面没找到，尝试找到任意一个待审批的申请记录
+    if (!app) {
+      app = await Application.findOneAndUpdate(
+        {
+          botUser: botUser._id,
+          status: 'pending',
+        },
+        {
+          $set: {
+            status: 'approved',
+          },
+        },
+        { new: true },
+      );
+    }
+
+    console.log('Updated application:', app);
+
+    if (!app) {
+      console.error('未找到对应的待审批申请记录');
+      // 查找所有相关的申请记录用于调试
+      const allApplications = await Application.find({ botUser: botUser._id });
+      console.log('该用户的所有申请记录:', allApplications);
+    }
 
     res.json({
       success: true,
@@ -300,7 +363,23 @@ export const rejectApplication = handleAsync(
 
     const botUser = await BotUser.findById(id);
 
-    const botManager = await Bot.findOne({ botUsers: { $in: id } });
+    // 首先通过 BotUser 的 bots 字段或者通过 Application 记录来找到对应的机器人
+    let botManager = await Bot.findOne({ botUsers: { $in: [botUser._id] } });
+
+    if (!botManager) {
+      // 如果通过 botUsers 找不到，尝试通过 Application 记录找到机器人
+      const existingApplication = await Application.findOne({
+        botUser: botUser._id,
+      }).populate('bot');
+      if (existingApplication && existingApplication.bot) {
+        botManager = existingApplication.bot as any;
+        console.log('通过 Application 找到机器人:', botManager._id);
+      } else {
+        console.error('无法找到对应的机器人');
+        res.status(400);
+        throw new Error('无法找到对应的机器人');
+      }
+    }
 
     const telegramBot = setupBot(botManager.token);
 
@@ -318,7 +397,10 @@ export const rejectApplication = handleAsync(
     }
 
     const app = await Application.findOneAndUpdate(
-      { botUser: botUser._id },
+      {
+        botUser: botUser._id,
+        bot: botManager._id,
+      },
       {
         $set: {
           status,
@@ -334,76 +416,6 @@ export const rejectApplication = handleAsync(
     });
   },
 );
-
-//机器人发送消息
-// const sendMessage = handleAsync(async (req: Request, res: Response) => {
-//   const { id } = req.params;
-//   const { message } = req.body;
-
-//   if (!id) {
-//     res.status(400);
-//     throw new Error('用户ID不能为空');
-//   }
-
-//   if (!message) {
-//     res.status(400);
-//     throw new Error('消息内容不能为空');
-//   }
-
-//   // 查找 botUser 记录并关联 bot 信息
-//   const botUser = await BotUser.findById(id)
-//     .populate('bot')
-//     .populate('messages');
-
-//   if (!botUser) {
-//     res.status(404);
-//     throw new Error('未找到该用户与机器人的关联记录');
-//   }
-
-//   // 获取关联的 bot 实例
-//   const bot = botUser.bot as IBot;
-
-//   if (!bot.isOnline) {
-//     res.status(400);
-//     throw new Error('该机器人当前处于离线状态');
-//   }
-
-//   // 设置机器人实例
-//   const telegramBot = setupBot(bot.token);
-
-//   let messageType = 'received';
-
-//   try {
-//     // 发送消息
-//     await telegramBot.api.sendMessage(botUser.id, message);
-//   } catch (error) {
-//     messageType = 'error';
-//     console.error('发送消息失败:', error);
-//     throw new Error('发送消息失败');
-//   }
-
-//   // 创建新消息
-//   const newMessage = new BotUserMessage({
-//     content: message,
-//     type: messageType,
-//     bot: bot._id,
-//     botUser: botUser._id,
-//   });
-//   await newMessage.save();
-
-//   botUser.messages.push(newMessage._id);
-//   await botUser.save();
-
-//   res.json({
-//     success: true,
-//     data: {
-//       message: '消息发送成功',
-//       botUser: botUser.userName,
-//       content: message,
-//       type: 'received',
-//     },
-//   });
-// });
 
 export {
   getbotUsers,

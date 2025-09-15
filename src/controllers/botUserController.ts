@@ -185,6 +185,20 @@ export const generateBoundProxy = handleAsync(
       throw new Error('用户不存在');
     }
 
+    // 首先检查该 Telegram 用户是否在其他机器人上有处理中的申请
+    const allBotUsersForThisUser = await BotUser.find({ id: botUser.id });
+    const allBotUserIds = allBotUsersForThisUser.map((bu) => bu._id);
+
+    const existingProcessingApplication = await Application.findOne({
+      botUser: { $in: allBotUserIds },
+      status: 'processing',
+    });
+
+    if (existingProcessingApplication) {
+      res.status(400);
+      throw new Error('该用户的申请正在处理中，请稍后再试');
+    }
+
     // 检查是否存在待处理的申请，并原子性地将其标记为处理中
     const pendingApplication = await Application.findOneAndUpdate(
       {
@@ -330,6 +344,25 @@ export const generateBoundProxy = handleAsync(
         { new: true },
       );
 
+      // 将该用户在其他机器人上的所有待处理申请都标记为已拒绝
+      const otherPendingApplications = await Application.updateMany(
+        {
+          botUser: { $in: allBotUserIds },
+          _id: { $ne: pendingApplication._id }, // 排除当前已批准的申请
+          status: 'pending',
+        },
+        {
+          $set: {
+            status: 'rejected',
+            remark: '用户已在其他机器人获得代理账户',
+          },
+        },
+      );
+
+      console.log(
+        '已拒绝其他待处理申请数量:',
+        otherPendingApplications.modifiedCount,
+      );
       console.log('申请处理完成:', app);
 
       res.json({

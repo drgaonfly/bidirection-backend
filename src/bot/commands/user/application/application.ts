@@ -18,12 +18,6 @@ export async function handleApplicationCommand(ctx: MyContext) {
 
   const botUser = ctx.currentBotUser;
 
-  // 检查当前机器人的申请状态
-  const existApplication = await Application.findOne({
-    bot: bot._id,
-    botUser: botUser._id,
-  });
-
   // 检查该用户是否已经在任何机器人中绑定了代理
   const existingBotUserWithProxy = await BotUser.findOne({
     id: botUser.id,
@@ -59,10 +53,30 @@ export async function handleApplicationCommand(ctx: MyContext) {
     return;
   }
 
-  if (existApplication && existApplication.status === 'pending') {
-    await ctx.reply('您已经提交过代理申请了，请等待审核结果');
+  // 检查该 Telegram 用户是否在任何机器人上都有待处理的申请
+  // 首先找到该 Telegram 用户在所有机器人上的 BotUser 记录
+  const allBotUsersForThisUser = await BotUser.find({ id: botUser.id });
+  const allBotUserIds = allBotUsersForThisUser.map((bu) => bu._id);
+
+  const existingPendingApplication = await Application.findOne({
+    botUser: { $in: allBotUserIds },
+    status: { $in: ['pending', 'processing'] },
+  }).populate('bot');
+
+  if (existingPendingApplication) {
+    const botName =
+      (existingPendingApplication.bot as any)?.botName || '其他机器人';
+    await ctx.reply(
+      `您已经在机器人 "${botName}" 上提交过代理申请了，请等待审核结果。\n\n一个用户只能同时有一个待处理的申请。`,
+    );
     return;
   }
+
+  // 检查当前机器人的申请状态
+  const existApplication = await Application.findOne({
+    bot: bot._id,
+    botUser: botUser._id,
+  });
 
   if (existApplication && ctx.currentBotUser.bound_proxy) {
     await ctx.reply(

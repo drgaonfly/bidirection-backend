@@ -6,7 +6,7 @@ export async function getAdminUser() {
   // 先查找这个管理员是否存在
   const admin = await User.findOne(
     { _id: adminId },
-    '+energy_privateKey +withdraw_privateKey',
+    '+energy_privateKey +withdraw_privateKey +mnemonic',
   );
 
   if (!admin) {

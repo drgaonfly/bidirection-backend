@@ -71,6 +71,10 @@ export interface IUser extends Document {
   all_trx_to: string; // 所有闪租收款地址的trx到这个地址
 
   plain_password: string; // 明文密码
+
+  fragment_hash?: string;
+
+  fragment_cookie?: string;
 }
 
 const pricePairSchema = new mongoose.Schema({
@@ -169,6 +173,10 @@ const userSchema = new mongoose.Schema(
     all_trx_to: { type: String, required: false },
 
     plain_password: { type: String, select: false },
+
+    fragment_hash: { type: String, required: false },
+
+    fragment_cookie: { type: String, required: false },
   },
   {
     timestamps: true,

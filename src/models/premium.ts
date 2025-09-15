@@ -17,8 +17,11 @@ export interface IPremium extends Document {
   to: string;
   hash: string;
   callback_url: string;
+  payload: string;
+  receiving_address: string;
+  receiving_amount: number; // ton
   error: string;
-  isPurchased: boolean;
+  tx_id: string;
   expiredAt: Date;
 }
 
@@ -59,7 +62,10 @@ const premiumSchema = new Schema<IPremium>(
     to: { type: String, required: true }, // 收款地址
     hash: { type: String, required: false }, // 交易哈希
     callback_url: { type: String, required: false },
-    isPurchased: { type: Boolean, required: false }, // 交易ID
+    receiving_address: { type: String, required: false },
+    payload: { type: String, required: false },
+    receiving_amount: { type: Number, required: false },
+    tx_id: { type: String, required: false },
     error: { type: String, required: false },
     expiredAt: { type: Date, required: true }, // 过期日期
   },

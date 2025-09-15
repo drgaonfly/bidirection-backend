@@ -169,6 +169,7 @@ async function premiumConversation(
       to: bot.trx20_address,
       status: 'pending',
       amount: PREMIUM_CONFIG.PRICES[duration],
+      userName: username,
       expiredAt,
     });
 

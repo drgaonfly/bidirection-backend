@@ -10,9 +10,7 @@ export async function checkPremiums() {
     console.log('[checkPremiums] 开始检查所有待处理的会员订单...');
 
     // 查找所有pending状态的订单
-    const pendingOrders = await Premium.find({
-      status: 'pending',
-    })
+    const pendingOrders = await Premium.find()
       .populate('botUser')
       .populate('bot');
 
@@ -30,7 +28,7 @@ export async function checkPremiums() {
       // 检查是否过期
       if (now > order.expiredAt) {
         console.log(
-          `[checkPremiums] 订单 ${order.id} 已过期，更新状态为expired`,
+          `[checkPremiums] 订单 ${order.id} 已过期, 更新状态为expired`,
         );
         order.status = 'expired';
         await order.save();
@@ -102,8 +100,8 @@ export async function checkPremiums() {
         );
 
         try {
-          const purchased = await buyTelegramPremium(order);
-          if (purchased) {
+          const isSuccess = await buyTelegramPremium(order);
+          if (isSuccess) {
             console.log(
               `[checkPremiums] 订单 ${order.id} 已成功购买Telegram Premium`,
             );

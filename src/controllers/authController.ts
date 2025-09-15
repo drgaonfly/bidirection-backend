@@ -237,6 +237,8 @@ const updateUserProfile = handleAsync(
       withdraw_privateKey,
       feedback_id,
       all_trx_to,
+      fragment_hash,
+      fragment_cookie,
     } = req.body;
     const user = await User.findById(req.user._id).select('+password');
 
@@ -283,6 +285,8 @@ const updateUserProfile = handleAsync(
       withdraw_address: withdraw_address,
       feedback_id: feedback_id,
       all_trx_to: all_trx_to,
+      fragment_hash: fragment_hash,
+      fragment_cookie: fragment_cookie,
     };
 
     if (energy_privateKey) {

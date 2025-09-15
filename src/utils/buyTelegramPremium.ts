@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { IPremium } from '../models/premium';
 import { getAdminUser } from './getAdminUser';
-import { decrypt } from '../services/encrypt';
-import { sendTON } from './sendTON';
+// import { decrypt } from '../services/encrypt';
+// import { sendTON } from './sendTON';
 
 export async function buyTelegramPremium(order: IPremium): Promise<boolean> {
   const adminUser = await getAdminUser();
@@ -16,7 +16,7 @@ export async function buyTelegramPremium(order: IPremium): Promise<boolean> {
     return false;
   }
 
-  const processed_mnemonic = decrypt(adminUser.mnemonic);
+  // const processed_mnemonic = decrypt(adminUser.mnemonic);
 
   // Fragment API headers
   const headers = {
@@ -100,7 +100,7 @@ export async function buyTelegramPremium(order: IPremium): Promise<boolean> {
       console.log('order saved', order);
 
       // sendTON
-      await sendTON(order, processed_mnemonic);
+      // await sendTON(order, processed_mnemonic);
     }
 
     return false;

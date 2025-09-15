@@ -123,7 +123,6 @@
     "speakeasy": "^2.0.0",
     "ssh2": "^1.16.0",
     "telegram": "^2.26.8",
-    "tonweb": "^0.0.66",
     "tonweb-mnemonic": "^1.0.1",
     "tronweb": "6.0.1",
     "tslib": "~2.6",

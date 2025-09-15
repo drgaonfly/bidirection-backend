@@ -62,14 +62,6 @@ export async function buyTelegramPremium(order: IPremium): Promise<boolean> {
       return false;
     }
 
-    const getLinkData = {
-      id: initResult.req_id,
-      show_sender: 1,
-      method: 'getGiftPremiumLink',
-    };
-
-    console.warn('获取链接:', getLinkData);
-
     const linkResult_url = `https://fragment.com/api?hash=${fragment_hash}&id=${initResult.req_id}&show_sender=1&method=getGiftPremiumLink`;
 
     const linkResponse = await axios.post(

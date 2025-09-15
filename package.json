@@ -4,6 +4,7 @@
   "description": "bot-backend",
   "type": "commonjs",
   "devDependencies": {
+    "@ledgerhq/hw-transport": "^6.31.10",
     "@types/ali-oss": "^6.16.11",
     "@types/axios": "^0.14.0",
     "@types/bcrypt": "^5.0.2",

@@ -5,11 +5,8 @@ import { checkInProxy } from '../../../middlewares/checkInProxy';
 import { cancelKeyboard } from '../../../menus/inline/cacel';
 import { IUser } from '../../../../models/user';
 import { setWebhook } from '../../../../controllers/botController';
-import { createTrxWallet } from '../../../../utils/generateWallet';
 import Bot from '../../../../models/bot';
 import BotUser, { IBotUser } from '../../../../models/botUser';
-import Package from '../../../../models/package';
-import { encrypt } from '../../../../services/encrypt';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:clone');
@@ -142,10 +139,6 @@ async function addBot(
     debug('[addBot] 创建新 Bot 实例...');
     const newBot = new Bot({ token });
 
-    const price_pairs = await Package.find();
-
-    const { address, privateKey } = await createTrxWallet();
-
     // 将当前用户作为新Bot的creator
     // 如果当前bot存在，设置新bot的clonedFrom为当前bot的_id，否则为null
     newBot.clonedFrom = bot?._id || null;
@@ -153,53 +146,13 @@ async function addBot(
     newBot.botUser = botUser?._id || null;
     newBot.user = bound_proxy;
     newBot.canBeCloned = true;
-    newBot.fee = bot?.downStream_fee;
-    newBot.downStream_fee = bot?.downStream_fee;
+    newBot.fee = bot?.fee;
     newBot.customer_service_link = bot?.customer_service_link;
     newBot.commands = bot?.commands;
     newBot.message = bot?.message;
     newBot.contact = bot?.contact;
-    newBot.energy_address = address;
-    newBot.energy_privateKey = encrypt(privateKey);
     newBot.trx20_address = bot?.trx20_address || '';
     newBot.auto_exchange_address = bot?.auto_exchange_address || '';
-
-    // 如果clonedFrom存在，就要将clonedFrom的price_pairs做处理，将每个price_pair 的出价作为newBot.price_pairs的每个price_pair的来价且售价也默认为来价
-    if (newBot.clonedFrom) {
-      // 不能直接赋值为普通对象数组，需要用 Model.create() 生成 mongoose 文档对象
-      const clonedFromBot = await Bot.findById(bot?._id);
-      if (clonedFromBot && Array.isArray(clonedFromBot.price_pairs)) {
-        // 重新构造 price_pairs，使用 newBot.price_pairs.push() 逐个添加
-        newBot.price_pairs = [];
-        for (const pair of clonedFromBot.price_pairs) {
-          // 注意：expenditure 取 sale，sale 也取 sale
-          newBot.price_pairs.push({
-            name: pair.name,
-            expenditure: pair.sale,
-            expiration: pair.expiration,
-            times: pair.times,
-            type: pair.type,
-            sale: pair.sale,
-          } as any);
-        }
-      } else {
-        newBot.price_pairs = [];
-      }
-    } else {
-      // price_pairs 是 Package 文档数组，需要转成普通对象
-      newBot.price_pairs = [];
-      for (const pair of price_pairs) {
-        // 注意：expenditure 取 sale，sale 也取 sale
-        newBot.price_pairs.push({
-          name: pair.name,
-          expenditure: pair.expenditure,
-          expiration: pair.expiration,
-          times: pair.times,
-          type: pair.type,
-          sale: pair.expenditure,
-        } as any);
-      }
-    }
 
     debug('[addBot] newBot.clonedFrom:', newBot.clonedFrom);
     debug('[addBot] newBot.creator:', newBot.creator);

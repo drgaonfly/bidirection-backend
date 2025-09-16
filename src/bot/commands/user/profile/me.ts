@@ -2,7 +2,6 @@ import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
 import { useUserProfile } from '../../../../utils/useEjsMessage';
 import { checkInBot } from '../../../../bot/middlewares/checkInBot';
-import { renewalOptions } from '../../../../models/subscription';
 import { checkBotCustom } from '../../../../bot/middlewares/checkBotCustom';
 import createProfile from '../../../menus/inline/profile';
 import dayjs from 'dayjs';
@@ -46,14 +45,6 @@ async function sendUserProfile(ctx: MyContext) {
   // 渲染用户资料模板
   const renderUserProfile = useUserProfile();
 
-  // 获取当前套餐的 label
-  let currentPlanLabel = '无';
-  if (botUserConfig.currentPlan && renewalOptions[botUserConfig.currentPlan]) {
-    currentPlanLabel = renewalOptions[botUserConfig.currentPlan].label;
-  } else if (botUserConfig.currentPlan) {
-    currentPlanLabel = botUserConfig.currentPlan;
-  }
-
   const message = await renderUserProfile({
     userId: botUser.id,
     userName: botUser.userName,
@@ -61,7 +52,6 @@ async function sendUserProfile(ctx: MyContext) {
     registerDate,
     currentBalance: botUserConfig.usdt_balance,
     botUserConfig,
-    currentPlan: currentPlanLabel,
     bot: ctx.currentBot,
     usdt_balance: botUserConfig.usdt_balance,
     trx_balance: botUserConfig.trx_balance,

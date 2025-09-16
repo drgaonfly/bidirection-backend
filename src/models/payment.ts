@@ -1,7 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { IBotUser } from './botUser';
 import { IBot } from './bot';
-import { ISubscription } from './subscription';
 import { IUser } from './user';
 
 export const chargeOptions = [
@@ -34,7 +33,6 @@ export interface IPayment extends Document {
   // currency: 'USDT_ERC20' | 'USDT_TRC20';
   botUser: Schema.Types.ObjectId | IBotUser;
   bot: Schema.Types.ObjectId | IBot;
-  subscription: Schema.Types.ObjectId | ISubscription; // 关联的订阅记录
   subscriptionInfo?: {
     price: number;
     type: string;
@@ -73,11 +71,6 @@ const paymentSchema = new Schema<IPayment>(
     txHash: String,
     expiredAt: { type: Date, required: true },
     sendAddress: { type: String, required: false },
-    subscription: {
-      type: Schema.Types.ObjectId,
-      ref: 'Subscription',
-      required: false,
-    }, // 关联的订阅记录
     type: {
       type: String,
       enum: ['recharge', 'subscription'],

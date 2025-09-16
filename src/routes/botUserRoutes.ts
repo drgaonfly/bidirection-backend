@@ -6,27 +6,12 @@ import {
   updatebotUser,
   deletebotUser,
   deleteMultiplebotUsers,
-  generateBoundProxy,
-  removeBoundProxy,
-  rejectApplication,
 } from '../controllers/botUserController';
 import { protect, checkPermission } from '../middlewares/authMiddleware';
 
 const router: Router = express.Router();
 
 // 批量路由处理
-router
-  .route('/:id/generate-bound-proxy')
-  .put(protect, checkPermission, generateBoundProxy);
-
-router
-  .route('/:id/remove-bound-proxy')
-  .put(protect, checkPermission, removeBoundProxy);
-
-router
-  .route('/:id/reject-application')
-  .put(protect, checkPermission, rejectApplication);
-
 router
   .route('/')
   .get(protect, checkPermission, getbotUsers) // 获取机器人列表

@@ -5,7 +5,6 @@ import handleAsync from '../utils/handleAsync';
 import User from '../models/user';
 import Role from '../models/role';
 import Customer from '../models/customer';
-import Package from '../models/package';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { encrypt } from '../services/encrypt';
@@ -148,8 +147,6 @@ export const addUser = handleAsync(
     const normalizedIP =
       clientIP === '::1' || clientIP === ':::1' ? '127.0.0.1' : clientIP;
 
-    const product = await Package.find();
-
     const newUser = new User({
       ...req.body,
       password: hashPassword,
@@ -158,7 +155,6 @@ export const addUser = handleAsync(
       id: newId,
       createdIP: normalizedIP,
       creator: req.user._id,
-      price_pairs: product,
     });
 
     await newUser.save();

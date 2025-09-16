@@ -7,8 +7,8 @@ import { IBotUser } from '../../../../models/botUser';
 import Exchange from '../../../../models/exchange';
 import { IdGen } from '../../../../utils/idGen';
 import { formatBeijingDate } from '../../../../utils/formatBeijingDate';
-import createDebug from 'debug';
 import { getExchangeRate } from '../../../../utils/getExchange';
+import createDebug from 'debug';
 
 const exchangeTransferComposer = new Composer<MyContext>();
 const debug = createDebug('bot:exchange:transfer');

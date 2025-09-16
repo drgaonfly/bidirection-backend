@@ -8,7 +8,6 @@ import {
   verify2FA,
   verify2FALogin,
   disable2FA,
-  getSuperAdminEnergyPerTimes,
 } from '../controllers/authController';
 import { protect } from '../middlewares/authMiddleware';
 
@@ -28,12 +27,5 @@ router
   .route('/profile')
   .get(protect, getUserProfile)
   .put(protect, updateUserProfile);
-
-// Get super admin energy_per_times
-router.get(
-  '/super-admin/energy-per-times',
-  protect,
-  getSuperAdminEnergyPerTimes,
-);
 
 export default router;

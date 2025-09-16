@@ -8,6 +8,7 @@ import { IUser } from './user';
 export interface IReceipt extends Document {
   id: string;
   wallet: mongoose.Schema.Types.ObjectId | IWallet;
+  proxy: mongoose.Types.ObjectId | IUser;
   amount: number;
   hash: string;
   bot: mongoose.Schema.Types.ObjectId | IBot;
@@ -17,9 +18,6 @@ export interface IReceipt extends Document {
   from_address: string;
   to_address: string;
   crypto_type: string;
-  createdAt: Date;
-  updatedAt: Date;
-  proxy: mongoose.Types.ObjectId | IUser;
   status: string;
   fail_reason?: string; // 失败原因
 }

@@ -37,7 +37,6 @@ export const useUserProfile = () => {
     registerDate: string;
     currentBalance: number;
     botUserConfig: IBotUserConfig;
-    currentPlan: string;
     bot: IBot;
     usdt_balance: number;
     trx_balance: number;

@@ -4,15 +4,11 @@ import { printWebhookInfo, setupBot } from '../bot/botSetup';
 import { RequestCustom } from 'user';
 import { isProxy, isEmployee } from '../middlewares/authMiddleware';
 import { getUserByUsername } from '../bot/commands/user/operator/add';
-import { encrypt, decrypt } from '../services/encrypt';
-import { createTrxWallet } from '../utils/generateWallet';
+import { encrypt } from '../services/encrypt';
 import { InputFile } from 'grammy';
-import { generateSignedUrl } from '../utils/generateSignedUrl';
 import { transformDocumentImage } from '../utils/transformUtils';
-import RentalChange from '../models/rentalChange';
 import handleAsync from '../utils/handleAsync';
 import User from '../models/user';
-import Package from '../models/package';
 import BotUser from '../models/botUser';
 import dotenv from 'dotenv';
 
@@ -138,19 +134,9 @@ const getBots = handleAsync(async (req: RequestCustom, res: Response) => {
 
   const total = await Bot.countDocuments(query).exec();
 
-  const processed_bots = await Promise.all(
-    bots.map(async (bot) => {
-      if (bot.rentImage) {
-        const signedUrl = await generateSignedUrl(bot.rentImage);
-        return { ...bot, rentImage: signedUrl };
-      }
-      return bot;
-    }),
-  );
-
   res.json({
     success: true,
-    data: processed_bots,
+    data: bots,
     total,
     current: +current,
     pageSize: +pageSize,
@@ -192,15 +178,12 @@ const addBot = handleAsync(async (req: RequestCustom, res: Response) => {
 
   const user = await User.findById(req.user._id);
 
-  const product = await Package.find();
-
   console.log('user', user);
 
   const botManager = new Bot({
     ...req.body,
     user: req.user._id,
     isCreatedByAdmin: req.user.isAdmin,
-    price_pairs: product,
   });
 
   if (isOnline) {
@@ -343,8 +326,6 @@ const addOwner = handleAsync(async (req: Request, res: Response) => {
   const ownerUsername = req.body.owner.replace(/^@/, '');
   const user = await getUserByUsername(botManager.session, ownerUsername);
 
-  const price_pairs = await Package.find();
-
   if (user) {
     // 查找或创建 BotUser，并填充 subscriptions 字段
     const botUser = await BotUser.findOneAndUpdate(
@@ -354,7 +335,6 @@ const addOwner = handleAsync(async (req: Request, res: Response) => {
           userName: user.username,
           firstName: user.first_name,
           lastName: user.last_name,
-          price_pairs: price_pairs,
         },
       },
       { new: true, upsert: true },
@@ -625,18 +605,6 @@ const addTronAddress = handleAsync(
       res.status(400);
       throw new Error('bot不存在');
     }
-
-    new RentalChange({
-      energy_address: bot.energy_address,
-      energy_privateKey: bot.energy_privateKey
-        ? decrypt(bot.energy_privateKey)
-        : null,
-    });
-
-    const { address, privateKey } = await createTrxWallet();
-
-    bot.energy_address = address;
-    bot.energy_privateKey = privateKey;
 
     await bot.save();
 

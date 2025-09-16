@@ -9,14 +9,13 @@ export interface ITransaction extends Document {
   bot: mongoose.Schema.Types.ObjectId | IBot;
   group: mongoose.Schema.Types.ObjectId | IGroup;
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
+  proxy: mongoose.Types.ObjectId | IUser;
   amount: number;
   exchange_rate: number;
   fee_rate: number;
   type: string;
   usdt_amount: number;
   createdAt: Date;
-  updatedAt: Date;
-  proxy: mongoose.Types.ObjectId | IUser;
 }
 
 const transactionSchema = new mongoose.Schema(

@@ -4,14 +4,12 @@ import jwt from 'jsonwebtoken';
 import speakeasy from 'speakeasy'; // 新增speakeasy
 import QRCode from 'qrcode'; // 新增qrcode
 import User from '../models/user'; // 假设你的用户模型位于 /models/User.ts
-import { encrypt } from '../services/encrypt';
 import { generateToken, generateRefreshToken } from '../utils/generateToken';
 import handleAsync from '../utils/handleAsync';
 import { exclude } from '../utils/handleData';
 import { RequestCustom } from 'user';
 import { redis } from '../utils/redis';
 import { v4 as uuidv4 } from 'uuid';
-import { getAdminUser } from '../utils/getAdminUser';
 
 const login = handleAsync(async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -218,28 +216,8 @@ const getUserProfile = handleAsync(
 
 const updateUserProfile = handleAsync(
   async (req: RequestCustom, res: Response) => {
-    const {
-      password,
-      name,
-      email,
-      currentPassword,
-      confirmPassword,
-      serviceLink,
-      energy_privateKey,
-      mnemonic,
-      recharge_min,
-      recharge_max,
-      energy_per_times,
-      energy_address,
-      quick_recycle_time,
-      recycle_min,
-      withdraw_address,
-      withdraw_privateKey,
-      feedback_id,
-      all_trx_to,
-      fragment_hash,
-      fragment_cookie,
-    } = req.body;
+    const { password, name, email, currentPassword, confirmPassword } =
+      req.body;
     const user = await User.findById(req.user._id).select('+password');
 
     // 验证确认密码是否匹配
@@ -275,29 +253,8 @@ const updateUserProfile = handleAsync(
       name: name || user.name,
       email: email || user.email,
       password: hashPassword,
-      serviceLink: serviceLink,
-      recharge_min: recharge_min,
-      recharge_max: recharge_max,
-      energy_per_times: energy_per_times,
-      energy_address: energy_address,
-      quick_recycle_time: quick_recycle_time,
-      recycle_min: recycle_min,
-      withdraw_address: withdraw_address,
-      feedback_id: feedback_id,
-      all_trx_to: all_trx_to,
-      fragment_hash: fragment_hash,
-      fragment_cookie: fragment_cookie,
+      ...req.body,
     };
-
-    if (energy_privateKey) {
-      updateFields.energy_privateKey = encrypt(energy_privateKey);
-    }
-    if (mnemonic) {
-      updateFields.mnemonic = encrypt(mnemonic);
-    }
-    if (withdraw_privateKey) {
-      updateFields.withdraw_privateKey = encrypt(withdraw_privateKey);
-    }
 
     const updatedUser = await User.findByIdAndUpdate(user._id, updateFields, {
       new: true,
@@ -312,7 +269,6 @@ const updateUserProfile = handleAsync(
 
     res.json({
       success: true,
-      serviceLink,
       name: updatedUser?.name,
       email: updatedUser?.email,
       token: generateToken(updatedUser!.id), // 注意: 请确保 generateToken 可以接受用户的 id 类型
@@ -362,21 +318,6 @@ export const disable2FA = handleAsync(
     res.json({
       success: true,
       message: '2FA has been disabled successfully',
-    });
-  },
-);
-
-// Get super admin energy_per_times
-export const getSuperAdminEnergyPerTimes = handleAsync(
-  async (req: RequestCustom, res: Response) => {
-    // 使用 getAdminUser 函数获取超级管理员信息
-    const superAdmin = await getAdminUser();
-
-    res.json({
-      success: true,
-      data: {
-        energy_per_times: superAdmin.energy_per_times || 0,
-      },
     });
   },
 );

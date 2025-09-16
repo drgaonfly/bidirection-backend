@@ -9,7 +9,7 @@ const myLinkCommand = new Composer<MyContext>();
 const debug = createDebug('bot:myLink');
 
 export async function handleMyLink(ctx: MyContext) {
-  const userName = ctx.currentBot.userName;
+  const userName = ctx.currentBot.botName;
   const spread_code = ctx.currentBotUserConfig.spread_code;
 
   const message = [

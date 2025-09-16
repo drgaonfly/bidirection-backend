@@ -1,9 +1,4 @@
 import mongoose, { Document } from 'mongoose';
-import {
-  ISubscription,
-  SubscriptionPlan,
-  SubscriptionStatus,
-} from './subscription';
 import { IBotUser } from './botUser';
 import { IBot } from './bot';
 import { IUser } from './user';
@@ -21,11 +16,9 @@ export interface IBotUserConfig extends Document {
   bot: mongoose.Types.ObjectId | IBot;
   botUser: mongoose.Types.ObjectId | IBotUser;
   proxy: mongoose.Types.ObjectId | IUser;
-  subscription?: mongoose.Types.ObjectId | ISubscription;
   status: UserStatus;
   trialEndDate?: Date;
   subscriptionEndDate?: Date;
-  currentPlan?: SubscriptionPlan;
   isAutoRenew: boolean;
   usdt_balance: number; // 用户余额
   trx_balance: number; // 用户余额
@@ -68,16 +61,6 @@ const botUserConfigSchema = new mongoose.Schema(
     },
     subscriptionEndDate: {
       type: Date,
-      required: false,
-    },
-    currentPlan: {
-      type: String,
-      enum: Object.values(SubscriptionStatus),
-      required: false,
-    },
-    subscription: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Subscription',
       required: false,
     },
     isAutoRenew: {

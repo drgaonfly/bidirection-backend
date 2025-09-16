@@ -1,6 +1,6 @@
 import setupDB from '../utils/db';
 import { setupRedis } from '../utils/redis';
-import { checkRentalSweep } from './cron/checkRentalSweep';
+import { sendGroupMessages } from './cron/groupMessager';
 
 // 每天 0 点 五分跑
 const task = async () => {
@@ -9,7 +9,7 @@ const task = async () => {
   console.log('当前时间:', new Date().toLocaleString());
   console.log('开始执行扣低消任务...');
 
-  await checkRentalSweep();
+  await sendGroupMessages(); // 发送群发消息
 };
 
 // 执行任务并在完成后退出进程

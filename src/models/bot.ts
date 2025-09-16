@@ -2,6 +2,7 @@ import mongoose, { Document } from 'mongoose';
 import { IUser } from './user';
 import { IBotUser } from './botUser';
 import { IGroup } from './group';
+import { IGroupMessage } from './groupMessage';
 
 export interface IBot extends Document {
   id: string;
@@ -43,6 +44,7 @@ export interface IBot extends Document {
   isCreatedByAdmin?: boolean; // 是否由管理员创建，由管理创建的机器人就是平台机器人
   botUser: mongoose.Schema.Types.ObjectId | IBotUser; // 机器人用户
   rentImage?: string; // 闪租图片
+  groupMessages: mongoose.Schema.Types.ObjectId[] | IGroupMessage[]; // 虚拟字段
 }
 
 export interface IMenu extends Document {
@@ -285,6 +287,12 @@ const botSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   },
 );
+
+botSchema.virtual('groupMessages', {
+  ref: 'GroupMessage',
+  localField: '_id',
+  foreignField: 'bot',
+});
 
 const Bot = mongoose.model<IBot>('Bot', botSchema);
 

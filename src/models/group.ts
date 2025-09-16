@@ -11,6 +11,7 @@ export interface IGroup extends Document {
   bot: mongoose.Schema.Types.ObjectId | IBot;
   creator: mongoose.Schema.Types.ObjectId | IBotUser;
   operators: (mongoose.Schema.Types.ObjectId | IBotUser)[]; // 操作人数组
+  proxy: mongoose.Schema.Types.ObjectId | IUser;
   exchange_rate?: number;
   fee_rate?: number;
   isOnline: boolean; // 是否在线，不用显示在后台
@@ -18,7 +19,9 @@ export interface IGroup extends Document {
   startAt?: Date;
   unit?: string;
   message: string;
-  proxy: mongoose.Schema.Types.ObjectId | IUser;
+  intervalTime: number; // 间隔时间
+  updatedAt: Date;
+  createdAt: Date;
 }
 
 // 群组 Schema
@@ -95,6 +98,10 @@ const groupSchema = new mongoose.Schema(
     },
     message: {
       type: String,
+      required: false,
+    },
+    intervalTime: {
+      type: Number,
       required: false,
     },
     proxy: {

@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
+import { RequestCustom } from '../types/user';
 import GroupMessage from '../models/groupMessage';
 import handleAsync from '../utils/handleAsync';
 import Bot from '../models/bot';
 import Group from '../models/group';
-import { transformDocumentImages } from '../utils/transformUtils';
-import { RequestCustom } from '../types/user';
-import { isEmployee, isProxy } from '../middlewares/authMiddleware';
+import { isProxy } from '../middlewares/authMiddleware';
+import { generateSignedUrl } from '../utils/generateSignedUrl';
 import User from '../models/user';
 
 // 构建查询参数
@@ -56,10 +56,6 @@ const buildQuery = async (
     query.proxy = { $in: [...employeeIds, req.user._id] };
   }
 
-  if (isEmployee(req.user)) {
-    query.proxy = req.user._id;
-  }
-
   return query;
 };
 
@@ -73,7 +69,6 @@ const getGroupMessages = handleAsync(
     const groupMessages = await GroupMessage.find(query)
       .populate('bot')
       .populate('groups')
-      .populate('proxy')
       .sort('-createdAt')
       .skip((+current - 1) * +pageSize)
       .limit(+pageSize)
@@ -81,9 +76,23 @@ const getGroupMessages = handleAsync(
 
     const total = await GroupMessage.countDocuments(query).exec();
 
-    const processedGroupMessages = await transformDocumentImages(
-      groupMessages,
-      'image',
+    // Convert Mongoose documents to plain objects and process images
+    const processedGroupMessages = await Promise.all(
+      groupMessages.map(async (gm) => {
+        // Convert to plain JS object to avoid Mongoose internals in response
+        const doc = gm.toObject ? gm.toObject() : gm;
+
+        // If images array exists, process each image URL in the array
+        if (doc.images && Array.isArray(doc.images)) {
+          doc.images = await Promise.all(
+            doc.images.map(async (imageUrl) => {
+              return await generateSignedUrl(imageUrl);
+            }),
+          );
+        }
+
+        return doc;
+      }),
     );
 
     res.json({
@@ -131,11 +140,30 @@ const addGroupMessage = handleAsync(async (req: Request, res: Response) => {
 // 更新群消息
 const updateGroupMessage = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const { images, ...otherFields } = req.body;
+
+  // 构建更新对象
+  const updates: any = {
+    ...otherFields,
+  };
+
+  // 如果是已存在的URL（以http开头），则不更新，因为它已经在数据库中。
+
+  // 处理 images 字段，只保留新的或空的图片路径，否则保留原有的 images
+  if (Array.isArray(images)) {
+    updates.images = images.filter(
+      (image) => image === '' || (image && !image.startsWith('http')),
+    );
+    // 如果全部都是已存在的URL，则保留原有 images，不更新
+    if (updates.images.length === 0) {
+      delete updates.images;
+    }
+  }
 
   const updatedGroupMessage = await GroupMessage.findByIdAndUpdate(
     id,
-    { ...req.body },
-    { new: true },
+    updates,
+    { new: true, runValidators: true },
   ).exec();
 
   if (!updatedGroupMessage) {

@@ -2,6 +2,7 @@ import mongoose, { Document } from 'mongoose';
 import { IUser } from './user';
 import { IBotUser } from './botUser';
 import { IGroup } from './group';
+import { IGroupMessage } from './groupMessage';
 
 export interface IBot extends Document {
   id: string;
@@ -20,6 +21,7 @@ export interface IBot extends Document {
   groups: mongoose.Schema.Types.ObjectId[] | IGroup[];
   owners: mongoose.Schema.Types.ObjectId[] | IBotUser[];
   authorized_users: mongoose.Schema.Types.ObjectId[] | IBotUser[];
+  groupMessages: mongoose.Schema.Types.ObjectId[] | IGroupMessage[]; // 虚拟字段
   session?: string;
   contact?: string;
   trx20_address?: string;
@@ -128,6 +130,12 @@ const botSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   },
 );
+
+botSchema.virtual('groupMessages', {
+  ref: 'GroupMessage',
+  localField: '_id',
+  foreignField: 'bot',
+});
 
 const Bot = mongoose.model<IBot>('Bot', botSchema);
 

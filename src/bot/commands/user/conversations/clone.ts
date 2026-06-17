@@ -1,9 +1,7 @@
 import { Composer } from 'grammy';
 import { createConversation, Conversation } from '@grammyjs/conversations';
 import { MyContext } from '../../../types';
-// import { checkInProxy } from '../../../middlewares/checkInProxy';
 import { cancelKeyboard } from '../../../menus/inline/cacel';
-import { IUser } from '../../../../models/user';
 import { setWebhook } from '../../../../controllers/botController';
 import Bot from '../../../../models/bot';
 import BotUser, { IBotUser } from '../../../../models/botUser';
@@ -70,12 +68,7 @@ async function cloneBotConversation(
 
   console.debug('克隆时 botUser:', botUser);
 
-  const addResult = await addBot(
-    token,
-    ctx,
-    botUser,
-    botUser.bound_proxy?._id ?? botUser.bound_proxy,
-  );
+  const addResult = await addBot(token, ctx, botUser);
 
   if (addResult && addResult.success) {
     await ctx.reply('✅ 克隆成功，请在机器人列表中查看。');
@@ -94,7 +87,6 @@ async function addBot(
   token: string,
   ctx: MyContext,
   botUser: IBotUser,
-  bound_proxy: IUser,
 ): Promise<{ success: boolean; message?: string }> {
   try {
     if (!botUser) {
@@ -116,7 +108,7 @@ async function addBot(
       token,
       owner: botUser?._id,
       botUsers: botUser ? [botUser._id] : [],
-      user: bound_proxy,
+      user: ctx.currentProxyUser._id,
     });
 
     await newBot.save();

@@ -5,9 +5,6 @@ import helpComposer from './help';
 import contactComposer from './contact';
 // import profileComposer from './profile';
 import cloneComposer from './clone';
-// import walletComposer from './wallet';
-// import exchangeComposer from './exchange';
-import rechargeComposer from './recharge';
 
 import conversationsComposer from './conversations';
 
@@ -20,7 +17,6 @@ userComposer.use(helpComposer.middleware());
 // 在机器人使用的
 userComposer.use(contactComposer.middleware());
 userComposer.use(cloneComposer.middleware());
-userComposer.use(rechargeComposer.middleware());
 userComposer.use(conversationsComposer.middleware());
 
 export default userComposer;

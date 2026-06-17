@@ -12,12 +12,7 @@ export interface IGroup extends Document {
   creator: mongoose.Schema.Types.ObjectId | IBotUser;
   operators: (mongoose.Schema.Types.ObjectId | IBotUser)[]; // 操作人数组
   proxy: mongoose.Schema.Types.ObjectId | IUser;
-  exchange_rate?: number;
-  fee_rate?: number;
-  isOnline: boolean; // 是否在线，不用显示在后台
   botUsers: (mongoose.Schema.Types.ObjectId | IBotUser)[];
-  startAt?: Date;
-  unit?: string;
   message: string;
   intervalTime: number; // 间隔时间
   updatedAt: Date;
@@ -65,37 +60,12 @@ const groupSchema = new mongoose.Schema(
         required: false,
       },
     ],
-    // 汇率
-    exchange_rate: {
-      type: Number,
-      required: false,
-      default: 1, // USDT默认汇率为1
-    },
-    // 费率
-    fee_rate: {
-      type: Number,
-      required: false,
-      default: 0, // 默认费率为0%
-    },
-    // 是否在线
-    isOnline: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
     botUsers: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'BotUser',
       },
     ],
-    startAt: {
-      type: Date,
-    },
-    unit: {
-      type: String,
-      default: 'USD',
-    },
     message: {
       type: String,
       required: false,

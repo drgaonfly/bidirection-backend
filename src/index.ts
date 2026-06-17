@@ -21,19 +21,14 @@ import employeeRoutes from './routes/employeeRoutes';
 import customerRoutes from './routes/customerRoutes';
 import botRoutes from './routes/botRoutes';
 import botUserRoutes from './routes/botUserRoutes';
-import transactionRoutes from './routes/transactionRoutes';
 import botWebhooksRoutes from './routes/botWebhooksRoutes';
 import groupRoutes from './routes/groupRoutes';
-import paymentRoutes from './routes/paymentRoutes';
 import botMessageRoutes from './routes/botMessageRoutes';
 import messsageRoutes from './routes/messageRoutes';
 import receiveMessageRoute from './routes/receiveMessageRoute';
 import walletRoutes from './routes/walletRoute';
-import receiptRoutes from './routes/receiptRoutes';
-import exchangeRoutes from './routes/exchangeRoutes';
 import groupMessageRoutes from './routes/groupMessageRoutes';
 import botUserConfigRoutes from './routes/botUserConfigRoutes';
-import transferRoutes from './routes/transferRoutes';
 
 dotenv.config();
 
@@ -66,19 +61,14 @@ app.use('/api/employees', employeeRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/bots', botRoutes);
 app.use('/api/bot-users', botUserRoutes);
-app.use('/api/transactions', transactionRoutes);
 app.use('/bot-webhooks', botWebhooksRoutes);
 app.use('/api/groups', groupRoutes);
-app.use('/api/payments', paymentRoutes);
 app.use('/api/bot-messages', botMessageRoutes);
 app.use('/api/messages', messsageRoutes);
 app.use('/api/receive-message', receiveMessageRoute);
 app.use('/api/wallets', walletRoutes);
-app.use('/api/receipts', receiptRoutes);
-app.use('/api/exchanges', exchangeRoutes);
 app.use('/api/group-messages', groupMessageRoutes);
 app.use('/api/bot-user-configs', botUserConfigRoutes);
-app.use('/api/transfers', transferRoutes);
 
 app.use('/api/static', express.static('tmp'));
 

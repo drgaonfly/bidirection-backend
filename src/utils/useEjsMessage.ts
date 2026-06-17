@@ -3,21 +3,6 @@ import path from 'path';
 import { IBotUserConfig } from '../models/botUserConfig';
 import { IBot } from '../models/bot';
 
-export const useSummary = () => {
-  return async (data: {
-    deposits: any[];
-    withdraws: any[];
-    feeRate: number;
-    summary: number;
-    exchangeRate: number;
-    unit?: string;
-  }) => {
-    const templatePath = path.join(__dirname, '../templates/summary.ejs');
-
-    return await ejs.renderFile(templatePath, data);
-  };
-};
-
 export const useCustomerService = () => {
   return async (data: { url: string; channel: string; group: string }) => {
     const templatePath = path.join(

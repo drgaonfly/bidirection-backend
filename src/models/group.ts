@@ -117,12 +117,6 @@ const groupSchema = new mongoose.Schema(
   },
 );
 
-groupSchema.virtual('transactions', {
-  ref: 'Transaction', // 关联的模型
-  localField: '_id', // Group 的 `_id`
-  foreignField: 'group', // Transaction 中的 `group` 字段
-});
-
 const Group = mongoose.model<IGroup>('Group', groupSchema);
 
 export default Group;

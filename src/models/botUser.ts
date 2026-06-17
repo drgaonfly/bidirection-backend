@@ -1,6 +1,5 @@
 import mongoose, { Document } from 'mongoose';
 import { IBotUserMessage } from './botUserMessage';
-import { ITransaction } from './transaction';
 import { IUser } from './user';
 import { IBot } from './bot';
 
@@ -10,7 +9,6 @@ export interface IBotUser extends Document {
   firstName: string;
   lastName: string;
   messages: mongoose.Types.ObjectId[] | IBotUserMessage[];
-  transactions: ITransaction[]; // 虚拟字段，指向 Transaction 模型的 _id 数组
   isAuthorized: boolean; // 用户是否已授权
   displayName?: string; // 虚拟属性
   proxy: mongoose.Types.ObjectId | IUser;
@@ -38,12 +36,6 @@ const botUserSchema = new mongoose.Schema(
 );
 
 botUserSchema.index({ id: 1, bot: 1 }, { unique: true });
-
-botUserSchema.virtual('transactions', {
-  ref: 'Transaction',
-  localField: '_id',
-  foreignField: 'botUser',
-});
 
 botUserSchema.virtual('payments', {
   ref: 'Payment',

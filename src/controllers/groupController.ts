@@ -52,7 +52,6 @@ const getGroups = handleAsync(async (req: RequestCustom, res: Response) => {
     .populate('creator')
     .populate('operators')
     .populate('botUsers')
-    .populate('transactions')
     .populate('proxy')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
@@ -76,7 +75,6 @@ const getGroupById = handleAsync(async (req: Request, res: Response) => {
     .populate('bot')
     .populate('creator')
     .populate('operators')
-    .populate('transactions')
     .exec();
 
   if (!group) {

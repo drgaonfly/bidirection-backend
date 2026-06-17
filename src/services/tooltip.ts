@@ -1,5 +1,4 @@
 import { TronWeb } from 'tronweb';
-import { getAdminUser } from '../utils/getAdminUser';
 
 // Initialize TronWeb with null private key, will be set after getting admin
 const tronWeb = new TronWeb({
@@ -13,14 +12,8 @@ const tronWeb = new TronWeb({
 async function stakeAllEnergy() {
   try {
     // 获取管理员用户以获取能量私钥
-    const adminUser = await getAdminUser();
-
-    if (!adminUser.energy_privateKey) {
-      throw new Error('管理员账户未设置能量私钥');
-    }
 
     // 设置私钥
-    tronWeb.setPrivateKey(adminUser.energy_privateKey);
 
     // 确保 privateKey 存在
     if (!tronWeb.defaultPrivateKey) {

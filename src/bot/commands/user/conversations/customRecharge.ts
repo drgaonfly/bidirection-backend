@@ -1,7 +1,7 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { createConversation, Conversation } from '@grammyjs/conversations';
 import { MyContext } from '../../../types';
-import { handleRechargeRequest } from '../recharge/helper';
+// import { handleRechargeRequest } from '../recharge/helper';
 import { IBot } from '../../../../models/bot';
 import createDebug from 'debug';
 
@@ -80,12 +80,12 @@ async function customRechargeConversation(
     `✅ 已收到您要充值的金额：${amount} ${crypto_type}，正在处理...`,
   );
 
-  const success = await handleRechargeRequest(ctx, amount, crypto_type, bot);
+  // const success = await handleRechargeRequest(ctx, amount, crypto_type, bot);
 
-  if (!success) {
-    debug('处理特定金额充值失败');
-    await ctx.reply('处理特定金额充值失败');
-  }
+  // if (!success) {
+  //   debug('处理特定金额充值失败');
+  //   await ctx.reply('处理特定金额充值失败');
+  // }
 }
 
 // 使用 createConversation 创建对话处理器

@@ -5,11 +5,10 @@ import * as QRCode from 'qrcode';
 import { InputFile, InlineKeyboard } from 'grammy';
 import { formatBeijingDate } from '../../../../../utils/formatBeijingDate';
 import { generateOrderNumber } from '../../../../../utils/generateOrderNumber'; // 导入生成订单号的函数
-import createDebug from 'debug';
 import { chargeOptions } from '../../../../../models/payment';
 import BotUser from '../../../../../models/botUser';
 import Bot, { IBot } from '../../../../../models/bot';
-import { getAdminUser } from '../../../../../utils/getAdminUser';
+import createDebug from 'debug';
 
 const debug = createDebug('bot:recharge:callback');
 
@@ -96,20 +95,12 @@ export async function handleRechargeRequest(
     const maxAttempts = 10;
     const baseAmount = chargeInfo.amount ?? amount;
 
-    const admin = await getAdminUser();
-
     debug('开始生成不重复的随机金额');
     while (!isUnique && attempts < maxAttempts) {
       // 随机加 1% 到 3%（含），保留三位小数
       // 取 admin.recharge_min ~ admin.recharge_max 之间的百分比，默认 0.01 ~ 0.03
-      const minPercent =
-        typeof admin.recharge_min === 'number' && admin.recharge_min > 0
-          ? admin.recharge_min / 100
-          : 0.01;
-      const maxPercent =
-        typeof admin.recharge_max === 'number' && admin.recharge_max > 0
-          ? admin.recharge_max / 100
-          : 0.03;
+      const minPercent = 0.01;
+      const maxPercent = 0.03;
       const percent = minPercent + Math.random() * (maxPercent - minPercent);
       const randomIncrease = Number((1 * percent).toFixed(3));
       uniqueAmount = Number((baseAmount + randomIncrease).toFixed(3));
@@ -211,7 +202,7 @@ export async function handleRechargeRequest(
       await ctx.editMessageMedia(
         {
           type: 'photo',
-          media: new InputFile(qrBuffer),
+          media: new InputFile(qrBuffer as any),
           caption: message,
           parse_mode: 'HTML',
         },
@@ -229,7 +220,7 @@ export async function handleRechargeRequest(
   }
 
   debug('使用 replyWithPhoto 发送二维码');
-  await ctx.replyWithPhoto(new InputFile(qrBuffer), {
+  await ctx.replyWithPhoto(new InputFile(qrBuffer as any), {
     caption: message,
     parse_mode: 'HTML',
     reply_markup: keyboard,

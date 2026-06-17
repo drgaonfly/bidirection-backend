@@ -11,7 +11,7 @@ export interface IBot extends Document {
   userName: string;
   remark?: string;
   user: mongoose.Schema.Types.ObjectId | IUser;
-  owner: mongoose.Schema.Types.ObjectId | IBotUser;
+  botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   message: string;
   menus: IMenu[];
   keyboards: IKeyboard[];
@@ -19,16 +19,14 @@ export interface IBot extends Document {
   isOnline: boolean;
   botUsers: mongoose.Schema.Types.ObjectId[] | IBotUser[];
   groups: mongoose.Schema.Types.ObjectId[] | IGroup[];
-  authorized_users: mongoose.Schema.Types.ObjectId[] | IBotUser[];
+  owner?: mongoose.Schema.Types.ObjectId | IBotUser;
   groupMessages: mongoose.Schema.Types.ObjectId[] | IGroupMessage[]; // 虚拟字段
   session?: string;
   contact?: string;
   trx20_address?: string;
   customer_service_link?: string;
-  creator?: mongoose.Schema.Types.ObjectId | IBotUser;
   type?: 'public' | 'custom';
   clonedFrom?: mongoose.Schema.Types.ObjectId | IBot;
-  canBeCloned?: boolean;
   fee: number;
   auto_exchange_address: string;
   private_key: string;
@@ -90,13 +88,15 @@ const botSchema = new mongoose.Schema(
     userName: { type: String, trim: true },
     remark: { type: String, trim: true },
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'BotUser' },
+    botUser: { type: mongoose.Schema.Types.ObjectId, ref: 'BotUser' },
     message: { type: String, trim: true },
     isOnline: { type: Boolean, default: true },
     botUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BotUser' }],
-    authorized_users: [
-      { type: mongoose.Schema.Types.ObjectId, ref: 'BotUser' },
-    ],
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'BotUser',
+      default: null,
+    },
     menus: { type: [menuSchema], default: [] },
     keyboards: { type: [keyboardSchema], default: [] },
     commands: { type: [commandSchema], default: [] },
@@ -104,14 +104,12 @@ const botSchema = new mongoose.Schema(
     contact: { type: String, trim: true },
     trx20_address: { type: String, trim: true },
     customer_service_link: { type: String, trim: true },
-    creator: { type: mongoose.Schema.Types.ObjectId, ref: 'BotUser' },
     type: { type: String, enum: ['public', 'custom'], default: 'custom' },
     clonedFrom: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Bot',
       default: null,
     },
-    canBeCloned: { type: Boolean, default: false },
     fee: { type: Number, default: 0 },
     auto_exchange_address: { type: String, trim: true },
     private_key: { type: String, trim: true, select: false },

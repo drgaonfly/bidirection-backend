@@ -1,7 +1,7 @@
 import { Composer } from 'grammy';
 import { createConversation, Conversation } from '@grammyjs/conversations';
 import { MyContext } from '../../../types';
-import { checkInProxy } from '../../../middlewares/checkInProxy';
+// import { checkInProxy } from '../../../middlewares/checkInProxy';
 import { cancelKeyboard } from '../../../menus/inline/cacel';
 import { IUser } from '../../../../models/user';
 import { setWebhook } from '../../../../controllers/botController';
@@ -89,7 +89,7 @@ async function cloneBotConversation(
   // 这里可以继续后续的克隆逻辑
 }
 
-// 新增一个方法 addBot，传入 token，返回 { success: boolean, message?: string }
+// 克隆就是添加机器人，克隆者自动成为 owner
 async function addBot(
   token: string,
   ctx: MyContext,
@@ -97,90 +97,33 @@ async function addBot(
   bound_proxy: IUser,
 ): Promise<{ success: boolean; message?: string }> {
   try {
-    let bot = ctx.currentBot;
-
-    debug('[addBot] 入参 token:', token);
-    debug('[addBot] ctx.currentBot:', bot ? bot.id || bot._id : null);
-    debug(
-      '[addBot] ctx.currentBotUser:',
-      botUser ? botUser.id || botUser._id : null,
-    );
-
     if (!botUser) {
-      debug('[addBot] 当前 ctx.currentBotUser 不存在，尝试查找 BotUser');
       botUser = await BotUser.findOne({
         id: ctx.update.callback_query?.from?.id?.toString(),
       });
-      debug(
-        '[addBot] 查找 BotUser 结果:',
-        botUser ? botUser.id || botUser._id : null,
-      );
     }
 
-    if (!bot) {
-      debug('[addBot] 当前 ctx.currentBot 不存在，尝试查找 Bot');
-      bot = await Bot.findOne({ id: ctx.me.id.toString() });
-      debug('[addBot] 查找 Bot 结果:', bot ? bot.id || bot._id : null);
-    }
-
-    // 检查数据库中是否已存在该 token
-    debug('[addBot] 检查 token 是否已存在...');
+    // 检查 token 是否已存在
     const botExists = await Bot.findOne({ token });
-    debug('[addBot] token 是否已存在:', !!botExists);
     if (botExists) {
-      debug('[addBot] 该 Bot Token 已被使用:', token);
       return {
         success: false,
         message: '该 Bot Token 已被使用，请使用其他 Token',
       };
     }
 
-    // 创建新 bots
-    debug('[addBot] 创建新 Bot 实例...');
-    const newBot = new Bot({ token });
-
-    // 将当前用户作为新Bot的creator
-    // 如果当前bot存在，设置新bot的clonedFrom为当前bot的_id，否则为null
-    newBot.clonedFrom = bot?._id || null;
-    newBot.creator = botUser?._id || null;
-    newBot.owner = botUser?._id || null;
-    newBot.user = bound_proxy;
-    newBot.canBeCloned = true;
-    newBot.fee = bot?.fee;
-    newBot.customer_service_link = bot?.customer_service_link;
-    newBot.commands = bot?.commands;
-    newBot.message = bot?.message;
-    newBot.contact = bot?.contact;
-    newBot.trx20_address = bot?.trx20_address || '';
-    newBot.auto_exchange_address = bot?.auto_exchange_address || '';
-
-    debug('[addBot] newBot.clonedFrom:', newBot.clonedFrom);
-    debug('[addBot] newBot.creator:', newBot.creator);
+    const newBot = new Bot({
+      token,
+      owner: botUser?._id,
+      botUsers: botUser ? [botUser._id] : [],
+      user: bound_proxy,
+    });
 
     await newBot.save();
-    debug('[addBot] 新 Bot 已保存:', newBot._id);
-
     await setWebhook(newBot);
-
-    // 注意这里原代码用 token 作为 _id 查找，应该用 newBot._id
-    await Bot.findByIdAndUpdate(
-      newBot._id,
-      {
-        $addToSet: {
-          botUsers: botUser?._id,
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-      },
-    );
-    debug('[addBot] 已将 botUser 添加到新 Bot 的 botUsers 列表:', botUser?._id);
 
     return { success: true };
   } catch (e: any) {
-    debug('[addBot] 发生异常:', e);
-    // 发生异常返回 false 和错误信息
     return { success: false, message: e?.message || '添加 Bot 失败' };
   }
 }
@@ -189,50 +132,39 @@ async function addBot(
 cloneConversationComposer.use(createConversation(cloneBotConversation));
 
 // 入口按钮
-cloneConversationComposer.callbackQuery(
-  'clone_start',
-  checkInProxy,
-  async (ctx) => {
-    const bot = ctx.currentBot;
-    // 检查 bot 是否可克隆
-    if (!bot?.canBeCloned) {
-      await ctx.reply('❌ 该机器人不可克隆，请使用其他机器人。');
-      return;
-    }
+cloneConversationComposer.callbackQuery('clone_start', async (ctx) => {
+  debug('clone_start clicked');
+  await ctx.conversation.exitAll();
 
-    debug('clone_start clicked');
-    await ctx.conversation.exitAll();
+  debug('开始克隆机器人对话');
+  // 发送克隆流程说明
+  await ctx.reply(
+    [
+      '🤖 <b>克隆机器人流程</b>',
+      '',
+      '1. 打开 <b>@BotFather</b>',
+      '2. 发送 <code>/newbot</code>',
+      '3. 按指引设置机器人名字（可中文）',
+      '4. 设置机器人 <b>username</b>（英文+数字，需以 <code>bot</code> 结尾）',
+      '5. 创建完成后将注册好的 <b>token</b> 发送给我',
+      '',
+      'token格式示例：',
+      '<code>6422100000:AAFMTBWko3t7gA3mN5SRYp5FuYcxxxxxxxxx</code>',
+      '',
+      '⏳ 此操作将在 5 分钟后过期。',
+      '',
+      '如需取消，请点击下方按钮。',
+    ].join('\n'),
+    {
+      parse_mode: 'HTML',
+      reply_markup: cancelKeyboard,
+    },
+  );
 
-    debug('开始克隆机器人对话');
-    // 发送克隆流程说明
-    await ctx.reply(
-      [
-        '🤖 <b>克隆机器人流程</b>',
-        '',
-        '1. 打开 <b>@BotFather</b>',
-        '2. 发送 <code>/newbot</code>',
-        '3. 按指引设置机器人名字（可中文）',
-        '4. 设置机器人 <b>username</b>（英文+数字，需以 <code>bot</code> 结尾）',
-        '5. 创建完成后将注册好的 <b>token</b> 发送给我',
-        '',
-        'token格式示例：',
-        '<code>6422100000:AAFMTBWko3t7gA3mN5SRYp5FuYcxxxxxxxxx</code>',
-        '',
-        '⏳ 此操作将在 5 分钟后过期。',
-        '',
-        '如需取消，请点击下方按钮。',
-      ].join('\n'),
-      {
-        parse_mode: 'HTML',
-        reply_markup: cancelKeyboard,
-      },
-    );
-
-    await ctx.conversation.enter('cloneBotConversation', {
-      botUser: ctx.currentBotUser,
-    });
-    await ctx.answerCallbackQuery();
-  },
-);
+  await ctx.conversation.enter('cloneBotConversation', {
+    botUser: ctx.currentBotUser,
+  });
+  await ctx.answerCallbackQuery();
+});
 
 export default cloneConversationComposer;

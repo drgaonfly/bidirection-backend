@@ -119,12 +119,11 @@ const getBots = handleAsync(async (req: RequestCustom, res: Response) => {
 
   const bots = await Bot.find(query)
     .populate('user')
-    .populate('owner')
+    .populate('botUser')
     .populate('botUsers')
     .populate('groups')
-    .populate('authorized_users')
+    .populate('owner')
     .populate('clonedFrom')
-    .populate('creator')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -339,12 +338,12 @@ const addOwner = handleAsync(async (req: Request, res: Response) => {
       { new: true, upsert: true },
     );
 
-    // 将当前用户添加到机器人的用户列表，并设为 owner
+    // 设置为 owner，同时加入 botUsers
     await Bot.findByIdAndUpdate(
       id,
       {
-        $addToSet: { botUsers: botUser._id },
         $set: { owner: botUser._id },
+        $addToSet: { botUsers: botUser._id },
       },
       {
         new: true,
@@ -363,6 +362,7 @@ const addOwner = handleAsync(async (req: Request, res: Response) => {
 
 const delOwner = handleAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const { owner } = req.body;
 
   const botManager = await Bot.findById(id);
 
@@ -371,89 +371,14 @@ const delOwner = handleAsync(async (req: Request, res: Response) => {
     throw new Error('机器人不存在');
   }
 
-  await Bot.findByIdAndUpdate(id, { $unset: { owner: '' } }, { new: true });
-
-  res.json({
-    success: true,
-  });
-});
-
-const addAuthorizer = handleAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  const botManager = await Bot.findById(id);
-
-  if (!botManager) {
-    res.status(404);
-    throw new Error('机器人不存在');
-  }
-
-  // 一定是字符串的，去掉 req.body.authorizer 前面的 @（如果有）
-  const authorizerUsername = req.body.authorizer.replace(/^@/, '');
-  const user = await getUserByUsername(botManager.session, authorizerUsername);
-
-  if (user) {
-    // 查找或创建 BotUser，并填充 subscriptions 字段
-    const botUser = await BotUser.findOneAndUpdate(
-      { id: user.id.toString() },
-      {
-        $set: {
-          userName: user.username,
-          firstName: user.first_name,
-          lastName: user.last_name,
-        },
-      },
-      { new: true, upsert: true },
-    );
-
-    // 同时将当前用户添加到机器人的用户列表和授权用户列表中
-    await Bot.findByIdAndUpdate(
-      id,
-      {
-        $addToSet: {
-          botUsers: botUser._id,
-          authorized_users: botUser._id,
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-      },
-    );
-  } else {
-    res.status(404);
-    throw new Error('用户在电报上不存在');
-  }
-
-  res.json({
-    success: true,
-  });
-});
-
-const delAuthorizer = handleAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { authorizer } = req.body;
-  const botManager = await Bot.findById(id);
-
-  if (!botManager) {
-    res.status(404);
-    throw new Error('机器人不存在');
-  }
-
-  const botUser = await BotUser.findById(authorizer);
+  const botUser = await BotUser.findById(owner);
 
   if (!botUser) {
     res.status(404);
     throw new Error('用户不存在');
   }
 
-  await Bot.findByIdAndUpdate(
-    id,
-    {
-      $pull: { authorized_users: authorizer },
-    },
-    { new: true },
-  );
+  await Bot.findByIdAndUpdate(id, { $set: { owner: null } }, { new: true });
 
   res.json({
     success: true,
@@ -620,8 +545,6 @@ export {
   deleteMultipleBots,
   addOwner,
   delOwner,
-  addAuthorizer,
-  delAuthorizer,
   sendMessage,
   sendGroupMessage,
   addTronAddress,

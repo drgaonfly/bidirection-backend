@@ -11,7 +11,6 @@ const createProfile = (bot: IBot) => {
       .text('⚡️ 我要充值', 'recharge')
       .text('📋 充值记录', 'recharge_history')
       .row()
-      .text('📝 我的笔数套餐', 'my_packageOrder')
       .url('📞 联系客服', bot.customer_service_link || 'https://t.me/Net_8898')
       .row()
       .text('❌ 关闭', 'close')

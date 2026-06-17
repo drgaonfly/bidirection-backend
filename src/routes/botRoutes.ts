@@ -8,8 +8,6 @@ import {
   deleteMultipleBots,
   addOwner,
   delOwner,
-  addAuthorizer,
-  delAuthorizer,
   sendMessage,
   sendGroupMessage,
   addTronAddress,
@@ -35,14 +33,6 @@ router
 router.route('/:id/add-owner').put(protect, checkPermission, addOwner);
 
 router.route('/:id/delete-owner').put(protect, checkPermission, delOwner);
-
-router
-  .route('/:id/add-authorizer')
-  .put(protect, checkPermission, addAuthorizer);
-
-router
-  .route('/:id/delete-authorizer')
-  .put(protect, checkPermission, delAuthorizer);
 
 router.route('/:id/send-message').post(protect, checkPermission, sendMessage);
 

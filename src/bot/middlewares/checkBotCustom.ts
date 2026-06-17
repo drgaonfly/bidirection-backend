@@ -25,13 +25,15 @@ export const checkBotCustom = async (
   //   return await next();
   // }
 
-  // // owners 和 authorized_users 可能是 ObjectId 或 IBotUser，需要统一取出 id 字符串
-  // const ownerId = bot.owner ? bot.owner.toString() : null;
+  // // owners 和 authorized_users 可能是 ObjectId[] 或 IBotUser[]，需要统一取出 id 字符串
+  // const owners: string[] = (bot.owners || []).map((owner: any) =>
+  //   owner.toString(),
+  // );
   // const authorizedUsers: string[] = (bot.authorized_users || []).map(
   //   (user: any) => user.toString(),
   // );
 
-  // if (ownerId !== userId && !authorizedUsers.includes(userId)) {
+  // if (!owners.includes(userId) && !authorizedUsers.includes(userId)) {
   //   debug('仅限机器人拥有者或授权用户使用');
   //   ctx.reply('该功能仅对定制机器人开放, 仅限机器人拥有者或授权用户使用');
   //   return;

@@ -44,9 +44,13 @@ startCommand.command('start', checkPermission, async (ctx) => {
 
   // 合并原有菜单和添加到群组按钮
 
-  await ctx.reply(bot.message || '欢迎使用机器人', {
-    reply_markup: new InlineKeyboard().text('克隆', 'clone_start'),
-  });
+  if (ctx.currentBot.isCreatedByAdmin) {
+    await ctx.reply(bot.message || '欢迎使用机器人', {
+      reply_markup: new InlineKeyboard().text('克隆', 'clone_start'),
+    });
+  } else {
+    await ctx.reply('请开始与我通信');
+  }
 });
 
 export default startCommand;

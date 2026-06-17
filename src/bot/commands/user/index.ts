@@ -2,15 +2,11 @@
 import { Composer } from 'grammy';
 import startComposer from './start';
 import helpComposer from './help';
-import operatorComposer from './operator';
-import setComposer from './set';
-import billComposer from './bill';
 import contactComposer from './contact';
-import profileComposer from './profile';
-import startingComposer from './starting';
+// import profileComposer from './profile';
 import cloneComposer from './clone';
-import walletComposer from './wallet';
-import exchangeComposer from './exchange';
+// import walletComposer from './wallet';
+// import exchangeComposer from './exchange';
 import rechargeComposer from './recharge';
 
 import conversationsComposer from './conversations';
@@ -21,18 +17,9 @@ const userComposer = new Composer();
 userComposer.use(startComposer.middleware());
 userComposer.use(helpComposer.middleware());
 
-// 在群里使用的
-userComposer.use(operatorComposer.middleware());
-userComposer.use(setComposer.middleware());
-userComposer.use(billComposer.middleware());
-
 // 在机器人使用的
-userComposer.use(profileComposer.middleware());
-userComposer.use(startingComposer.middleware());
 userComposer.use(contactComposer.middleware());
 userComposer.use(cloneComposer.middleware());
-userComposer.use(walletComposer.middleware());
-userComposer.use(exchangeComposer.middleware());
 userComposer.use(rechargeComposer.middleware());
 userComposer.use(conversationsComposer.middleware());
 

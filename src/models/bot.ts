@@ -11,7 +11,7 @@ export interface IBot extends Document {
   userName: string;
   remark?: string;
   user: mongoose.Schema.Types.ObjectId | IUser;
-  botUser: mongoose.Schema.Types.ObjectId | IBotUser;
+  owner: mongoose.Schema.Types.ObjectId | IBotUser;
   message: string;
   menus: IMenu[];
   keyboards: IKeyboard[];
@@ -19,7 +19,6 @@ export interface IBot extends Document {
   isOnline: boolean;
   botUsers: mongoose.Schema.Types.ObjectId[] | IBotUser[];
   groups: mongoose.Schema.Types.ObjectId[] | IGroup[];
-  owners: mongoose.Schema.Types.ObjectId[] | IBotUser[];
   authorized_users: mongoose.Schema.Types.ObjectId[] | IBotUser[];
   groupMessages: mongoose.Schema.Types.ObjectId[] | IGroupMessage[]; // 虚拟字段
   session?: string;
@@ -91,11 +90,10 @@ const botSchema = new mongoose.Schema(
     userName: { type: String, trim: true },
     remark: { type: String, trim: true },
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    botUser: { type: mongoose.Schema.Types.ObjectId, ref: 'BotUser' },
+    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'BotUser' },
     message: { type: String, trim: true },
     isOnline: { type: Boolean, default: true },
     botUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BotUser' }],
-    owners: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BotUser' }],
     authorized_users: [
       { type: mongoose.Schema.Types.ObjectId, ref: 'BotUser' },
     ],

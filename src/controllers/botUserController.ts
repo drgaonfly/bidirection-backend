@@ -56,8 +56,6 @@ const getbotUsers = handleAsync(async (req: RequestCustom, res: Response) => {
   const botUsers = await BotUser.find(query)
     .populate('transactions')
     .populate('payments')
-    .populate('subscriptions')
-    .populate('bound_proxy')
     .sort('-createdAt')
     .skip((+current - 1) * +pageSize)
     .limit(+pageSize)
@@ -79,8 +77,6 @@ const getbotUserById = handleAsync(async (req: Request, res: Response) => {
   const getBotUser = await BotUser.findById(req.params.id)
     .populate('transactions')
     .populate('payments')
-    .populate('subscriptions')
-    .populate('bound_proxy')
     .exec();
 
   if (!getBotUser) {

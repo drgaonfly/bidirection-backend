@@ -143,7 +143,7 @@ async function addBot(
     // 如果当前bot存在，设置新bot的clonedFrom为当前bot的_id，否则为null
     newBot.clonedFrom = bot?._id || null;
     newBot.creator = botUser?._id || null;
-    newBot.botUser = botUser?._id || null;
+    newBot.owner = botUser?._id || null;
     newBot.user = bound_proxy;
     newBot.canBeCloned = true;
     newBot.fee = bot?.fee;

@@ -26,7 +26,7 @@ const botUserResolver: Middleware<MyContext> = async (ctx, next) => {
       },
     },
     { new: true, upsert: true },
-  ).populate('subscriptions');
+  );
 
   // 将当前用户添加到机器人的用户列表中
   await ctx.currentBot.updateOne({

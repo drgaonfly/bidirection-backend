@@ -14,7 +14,7 @@ import { RedisAdapter } from '@grammyjs/storage-redis';
 import { redis } from '../utils/redis';
 import { conversations } from '@grammyjs/conversations';
 import proxyResolver from './middlewares/proxyResolver';
-import { registerReactionRelay } from './middlewares/reactionRelay';
+import { handleReactionUpdate } from './middlewares/reactionRelay';
 import createDebug from 'debug';
 
 const log = createDebug('bot:setup');
@@ -62,7 +62,11 @@ export const setupBot = (token: string) => {
   // 使用 session 中间件
   bot.use(session({ initial: () => ({}), storage }));
 
-  // 由于 session 已经合并到 context，后续中间件类型也要兼容 MyContext
+  // message_reaction update 里没有 ctx.from / ctx.message / ctx.chat，
+  // 必须在所有业务中间件之前拦截，否则 botResolver/botUserResolver 会崩溃。
+  bot.on('message_reaction', async (ctx) => {
+    await handleReactionUpdate(token, ctx.update);
+  }); // 由于 session 已经合并到 context，后续中间件类型也要兼容 MyContext
   // 需要确保所有中间件都用 MyContext 类型
   bot.use(conversations());
   bot.use(botResolver);
@@ -74,9 +78,6 @@ export const setupBot = (token: string) => {
   bot.use(logger);
   bot.use(userComposer.middleware());
   // bot.use(adminComposer.middleware());
-
-  // 注册 reaction 双向转发
-  registerReactionRelay(bot);
 
   // bot.command("start", (ctx) => ctx.reply("Welcome! Up and running."));
 

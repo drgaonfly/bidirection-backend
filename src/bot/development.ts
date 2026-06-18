@@ -22,7 +22,16 @@ const development = async () => {
     await bot.api.deleteWebhook();
     debug(`${botInfo.username} starting polling`);
 
-    await bot.start();
+    await bot.start({
+      allowed_updates: [
+        'message',
+        'edited_message',
+        'callback_query',
+        'inline_query',
+        'message_reaction',
+        'message_reaction_count',
+      ],
+    });
   }
 };
 

@@ -1,35 +1,41 @@
-import handleAsync from '../utils/handleAsync';
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { webhookCallback } from 'grammy';
 import { default as BotManager } from '../models/bot';
 import { setupBot } from '../bot/botSetup';
-import { handleReactionUpdate } from '../bot/middlewares/reactionRelay';
 
-export const handleBotWebhook = handleAsync(
-  async (req: Request, res: Response) => {
-    // Handle the webhook
-    console.log('Webhook received keys:', Object.keys(req.body || {}));
+// 按 botId 缓存 bot 实例，避免每次请求重新创建
+const botCache = new Map<string, ReturnType<typeof setupBot>>();
 
+export const handleBotWebhook = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
     const botId = req.params.id;
 
-    const botManager = await BotManager.findOne({ isOnline: true, _id: botId });
+    let bot = botCache.get(botId);
 
-    if (!botManager) {
-      res.status(404);
-      throw new Error('bot not found');
+    if (!bot) {
+      const botManager = await BotManager.findOne({
+        isOnline: true,
+        _id: botId,
+      });
+
+      if (!botManager) {
+        res.status(404).json({ error: 'bot not found' });
+        return;
+      }
+
+      bot = setupBot(botManager.token);
+      botCache.set(botId, bot);
+      console.log(`[webhook] bot ${botId} cached`);
     }
 
-    // message_reaction update 里没有 ctx.from / ctx.message，
-    // 走普通中间件链会在 botUserResolver 崩溃，单独处理。
-    if (req.body.message_reaction) {
-      await handleReactionUpdate(botManager.token, req.body);
-      res.sendStatus(200);
-      return;
-    }
-
-    const bot = setupBot(botManager.token);
-
-    // 先响应 200，Telegram 要求 webhook 尽快确认，否则会超时重试
-    res.sendStatus(200);
-    await bot.handleUpdate(req.body);
-  },
-);
+    // webhookCallback 是 grammY 官方推荐的 webhook 处理方式：
+    // 它会自动处理 handleUpdate 并回复 200，无需手动调用
+    return webhookCallback(bot, 'express')(req, res);
+  } catch (err) {
+    next(err);
+  }
+};

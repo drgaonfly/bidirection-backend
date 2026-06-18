@@ -7,7 +7,7 @@ import { handleReactionUpdate } from '../bot/middlewares/reactionRelay';
 export const handleBotWebhook = handleAsync(
   async (req: Request, res: Response) => {
     // Handle the webhook
-    console.log('Webhook received:', req.body);
+    console.log('Webhook received keys:', Object.keys(req.body || {}));
 
     const botId = req.params.id;
 
@@ -28,8 +28,8 @@ export const handleBotWebhook = handleAsync(
 
     const bot = setupBot(botManager.token);
 
-    await bot.start();
-
+    // 先响应 200，Telegram 要求 webhook 尽快确认，否则会超时重试
+    res.sendStatus(200);
     await bot.handleUpdate(req.body);
   },
 );

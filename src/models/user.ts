@@ -10,7 +10,7 @@ export interface IUser extends Document {
   password: string;
   name: string;
   live: boolean;
-  inviteCode: string;
+
   proxy: mongoose.Schema.Types.ObjectId | IUser;
   creator: mongoose.Schema.Types.ObjectId | IUser;
 
@@ -29,7 +29,7 @@ export interface IUser extends Document {
 
 const userSchema = new mongoose.Schema(
   {
-    id: { type: String, required: true, unique: true },
+    id: { type: String, required: false, unique: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true, select: false },
     name: { type: String, required: false },
@@ -37,7 +37,6 @@ const userSchema = new mongoose.Schema(
     isAdmin: { type: Boolean, default: false },
     isOnline: { type: Boolean, default: false },
     roles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Role' }],
-    inviteCode: { type: String, required: true, unique: true },
 
     creator: {
       type: mongoose.Schema.Types.ObjectId,

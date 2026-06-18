@@ -84,6 +84,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
       group: ctx.currentGroup?._id,
       content: messageContent,
       messageType,
+      telegramMessageId: message?.message_id,
     });
   }
 
@@ -122,12 +123,14 @@ const logger: Middleware = async (ctx: MyContext, next) => {
             }
 
             // 复制消息给原始用户
+            let forwardedMsgId: number | undefined;
             try {
-              await bot.api.copyMessage(
+              const copied = await bot.api.copyMessage(
                 originalUserId,
                 ctx.chat.id,
                 message.message_id,
               );
+              forwardedMsgId = copied.message_id;
               console.log(`✅ owner 回复已转发给用户: ${originalUserId}`);
             } catch (copyErr: any) {
               if (
@@ -153,6 +156,8 @@ const logger: Middleware = async (ctx: MyContext, next) => {
                 messageType,
                 caption: message?.caption,
                 telegramMessageId: message.message_id,
+                forwardedMessageId: forwardedMsgId,
+                forwardedToChatId: originalUserId,
                 isOwnerReply: true,
                 raw: message,
               });
@@ -174,7 +179,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
     if (!isOwner && message && ownerBotUser?.id) {
       try {
         const bot = setupBot(ctx.currentBot.token);
-        await bot.api.forwardMessage(
+        const forwarded = await bot.api.forwardMessage(
           ownerBotUser.id,
           ctx.chat.id,
           message.message_id,
@@ -182,6 +187,23 @@ const logger: Middleware = async (ctx: MyContext, next) => {
         console.log(
           `✅ 用户 ${ctx.currentBotUser.id} 的消息已转发给 owner: ${ownerBotUser.id}`,
         );
+
+        // 保存原始消息记录，关联转发后在 owner 那边的 message_id，用于 reaction 互转
+        if (messageContent) {
+          await BotMessage.findOneAndUpdate(
+            {
+              bot: ctx.currentBot._id,
+              botUser: ctx.currentBotUser._id,
+              telegramMessageId: message.message_id,
+            },
+            {
+              $set: {
+                forwardedMessageId: forwarded.message_id,
+                forwardedToChatId: Number(ownerBotUser.id),
+              },
+            },
+          );
+        }
       } catch (fwdErr: any) {
         console.error(
           '转发消息给 owner 失败:',

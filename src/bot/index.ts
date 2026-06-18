@@ -24,6 +24,16 @@ export const startWebHookBot = async () => {
         await bot.api.deleteWebhook();
         await bot.api.setWebhook(
           `${WEBHOOK_URL}/bot-webhooks/${activeBot._id}`,
+          {
+            allowed_updates: [
+              'message',
+              'edited_message',
+              'callback_query',
+              'inline_query',
+              'message_reaction',
+              'message_reaction_count',
+            ],
+          },
         );
       } else {
         console.log('webhook 已存在，跳过删除操作');

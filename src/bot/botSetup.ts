@@ -14,6 +14,7 @@ import { RedisAdapter } from '@grammyjs/storage-redis';
 import { redis } from '../utils/redis';
 import { conversations } from '@grammyjs/conversations';
 import proxyResolver from './middlewares/proxyResolver';
+import { registerReactionRelay } from './middlewares/reactionRelay';
 import createDebug from 'debug';
 
 const log = createDebug('bot:setup');
@@ -73,6 +74,9 @@ export const setupBot = (token: string) => {
   bot.use(logger);
   bot.use(userComposer.middleware());
   // bot.use(adminComposer.middleware());
+
+  // 注册 reaction 双向转发
+  registerReactionRelay(bot);
 
   // bot.command("start", (ctx) => ctx.reply("Welcome! Up and running."));
 

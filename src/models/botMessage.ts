@@ -33,6 +33,16 @@ export interface IBotMessage extends Document {
   group?: mongoose.Schema.Types.ObjectId | IGroup; // 关联的群（如果是群消息）
   // direction 字段移除，始终为 toBot
   proxy: mongoose.Types.ObjectId | IUser;
+  /** 消息在 Telegram 中的原始 message_id */
+  telegramMessageId?: number;
+  /** 转发给对方后，对方那边的 message_id（用于 reaction 互转） */
+  forwardedMessageId?: number;
+  /** 转发给对方的 chat_id（owner 或客户的 telegram id） */
+  forwardedToChatId?: number;
+  /** 是否是 owner 回复给客户的消息 */
+  isOwnerReply?: boolean;
+  /** 消息标题（媒体消息） */
+  caption?: string;
 }
 
 const botMessageSchema = new mongoose.Schema(
@@ -67,6 +77,11 @@ const botMessageSchema = new mongoose.Schema(
     },
 
     proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理
+    telegramMessageId: { type: Number, required: false },
+    forwardedMessageId: { type: Number, required: false },
+    forwardedToChatId: { type: Number, required: false },
+    isOwnerReply: { type: Boolean, default: false },
+    caption: { type: String, required: false },
     // 不再存 direction 字段
   },
   {

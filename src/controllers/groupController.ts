@@ -18,11 +18,6 @@ const buildQuery = async (
     query.title = queryParams.title;
   }
 
-  // isOnline
-  if (queryParams.isOnline) {
-    query.isOnline = queryParams.isOnline;
-  }
-
   if (queryParams.proxy) {
     query.proxy = queryParams.proxy;
   }

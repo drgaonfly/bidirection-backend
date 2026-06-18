@@ -148,7 +148,16 @@ export const setWebhook = async (botManager: IBot) => {
   console.log('删除 webhook');
   await bot.api.deleteWebhook();
 
-  await bot.api.setWebhook(`${WEBHOOK_URL}/bot-webhooks/${botManager._id}`);
+  await bot.api.setWebhook(`${WEBHOOK_URL}/bot-webhooks/${botManager._id}`, {
+    allowed_updates: [
+      'message',
+      'edited_message',
+      'callback_query',
+      'inline_query',
+      'message_reaction',
+      'message_reaction_count',
+    ],
+  });
 
   console.log(
     `Webhook ${botManager.token} 已设置为 ${WEBHOOK_URL}/bot-webhooks/${botManager._id}`,

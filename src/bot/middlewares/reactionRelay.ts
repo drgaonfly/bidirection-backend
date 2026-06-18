@@ -30,9 +30,6 @@ import BotMessage from '../../models/botMessage';
 import BotUser from '../../models/botUser';
 import Bot_ from '../../models/bot';
 import { setupBot } from '../botSetup';
-import createDebug from 'debug';
-
-const debug = createDebug('bot:reactionRelay');
 
 export async function handleReactionUpdate(
   botToken: string,
@@ -45,52 +42,73 @@ export async function handleReactionUpdate(
   const messageId = reaction.message_id;
   const newReactions: ReactionType[] = reaction.new_reaction ?? [];
 
-  debug(
+  console.log(
     `[reaction] user=${reactorUserId} msg=${messageId} reactions=${JSON.stringify(
       newReactions,
     )}`,
   );
 
-  if (!reactorUserId) return;
+  if (!reactorUserId) {
+    console.log('[reaction] reactorUserId is undefined, skipping');
+    return;
+  }
 
   try {
     const currentBot = await Bot_.findOne({ token: botToken });
-    if (!currentBot || currentBot.isCreatedByAdmin) return;
+    if (!currentBot) {
+      console.log('[reaction] bot not found for token');
+      return;
+    }
+    if (currentBot.isCreatedByAdmin) {
+      console.log('[reaction] bot isCreatedByAdmin, skipping');
+      return;
+    }
 
     const ownerBotUser = currentBot.owner
       ? await BotUser.findById(currentBot.owner).lean()
       : null;
-    if (!ownerBotUser) return;
+    if (!ownerBotUser) {
+      console.log('[reaction] ownerBotUser not found');
+      return;
+    }
 
     const isOwner = String(reactorUserId) === String(ownerBotUser.id);
+    console.log(
+      `[reaction] reactorUserId=${reactorUserId} ownerBotUser.id=${ownerBotUser.id} isOwner=${isOwner}`,
+    );
+
     const api = setupBot(botToken).api;
 
     if (isOwner) {
       // owner 点赞的是「客户消息被 forwardMessage 转发给 owner 的那条」
-      // → forwardedMessageId = messageId, isOwnerReply = false
       const record = await BotMessage.findOne({
         bot: currentBot._id,
         forwardedMessageId: messageId,
         isOwnerReply: false,
       }).lean();
 
-      if (!record) {
-        debug(
-          '[reaction] owner: no record for forwardedMessageId=%d',
-          messageId,
-        );
-        return;
-      }
-
-      // 找到原始客户的 telegram id
-      const customerBotUser = await BotUser.findById(record.botUser).lean();
-      if (!customerBotUser?.id) return;
-
-      debug(
-        `[reaction] owner → customer=${customerBotUser.id} msgId=${record.telegramMessageId}`,
+      console.log(
+        `[reaction] owner lookup: forwardedMessageId=${messageId} isOwnerReply=false → record=${JSON.stringify(
+          record
+            ? {
+                _id: record._id,
+                telegramMessageId: record.telegramMessageId,
+                forwardedMessageId: record.forwardedMessageId,
+                botUser: record.botUser,
+              }
+            : null,
+        )}`,
       );
 
-      // 在客户那边的原始消息上设置 reaction
+      if (!record) return;
+
+      const customerBotUser = await BotUser.findById(record.botUser).lean();
+      console.log(
+        `[reaction] customerBotUser=${customerBotUser?.id} telegramMessageId=${record.telegramMessageId}`,
+      );
+
+      if (!customerBotUser?.id) return;
+
       await setReaction(
         api,
         Number(customerBotUser.id),
@@ -99,26 +117,30 @@ export async function handleReactionUpdate(
       );
     } else {
       // 客户点赞的是「owner 回复后 copyMessage 给客户的那条」
-      // → forwardedMessageId = messageId, isOwnerReply = true
       const record = await BotMessage.findOne({
         bot: currentBot._id,
         forwardedMessageId: messageId,
         isOwnerReply: true,
       }).lean();
 
-      if (!record) {
-        debug(
-          '[reaction] customer: no record for forwardedMessageId=%d',
-          messageId,
-        );
-        return;
-      }
+      console.log(
+        `[reaction] customer lookup: forwardedMessageId=${messageId} isOwnerReply=true → record=${JSON.stringify(
+          record
+            ? {
+                _id: record._id,
+                telegramMessageId: record.telegramMessageId,
+                forwardedMessageId: record.forwardedMessageId,
+              }
+            : null,
+        )}`,
+      );
 
-      debug(
+      if (!record) return;
+
+      console.log(
         `[reaction] customer → owner=${ownerBotUser.id} msgId=${record.telegramMessageId}`,
       );
 
-      // 在 owner 那边的原始消息上设置 reaction
       await setReaction(
         api,
         Number(ownerBotUser.id),
@@ -127,7 +149,7 @@ export async function handleReactionUpdate(
       );
     }
   } catch (err: any) {
-    debug('[reaction] error: %s', err?.message || err);
+    console.error('[reaction] error:', err?.message || err?.description || err);
   }
 }
 
@@ -139,8 +161,11 @@ async function setReaction(
 ): Promise<void> {
   try {
     await api.setMessageReaction(chatId, messageId, reactions);
-    debug(`✅ reaction synced chatId=${chatId} msgId=${messageId}`);
+    console.log(`[reaction] ✅ synced chatId=${chatId} msgId=${messageId}`);
   } catch (err: any) {
-    debug(`❌ setMessageReaction failed: ${err?.description || err?.message}`);
+    console.error(
+      `[reaction] ❌ setMessageReaction failed chatId=${chatId} msgId=${messageId}:`,
+      err?.description || err?.message,
+    );
   }
 }

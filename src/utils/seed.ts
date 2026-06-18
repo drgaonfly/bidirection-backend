@@ -22,7 +22,7 @@ const permissionGroupDefs = [
   { key: 'bot', name: 'Bot 管理' },
   { key: 'botUser', name: 'Bot 用户' },
   { key: 'botMessage', name: 'Bot 消息' },
-  { key: 'customer', name: '客户管理' },
+  { key: 'botUserConfig', name: '客户管理' },
   { key: 'group', name: '群组管理' },
   { key: 'menu', name: '菜单管理' },
 ];
@@ -55,12 +55,12 @@ const permissionDefs: [string, string, string, string][] = [
   ['botUser', '更新 Bot 用户', '/bot-users/:id', 'PUT'],
   // Bot 消息
   ['botMessage', '查看 Bot 消息', '/bot-messages', 'GET'],
-  // 客户
-  ['customer', '查看客户列表', '/customers', 'GET'],
-  ['customer', '查看客户详情', '/customers/:id', 'GET'],
-  ['customer', '创建客户', '/customers', 'POST'],
-  ['customer', '更新客户', '/customers/:id', 'PUT'],
-  ['customer', '删除客户', '/customers/:id', 'DELETE'],
+  // 客户管理 (botUserConfig)
+  ['botUserConfig', '查看客户列表', '/bot-user-configs', 'GET'],
+  ['botUserConfig', '查看客户详情', '/bot-user-configs/:id', 'GET'],
+  ['botUserConfig', '创建客户', '/bot-user-configs', 'POST'],
+  ['botUserConfig', '更新客户', '/bot-user-configs/:id', 'PUT'],
+  ['botUserConfig', '删除客户', '/bot-user-configs/:id', 'DELETE'],
   // 群组
   ['group', '查看群组列表', '/groups', 'GET'],
   ['group', '创建群组', '/groups', 'POST'],

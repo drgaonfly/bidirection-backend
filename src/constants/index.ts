@@ -1,8 +1,8 @@
 export const ITEMS_PER_PAGE = 20;
 
 export const ROLES = {
-  SuperAdmin: 'SUPER_ADMIN',
-  Proxy: 'PROXY', // 代理
+  SuperAdmin: '管理员',
+  Proxy: '代理', // 代理
 } as const;
 
 export const countryMapping: { [key: string]: string } = {

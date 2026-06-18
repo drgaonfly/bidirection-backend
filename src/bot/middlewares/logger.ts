@@ -146,6 +146,9 @@ const logger: Middleware = async (ctx: MyContext, next) => {
             }
 
             // 保存 owner 回复到数据库
+            // telegramMessageId  = owner 那边的原始消息 id（owner 点赞用）
+            // forwardedMessageId = copy 给客户后客户那边的消息 id（客户点赞用）
+            // forwardedToChatId  = 客户的 telegram id（客户点赞时要反查 owner）
             try {
               const targetBotUser = originalBotUser || ctx.currentBotUser;
               await BotMessage.create({

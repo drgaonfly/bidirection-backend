@@ -1,10 +1,28 @@
 // src/bot/middlewares/reactionRelay.ts
 //
-// 双向 reaction（点赞）转发，作为独立函数直接处理 message_reaction update，
-// 不依赖 grammY 中间件链（因为 message_reaction update 缺少 ctx.from 等字段，
-// 会导致 botUserResolver 等中间件崩溃）。
+// 双向 reaction 转发逻辑：
 //
-// Telegram webhook 的 allowed_updates 必须包含 "message_reaction"。
+// 数据库里有两种消息记录：
+//
+//   isOwnerReply=false（客户发的）：
+//     telegramMessageId  = 客户那边的原始消息 id
+//     forwardedMessageId = forwardMessage 后 owner 那边的消息 id
+//     forwardedToChatId  = owner 的 telegram id
+//
+//   isOwnerReply=true（owner 回复的）：
+//     telegramMessageId  = owner 那边的原始消息 id
+//     forwardedMessageId = copyMessage 后客户那边的消息 id
+//     forwardedToChatId  = 客户的 telegram id
+//
+// reaction 转发规则：
+//
+//   owner 点赞某条消息（message_id=X）：
+//     → X 是 forwardedMessageId（客户消息转发给 owner 的那条），isOwnerReply=false
+//     → 找到记录，取 telegramMessageId + 客户 BotUser.id → 在客户那边设置 reaction
+//
+//   客户点赞某条消息（message_id=Y）：
+//     → Y 是 forwardedMessageId（owner 回复 copy 给客户的那条），isOwnerReply=true
+//     → 找到记录，取 telegramMessageId + ownerBotUser.id → 在 owner 那边设置 reaction
 
 import { Api } from 'grammy';
 import type { Update, ReactionType } from 'grammy/types';
@@ -16,13 +34,6 @@ import createDebug from 'debug';
 
 const debug = createDebug('bot:reactionRelay');
 
-/**
- * 处理 message_reaction update，执行双向 reaction 转发。
- * 在 botWebhookController 里直接调用，绕过中间件链。
- *
- * @param botToken  当前 bot 的 token
- * @param update    Telegram Update 对象（类型为 message_reaction）
- */
 export async function handleReactionUpdate(
   botToken: string,
   update: Update,
@@ -32,7 +43,6 @@ export async function handleReactionUpdate(
 
   const reactorUserId = reaction.user?.id;
   const messageId = reaction.message_id;
-  // new_reaction 为空数组表示取消所有 reaction
   const newReactions: ReactionType[] = reaction.new_reaction ?? [];
 
   debug(
@@ -44,80 +54,80 @@ export async function handleReactionUpdate(
   if (!reactorUserId) return;
 
   try {
-    // 找到当前 bot 的数据库记录
     const currentBot = await Bot_.findOne({ token: botToken });
     if (!currentBot || currentBot.isCreatedByAdmin) return;
 
-    // 获取 owner 的 BotUser
-    let ownerBotUser: any = null;
-    if (currentBot.owner) {
-      ownerBotUser = await BotUser.findById(currentBot.owner).lean();
-    }
+    const ownerBotUser = currentBot.owner
+      ? await BotUser.findById(currentBot.owner).lean()
+      : null;
     if (!ownerBotUser) return;
 
     const isOwner = String(reactorUserId) === String(ownerBotUser.id);
-    const bot = setupBot(botToken);
+    const api = setupBot(botToken).api;
 
     if (isOwner) {
-      // ── owner 点赞 → 找到对应的客户原始消息 → 在客户那边设置同样的 reaction ──
-      // owner 看到的是 forwardedMessageId（转发过来的那条）
+      // owner 点赞的是「客户消息被 forwardMessage 转发给 owner 的那条」
+      // → forwardedMessageId = messageId, isOwnerReply = false
       const record = await BotMessage.findOne({
         bot: currentBot._id,
         forwardedMessageId: messageId,
-        forwardedToChatId: Number(reactorUserId),
-        isOwnerReply: { $ne: true },
+        isOwnerReply: false,
       }).lean();
 
       if (!record) {
         debug(
-          '[reaction] owner: no record found for forwardedMessageId=%d',
+          '[reaction] owner: no record for forwardedMessageId=%d',
           messageId,
         );
         return;
       }
 
+      // 找到原始客户的 telegram id
       const customerBotUser = await BotUser.findById(record.botUser).lean();
       if (!customerBotUser?.id) return;
 
       debug(
-        `[reaction] owner → customer ${customerBotUser.id}, originalMsgId=${record.telegramMessageId}`,
+        `[reaction] owner → customer=${customerBotUser.id} msgId=${record.telegramMessageId}`,
       );
 
+      // 在客户那边的原始消息上设置 reaction
       await setReaction(
-        bot.api,
+        api,
         Number(customerBotUser.id),
         record.telegramMessageId!,
         newReactions,
       );
     } else {
-      // ── 客户点赞 → 找到该消息转发给 owner 的那条 → 在 owner 那边设置同样的 reaction ──
+      // 客户点赞的是「owner 回复后 copyMessage 给客户的那条」
+      // → forwardedMessageId = messageId, isOwnerReply = true
       const record = await BotMessage.findOne({
         bot: currentBot._id,
-        telegramMessageId: messageId,
-        isOwnerReply: { $ne: true },
+        forwardedMessageId: messageId,
+        isOwnerReply: true,
       }).lean();
 
-      if (!record?.forwardedMessageId || !record?.forwardedToChatId) {
+      if (!record) {
         debug(
-          '[reaction] customer: no forwarded record for telegramMessageId=%d',
+          '[reaction] customer: no record for forwardedMessageId=%d',
           messageId,
         );
         return;
       }
 
       debug(
-        `[reaction] customer → owner ${record.forwardedToChatId}, forwardedMsgId=${record.forwardedMessageId}`,
+        `[reaction] customer → owner=${ownerBotUser.id} msgId=${record.telegramMessageId}`,
       );
 
+      // 在 owner 那边的原始消息上设置 reaction
       await setReaction(
-        bot.api,
-        record.forwardedToChatId,
-        record.forwardedMessageId,
+        api,
+        Number(ownerBotUser.id),
+        record.telegramMessageId!,
         newReactions,
       );
     }
   } catch (err: any) {
-    debug('[reaction] error:', err?.message || err);
+    debug('[reaction] error: %s', err?.message || err);
   }
 }
 
@@ -129,8 +139,8 @@ async function setReaction(
 ): Promise<void> {
   try {
     await api.setMessageReaction(chatId, messageId, reactions);
-    debug(`✅ reaction 已同步 chatId=${chatId} msgId=${messageId}`);
+    debug(`✅ reaction synced chatId=${chatId} msgId=${messageId}`);
   } catch (err: any) {
-    debug(`❌ setMessageReaction 失败: ${err?.description || err?.message}`);
+    debug(`❌ setMessageReaction failed: ${err?.description || err?.message}`);
   }
 }

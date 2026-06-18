@@ -6,7 +6,8 @@ import { handleReactionUpdate } from '../bot/middlewares/reactionRelay';
 
 export const handleBotWebhook = handleAsync(
   async (req: Request, res: Response) => {
-    const update = req.body;
+    // Handle the webhook
+    console.log('Webhook received:', req.body);
 
     const botId = req.params.id;
 
@@ -18,16 +19,17 @@ export const handleBotWebhook = handleAsync(
     }
 
     // message_reaction update 里没有 ctx.from / ctx.message，
-    // 走普通中间件链会在 botUserResolver 崩溃，单独处理后直接返回。
-    if (update.message_reaction) {
-      await handleReactionUpdate(botManager.token, update);
+    // 走普通中间件链会在 botUserResolver 崩溃，单独处理。
+    if (req.body.message_reaction) {
+      await handleReactionUpdate(botManager.token, req.body);
       res.sendStatus(200);
       return;
     }
 
     const bot = setupBot(botManager.token);
 
-    // 注意：webhook 模式下不能调用 bot.start()，它是 long-polling 专用的。
-    await bot.handleUpdate(update);
+    await bot.start();
+
+    await bot.handleUpdate(req.body);
   },
 );

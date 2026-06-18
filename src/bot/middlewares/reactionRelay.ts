@@ -1,35 +1,38 @@
 // src/bot/middlewares/reactionRelay.ts
 //
-// 双向 reaction 转发逻辑：
+// 双向 reaction 转发逻辑
 //
-// 数据库里有两种消息记录：
+// isOwnerReply=false（客户发的）：
+//   telegramMessageId  = 客户原始消息 id
+//   forwardedMessageId = forwardMessage 后 owner 那边的消息 id
 //
-//   isOwnerReply=false（客户发的）：
-//     telegramMessageId  = 客户那边的原始消息 id
-//     forwardedMessageId = forwardMessage 后 owner 那边的消息 id
-//     forwardedToChatId  = owner 的 telegram id
+// isOwnerReply=true（owner 回复的）：
+//   telegramMessageId  = owner 原始消息 id
+//   forwardedMessageId = copyMessage 后客户那边的消息 id
 //
-//   isOwnerReply=true（owner 回复的）：
-//     telegramMessageId  = owner 那边的原始消息 id
-//     forwardedMessageId = copyMessage 后客户那边的消息 id
-//     forwardedToChatId  = 客户的 telegram id
-//
-// reaction 转发规则：
-//
-//   owner 点赞某条消息（message_id=X）：
-//     → X 是 forwardedMessageId（客户消息转发给 owner 的那条），isOwnerReply=false
-//     → 找到记录，取 telegramMessageId + 客户 BotUser.id → 在客户那边设置 reaction
-//
-//   客户点赞某条消息（message_id=Y）：
-//     → Y 是 forwardedMessageId（owner 回复 copy 给客户的那条），isOwnerReply=true
-//     → 找到记录，取 telegramMessageId + ownerBotUser.id → 在 owner 那边设置 reaction
+// owner 点赞  → 查 forwardedMessageId + isOwnerReply=false → 在客户原始消息设置 reaction
+// 客户点赞    → 查 forwardedMessageId + isOwnerReply=true  → 在 owner 原始消息设置 reaction
 
 import { Api } from 'grammy';
 import type { Update, ReactionType } from 'grammy/types';
+import { SocksProxyAgent } from 'socks-proxy-agent';
 import BotMessage from '../../models/botMessage';
 import BotUser from '../../models/botUser';
 import Bot_ from '../../models/bot';
-import { setupBot } from '../botSetup';
+
+/**
+ * 构建一个带正确代理配置的裸 API 实例，不走 setupBot（避免重复初始化 session/中间件）。
+ */
+function buildApi(token: string): Api {
+  const SOCKS_PROXY_URL = process.env.SOCKS_PROXY_URL;
+  if (SOCKS_PROXY_URL) {
+    const agent = new SocksProxyAgent(SOCKS_PROXY_URL);
+    return new Api(token, {
+      baseFetchConfig: { agent, compress: true },
+    });
+  }
+  return new Api(token);
+}
 
 export async function handleReactionUpdate(
   botToken: string,
@@ -56,7 +59,7 @@ export async function handleReactionUpdate(
   try {
     const currentBot = await Bot_.findOne({ token: botToken });
     if (!currentBot) {
-      console.log('[reaction] bot not found for token');
+      console.log('[reaction] bot not found');
       return;
     }
     if (currentBot.isCreatedByAdmin) {
@@ -77,7 +80,7 @@ export async function handleReactionUpdate(
       `[reaction] reactorUserId=${reactorUserId} ownerBotUser.id=${ownerBotUser.id} isOwner=${isOwner}`,
     );
 
-    const api = setupBot(botToken).api;
+    const api = buildApi(botToken);
 
     if (isOwner) {
       // owner 点赞的是「客户消息被 forwardMessage 转发给 owner 的那条」
@@ -106,7 +109,6 @@ export async function handleReactionUpdate(
       console.log(
         `[reaction] customerBotUser=${customerBotUser?.id} telegramMessageId=${record.telegramMessageId}`,
       );
-
       if (!customerBotUser?.id) return;
 
       await setReaction(

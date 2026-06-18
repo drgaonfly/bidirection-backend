@@ -46,9 +46,7 @@ startCommand.command('start', checkPermission, async (ctx) => {
 
   if (ctx.currentBot.isCreatedByAdmin) {
     await ctx.reply(bot.message || '欢迎使用机器人', {
-      reply_markup: new InlineKeyboard()
-        .text('克隆', 'clone_start')
-        .text('编辑启动信息', `edit_message_${ctx.currentBot.id}`),
+      reply_markup: new InlineKeyboard().text('克隆', 'clone_start'),
     });
   } else if (
     ctx.currentBot.owner.toString() === String(ctx.currentBotUser._id)

@@ -4,7 +4,8 @@ import { MyContext } from '../../../types';
 import { cancelKeyboard } from '../../../menus/inline/cacel';
 import { setWebhook } from '../../../../controllers/botController';
 import Bot from '../../../../models/bot';
-import BotUser, { IBotUser } from '../../../../models/botUser';
+import { IBotUser } from '../../../../models/botUser';
+import { IUser } from '../../../../models/user';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:clone');
@@ -17,8 +18,10 @@ async function cloneBotConversation(
   ctx: MyContext,
   {
     botUser,
+    proxyUser,
   }: {
     botUser: IBotUser;
+    proxyUser: IUser;
   },
 ) {
   debug('等待用户输入token或取消');
@@ -59,6 +62,7 @@ async function cloneBotConversation(
     // 递归等待用户重新输入
     return await cloneBotConversation(conversation, ctx, {
       botUser,
+      proxyUser,
     });
   }
 
@@ -68,7 +72,7 @@ async function cloneBotConversation(
 
   console.debug('克隆时 botUser:', botUser);
 
-  const addResult = await addBot(token, ctx, botUser);
+  const addResult = await addBot(token, proxyUser, botUser);
 
   if (addResult && addResult.success) {
     await ctx.reply('✅ 克隆成功，请在机器人列表中查看。');
@@ -85,16 +89,10 @@ async function cloneBotConversation(
 // 克隆就是添加机器人，克隆者自动成为 owner
 async function addBot(
   token: string,
-  ctx: MyContext,
+  proxyUser: IUser,
   botUser: IBotUser,
 ): Promise<{ success: boolean; message?: string }> {
   try {
-    if (!botUser) {
-      botUser = await BotUser.findOne({
-        id: ctx.update.callback_query?.from?.id?.toString(),
-      });
-    }
-
     // 检查 token 是否已存在
     const botExists = await Bot.findOne({ token });
     if (botExists) {
@@ -106,9 +104,9 @@ async function addBot(
 
     const newBot = new Bot({
       token,
-      owner: botUser?._id,
-      botUsers: botUser ? [botUser._id] : [],
-      user: ctx.currentProxyUser._id,
+      owner: botUser._id,
+      botUsers: [botUser._id],
+      user: proxyUser._id,
     });
 
     await newBot.save();
@@ -155,6 +153,7 @@ cloneConversationComposer.callbackQuery('clone_start', async (ctx) => {
 
   await ctx.conversation.enter('cloneBotConversation', {
     botUser: ctx.currentBotUser,
+    proxyUser: ctx.currentProxyUser,
   });
   await ctx.answerCallbackQuery();
 });

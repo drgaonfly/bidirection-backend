@@ -255,6 +255,30 @@ const menuDefs: MenuDef[] = [
       },
     ],
   },
+  {
+    name: '机器人管理',
+    path: '/authorizations',
+    icon: 'RobotOutlined',
+    weight: 2,
+    permissionPath: '/bots',
+    permissionAction: 'GET',
+  },
+  {
+    name: '群组管理',
+    path: '/groups',
+    icon: 'TeamOutlined',
+    weight: 3,
+    permissionPath: '/groups',
+    permissionAction: 'GET',
+  },
+  {
+    name: '客户管理',
+    path: '/bot-user-configs',
+    icon: 'ContactsOutlined',
+    weight: 4,
+    permissionPath: '/bot-user-configs',
+    permissionAction: 'GET',
+  },
 ];
 
 async function seedMenus(): Promise<void> {

@@ -20,3 +20,5 @@ export async function generateCommandsList(botToken: string): Promise<any[]> {
       description: cmd.content?.slice(0, 50) || '无描述',
     }));
 }
+
+export const commandsList = [{ command: 'start', description: '开始' }];

@@ -5,9 +5,8 @@ import errorHandler from './middlewares/errorHandler';
 import botResolver from './middlewares/botResolver';
 import botUserResolver from './middlewares/botUserResolver';
 import groupResolver from './middlewares/groupResolver';
-import { generateCommandsList } from './commandsList';
+import { commandsList } from './commandsList';
 import { SocksProxyAgent } from 'socks-proxy-agent';
-import createDebug from 'debug';
 import botUserConfigResolver from './middlewares/botUserConfigResolver';
 import { MyContext } from './types'; // 引入你的 MyContext 类型
 import { hydrateFiles } from '@grammyjs/files';
@@ -15,6 +14,7 @@ import { RedisAdapter } from '@grammyjs/storage-redis';
 import { redis } from '../utils/redis';
 import { conversations } from '@grammyjs/conversations';
 import proxyResolver from './middlewares/proxyResolver';
+import createDebug from 'debug';
 
 const log = createDebug('bot:setup');
 
@@ -110,8 +110,7 @@ export const setupBot = (token: string) => {
 
   (async () => {
     try {
-      const commands = await generateCommandsList(token);
-      await bot.api.setMyCommands(commands);
+      await bot.api.setMyCommands(commandsList);
       log('命令已根据数据库成功设置');
     } catch (error) {
       log('设置命令时发生错误:', error);

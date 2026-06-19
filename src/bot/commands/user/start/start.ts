@@ -54,7 +54,7 @@ startCommand.command('start', checkPermission, async (ctx) => {
     await ctx.reply('等待有用户向您通信', {
       reply_markup: new InlineKeyboard().text(
         '编辑启动信息',
-        `edit_message_${ctx.currentBot.id}`,
+        `edit_message_${ctx.currentBot._id}`,
       ),
     });
   } else {

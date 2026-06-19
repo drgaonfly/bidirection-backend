@@ -373,6 +373,8 @@ async function fallbackForwardToOwner(
   messageContent: string | undefined,
   messageType: string,
 ): Promise<void> {
+  console.log('messageType', messageType);
+
   try {
     const bot = setupBot(ctx.currentBot.token);
     const forwarded = await bot.api.forwardMessage(

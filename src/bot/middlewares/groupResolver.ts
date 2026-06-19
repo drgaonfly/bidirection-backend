@@ -7,7 +7,15 @@ import { refreshTopicSetupState } from '../services/topicService';
 const debug = createDebug('bot:group');
 
 const groupResolver: Middleware<MyContext> = async (ctx, next) => {
-  // 检查是否在群组中
+  // 处理群组升级为 supergroup 的迁移事件
+  if (ctx.message?.migrate_to_chat_id) {
+    const oldId = ctx.chat.id;
+    const newId = ctx.message.migrate_to_chat_id;
+    debug('群组迁移: %d → %d', oldId, newId);
+    await Group.findOneAndUpdate({ id: oldId }, { id: newId });
+    ctx.currentGroup = null;
+    return await next();
+  }
   if (!ctx.chat || ctx.chat.type === 'private') {
     debug('请在群组中使用此命令');
     ctx.currentGroup = null;

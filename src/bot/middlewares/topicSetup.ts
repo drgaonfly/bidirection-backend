@@ -220,9 +220,8 @@ topicSetupComposer.callbackQuery(/^topic_setup_next:/, async (ctx) => {
 
   debug(`[callback] groupId=${groupId} step=${step}`);
 
-  await ctx.answerCallbackQuery();
-
   if (step === 4) {
+    await ctx.answerCallbackQuery();
     await ctx.editMessageText(doneText(), {
       parse_mode: 'Markdown',
       reply_markup: doneButton(),
@@ -230,11 +229,23 @@ topicSetupComposer.callbackQuery(/^topic_setup_next:/, async (ctx) => {
     return;
   }
 
-  // 直接展示当前实时步骤，与 /setup_topics 行为一致
-  await ctx.editMessageText(stepText(step, botInfo.username ?? '机器人'), {
-    parse_mode: 'Markdown',
-    reply_markup: nextButton(groupId),
-  });
+  // 直接展示当前实时步骤，内容未变则说明条件尚未满足
+  try {
+    await ctx.editMessageText(stepText(step, botInfo.username ?? '机器人'), {
+      parse_mode: 'Markdown',
+      reply_markup: nextButton(groupId),
+    });
+    await ctx.answerCallbackQuery();
+  } catch (err: any) {
+    if (err?.description?.includes('message is not modified')) {
+      await ctx.answerCallbackQuery({
+        text: '⚠️ 检测未通过，请确认操作已完成后再试。',
+        show_alert: true,
+      });
+    } else {
+      throw err;
+    }
+  }
 });
 
 // ─────────────────────────────────────────────────────────────

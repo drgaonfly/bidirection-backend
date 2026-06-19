@@ -121,36 +121,6 @@ topicSetupComposer.on('my_chat_member', async (ctx) => {
   if (ctx.currentBot?.isCreatedByAdmin) return;
 
   debug('机器人被加入群组 chatId=%s', ctx.chat?.id);
-
-  const ownerBotUser = ctx.currentBot?.owner
-    ? await BotUser.findById(ctx.currentBot.owner).lean()
-    : null;
-  if (!ownerBotUser?.id) return;
-
-  const group = ctx.currentGroup;
-  if (!group) return;
-
-  const botInfo = await ctx.api.getMe();
-  const groupTitle = ctx.chat?.title ?? '群组';
-
-  try {
-    await ctx.api.sendMessage(
-      Number(ownerBotUser.id),
-      [
-        `🤖 机器人已被加入群组「${groupTitle}」`,
-        '',
-        '建议开启**话题模式**，让每位用户拥有独立话题，方便分别通信。',
-        '',
-        stepText(0, botInfo.username ?? '机器人'),
-      ].join('\n'),
-      {
-        parse_mode: 'Markdown',
-        reply_markup: nextButton(String(group._id)),
-      },
-    );
-  } catch (err: any) {
-    debug('通知 owner 失败:', err?.description ?? err?.message);
-  }
 });
 
 // ─────────────────────────────────────────────────────────────

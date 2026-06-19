@@ -2,6 +2,7 @@ import { Middleware } from 'grammy';
 import Group from '../../models/group';
 import { MyContext } from '../types';
 import createDebug from 'debug';
+import { refreshTopicSetupState } from '../services/topicService';
 
 const debug = createDebug('bot:group');
 
@@ -42,7 +43,7 @@ const groupResolver: Middleware<MyContext> = async (ctx, next) => {
     await newGroup.save();
     ctx.currentGroup = newGroup;
 
-    await ctx.reply('感谢您把我添加到贵群!\n下一步设置费率，请发：设置费率x%');
+    await ctx.reply('感谢您把我添加到贵群!');
   } else {
     // 更新群组信息
     // 只在群组标题或类型发生变化时才更新
@@ -61,21 +62,31 @@ const groupResolver: Middleware<MyContext> = async (ctx, next) => {
   // 使用 $addToSet 将当前用户添加到群组的用户列表中，避免重复添加
   await Group.updateOne(
     { _id: ctx.currentGroup._id },
-    {
-      $addToSet: {
-        botUsers: ctx.currentBotUser._id,
-      },
-    },
+    { $addToSet: { botUsers: ctx.currentBotUser._id } },
   );
 
   await ctx.currentBot.updateOne({
-    $addToSet: {
-      // 使用 $addToSet 来避免重复添加
-      groups: ctx.currentGroup._id,
-    },
+    $addToSet: { groups: ctx.currentGroup._id },
   });
 
   debug('Added user to group botUsers:', ctx.currentBotUser._id);
+
+  // ── 话题模式：周期性刷新配置状态（每次有消息时都检查，成本低）
+  // 只对非母机器人、且群组尚未完成配置（setupStep < 4）时才刷新
+  if (!ctx.currentBot.isCreatedByAdmin && ctx.currentGroup.setupStep < 4) {
+    try {
+      const botInfo = await ctx.api.getMe();
+      await refreshTopicSetupState(
+        ctx.api,
+        ctx.currentGroup,
+        botInfo.id,
+        ctx.currentBot._id,
+      );
+      debug('话题配置状态已刷新, step=%d', ctx.currentGroup.setupStep);
+    } catch (err) {
+      debug('刷新话题配置状态失败:', err);
+    }
+  }
 
   // 继续处理后续中间件
   await next();

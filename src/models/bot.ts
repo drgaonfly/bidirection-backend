@@ -35,6 +35,8 @@ export interface IBot extends Document {
   isCreatedByAdmin?: boolean;
   isExpired?: boolean;
   expireAt?: Date;
+  /** 当前激活的话题群组（用于多群组时指定哪个群接收消息） */
+  activeTopicGroup?: mongoose.Schema.Types.ObjectId | IGroup;
 }
 
 export interface IMenu extends Document {
@@ -119,6 +121,11 @@ const botSchema = new mongoose.Schema(
     isCreatedByAdmin: { type: Boolean, default: false },
     isExpired: { type: Boolean, default: false },
     expireAt: { type: Date },
+    activeTopicGroup: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Group',
+      default: null,
+    },
   },
   {
     timestamps: true,

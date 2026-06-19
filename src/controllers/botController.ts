@@ -156,6 +156,7 @@ export const setWebhook = async (botManager: IBot) => {
       'inline_query',
       'message_reaction',
       'message_reaction_count',
+      'my_chat_member',
     ],
   });
 

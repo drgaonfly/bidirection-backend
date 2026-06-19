@@ -3,6 +3,13 @@ import { IBot } from './bot';
 import { IBotUser } from './botUser';
 import { IUser } from './user';
 
+// 话题（Forum Topic）映射条目
+export interface IBotUserTopic {
+  botUserId: string; // BotUser.id（Telegram user id 字符串）
+  threadId: number; // Telegram message_thread_id
+  topicName?: string; // 话题名称
+}
+
 // 群组接口定义
 export interface IGroup extends Document {
   id: number;
@@ -17,6 +24,22 @@ export interface IGroup extends Document {
   intervalTime: number; // 间隔时间
   updatedAt: Date;
   createdAt: Date;
+  // ── 话题模式 ──────────────────────────────────────────
+  /** 群组是否已开启话题模式（Forum） */
+  topicMode: boolean;
+  /** 机器人是否拥有管理话题的权限（实时检测，此字段仅作缓存参考） */
+  canManageTopics: boolean;
+  /**
+   * 引导步骤：
+   *  0 = 未开始（普通 group，需升级为 supergroup）
+   *  1 = 已是 supergroup，等待开启话题模式
+   *  2 = 已开话题，等待设机器人为管理员
+   *  3 = 已是管理员，等待赋予管理话题权限
+   *  4 = 配置完成
+   */
+  setupStep: number;
+  /** BotUser → threadId 映射表 */
+  botUserTopics: IBotUserTopic[];
 }
 
 // 群组 Schema
@@ -78,6 +101,20 @@ const groupSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: false,
+    },
+    // ── 话题模式 ──────────────────────────────────────────
+    topicMode: { type: Boolean, default: false },
+    canManageTopics: { type: Boolean, default: false },
+    setupStep: { type: Number, default: 0 },
+    botUserTopics: {
+      type: [
+        {
+          botUserId: { type: String, required: true },
+          threadId: { type: Number, required: true },
+          topicName: { type: String },
+        },
+      ],
+      default: [],
     },
   },
   {

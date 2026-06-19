@@ -28,8 +28,8 @@ startCommand.command('start', checkPermission, async (ctx) => {
 
   // 判断是否在群组中
   if (ctx.chat.type !== 'private') {
-    await ctx.reply('感谢您把我添加到贵群!\n下一步设置费率，请发：设置费率x%');
-    debug(`感谢添加！本群 ID 为：${chatId}`);
+    // await ctx.reply('感谢您把我添加到贵群!\n下一步设置费率，请发：设置费率x%');
+    // debug(`感谢添加！本群 ID 为：${chatId}`);
 
     // 检查机器人是否可以读取所有群组消息
     if (!ctx.me.can_read_all_group_messages) {

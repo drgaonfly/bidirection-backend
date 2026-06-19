@@ -21,4 +21,8 @@ export async function generateCommandsList(botToken: string): Promise<any[]> {
     }));
 }
 
-export const commandsList = [{ command: 'start', description: '开始' }];
+export const commandsList = [
+  { command: 'start', description: '开始' },
+  { command: 'setup_topics', description: '配置话题模式（群组双向通信）' },
+  { command: 'use_this_group', description: '将本群设为当前话题通信群组' },
+];

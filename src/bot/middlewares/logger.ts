@@ -261,10 +261,10 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   }
 
   // 话题模式下，非 owner 在其他群组发消息（没有权限）→ 直接忽略
-  // if (isTopicMode && !isOwner && ctx.chat?.type !== 'private') {
-  //   await next();
-  //   return;
-  // }
+  if (isTopicMode && !isOwner && ctx.chat?.type !== 'private') {
+    await next();
+    return;
+  }
 
   // ────────────────────────────────────────────────────────
   // 分支 C：非话题模式 — 原有私聊转发逻辑

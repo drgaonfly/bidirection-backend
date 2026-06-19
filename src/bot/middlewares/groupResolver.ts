@@ -12,7 +12,39 @@ const groupResolver: Middleware<MyContext> = async (ctx, next) => {
     const oldId = ctx.chat.id;
     const newId = ctx.message.migrate_to_chat_id;
     debug('群组迁移: %d → %d', oldId, newId);
-    await Group.findOneAndUpdate({ id: oldId }, { id: newId });
+
+    try {
+      const oldGroup = await Group.findOne({ id: oldId });
+      const newGroup = await Group.findOne({ id: newId });
+
+      if (oldGroup && newGroup) {
+        // 两条记录都存在，把旧记录的 botUserTopics 合并到新记录，然后删旧记录
+        await Group.findByIdAndUpdate(newGroup._id, {
+          $set: {
+            topicMode: oldGroup.topicMode || newGroup.topicMode,
+            setupStep: Math.max(
+              oldGroup.setupStep ?? 0,
+              newGroup.setupStep ?? 0,
+            ),
+            canManageTopics:
+              oldGroup.canManageTopics || newGroup.canManageTopics,
+          },
+          $addToSet: {
+            botUsers: { $each: oldGroup.botUsers ?? [] },
+            botUserTopics: { $each: oldGroup.botUserTopics ?? [] },
+          },
+        });
+        await Group.findByIdAndDelete(oldGroup._id);
+        debug('已合并旧记录到新 supergroup 记录，旧记录已删除');
+      } else if (oldGroup) {
+        // 只有旧记录，直接更新 id
+        await Group.findByIdAndUpdate(oldGroup._id, { id: newId });
+        debug('已更新群组 id: %d → %d', oldId, newId);
+      }
+    } catch (err) {
+      debug('群组迁移处理失败:', err);
+    }
+
     ctx.currentGroup = null;
     return await next();
   }

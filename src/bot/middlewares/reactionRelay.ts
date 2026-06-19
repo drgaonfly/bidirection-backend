@@ -19,6 +19,7 @@ import { SocksProxyAgent } from 'socks-proxy-agent';
 import BotMessage from '../../models/botMessage';
 import BotUser from '../../models/botUser';
 import Bot_ from '../../models/bot';
+import Group from '../../models/group';
 
 /**
  * 构建一个带正确代理配置的裸 API 实例，不走 setupBot（避免重复初始化 session/中间件）。
@@ -118,7 +119,7 @@ export async function handleReactionUpdate(
         newReactions,
       );
     } else {
-      // 客户点赞的是「owner 回复后 copyMessage 给客户的那条」
+      // 客户点赞的是「owner 回复后 copyMessage/forwardMessage 给客户的那条」
       const record = await BotMessage.findOne({
         bot: currentBot._id,
         forwardedMessageId: messageId,
@@ -139,16 +140,20 @@ export async function handleReactionUpdate(
 
       if (!record) return;
 
+      // 话题模式下 telegramMessageId 是群组里的消息，需用群组 chat id
+      // 非话题模式下是 owner 私聊里的消息，用 ownerBotUser.id
+      let targetChatId = Number(ownerBotUser.id);
+      if (record.group) {
+        const group = await Group.findById(record.group).lean();
+        if (group?.id) targetChatId = Number(group.id);
+      }
+      const targetMsgId = record.telegramMessageId!;
+
       console.log(
-        `[reaction] customer → owner=${ownerBotUser.id} msgId=${record.telegramMessageId}`,
+        `[reaction] customer → chatId=${targetChatId} msgId=${targetMsgId} (topicMode=${!!record.group})`,
       );
 
-      await setReaction(
-        api,
-        Number(ownerBotUser.id),
-        record.telegramMessageId!,
-        newReactions,
-      );
+      await setReaction(api, targetChatId, targetMsgId, newReactions);
     }
   } catch (err: any) {
     console.error('[reaction] error:', err?.message || err?.description || err);

@@ -199,48 +199,56 @@ topicSetupComposer.command('setup_topics', checkGroup, async (ctx) => {
 // callback: topic_setup_next:<groupId>
 // 用户点「我已完成」→ 实时检测 → 更新消息内容到下一步
 // ─────────────────────────────────────────────────────────────
-topicSetupComposer.callbackQuery(/^topic_setup_next:/, async (ctx) => {
-  await ctx.answerCallbackQuery(); // 先关闭 loading
+topicSetupComposer.callbackQuery(
+  /^topic_setup_next:/,
+  checkGroup,
+  async (ctx) => {
+    const groupId = ctx.callbackQuery.data.split(':')[1];
+    const group = await Group.findById(groupId);
+    if (!group) {
+      await ctx.answerCallbackQuery({
+        text: '❌ 找不到对应群组，请重试。',
+        show_alert: true,
+      });
+      return;
+    }
 
-  const groupId = ctx.callbackQuery.data.split(':')[1];
-  const group = await Group.findById(groupId);
-  if (!group) {
-    await ctx.editMessageText('❌ 找不到对应群组，请重试。');
-    return;
-  }
+    const botInfo = await ctx.api.getMe();
+    const prevStep = group.setupStep;
+    const step = await refreshTopicSetupState(
+      ctx.api,
+      group,
+      botInfo.id,
+      ctx.currentBot._id,
+    );
 
-  const botInfo = await ctx.api.getMe();
-  const prevStep = group.setupStep;
-  const step = await refreshTopicSetupState(
-    ctx.api,
-    group,
-    botInfo.id,
-    ctx.currentBot._id,
-  );
+    if (step === prevStep) {
+      // 检测未通过，弹窗提示，不更换消息内容
+      await ctx.answerCallbackQuery({
+        text: '⚠️ 检测未通过，请确认操作已完成后再试。',
+        show_alert: true,
+      });
+      return;
+    }
 
-  if (step === prevStep) {
-    // 检测未通过，在消息下方提示，不更换内容
-    await ctx.answerCallbackQuery({
-      text: '⚠️ 检测未通过，请确认操作已完成后再试。',
-      show_alert: true,
-    });
-    return;
-  }
+    // 先 answer 关闭 loading，再更新消息内容
+    await ctx.answerCallbackQuery();
 
-  if (step === 4) {
-    await ctx.editMessageText(doneText(), {
+    if (step === 4) {
+      await ctx.editMessageText(doneText(), {
+        parse_mode: 'Markdown',
+        reply_markup: doneButton(),
+      });
+      return;
+    }
+
+    // 推进到下一步
+    await ctx.editMessageText(stepText(step, botInfo.username ?? '机器人'), {
       parse_mode: 'Markdown',
-      reply_markup: doneButton(),
+      reply_markup: nextButton(groupId),
     });
-    return;
-  }
-
-  // 推进到下一步
-  await ctx.editMessageText(stepText(step, botInfo.username ?? '机器人'), {
-    parse_mode: 'Markdown',
-    reply_markup: nextButton(groupId),
-  });
-});
+  },
+);
 
 // ─────────────────────────────────────────────────────────────
 // callback: topic_setup_close — 完成后关闭卡片

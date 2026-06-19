@@ -222,7 +222,9 @@ topicSetupComposer.callbackQuery(
       ctx.currentBot._id,
     );
 
-    if (step === prevStep) {
+    debug(`[callback] groupId=${groupId} prevStep=${prevStep} step=${step}`);
+
+    if (step <= prevStep) {
       // 检测未通过，弹窗提示，不更换消息内容
       await ctx.answerCallbackQuery({
         text: '⚠️ 检测未通过，请确认操作已完成后再试。',

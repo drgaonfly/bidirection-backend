@@ -214,7 +214,6 @@ topicSetupComposer.callbackQuery(
     }
 
     const botInfo = await ctx.api.getMe();
-    const prevStep = group.setupStep;
     const step = await refreshTopicSetupState(
       ctx.api,
       group,
@@ -222,18 +221,8 @@ topicSetupComposer.callbackQuery(
       ctx.currentBot._id,
     );
 
-    debug(`[callback] groupId=${groupId} prevStep=${prevStep} step=${step}`);
+    debug(`[callback] groupId=${groupId} step=${step}`);
 
-    if (step <= prevStep) {
-      // 检测未通过，弹窗提示，不更换消息内容
-      await ctx.answerCallbackQuery({
-        text: '⚠️ 检测未通过，请确认操作已完成后再试。',
-        show_alert: true,
-      });
-      return;
-    }
-
-    // 先 answer 关闭 loading，再更新消息内容
     await ctx.answerCallbackQuery();
 
     if (step === 4) {
@@ -244,7 +233,7 @@ topicSetupComposer.callbackQuery(
       return;
     }
 
-    // 推进到下一步
+    // 直接展示当前实时步骤，与 /setup_topics 行为一致
     await ctx.editMessageText(stepText(step, botInfo.username ?? '机器人'), {
       parse_mode: 'Markdown',
       reply_markup: nextButton(groupId),

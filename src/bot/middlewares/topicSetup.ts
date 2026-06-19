@@ -22,6 +22,7 @@ import BotUser from '../../models/botUser';
 import Bot from '../../models/bot';
 import Group from '../../models/group';
 import { refreshTopicSetupState } from '../services/topicService';
+import { checkGroup } from './checkGroup';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:topicSetup');
@@ -155,7 +156,7 @@ topicSetupComposer.on('my_chat_member', async (ctx) => {
 // ─────────────────────────────────────────────────────────────
 // /setup_topics — 在群组中发送，展示当前步骤
 // ─────────────────────────────────────────────────────────────
-topicSetupComposer.command('setup_topics', async (ctx) => {
+topicSetupComposer.command('setup_topics', checkGroup, async (ctx) => {
   if (ctx.chat?.type === 'private') {
     await ctx.reply('请在您希望配置话题模式的群组中发送此命令。');
     return;
@@ -254,7 +255,7 @@ topicSetupComposer.callbackQuery('topic_setup_close', async (ctx) => {
 // ─────────────────────────────────────────────────────────────
 // /use_this_group — 切换激活话题群组
 // ─────────────────────────────────────────────────────────────
-topicSetupComposer.command('use_this_group', async (ctx) => {
+topicSetupComposer.command('use_this_group', checkGroup, async (ctx) => {
   if (ctx.chat?.type === 'private') {
     await ctx.reply('请在目标话题群组中发送此命令。');
     return;

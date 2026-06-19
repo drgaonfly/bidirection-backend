@@ -6,7 +6,7 @@ import botResolver from './middlewares/botResolver';
 import botUserResolver from './middlewares/botUserResolver';
 import groupResolver from './middlewares/groupResolver';
 import topicSetupComposer from './middlewares/topicSetup';
-import { commandsList } from './commandsList';
+import { privateCommandsList, groupCommandsList } from './commandsList';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import botUserConfigResolver from './middlewares/botUserConfigResolver';
 import { MyContext } from './types'; // 引入你的 MyContext 类型
@@ -117,8 +117,15 @@ export const setupBot = (token: string) => {
 
   (async () => {
     try {
-      await bot.api.setMyCommands(commandsList);
-      log('命令已根据数据库成功设置');
+      // 私聊命令（start）
+      await bot.api.setMyCommands(privateCommandsList, {
+        scope: { type: 'all_private_chats' },
+      });
+      // 群组命令（setup_topics / use_this_group）
+      await bot.api.setMyCommands(groupCommandsList, {
+        scope: { type: 'all_group_chats' },
+      });
+      log('命令已按场景分别设置（私聊 / 群组）');
     } catch (error) {
       log('设置命令时发生错误:', error);
     }

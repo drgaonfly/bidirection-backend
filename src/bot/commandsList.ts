@@ -21,8 +21,11 @@ export async function generateCommandsList(botToken: string): Promise<any[]> {
     }));
 }
 
-export const commandsList = [
-  { command: 'start', description: '开始' },
+/** 私聊命令：用户与机器人一对一时可见 */
+export const privateCommandsList = [{ command: 'start', description: '开始' }];
+
+/** 群组命令：机器人在群组中时可见 */
+export const groupCommandsList = [
   { command: 'setup_topics', description: '配置话题模式（群组双向通信）' },
   { command: 'use_this_group', description: '将本群设为当前话题通信群组' },
 ];

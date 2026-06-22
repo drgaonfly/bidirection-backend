@@ -4,7 +4,7 @@ import { isOwner, sendStatusCard } from './helpers';
 
 const subscribeCommand = new Composer<MyContext>();
 
-subscribeCommand.command('subscribe', async (ctx) => {
+subscribeCommand.callbackQuery('subscribe', async (ctx) => {
   if (ctx.chat?.type !== 'private') return;
   if (ctx.currentBot?.isCreatedByAdmin) return;
   if (!(await isOwner(ctx))) {

@@ -18,7 +18,7 @@ userComposer.use(helpComposer.middleware());
 // 在机器人使用的
 userComposer.use(contactComposer.middleware());
 userComposer.use(cloneComposer.middleware());
-userComposer.use(conversationsComposer.middleware());
 userComposer.use(subscribeComposer.middleware());
+userComposer.use(conversationsComposer.middleware());
 
 export default userComposer;

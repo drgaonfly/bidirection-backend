@@ -17,6 +17,7 @@ export async function isOwner(ctx: MyContext): Promise<boolean> {
 
 export async function createPendingOrder(
   bot: any,
+  proxy: any,
   fee: number,
   toAddress: string,
 ): Promise<any> {
@@ -31,6 +32,7 @@ export async function createPendingOrder(
 
   return Subscription.create({
     bot: bot._id,
+    proxy: proxy._id,
     amount: uniqueAmount,
     toAddress,
     orderExpiredAt,

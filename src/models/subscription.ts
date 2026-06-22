@@ -1,5 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 import { IBot } from './bot';
+import { IUser } from './user';
 
 export type SubscriptionStatus =
   | 'pending' // 已创建，等待链上付款
@@ -9,6 +10,8 @@ export type SubscriptionStatus =
 
 export interface ISubscription extends Document {
   bot: mongoose.Types.ObjectId | IBot;
+
+  proxy: mongoose.Types.ObjectId | IUser;
   /** 应付月费金额（USDT） */
   amount: number;
   /** 收款地址（bot.trx20_address，创建时快照） */
@@ -37,6 +40,11 @@ const subscriptionSchema = new mongoose.Schema<ISubscription>(
     bot: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Bot',
+      required: true,
+    },
+    proxy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
       required: true,
     },
     amount: { type: Number, required: true },

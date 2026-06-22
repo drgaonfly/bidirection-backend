@@ -15,6 +15,8 @@ payCallback.callbackQuery('subscribe_pay', async (ctx) => {
     .select('botName topicSubscriptionExpiredAt activeTopicGroup')
     .lean();
 
+  const proxy = ctx.currentProxyUser;
+
   if (!bot) return;
 
   const fee: number = ctx.currentProxyUser?.topicSubscriptionMonthlyFee ?? 25;
@@ -32,7 +34,8 @@ payCallback.callbackQuery('subscribe_pay', async (ctx) => {
     orderExpiredAt: { $gt: new Date() },
   }).lean();
 
-  const order = existing ?? (await createPendingOrder(bot, fee, toAddress));
+  const order =
+    existing ?? (await createPendingOrder(bot, proxy, fee, toAddress));
 
   await sendPaymentCard(ctx, order, toAddress, true);
 });

@@ -11,7 +11,6 @@
 
 import Bot from '../models/bot';
 import Subscription from '../models/subscription';
-import User from '../models/user';
 import { getUSDTTransfers } from './checkUsdt';
 import { setupBot } from '../bot/botSetup';
 import createDebug from 'debug';

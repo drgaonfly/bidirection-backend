@@ -2,9 +2,9 @@ import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
 import { isOwner, sendStatusCard } from './helpers';
 
-const subscribeCommand = new Composer<MyContext>();
+const subscribeCallback = new Composer<MyContext>();
 
-subscribeCommand.callbackQuery('subscribe', async (ctx) => {
+subscribeCallback.callbackQuery('subscribe', async (ctx) => {
   if (ctx.chat?.type !== 'private') return;
   if (ctx.currentBot?.isCreatedByAdmin) return;
   if (!(await isOwner(ctx))) {
@@ -14,4 +14,4 @@ subscribeCommand.callbackQuery('subscribe', async (ctx) => {
   await sendStatusCard(ctx);
 });
 
-export default subscribeCommand;
+export default subscribeCallback;

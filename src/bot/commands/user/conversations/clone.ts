@@ -117,6 +117,8 @@ async function addBot(
       owner: botUser._id,
       botUsers: [botUser._id],
       user: proxyUserId,
+      clonedFrom: ctx.currentBot._id,
+      isCreatedByAdmin: false,
     });
 
     await newBot.save();

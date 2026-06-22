@@ -191,7 +191,8 @@ const addBot = handleAsync(async (req: RequestCustom, res: Response) => {
   const botManager = new Bot({
     ...req.body,
     user: req.user._id,
-    isCreatedByAdmin: req.user.isAdmin,
+    // 后台创建一律为平台母机器人，与 user.isAdmin（数据权限）解耦
+    isCreatedByAdmin: true,
   });
 
   if (isOnline) {

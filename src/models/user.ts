@@ -19,6 +19,11 @@ export interface IUser extends Document {
   temp2FASecret?: string; // 临时存储的TOTP密钥（用于激活过程）
   twoFABackupCodes?: string[]; // 备用代码（可选增强）
 
+  /** TRC20 收款地址（用于话题订阅收款） */
+  trx20_address?: string;
+  /** 话题双向通信月费（USDT），默认 25 */
+  topicSubscriptionMonthlyFee: number;
+
   passwordChangedAt: Date;
   lastLoginAt: Date; // 最新登录时间
   lastLoginIp: string; // 最新登录IP
@@ -75,6 +80,9 @@ const userSchema = new mongoose.Schema(
     passwordChangedAt: Date,
     lastLoginAt: { type: Date },
     lastLoginIp: { type: String },
+
+    trx20_address: { type: String, trim: true },
+    topicSubscriptionMonthlyFee: { type: Number, default: 25 },
 
     lastOnline: { type: Date },
   },

@@ -4,7 +4,7 @@
 
 module.exports = {
   apps: [
-    // 主应用
+    // ── 主应用 ────────────────────────────────────────────────
     {
       name: 'bidirection-backend',
       script: 'dist/index.js',
@@ -16,61 +16,99 @@ module.exports = {
         NODE_ENV: 'production',
         DEBUG: 'bot*',
       },
-      // 日志配置
       error_file: './logs/backend-error.log',
       out_file: './logs/backend-out.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
       merge_logs: true,
-      // 日志切割配置（保留7天）
       max_size: '10M',
       retain: 7,
       compress: true,
     },
-    // Bot 应用 - 每小时第30分钟执行一次（设置 Webhook）
+
+    // ── Bot Webhook 注册（每小时 :30 重跑一次设置 Webhook） ───
     {
       name: 'bidirection-bot',
       script: 'dist/bot/index.js',
       instances: 1,
-      autorestart: false, // 执行一次后退出，不自动重启
+      autorestart: false,   // 执行完即退出，由 cron_restart 定时重启
       watch: false,
       exec_mode: 'fork',
       max_memory_restart: '1G',
-      cron_restart: '30 * * * *', // 每小时第30分钟执行一次
+      cron_restart: '30 * * * *',
       env: {
         NODE_ENV: 'production',
         DEBUG: 'bot*',
       },
-      // 日志配置
       error_file: './logs/bot-error.log',
       out_file: './logs/bot-out.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
       merge_logs: true,
-      // 日志切割配置（保留7天）
       max_size: '10M',
       retain: 7,
       compress: true,
     },
-    // 定时任务 - 使用 node-cron 常驻执行
-    // {
-    //   name: 'bidirection-task',
-    //   script: 'dist/tasks/index.js',
-    //   instances: 1,
-    //   exec_mode: 'fork',
-    //   autorestart: true, // 常驻进程，PM2 保障自动重启
-    //   watch: false,
-    //   env: {
-    //     NODE_ENV: 'production',
-    //     DEBUG: 'bot*',
-    //   },
-    //   // 日志配置
-    //   error_file: './logs/task-error.log',
-    //   out_file: './logs/task-out.log',
-    //   log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
-    //   merge_logs: true,
-    //   // 日志切割配置（保留7天）
-    //   max_size: '10M',
-    //   retain: 7,
-    //   compress: true,
-    // },
+
+    // ── 通用定时任务：bot 到期检查 + 群发消息 ────────────────
+    {
+      name: 'bidirection-task',
+      script: 'dist/tasks/index.js',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: true,
+      watch: false,
+      env: {
+        NODE_ENV: 'production',
+        DEBUG: 'cron:task*',
+      },
+      error_file: './logs/task-error.log',
+      out_file: './logs/task-out.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+      merge_logs: true,
+      max_size: '10M',
+      retain: 7,
+      compress: true,
+    },
+
+    // ── 话题订阅：USDT 入账扫描，自动续期 ───────────────────
+    {
+      name: 'bidirection-subscription',
+      script: 'dist/tasks/subscription.js',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: true,
+      watch: false,
+      env: {
+        NODE_ENV: 'production',
+        DEBUG: 'cron:subscription*',
+      },
+      error_file: './logs/subscription-error.log',
+      out_file: './logs/subscription-out.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+      merge_logs: true,
+      max_size: '10M',
+      retain: 7,
+      compress: true,
+    },
+
+    // ── 话题订阅：到期提醒 + 过期标记 ───────────────────────
+    {
+      name: 'bidirection-subscription-notify',
+      script: 'dist/tasks/subscriptionNotify.js',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: true,
+      watch: false,
+      env: {
+        NODE_ENV: 'production',
+        DEBUG: 'cron:subscriptionNotify*',
+      },
+      error_file: './logs/subscription-notify-error.log',
+      out_file: './logs/subscription-notify-out.log',
+      log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+      merge_logs: true,
+      max_size: '10M',
+      retain: 7,
+      compress: true,
+    },
   ],
 };

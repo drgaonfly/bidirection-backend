@@ -52,10 +52,9 @@ startCommand.command('start', checkPermission, async (ctx) => {
     ctx.currentBot.owner.toString() === String(ctx.currentBotUser._id)
   ) {
     await ctx.reply('等待有用户向您通信', {
-      reply_markup: new InlineKeyboard().text(
-        '编辑启动信息',
-        `edit_message_${ctx.currentBot._id}`,
-      ),
+      reply_markup: new InlineKeyboard()
+        .text('编辑启动信息', `edit_message_${ctx.currentBot._id}`)
+        .text('订阅话题模式通信', 'subscribe'),
     });
   } else {
     await ctx.reply(ctx.currentBot.message || '请开始与我通信');

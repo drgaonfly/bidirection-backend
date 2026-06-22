@@ -5,6 +5,7 @@ import helpComposer from './help';
 import contactComposer from './contact';
 // import profileComposer from './profile';
 import cloneComposer from './clone';
+import subscribeComposer from './subscribe';
 
 import conversationsComposer from './conversations';
 
@@ -18,5 +19,6 @@ userComposer.use(helpComposer.middleware());
 userComposer.use(contactComposer.middleware());
 userComposer.use(cloneComposer.middleware());
 userComposer.use(conversationsComposer.middleware());
+userComposer.use(subscribeComposer.middleware());
 
 export default userComposer;

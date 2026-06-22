@@ -29,6 +29,7 @@ import receiveMessageRoute from './routes/receiveMessageRoute';
 import walletRoutes from './routes/walletRoute';
 import groupMessageRoutes from './routes/groupMessageRoutes';
 import botUserConfigRoutes from './routes/botUserConfigRoutes';
+import subscriptionRoutes from './routes/subscriptionRoutes';
 
 dotenv.config();
 
@@ -69,6 +70,7 @@ app.use('/api/receive-message', receiveMessageRoute);
 app.use('/api/wallets', walletRoutes);
 app.use('/api/group-messages', groupMessageRoutes);
 app.use('/api/bot-user-configs', botUserConfigRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
 
 app.use('/api/static', express.static('tmp'));
 

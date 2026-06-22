@@ -11,6 +11,7 @@ import {
   getOrCreateTopicForUser,
   getBotUserIdByThreadId,
 } from '../services/topicService';
+import { isTopicSubscriptionActive } from './checkTopicSubscription';
 
 const debug = createDebug('bot:logger');
 
@@ -120,6 +121,55 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   }
 
   const isTopicMode = !!topicGroup;
+
+  // ── 话题订阅门控 ────────────────────────────────────────────
+  // 只对话题模式生效；订阅到期时通知 owner，普通用户收到不可用提示
+  if (isTopicMode && !ctx.currentBot.isCreatedByAdmin) {
+    // 从 DB 取最新订阅字段
+    const freshBot = await Bot.findById(ctx.currentBot._id)
+      .select('topicSubscriptionExpiredAt')
+      .lean();
+
+    if (!isTopicSubscriptionActive(freshBot)) {
+      const fee = ctx.currentProxyUser?.topicSubscriptionMonthlyFee ?? 25;
+      const address = ctx.currentProxyUser?.trx20_address || '（未配置）';
+      const expiry = freshBot?.topicSubscriptionExpiredAt
+        ? `到期时间：${new Date(
+            freshBot.topicSubscriptionExpiredAt,
+          ).toLocaleString('zh-CN', { hour12: false })}\n\n`
+        : '';
+
+      const renewalMsg =
+        `⚠️ <b>话题双向通信</b> 订阅已到期或未开通\n\n` +
+        expiry +
+        `请向以下地址转入 <b>${fee} USDT</b>（TRC20）完成续费：\n` +
+        `<code>${address}</code>\n\n` +
+        `转账后系统将在 <b>5 分钟内</b>自动识别并开通。`;
+
+      // owner 在话题群里 → 在话题内提示
+      if (
+        isOwner &&
+        message?.message_thread_id &&
+        ctx.chat?.type !== 'private'
+      ) {
+        try {
+          const bot = setupBot(ctx.currentBot.token);
+          await bot.api.sendMessage(ctx.chat.id, renewalMsg, {
+            parse_mode: 'HTML',
+            message_thread_id: message.message_thread_id,
+          } as any);
+        } catch (_) {
+          /* ignore */
+        }
+      } else if (!isOwner && ctx.chat?.type === 'private') {
+        // 普通用户私聊 → 通用提示
+        await ctx.reply('⚠️ 当前服务暂时不可用，请联系管理员。');
+      }
+
+      await next();
+      return;
+    }
+  }
 
   // ────────────────────────────────────────────────────────
   // 分支 A：话题模式 + owner 在群组话题中发消息 → 转发给对应用户

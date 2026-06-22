@@ -23,7 +23,6 @@ export interface IBot extends Document {
   groupMessages: mongoose.Schema.Types.ObjectId[] | IGroupMessage[]; // 虚拟字段
   session?: string;
   contact?: string;
-  trx20_address?: string;
   customer_service_link?: string;
   type?: 'public' | 'custom';
   clonedFrom?: mongoose.Schema.Types.ObjectId | IBot;
@@ -36,7 +35,11 @@ export interface IBot extends Document {
   isExpired?: boolean;
   expireAt?: Date;
   /** 当前激活的话题群组（用于多群组时指定哪个群接收消息） */
-  activeTopicGroup?: mongoose.Schema.Types.ObjectId | IGroup;
+  activeTopicGroup?: mongoose.Types.ObjectId | IGroup;
+  /** 话题双向通信功能订阅到期时间（null = 未订阅/已过期） */
+  topicSubscriptionExpiredAt?: Date;
+  /** 即将到期提醒是否已发送（续费后自动重置） */
+  topicSubscriptionNotified?: boolean;
 }
 
 export interface IMenu extends Document {
@@ -104,7 +107,6 @@ const botSchema = new mongoose.Schema(
     commands: { type: [commandSchema], default: [] },
     session: { type: String, trim: true },
     contact: { type: String, trim: true },
-    trx20_address: { type: String, trim: true },
     customer_service_link: { type: String, trim: true },
     type: { type: String, enum: ['public', 'custom'], default: 'custom' },
     clonedFrom: {
@@ -125,6 +127,14 @@ const botSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Group',
       default: null,
+    },
+    topicSubscriptionExpiredAt: {
+      type: Date,
+      default: null,
+    },
+    topicSubscriptionNotified: {
+      type: Boolean,
+      default: false,
     },
   },
   {

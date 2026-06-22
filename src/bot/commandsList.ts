@@ -22,10 +22,7 @@ export async function generateCommandsList(botToken: string): Promise<any[]> {
 }
 
 /** 私聊命令：用户与机器人一对一时可见 */
-export const privateCommandsList = [
-  { command: 'start', description: '开始' },
-  { command: 'subscribe', description: '话题双向通信订阅状态与续费' },
-];
+export const privateCommandsList = [{ command: 'start', description: '开始' }];
 
 /** 群组命令：机器人在群组中时可见 */
 export const groupCommandsList = [

@@ -14,8 +14,6 @@ export interface IBot extends Document {
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
   message: string;
   menus: IMenu[];
-  keyboards: IKeyboard[];
-  commands: ICommand[];
   isOnline: boolean;
   botUsers: mongoose.Schema.Types.ObjectId[] | IBotUser[];
   groups: mongoose.Schema.Types.ObjectId[] | IGroup[];
@@ -26,14 +24,10 @@ export interface IBot extends Document {
   customer_service_link?: string;
   type?: 'public' | 'custom';
   clonedFrom?: mongoose.Schema.Types.ObjectId | IBot;
-  fee: number;
-  auto_exchange_address: string;
-  private_key: string;
-  exchange_rate: number;
+
   webhook_url: string;
   isCreatedByAdmin?: boolean;
-  isExpired?: boolean;
-  expireAt?: Date;
+
   /** 当前激活的话题群组（用于多群组时指定哪个群接收消息） */
   activeTopicGroup?: mongoose.Types.ObjectId | IGroup;
   /** 话题双向通信功能订阅到期时间（null = 未订阅/已过期） */
@@ -49,18 +43,6 @@ export interface IMenu extends Document {
   url: string;
 }
 
-export interface IKeyboard extends Document {
-  command: string;
-  content: string;
-}
-
-export interface ICommand extends Document {
-  name: string;
-  content: string;
-  isStart: boolean;
-  weight: number;
-}
-
 const menuSchema = new mongoose.Schema({
   menuName: { type: String, required: true },
   url: {
@@ -73,18 +55,6 @@ const menuSchema = new mongoose.Schema({
       message: (props: any): string => `${props.value} 不是一个有效的 URL!`,
     },
   },
-});
-
-const keyboardSchema = new mongoose.Schema({
-  command: { type: String, required: true },
-  content: { type: String, required: true },
-});
-
-const commandSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  content: { type: String, required: true },
-  isStart: { type: Boolean, required: true },
-  weight: { type: Number, required: true },
 });
 
 const botSchema = new mongoose.Schema(
@@ -105,8 +75,6 @@ const botSchema = new mongoose.Schema(
       default: null,
     },
     menus: { type: [menuSchema], default: [] },
-    keyboards: { type: [keyboardSchema], default: [] },
-    commands: { type: [commandSchema], default: [] },
     session: { type: String, trim: true },
     contact: { type: String, trim: true },
     customer_service_link: { type: String, trim: true },

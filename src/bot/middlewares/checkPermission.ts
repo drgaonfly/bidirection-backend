@@ -32,16 +32,16 @@ export function isBotExpired(bot: IBot): boolean {
     return false;
   }
 
-  // 如果没有设置到期时间，或者明确标记未过期，则未到期
-  if (!bot.expireAt || !bot.isExpired) {
-    return false;
-  }
+  // // 如果没有设置到期时间，或者明确标记未过期，则未到期
+  // if (!bot.expireAt || !bot.isExpired) {
+  //   return false;
+  // }
 
-  // 检查是否已到期
-  const now = new Date();
-  if (bot.isExpired || (bot.expireAt && now > new Date(bot.expireAt))) {
-    return true;
-  }
+  // // 检查是否已到期
+  // const now = new Date();
+  // if (bot.isExpired || (bot.expireAt && now > new Date(bot.expireAt))) {
+  //   return true;
+  // }
 
   return false;
 }

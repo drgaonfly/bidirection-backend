@@ -39,13 +39,16 @@ startCommand.command('start', async (ctx) => {
   }
 
   // 广告位 ---- 平台机器人一定有发, 发给客户看 ， 客户 (owner) 克隆的机器人可以选发，发给它的用户看
-  const advertisement = [
-    `${ctx.currentProxyUser?.advertisement}`,
-    '',
-    `${ctx.currentBot?.advertisement}`,
-  ];
+  // 1. 收集可能存在的广告内容（自动忽略 undefined/null）
+  const ads = [
+    ctx.currentProxyUser?.advertisement,
+    ctx.currentBot?.advertisement,
+  ].filter(Boolean); // 关键：这一步会过滤掉所有空字符串、undefined 和 null
 
-  if (advertisement) await ctx.reply(advertisement.join('\n'));
+  // 2. 只有当真正有广告内容时，才用换行符拼接并发送
+  if (ads.length > 0) {
+    await ctx.reply(ads.join('\n\n')); // 用双换行 \n\n 视觉效果通常更好
+  }
 
   if (ctx.currentBot.isCreatedByAdmin) {
     await ctx.reply(bot.message || '欢迎使用机器人', {

@@ -69,22 +69,6 @@ export const checkPermission = async (
       });
       return;
     }
-
-    if (isBotExpired(bot)) {
-      ctx.reply('机器人已到期，请续费或联系管理员', {
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: '📞 联系客服',
-                url: bot.customer_service_link || 'https://t.me/Net_8898',
-              },
-            ],
-          ],
-        },
-      });
-      return;
-    }
   }
 
   await next();

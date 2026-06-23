@@ -12,7 +12,11 @@ export interface IBot extends Document {
   remark?: string;
   user: mongoose.Schema.Types.ObjectId | IUser;
   botUser: mongoose.Schema.Types.ObjectId | IBotUser;
+
   message: string;
+  contact?: string;
+  advertisement?: string;
+
   menus: IMenu[];
   isOnline: boolean;
   botUsers: mongoose.Schema.Types.ObjectId[] | IBotUser[];
@@ -20,8 +24,7 @@ export interface IBot extends Document {
   owner?: mongoose.Schema.Types.ObjectId | IBotUser;
   groupMessages: mongoose.Schema.Types.ObjectId[] | IGroupMessage[]; // 虚拟字段
   session?: string;
-  contact?: string;
-  customer_service_link?: string;
+
   type?: 'public' | 'custom';
   clonedFrom?: mongoose.Schema.Types.ObjectId | IBot;
 
@@ -77,22 +80,19 @@ const botSchema = new mongoose.Schema(
     menus: { type: [menuSchema], default: [] },
     session: { type: String, trim: true },
     contact: { type: String, trim: true },
-    customer_service_link: { type: String, trim: true },
+    advertisement: { type: String, trim: true },
+
     type: { type: String, enum: ['public', 'custom'], default: 'custom' },
     clonedFrom: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Bot',
       default: null,
     },
-    fee: { type: Number, default: 0 },
-    auto_exchange_address: { type: String, trim: true },
-    private_key: { type: String, trim: true, select: false },
-    exchange_rate: { type: Number, default: 0 },
+
     groups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }],
     webhook_url: { type: String, trim: true },
     isCreatedByAdmin: { type: Boolean, default: false },
-    isExpired: { type: Boolean, default: false },
-    expireAt: { type: Date },
+
     activeTopicGroup: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Group',

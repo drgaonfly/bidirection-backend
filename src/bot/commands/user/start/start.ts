@@ -1,7 +1,6 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import { startClientAndGetSession } from '../../../services/gramClient';
-import { checkPermission } from '../../../middlewares/checkPermission';
 import { isTopicSubscriptionActive } from '../../../middlewares/checkTopicSubscription';
 import createDebug from 'debug';
 
@@ -10,7 +9,7 @@ const startCommand = new Composer<MyContext>();
 const debug = createDebug('bot:start');
 
 // 开始命令处理
-startCommand.command('start', checkPermission, async (ctx) => {
+startCommand.command('start', async (ctx) => {
   debug('start');
   const bot = ctx.currentBot;
 
@@ -38,6 +37,8 @@ startCommand.command('start', checkPermission, async (ctx) => {
 
     return;
   }
+
+  // 广告位 ---- 平台机器人一定有发, 发给客户看 ， 客户 (owner) 克隆的机器人可以选发，发给它的用户看
 
   if (ctx.currentBot.isCreatedByAdmin) {
     await ctx.reply(bot.message || '欢迎使用机器人', {

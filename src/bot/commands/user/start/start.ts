@@ -39,6 +39,13 @@ startCommand.command('start', async (ctx) => {
   }
 
   // 广告位 ---- 平台机器人一定有发, 发给客户看 ， 客户 (owner) 克隆的机器人可以选发，发给它的用户看
+  const advertisement = [
+    `${ctx.currentProxyUser?.advertisement}`,
+    '',
+    `${ctx.currentBot?.advertisement}`,
+  ];
+
+  if (advertisement) await ctx.reply(advertisement.join('\n'));
 
   if (ctx.currentBot.isCreatedByAdmin) {
     await ctx.reply(bot.message || '欢迎使用机器人', {
@@ -56,8 +63,9 @@ startCommand.command('start', async (ctx) => {
 
     const keyboard = new InlineKeyboard()
       .text('编辑启动信息', `edit_message_${ctx.currentBot._id}`)
-      .text('订阅话题模式通信', 'subscribe')
-      .row();
+      .text('编辑广告', `edit_ad_${ctx.currentBot.advertisement}`)
+      .row()
+      .text('订阅话题模式通信', 'subscribe');
 
     // 只有订阅有效时才显示话题模式开关
     if (hasActiveSubscription) {

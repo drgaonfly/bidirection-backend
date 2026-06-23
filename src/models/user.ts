@@ -28,6 +28,9 @@ export interface IUser extends Document {
   // 话题双向通信免费试用期 (day)
   topic_mode_trial_period: number;
 
+  // 广告
+  advertisement?: string;
+
   passwordChangedAt: Date;
   lastLoginAt: Date; // 最新登录时间
   lastLoginIp: string; // 最新登录IP
@@ -88,6 +91,7 @@ const userSchema = new mongoose.Schema(
     trx20_address: { type: String, trim: true },
     topicSubscriptionMonthlyFee: { type: Number, default: 25 },
     topic_mode_trial_period: { type: Number, default: 1 },
+    advertisement: { type: String, trim: true },
 
     lastOnline: { type: Date },
   },

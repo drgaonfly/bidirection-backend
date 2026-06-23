@@ -35,7 +35,7 @@ export const updateBotExpiration = async () => {
           await botInstance.api.sendMessage(
             ownerUser.id,
             `⚠️ 机器人 <b>${bot.botName}</b> (@${bot.userName}) 已过期\n` +
-              `到期时间: ${bot.expireAt?.toLocaleString()}\n` +
+              `到期时间: ${bot.topicSubscriptionExpiredAt?.toLocaleString()}\n` +
               `请及时续费以继续使用服务。`,
             { parse_mode: 'HTML' },
           );

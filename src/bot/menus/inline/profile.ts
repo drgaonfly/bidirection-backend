@@ -1,8 +1,7 @@
 // src/menus/inline/exampleInlineMenu.ts
 import { InlineKeyboard } from 'grammy';
-import { IBot } from '../../../models/bot';
 
-const createProfile = (bot: IBot) => {
+const createProfile = () => {
   return (
     new InlineKeyboard()
       // .text('💰 立即充值', 'recharge:select')
@@ -11,7 +10,7 @@ const createProfile = (bot: IBot) => {
       .text('⚡️ 我要充值', 'recharge')
       .text('📋 充值记录', 'recharge_history')
       .row()
-      .url('📞 联系客服', bot.customer_service_link || 'https://t.me/Net_8898')
+      // .url('📞 联系客服', bot.contact || 'https://t.me/Net_8898')
       .row()
       .text('❌ 关闭', 'close')
   );

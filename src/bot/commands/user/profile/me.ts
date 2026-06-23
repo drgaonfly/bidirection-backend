@@ -62,7 +62,7 @@ async function sendUserProfile(ctx: MyContext) {
   // 添加联系客服按钮，使用url参数直接跳转到客服链接
   await ctx.reply(message, {
     parse_mode: 'HTML',
-    reply_markup: createProfile(ctx.currentBot),
+    reply_markup: createProfile(),
   });
 }
 

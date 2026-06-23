@@ -21,8 +21,12 @@ export interface IUser extends Document {
 
   /** TRC20 收款地址（用于话题订阅收款） */
   trx20_address?: string;
+
   /** 话题双向通信月费（USDT），默认 25 */
   topicSubscriptionMonthlyFee: number;
+
+  // 话题双向通信免费试用期 (day)
+  topic_mode_trial_period: number;
 
   passwordChangedAt: Date;
   lastLoginAt: Date; // 最新登录时间
@@ -83,6 +87,7 @@ const userSchema = new mongoose.Schema(
 
     trx20_address: { type: String, trim: true },
     topicSubscriptionMonthlyFee: { type: Number, default: 25 },
+    topic_mode_trial_period: { type: Number, default: 1 },
 
     lastOnline: { type: Date },
   },

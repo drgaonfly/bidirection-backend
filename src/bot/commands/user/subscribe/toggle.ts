@@ -16,7 +16,7 @@ toggleCallback.callbackQuery(
     if (ctx.currentBot?.isCreatedByAdmin) return;
 
     const freshBot = await Bot.findById(ctx.currentBot._id).select(
-      'isTopicModeEnabled activeTopicGroup topicSubscriptionExpiredAt',
+      'isTopicModeEnabled activeTopicGroup topicSubscriptionExpiredAt createdAt',
     );
     if (!freshBot) return;
 
@@ -31,8 +31,8 @@ toggleCallback.callbackQuery(
         });
         return;
       }
-      // 开启前：订阅必须有效
-      if (!isTopicSubscriptionActive(freshBot)) {
+      // 开启前：订阅必须有效（含试用期）
+      if (!isTopicSubscriptionActive(freshBot, ctx.currentProxyUser)) {
         await ctx.answerCallbackQuery({
           text: '⚠️ 订阅已到期或未开通，请先续费后再开启话题模式',
           show_alert: true,

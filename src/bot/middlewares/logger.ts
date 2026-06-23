@@ -112,10 +112,12 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   //   3. 订阅有效
   const botDoc = await Bot.findById(ctx.currentBot._id)
     .populate('activeTopicGroup')
-    .select('activeTopicGroup isTopicModeEnabled topicSubscriptionExpiredAt')
+    .select(
+      'activeTopicGroup isTopicModeEnabled topicSubscriptionExpiredAt createdAt',
+    )
     .lean();
 
-  const topicGroup = resolveTopicMode(botDoc);
+  const topicGroup = resolveTopicMode(botDoc, ctx.currentProxyUser);
   const isTopicMode = !!topicGroup;
 
   // ── 话题订阅门控说明 ─────────────────────────────────────

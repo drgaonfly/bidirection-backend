@@ -2,7 +2,6 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import { startClientAndGetSession } from '../../../services/gramClient';
 import { checkPermission } from '../../../middlewares/checkPermission';
-import Bot from '../../../../models/bot';
 import { isTopicSubscriptionActive } from '../../../middlewares/checkTopicSubscription';
 import createDebug from 'debug';
 
@@ -47,17 +46,17 @@ startCommand.command('start', checkPermission, async (ctx) => {
   } else if (
     ctx.currentBot.owner.toString() === String(ctx.currentBotUser._id)
   ) {
-    // 从 DB 取最新的订阅状态和话题开关
-    const freshBot = await Bot.findById(ctx.currentBot._id)
-      .select('isTopicModeEnabled topicSubscriptionExpiredAt')
-      .lean();
-    const hasActiveSubscription = isTopicSubscriptionActive(freshBot);
-    const topicEnabled = freshBot?.isTopicModeEnabled ?? false;
+    // 从 ctx.currentBot 取订阅状态和话题开关（botResolver 已加载完整文档）
+    const hasActiveSubscription = isTopicSubscriptionActive(
+      ctx.currentBot,
+      ctx.currentProxyUser,
+    );
+    const topicEnabled = ctx.currentBot.isTopicModeEnabled ?? false;
 
     const keyboard = new InlineKeyboard()
       .text('编辑启动信息', `edit_message_${ctx.currentBot._id}`)
-      .row()
-      .text('订阅话题模式通信', 'subscribe');
+      .text('订阅话题模式通信', 'subscribe')
+      .row();
 
     // 只有订阅有效时才显示话题模式开关
     if (hasActiveSubscription) {

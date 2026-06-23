@@ -41,8 +41,8 @@ toggleCallback.callbackQuery(
     await ctx.editMessageReplyMarkup({
       reply_markup: new InlineKeyboard()
         .text('编辑启动信息', `edit_message_${ctx.currentBot._id}`)
-        .row()
         .text('订阅话题模式通信', 'subscribe')
+        .row()
         .text(statusText, 'toggle_topic_mode'),
     });
 

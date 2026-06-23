@@ -18,11 +18,11 @@
 
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../types';
-import BotUser from '../../models/botUser';
 import Bot from '../../models/bot';
 import Group from '../../models/group';
 import { refreshTopicSetupState } from '../services/topicService';
 import { checkGroup } from './checkGroup';
+import { checkBotOwner } from './checkBotOwner';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:topicSetup');
@@ -126,44 +126,45 @@ topicSetupComposer.on('my_chat_member', async (ctx) => {
 // ─────────────────────────────────────────────────────────────
 // /setup_topics — 在群组中发送，展示当前步骤
 // ─────────────────────────────────────────────────────────────
-topicSetupComposer.command('setup_topics', checkGroup, async (ctx) => {
-  if (ctx.chat?.type === 'private') {
-    await ctx.reply('请在您希望配置话题模式的群组中发送此命令。');
-    return;
-  }
-  if (ctx.currentBot?.isCreatedByAdmin) return;
-  if (!(await checkIsOwner(ctx))) {
-    await ctx.reply('❌ 只有机器人拥有者才能配置话题模式。');
-    return;
-  }
+topicSetupComposer.command(
+  'setup_topics',
+  checkGroup,
+  checkBotOwner,
+  async (ctx) => {
+    if (ctx.chat?.type === 'private') {
+      await ctx.reply('请在您希望配置话题模式的群组中发送此命令。');
+      return;
+    }
+    if (ctx.currentBot?.isCreatedByAdmin) return;
 
-  const group = ctx.currentGroup;
-  if (!group) {
-    await ctx.reply('❌ 无法获取群组信息，请稍后重试。');
-    return;
-  }
+    const group = ctx.currentGroup;
+    if (!group) {
+      await ctx.reply('❌ 无法获取群组信息，请稍后重试。');
+      return;
+    }
 
-  const botInfo = await ctx.api.getMe();
-  const step = await refreshTopicSetupState(
-    ctx.api,
-    group,
-    botInfo.id,
-    ctx.currentBot._id,
-  );
+    const botInfo = await ctx.api.getMe();
+    const step = await refreshTopicSetupState(
+      ctx.api,
+      group,
+      botInfo.id,
+      ctx.currentBot._id,
+    );
 
-  if (step === 4) {
-    await ctx.reply(doneText(), {
+    if (step === 4) {
+      await ctx.reply(doneText(), {
+        parse_mode: 'Markdown',
+        reply_markup: doneButton(),
+      });
+      return;
+    }
+
+    await ctx.reply(stepText(step, botInfo.username ?? '机器人'), {
       parse_mode: 'Markdown',
-      reply_markup: doneButton(),
+      reply_markup: nextButton(String(group._id)),
     });
-    return;
-  }
-
-  await ctx.reply(stepText(step, botInfo.username ?? '机器人'), {
-    parse_mode: 'Markdown',
-    reply_markup: nextButton(String(group._id)),
-  });
-});
+  },
+);
 
 // ─────────────────────────────────────────────────────────────
 // callback: topic_setup_next:<groupId>
@@ -231,40 +232,36 @@ topicSetupComposer.callbackQuery('topic_setup_close', async (ctx) => {
 // ─────────────────────────────────────────────────────────────
 // /use_this_group — 切换激活话题群组
 // ─────────────────────────────────────────────────────────────
-topicSetupComposer.command('use_this_group', checkGroup, async (ctx) => {
-  if (ctx.chat?.type === 'private') {
-    await ctx.reply('请在目标话题群组中发送此命令。');
-    return;
-  }
-  if (ctx.currentBot?.isCreatedByAdmin) return;
-  if (!(await checkIsOwner(ctx))) {
-    await ctx.reply('❌ 只有机器人拥有者才能切换话题群组。');
-    return;
-  }
+topicSetupComposer.command(
+  'use_this_group',
+  checkGroup,
+  checkBotOwner,
+  async (ctx) => {
+    if (ctx.chat?.type === 'private') {
+      await ctx.reply('请在目标话题群组中发送此命令。');
+      return;
+    }
+    if (ctx.currentBot?.isCreatedByAdmin) return;
 
-  const group = ctx.currentGroup;
-  if (!group || group.setupStep !== 4) {
-    await ctx.reply(
-      '❌ 本群组尚未完成话题模式配置，请先发送 /setup\\_topics。',
-      { parse_mode: 'Markdown' },
+    const group = ctx.currentGroup;
+    if (!group || group.setupStep !== 4) {
+      await ctx.reply(
+        '❌ 本群组尚未完成话题模式配置，请先发送 /setup\\_topics。',
+        { parse_mode: 'Markdown' },
+      );
+      return;
+    }
+
+    await Bot.findByIdAndUpdate(ctx.currentBot._id, {
+      activeTopicGroup: group._id,
+    });
+    debug(
+      'bot %s 切换 activeTopicGroup → 群组 %s',
+      ctx.currentBot._id,
+      group.id,
     );
-    return;
-  }
-
-  await Bot.findByIdAndUpdate(ctx.currentBot._id, {
-    activeTopicGroup: group._id,
-  });
-  debug('bot %s 切换 activeTopicGroup → 群组 %s', ctx.currentBot._id, group.id);
-  await ctx.reply(`✅ 已将「${group.title}」设为当前激活话题群组。`);
-});
-
-// ─────────────────────────────────────────────────────────────
-// 工具函数
-// ─────────────────────────────────────────────────────────────
-async function checkIsOwner(ctx: MyContext): Promise<boolean> {
-  if (!ctx.currentBot?.owner) return false;
-  const ownerBotUser = await BotUser.findById(ctx.currentBot.owner).lean();
-  return ownerBotUser?.id === ctx.currentBotUser?.id;
-}
+    await ctx.reply(`✅ 已将「${group.title}」设为当前激活话题群组。`);
+  },
+);
 
 export default topicSetupComposer;

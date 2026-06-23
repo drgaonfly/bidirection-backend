@@ -2,14 +2,14 @@ import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
 import Bot from '../../../../models/bot';
 import Subscription from '../../../../models/subscription';
-import { isOwner, createPendingOrder, sendPaymentCard } from './helpers';
+import { isBotOwner, createPendingOrder, sendPaymentCard } from './helpers';
 
 const payCallback = new Composer<MyContext>();
 
 payCallback.callbackQuery('subscribe_pay', async (ctx) => {
   await ctx.answerCallbackQuery();
   if (ctx.currentBot?.isCreatedByAdmin) return;
-  if (!(await isOwner(ctx))) return;
+  if (!(await isBotOwner(ctx))) return;
 
   const bot = await Bot.findById(ctx.currentBot._id)
     .select('botName topicSubscriptionExpiredAt activeTopicGroup')

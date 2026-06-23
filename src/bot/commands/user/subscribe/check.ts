@@ -1,13 +1,13 @@
 import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
 import Subscription from '../../../../models/subscription';
-import { isOwner, sendStatusCard, sendPaymentCard } from './helpers';
+import { isBotOwner, sendStatusCard, sendPaymentCard } from './helpers';
 
 const checkCallback = new Composer<MyContext>();
 
 checkCallback.callbackQuery('subscribe_check', async (ctx) => {
   await ctx.answerCallbackQuery();
-  if (!(await isOwner(ctx))) return;
+  if (!(await isBotOwner(ctx))) return;
 
   const pendingOrder = await Subscription.findOne({
     bot: ctx.currentBot._id,

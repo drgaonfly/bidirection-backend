@@ -9,7 +9,7 @@ const debug = createDebug('bot:subscribe');
 
 export const ORDER_TIMEOUT_MINUTES = 60;
 
-export async function isOwner(ctx: MyContext): Promise<boolean> {
+export async function isBotOwner(ctx: MyContext): Promise<boolean> {
   if (!ctx.currentBot?.owner) return false;
   const ownerBotUser = await BotUser.findById(ctx.currentBot.owner).lean();
   return ownerBotUser?.id === ctx.currentBotUser?.id;

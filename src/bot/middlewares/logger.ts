@@ -1,5 +1,4 @@
-// src/middlewares/logger.ts
-import { Middleware } from 'grammy';
+﻿import { Middleware } from 'grammy';
 import BotUser from '../../models/botUser';
 import BotMessage from '../../models/botMessage';
 import { MyContext } from '../types';
@@ -11,7 +10,8 @@ import {
   getOrCreateTopicForUser,
   getBotUserIdByThreadId,
 } from '../services/topicService';
-import { isTopicSubscriptionActive } from './checkTopicSubscription';
+import { resolveTopicMode } from './checkTopicSubscription';
+import { isBotOwner } from '../commands/user/subscribe/helpers';
 
 const debug = createDebug('bot:logger');
 
@@ -94,82 +94,34 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   }
 
   // ── 判断是否是 owner ──────────────────────────────────────
-  let isOwner = false;
+  let isCurrentUserOwner = false;
   let ownerBotUser: any = null;
   if (ctx.currentBot.owner) {
     ownerBotUser = await BotUser.findById(ctx.currentBot.owner).lean();
-    isOwner = ownerBotUser?.id === ctx.currentBotUser.id;
+    isCurrentUserOwner = await isBotOwner(ctx);
   }
 
-  debug(`[Logger] user ${ctx.currentBotUser.id}, isOwner: ${isOwner}`);
+  debug(
+    `[Logger] user ${ctx.currentBotUser.id}, isOwner: ${isCurrentUserOwner}`,
+  );
 
-  // ── 检查当前群组的话题模式是否已完整配置 ─────────────────
-  // 注意：用户发消息时是私聊（chat.type === 'private'），
-  // ctx.currentGroup 为 null，需要查 bot.activeTopicGroup。
-  const group = ctx.currentGroup;
+  // ── 话题模式准入：三条件统一判断 ────────────────────────
+  // resolveTopicMode 内部同时检查：
+  //   1. activeTopicGroup 已配置且 setupStep === 4
+  //   2. isTopicModeEnabled === true
+  //   3. 订阅有效
+  const botDoc = await Bot.findById(ctx.currentBot._id)
+    .populate('activeTopicGroup')
+    .select('activeTopicGroup isTopicModeEnabled topicSubscriptionExpiredAt')
+    .lean();
 
-  // 优先用 bot.activeTopicGroup（支持多群组切换）
-  let topicGroup: typeof group = null;
-  if (!ctx.currentBot.isCreatedByAdmin) {
-    const botDoc = await Bot.findById(ctx.currentBot._id)
-      .populate('activeTopicGroup')
-      .lean();
-    const candidate = botDoc?.activeTopicGroup as any;
-    if (candidate && candidate.setupStep === 4) {
-      topicGroup = candidate;
-    }
-  }
-
+  const topicGroup = resolveTopicMode(botDoc);
   const isTopicMode = !!topicGroup;
 
-  // ── 话题订阅门控 ────────────────────────────────────────────
-  // 只对话题模式生效；订阅到期时通知 owner，普通用户收到不可用提示
-  if (isTopicMode && !ctx.currentBot.isCreatedByAdmin) {
-    // 从 DB 取最新订阅字段
-    const freshBot = await Bot.findById(ctx.currentBot._id)
-      .select('topicSubscriptionExpiredAt')
-      .lean();
-
-    if (!isTopicSubscriptionActive(freshBot)) {
-      const fee = ctx.currentProxyUser?.topicSubscriptionMonthlyFee ?? 25;
-      const address = ctx.currentProxyUser?.trx20_address || '（未配置）';
-      const expiry = freshBot?.topicSubscriptionExpiredAt
-        ? `到期时间：${new Date(
-            freshBot.topicSubscriptionExpiredAt,
-          ).toLocaleString('zh-CN', { hour12: false })}\n\n`
-        : '';
-
-      const renewalMsg =
-        `⚠️ <b>话题双向通信</b> 订阅已到期或未开通\n\n` +
-        expiry +
-        `请向以下地址转入 <b>${fee} USDT</b>（TRC20）完成续费：\n` +
-        `<code>${address}</code>\n\n` +
-        `转账后系统将在 <b>5 分钟内</b>自动识别并开通。`;
-
-      // owner 在话题群里 → 在话题内提示
-      if (
-        isOwner &&
-        message?.message_thread_id &&
-        ctx.chat?.type !== 'private'
-      ) {
-        try {
-          const bot = setupBot(ctx.currentBot.token);
-          await bot.api.sendMessage(ctx.chat.id, renewalMsg, {
-            parse_mode: 'HTML',
-            message_thread_id: message.message_thread_id,
-          } as any);
-        } catch (_) {
-          /* ignore */
-        }
-      } else if (!isOwner && ctx.chat?.type === 'private') {
-        // 普通用户私聊 → 通用提示
-        await ctx.reply('⚠️ 当前服务暂时不可用，请联系管理员。');
-      }
-
-      await next();
-      return;
-    }
-  }
+  // ── 话题订阅门控说明 ─────────────────────────────────────
+  // resolveTopicMode 已包含订阅检查，到达这里说明要么话题模式完全可用，
+  // 要么根本没进入话题模式（topicGroup === null）。
+  // 订阅到期时 topicGroup 为 null，流程自动降级到分支 C（非话题模式）。
 
   // ────────────────────────────────────────────────────────
   // 分支 A：话题模式 + owner 在群组话题中发消息 → 转发给对应用户
@@ -177,7 +129,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   // ────────────────────────────────────────────────────────
   if (
     isTopicMode &&
-    isOwner &&
+    isCurrentUserOwner &&
     message?.message_thread_id &&
     ctx.chat?.type !== 'private'
   ) {
@@ -249,7 +201,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   // ────────────────────────────────────────────────────────
   // 分支 B：话题模式 + 普通用户私聊发消息 → 转发到群组对应话题
   // ────────────────────────────────────────────────────────
-  if (isTopicMode && !isOwner && message && ownerBotUser?.id) {
+  if (isTopicMode && !isCurrentUserOwner && message && ownerBotUser?.id) {
     try {
       const bot = setupBot(ctx.currentBot.token);
 
@@ -311,7 +263,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   }
 
   // 话题模式下，非 owner 在其他群组发消息（没有权限）→ 直接忽略
-  if (isTopicMode && !isOwner && ctx.chat?.type !== 'private') {
+  if (isTopicMode && !isCurrentUserOwner && ctx.chat?.type !== 'private') {
     await next();
     return;
   }
@@ -321,7 +273,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   // ────────────────────────────────────────────────────────
 
   // C1: owner 回复消息时，转发给原始用户
-  if (isOwner && message?.reply_to_message) {
+  if (isCurrentUserOwner && message?.reply_to_message) {
     try {
       const replyMsg = message.reply_to_message as any;
 
@@ -392,7 +344,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   }
 
   // C2: 普通用户发消息，转发给 owner 私聊
-  if (!isOwner && message && ownerBotUser?.id) {
+  if (!isCurrentUserOwner && message && ownerBotUser?.id) {
     await fallbackForwardToOwner(
       ctx,
       ownerBotUser,

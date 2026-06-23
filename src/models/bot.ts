@@ -40,6 +40,8 @@ export interface IBot extends Document {
   topicSubscriptionExpiredAt?: Date;
   /** 即将到期提醒是否已发送（续费后自动重置） */
   topicSubscriptionNotified?: boolean;
+  /** 是否启用话题模式双向通信（owner 手动开关） */
+  isTopicModeEnabled?: boolean;
 }
 
 export interface IMenu extends Document {
@@ -133,6 +135,10 @@ const botSchema = new mongoose.Schema(
       default: null,
     },
     topicSubscriptionNotified: {
+      type: Boolean,
+      default: false,
+    },
+    isTopicModeEnabled: {
       type: Boolean,
       default: false,
     },

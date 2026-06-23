@@ -3,36 +3,28 @@ import { MyContext } from '../../../types';
 import Bot from '../../../../models/bot';
 import { isTopicSubscriptionActive } from '../../../middlewares/checkTopicSubscription';
 import { checkBotOwner } from '../../../middlewares/checkBotOwner';
+import { checkInBot } from '../../../middlewares/checkInBot';
 
 const toggleCallback = new Composer<MyContext>();
 
 toggleCallback.callbackQuery(
   'toggle_topic_mode',
+  checkInBot,
   checkBotOwner,
   async (ctx) => {
     await ctx.answerCallbackQuery();
 
-    if (ctx.chat?.type !== 'private') return;
     if (ctx.currentBot?.isCreatedByAdmin) return;
 
-    const freshBot = await Bot.findById(ctx.currentBot._id).select(
-      'isTopicModeEnabled activeTopicGroup topicSubscriptionExpiredAt createdAt',
-    );
-    if (!freshBot) return;
+    const fresh = await Bot.findById(ctx.currentBot._id);
 
-    const nextEnabled = !freshBot.isTopicModeEnabled;
+    if (!fresh) return;
+
+    const nextEnabled = !fresh.isTopicModeEnabled;
 
     if (nextEnabled) {
-      // 开启前：群组必须已配置
-      if (!freshBot.activeTopicGroup) {
-        await ctx.answerCallbackQuery({
-          text: '⚠️ 请先完成话题群组配置，再开启话题模式',
-          show_alert: true,
-        });
-        return;
-      }
       // 开启前：订阅必须有效（含试用期）
-      if (!isTopicSubscriptionActive(freshBot, ctx.currentProxyUser)) {
+      if (!isTopicSubscriptionActive(fresh, ctx.currentProxyUser)) {
         await ctx.answerCallbackQuery({
           text: '⚠️ 订阅已到期或未开通，请先续费后再开启话题模式',
           show_alert: true,
@@ -41,8 +33,8 @@ toggleCallback.callbackQuery(
       }
     }
 
-    freshBot.isTopicModeEnabled = nextEnabled;
-    await freshBot.save();
+    fresh.isTopicModeEnabled = nextEnabled;
+    await fresh.save();
 
     const statusText = nextEnabled ? '🟢 话题模式已开启' : '🔴 话题模式已关闭';
 

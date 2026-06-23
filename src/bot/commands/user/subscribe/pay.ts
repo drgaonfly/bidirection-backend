@@ -3,10 +3,11 @@ import { MyContext } from '../../../types';
 import Bot from '../../../../models/bot';
 import Subscription from '../../../../models/subscription';
 import { isBotOwner, createPendingOrder, sendPaymentCard } from './helpers';
+import { checkInBot } from '../../../middlewares/checkInBot';
 
 const payCallback = new Composer<MyContext>();
 
-payCallback.callbackQuery('subscribe_pay', async (ctx) => {
+payCallback.callbackQuery('subscribe_pay', checkInBot, async (ctx) => {
   await ctx.answerCallbackQuery();
   if (ctx.currentBot?.isCreatedByAdmin) return;
   if (!(await isBotOwner(ctx))) return;

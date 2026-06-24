@@ -1,14 +1,12 @@
 import { Composer } from 'grammy';
 import cloneConversation from './clone';
-import addAddressConversation from './addWallte';
-import setWalletConversation from './setWallet';
 import editMessageComposer from './editMessage';
+import editAdvertisementComposer from './editAdvertisement';
 
 const conversationsComposer = new Composer();
 
 conversationsComposer.use(cloneConversation.middleware());
-conversationsComposer.use(addAddressConversation.middleware());
-conversationsComposer.use(setWalletConversation.middleware());
 conversationsComposer.use(editMessageComposer.middleware());
+conversationsComposer.use(editAdvertisementComposer.middleware());
 
 export default conversationsComposer;

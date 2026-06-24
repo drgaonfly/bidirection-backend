@@ -66,7 +66,7 @@ startCommand.command('start', async (ctx) => {
 
     const keyboard = new InlineKeyboard()
       .text('编辑启动信息', `edit_message_${ctx.currentBot._id}`)
-      .text('编辑广告', `edit_ad_${ctx.currentBot.advertisement}`)
+      .text('编辑广告', `edit_advertisement_${ctx.currentBot._id}`)
       .row()
       .text('订阅话题模式通信', 'subscribe');
 

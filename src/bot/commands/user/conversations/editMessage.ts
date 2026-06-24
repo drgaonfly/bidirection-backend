@@ -1,6 +1,8 @@
 import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
 import { createConversation, Conversation } from '@grammyjs/conversations';
+import { checkBotOwner } from '../../../middlewares/checkBotOwner';
+import { checkInBot } from '../../../middlewares/checkInBot';
 import { InlineKeyboard } from 'grammy';
 import Bot, { IBot } from '../../../../models/bot';
 import createDebug from 'debug';
@@ -45,21 +47,26 @@ async function editMessageConversation(
 editMessageComposer.use(createConversation(editMessageConversation));
 
 // 响应 start.ts 里的 edit_message_<botId> 回调
-editMessageComposer.callbackQuery(/^edit_message_/, async (ctx) => {
-  debug('edit_message callback triggered');
+editMessageComposer.callbackQuery(
+  /^edit_message_/,
+  checkInBot,
+  checkBotOwner,
+  async (ctx) => {
+    debug('edit_message callback triggered');
 
-  await ctx.reply(
-    ['请输入新的启动信息', '', '⏳ 此操作将在 5 分钟后过期'].join('\n'),
-    {
-      reply_markup: new InlineKeyboard().text('❌ 取消', 'close'),
-    },
-  );
+    await ctx.reply(
+      ['请输入新的启动信息', '', '⏳ 此操作将在 5 分钟后过期'].join('\n'),
+      {
+        reply_markup: new InlineKeyboard().text('❌ 取消', 'close'),
+      },
+    );
 
-  await ctx.conversation.exitAll();
+    await ctx.conversation.exitAll();
 
-  await ctx.conversation.enter('editMessageConversation', {
-    bot: ctx.currentBot,
-  });
-});
+    await ctx.conversation.enter('editMessageConversation', {
+      bot: ctx.currentBot,
+    });
+  },
+);
 
 export default editMessageComposer;

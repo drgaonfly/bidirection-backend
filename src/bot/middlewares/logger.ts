@@ -113,7 +113,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   const botDoc = await Bot.findById(ctx.currentBot._id)
     .populate('activeTopicGroup')
     .select(
-      'activeTopicGroup isTopicModeEnabled topicSubscriptionExpiredAt createdAt',
+      'activeTopicGroup isTopicModeEnabled topicSubscriptionExpiredAt topicTrialStartedAt createdAt',
     )
     .lean();
 

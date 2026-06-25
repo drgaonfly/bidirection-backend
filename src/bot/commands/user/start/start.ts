@@ -68,7 +68,8 @@ startCommand.command('start', async (ctx) => {
       .text('编辑启动信息', `edit_message_${ctx.currentBot._id}`)
       // .text('编辑广告', `edit_advertisement_${ctx.currentBot._id}`)
       // .row()
-      .text('订阅话题模式通信', 'subscribe');
+      .text('订阅话题模式通信', 'subscribe')
+      .row();
 
     // 只有订阅有效时才显示话题模式开关
     if (hasActiveSubscription) {

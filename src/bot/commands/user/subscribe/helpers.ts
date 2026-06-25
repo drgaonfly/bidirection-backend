@@ -63,26 +63,30 @@ export async function sendStatusCard(
   const isActive = !!expiry && expiry > now;
   const trialDays = ctx.currentProxyUser?.topic_mode_trial_period ?? 0;
 
-  // 计算试用期
-  let trialInfo = '';
-  if (trialDays > 0 && bot.topicTrialStartedAt) {
+  // 计算服务期限（优先显示正式订阅，其次显示试用期）
+  let subscriptionStatus = '';
+  if (isActive) {
+    // 有正式订阅且未过期
+    subscriptionStatus = `服务期限： ${formatBeijingDate(expiry)}✅`;
+  } else if (trialDays > 0 && bot.topicTrialStartedAt) {
+    // 没有正式订阅或已过期，但有试用期
     const trialEnd = new Date(bot.topicTrialStartedAt);
     trialEnd.setDate(trialEnd.getDate() + trialDays);
     const remainingDays = Math.ceil(
       (trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
     );
     if (remainingDays > 0) {
-      trialInfo = `\n🎉 免费试用：剩余 ${remainingDays} 天`;
+      subscriptionStatus = `服务期限： ${formatBeijingDate(trialEnd)}✅`;
     } else {
-      trialInfo = `\n⏰ 免费试用：已过期`;
+      subscriptionStatus = `服务期限：已到期❌`;
     }
   } else if (trialDays > 0 && !bot.topicTrialStartedAt) {
-    trialInfo = `\n🎉 免费试用：${trialDays} 天`;
+    // 有试用期但未开始
+    subscriptionStatus = `服务期限： ${trialDays} 天（未开始）❌`;
+  } else {
+    // 没有任何订阅
+    subscriptionStatus = `服务期限：已到期❌`;
   }
-
-  const subscriptionStatus = isActive
-    ? `服务期限： ${formatBeijingDate(expiry)}✅`
-    : `服务期限：已到期❌`;
 
   const topicModeStatus = bot.isTopicModeEnabled
     ? `话题模式：已启动✅`
@@ -90,7 +94,7 @@ export async function sendStatusCard(
 
   const text =
     `📋 群组话题双向通信订阅\n\n` +
-    `${subscriptionStatus}${trialInfo}\n\n` +
+    `${subscriptionStatus}\n\n` +
     `【💳购买订阅】【🎉免费试用】`;
 
   const keyboard = new InlineKeyboard()

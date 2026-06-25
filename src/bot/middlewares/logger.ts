@@ -239,7 +239,10 @@ const logger: Middleware = async (ctx: MyContext, next) => {
           freshGroup.id,
           ctx.chat.id,
           message.message_id,
-          { message_thread_id: threadId } as any,
+          {
+            message_thread_id: threadId,
+            disable_notification: false, // 确保发送通知
+          } as any,
         );
 
         debug(

@@ -100,7 +100,7 @@ async function processOrder(order: any): Promise<void> {
         : now;
 
     const newExpiry = new Date(currentExpiry);
-    newExpiry.setDate(newExpiry.getDate() + SUBSCRIPTION_DAYS);
+    newExpiry.setDate(newExpiry.getDate() + order.months * 30);
 
     await Subscription.findByIdAndUpdate(order._id, {
       status: 'paid',

@@ -3,6 +3,7 @@ import { MyContext } from '../../../types';
 import Bot from '../../../../models/bot';
 import Subscription from '../../../../models/subscription';
 import BotUser from '../../../../models/botUser';
+import { formatBeijingDate } from '../../../../utils/formatBeijingDate';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:subscribe');
@@ -20,6 +21,7 @@ export async function createPendingOrder(
   proxy: any,
   fee: number,
   toAddress: string,
+  months: number = 1,
 ): Promise<any> {
   const orderExpiredAt = new Date();
   orderExpiredAt.setMinutes(
@@ -37,6 +39,7 @@ export async function createPendingOrder(
     toAddress,
     orderExpiredAt,
     status: 'pending',
+    months,
   });
 }
 
@@ -70,49 +73,31 @@ export async function sendStatusCard(
       (trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
     );
     if (remainingDays > 0) {
-      trialInfo = `\n🎉 <b>免费试用：</b>剩余 ${remainingDays} 天`;
+      trialInfo = `\n🎉 免费试用：剩余 ${remainingDays} 天`;
     } else {
-      trialInfo = `\n⏰ <b>免费试用：</b>已过期`;
+      trialInfo = `\n⏰ 免费试用：已过期`;
     }
   } else if (trialDays > 0 && !bot.topicTrialStartedAt) {
-    trialInfo = `\n🎉 <b>免费试用：</b>${trialDays} 天（开启话题模式后开始计算）`;
+    trialInfo = `\n🎉 免费试用：${trialDays} 天（开启话题模式后开始计算）`;
   }
 
-  const recentPaid = await Subscription.find({ bot: bot._id, status: 'paid' })
-    .sort({ paidAt: -1 })
-    .limit(3)
-    .lean();
-
   const subscriptionStatus = isActive
-    ? `✅ 服务期限：${expiry!.toLocaleDateString('zh-CN')}`
-    : `❌ 服务期限：已到期`;
+    ? `服务期限： ${formatBeijingDate(expiry)}✅`
+    : `服务期限：已到期❌`;
 
   const topicModeStatus = bot.isTopicModeEnabled
     ? `话题模式：已启动✅`
     : `话题模式：未启动❌`;
 
-  const historyLines =
-    recentPaid.length > 0
-      ? recentPaid
-          .map(
-            (s) =>
-              `  • ${s.paidAmount ?? s.amount} USDT — 至 ${new Date(
-                s.endDate!,
-              ).toLocaleDateString('zh-CN')}`,
-          )
-          .join('\n')
-      : '  暂无记录';
-
   const text =
-    `📋 <b>话题双向通信订阅</b>\n\n` +
-    `${subscriptionStatus}\n` +
-    `${topicModeStatus}${trialInfo}\n\n` +
-    `💰 <b>月费：</b>${fee} USDT（TRC20）\n\n` +
-    `📜 <b>近期续费记录：</b>\n${historyLines}`;
+    `📋 群组话题双向通信订阅\n\n` +
+    `${subscriptionStatus}${trialInfo}\n\n` +
+    `【💳购买订阅】【🎉免费试用】\n` +
+    `【${topicModeStatus}】`;
 
   const keyboard = new InlineKeyboard()
-    .text('💳 购买订阅', 'subscribe_pay')
-    .text('🔄 刷新状态', 'subscribe_refresh')
+    .text('💳购买订阅', 'subscribe_pay')
+    .text('🎉免费试用', 'subscribe_free_trial')
     .row()
     .text('❌ 关闭', 'close');
 

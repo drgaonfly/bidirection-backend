@@ -14,6 +14,8 @@ export interface ISubscription extends Document {
   proxy: mongoose.Types.ObjectId | IUser;
   /** 应付月费金额（USDT） */
   amount: number;
+  /** 订阅月数（1=包月, 6=半年, 12=一年） */
+  months: number;
   /** 收款地址（bot.trx20_address，创建时快照） */
   toAddress: string;
   /** 链上交易哈希（付款确认后填入） */
@@ -48,6 +50,7 @@ const subscriptionSchema = new mongoose.Schema<ISubscription>(
       required: true,
     },
     amount: { type: Number, required: true },
+    months: { type: Number, required: true, default: 1 },
     toAddress: { type: String, required: true, trim: true },
     txHash: { type: String, trim: true, sparse: true },
     fromAddress: { type: String, trim: true },

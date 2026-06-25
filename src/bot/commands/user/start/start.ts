@@ -55,7 +55,7 @@ startCommand.command('start', async (ctx) => {
       reply_markup: new InlineKeyboard().text('克隆', 'clone_start'),
     });
   } else if (
-    ctx.currentBot.owner.toString() === String(ctx.currentBotUser._id)
+    ctx.currentBot?.owner?.toString() === String(ctx.currentBotUser._id)
   ) {
     // 从 ctx.currentBot 取订阅状态和话题开关（botResolver 已加载完整文档）
     const hasActiveSubscription = isTopicSubscriptionActive(
@@ -65,19 +65,12 @@ startCommand.command('start', async (ctx) => {
     const topicEnabled = ctx.currentBot.isTopicModeEnabled ?? false;
 
     const keyboard = new InlineKeyboard()
-      .text('编辑启动信息', `edit_message_${ctx.currentBot._id}`)
-      // .text('编辑广告', `edit_advertisement_${ctx.currentBot._id}`)
-      // .row()
-      .text('订阅话题模式通信', 'subscribe')
-      .row();
-
-    // 只有订阅有效时才显示话题模式开关
-    if (hasActiveSubscription) {
-      keyboard.text(
-        topicEnabled ? '🟢 话题模式已开启' : '🔴 话题模式已关闭',
-        'toggle_topic_mode',
+      .text('👋启动信息', `edit_message_${ctx.currentBot._id}`)
+      .row()
+      .text(
+        topicEnabled ? '群组话题模式通信✅' : '群组话题模式通信❌',
+        'subscribe',
       );
-    }
 
     await ctx.reply('等待有用户向您通信', { reply_markup: keyboard });
   } else {

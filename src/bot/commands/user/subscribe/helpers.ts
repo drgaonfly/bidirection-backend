@@ -61,7 +61,6 @@ export async function sendStatusCard(
     ? new Date(bot.topicSubscriptionExpiredAt)
     : null;
   const isActive = !!expiry && expiry > now;
-  const fee = ctx.currentProxyUser?.topicSubscriptionMonthlyFee ?? 25;
   const trialDays = ctx.currentProxyUser?.topic_mode_trial_period ?? 0;
 
   // 计算试用期

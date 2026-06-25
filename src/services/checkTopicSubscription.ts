@@ -17,8 +17,6 @@ import createDebug from 'debug';
 
 const debug = createDebug('cron:checkTopicSubscription');
 
-const SUBSCRIPTION_DAYS = 30;
-
 export async function checkTopicSubscription(): Promise<void> {
   debug('[checkTopicSubscription] 开始轮询 pending 订单...');
 

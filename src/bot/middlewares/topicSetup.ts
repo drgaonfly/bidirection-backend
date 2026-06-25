@@ -20,7 +20,9 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../types';
 import Bot from '../../models/bot';
 import Group from '../../models/group';
+import User from '../../models/user';
 import { refreshTopicSetupState } from '../services/topicService';
+import { isTopicSubscriptionActive } from './checkTopicSubscription';
 import { checkGroup } from './checkGroup';
 import { checkBotOwner } from './checkBotOwner';
 import createDebug from 'debug';
@@ -112,6 +114,36 @@ topicSetupComposer.on('my_chat_member', async (ctx) => {
 
   debug('机器人被加入群组 chatId=%s', ctx.chat?.id);
 
+  // 先检查订阅状态，无月付无试用则不允许配置
+  const bot = await Bot.findById(ctx.currentBot._id)
+    .select('user topicSubscriptionExpiredAt topicTrialStartedAt')
+    .lean();
+
+  const proxyUser = await User.findById(bot?.user).lean();
+  const isSubscriptionActive = isTopicSubscriptionActive(bot, proxyUser);
+
+  if (
+    !isSubscriptionActive &&
+    !(proxyUser?.topic_mode_trial_period > 0 && !bot?.topicTrialStartedAt)
+  ) {
+    // 无月付无试用，不允许配置
+    debug('无月付无试用，不允许配置话题模式');
+    try {
+      await ctx.reply(
+        '💡 *话题模式需要订阅才能使用*\n\n' +
+          '您当前没有有效的订阅，也不再享有免费试用。\n\n' +
+          '如需使用话题模式功能，请先订阅服务：\n' +
+          '1. 私聊机器人\n' +
+          '2. 点击「订阅」菜单\n' +
+          '3. 选择订阅套餐',
+        { parse_mode: 'Markdown' },
+      );
+    } catch (err) {
+      debug('发送订阅提示失败:', err);
+    }
+    return;
+  }
+
   // 等待 groupResolver 创建群组记录
   // 延迟一下确保群组记录已创建
   await new Promise((resolve) => setTimeout(resolve, 500));
@@ -125,13 +157,14 @@ topicSetupComposer.on('my_chat_member', async (ctx) => {
 
   // 检查配置状态
   const botInfo = await ctx.api.getMe();
-  const step = await refreshTopicSetupState(
+  const result = await refreshTopicSetupState(
     ctx.api,
     group,
     botInfo.id,
     ctx.currentBot._id,
   );
 
+  const step = result.step;
   debug('群组配置状态 step=%d', step);
 
   // 如果配置未完成，在群组中发送配置引导
@@ -144,6 +177,22 @@ topicSetupComposer.on('my_chat_member', async (ctx) => {
       debug('已发送配置引导到群组');
     } catch (err) {
       debug('发送配置引导失败:', err);
+    }
+  } else if (result.needsTrialPrompt) {
+    // 配置完成但需要提示用户开启试用
+    try {
+      await ctx.reply(
+        '🎉 *话题模式配置完成！*\n\n' +
+          '💡 您还未开启免费试用，请先开启试用才能使用话题模式功能。\n\n' +
+          '操作方法：\n' +
+          '1. 私聊机器人\n' +
+          '2. 点击「订阅」菜单\n' +
+          '3. 点击「开启免费试用」',
+        { parse_mode: 'Markdown' },
+      );
+      debug('已发送试用提示到群组');
+    } catch (err) {
+      debug('发送试用提示失败:', err);
     }
   }
 });
@@ -169,12 +218,14 @@ topicSetupComposer.command(
     }
 
     const botInfo = await ctx.api.getMe();
-    const step = await refreshTopicSetupState(
+    const result = await refreshTopicSetupState(
       ctx.api,
       group,
       botInfo.id,
       ctx.currentBot._id,
     );
+
+    const step = result.step;
 
     if (step === 3) {
       await ctx.reply(doneText(), {
@@ -207,13 +258,14 @@ topicSetupComposer.callbackQuery(/^topic_setup_next:/, async (ctx) => {
   }
 
   const botInfo = await ctx.api.getMe();
-  const step = await refreshTopicSetupState(
+  const result = await refreshTopicSetupState(
     ctx.api,
     group,
     botInfo.id,
     ctx.currentBot._id,
   );
 
+  const step = result.step;
   debug(`[callback] groupId=${groupId} step=${step}`);
 
   if (step === 3) {

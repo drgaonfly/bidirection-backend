@@ -116,13 +116,13 @@ const groupResolver: Middleware<MyContext> = async (ctx, next) => {
   if (!ctx.currentBot.isCreatedByAdmin) {
     try {
       const botInfo = await ctx.api.getMe();
-      await refreshTopicSetupState(
+      const result = await refreshTopicSetupState(
         ctx.api,
         ctx.currentGroup,
         botInfo.id,
         ctx.currentBot._id,
       );
-      debug('话题配置状态已刷新, step=%d', ctx.currentGroup.setupStep);
+      debug('话题配置状态已刷新, step=%d', result.step);
     } catch (err) {
       debug('刷新话题配置状态失败:', err);
     }

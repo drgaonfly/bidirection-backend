@@ -18,6 +18,8 @@ import { Api } from 'grammy';
 import Group, { IGroup, IBotUserTopic } from '../../models/group';
 import Bot from '../../models/bot';
 import { IBotUser } from '../../models/botUser';
+import User from '../../models/user';
+import { isTopicSubscriptionActive } from '../middlewares/checkTopicSubscription';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:topicService');
@@ -53,13 +55,18 @@ export async function checkBotAdminStatus(
 // ────────────────────────────────────────────────────────────
 // 2. 刷新并持久化群组的话题配置状态，返回最新 setupStep
 // ────────────────────────────────────────────────────────────
+export interface RefreshTopicSetupStateResult {
+  step: number;
+  needsTrialPrompt?: boolean; // 是否需要提示用户开启试用（可试用但未试用）
+}
+
 export async function refreshTopicSetupState(
   api: Api,
   group: IGroup,
   botId: number,
   /** 传入 bot._id，完成时若无 activeTopicGroup 则自动写入 */
   botMongoId?: any,
-): Promise<number> {
+): Promise<RefreshTopicSetupStateResult> {
   const chatId = group.id;
 
   let chat: any;
@@ -67,7 +74,7 @@ export async function refreshTopicSetupState(
     chat = await api.getChat(chatId);
   } catch (err) {
     debug('getChat 失败:', err);
-    return group.setupStep;
+    return { step: group.setupStep };
   }
 
   const isSupergroup = chat.type === 'supergroup';
@@ -101,21 +108,59 @@ export async function refreshTopicSetupState(
 
   // 配置完成：若 bot 还没有 activeTopicGroup，自动写入
   if (step === 3 && botMongoId) {
+    // 检查订阅状态，只在订阅有效时自动开启话题模式
+    const bot = await Bot.findById(botMongoId)
+      .select('user topicSubscriptionExpiredAt topicTrialStartedAt')
+      .lean();
+
+    const proxyUser = await User.findById(bot?.user).lean();
+    const isSubscriptionActive = isTopicSubscriptionActive(bot, proxyUser);
+
+    const updateData: any = { activeTopicGroup: group._id };
+
+    if (isSubscriptionActive) {
+      // 订阅有效（月付或试用期内），自动开启
+      updateData.isTopicModeEnabled = true;
+      debug(`bot ${botMongoId} isTopicModeEnabled 自动开启（订阅有效）`);
+    } else {
+      // 订阅无效，不自动开启
+      debug(`bot ${botMongoId} isTopicModeEnabled 未开启（订阅无效）`);
+    }
+
     await Bot.findOneAndUpdate(
       { _id: botMongoId, activeTopicGroup: null },
-      {
-        activeTopicGroup: group._id,
-        isTopicModeEnabled: true,
-      },
+      updateData,
     );
     debug(`bot ${botMongoId} activeTopicGroup 自动设为群组 ${group.id}`);
-    debug(`bot ${botMongoId} isTopicModeEnabled 自动开启`);
   }
 
   debug(
     `群组 ${chatId}: step=${step}, supergroup=${isSupergroup}, forum=${forumEnabled}, admin=${isAdmin}, manageTopics=${canManageTopics}`,
   );
-  return step;
+
+  const result: RefreshTopicSetupStateResult = { step };
+
+  // 检查是否需要提示用户开启试用
+  if (step === 3 && botMongoId) {
+    const bot = await Bot.findById(botMongoId)
+      .select('user topicSubscriptionExpiredAt topicTrialStartedAt')
+      .lean();
+
+    const proxyUser = await User.findById(bot?.user).lean();
+    const isSubscriptionActive = isTopicSubscriptionActive(bot, proxyUser);
+
+    // 如果订阅无效，但可试用且未试用，提示用户开启试用
+    if (
+      !isSubscriptionActive &&
+      proxyUser?.topic_mode_trial_period > 0 &&
+      !bot?.topicTrialStartedAt
+    ) {
+      result.needsTrialPrompt = true;
+    }
+    // 如果已试用且在试用期内，isSubscriptionActive 会返回 true，会自动开启 isTopicModeEnabled
+  }
+
+  return result;
 }
 
 // ────────────────────────────────────────────────────────────

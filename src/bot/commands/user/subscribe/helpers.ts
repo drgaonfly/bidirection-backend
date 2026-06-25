@@ -91,14 +91,13 @@ export async function sendStatusCard(
   const text =
     `📋 群组话题双向通信订阅\n\n` +
     `${subscriptionStatus}${trialInfo}\n\n` +
-    `【💳购买订阅】【🎉免费试用】\n` +
-    `【${topicModeStatus}】`;
+    `【💳购买订阅】【🎉免费试用】`;
 
   const keyboard = new InlineKeyboard()
     .text('💳购买订阅', 'subscribe_pay')
     .text('🎉免费试用', 'subscribe_free_trial')
     .row()
-    .text('❌ 关闭', 'close');
+    .text(topicModeStatus, 'toggle_topic_mode');
 
   try {
     if (edit) {

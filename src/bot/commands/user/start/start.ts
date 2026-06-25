@@ -2,6 +2,7 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import { startClientAndGetSession } from '../../../services/gramClient';
 // import { isTopicSubscriptionActive } from '../../../middlewares/checkTopicSubscription';
+import { replaceVariables } from '../conversations/editMessage';
 import createDebug from 'debug';
 
 const startCommand = new Composer<MyContext>();
@@ -43,9 +44,81 @@ startCommand.command('start', async (ctx) => {
     await ctx.reply(ctx.currentProxyUser.advertisement);
   }
 
+  // 替换消息中的变量
+  const message = replaceVariables(
+    ctx.currentBot.message || '请开始与我通信',
+    ctx,
+  );
+
+  // 构建按钮键盘
+  let keyboard: InlineKeyboard | undefined;
+  if (ctx.currentBot.buttons && ctx.currentBot.buttons.length > 0) {
+    keyboard = new InlineKeyboard();
+    ctx.currentBot.buttons.forEach((button: any) => {
+      if (button.type === 'url') {
+        keyboard.url(button.text, button.value || '');
+      } else if (button.type === 'callback') {
+        keyboard.text(button.text, button.value || '');
+      } else if (button.type === 'alert') {
+        keyboard.text(button.text, button.value || '');
+      }
+      keyboard.row();
+    });
+  }
+
+  // 发送媒体（如果有）
+  if (ctx.currentBot.medias && ctx.currentBot.medias.length > 0) {
+    for (const media of ctx.currentBot.medias) {
+      try {
+        if (media.type === 'photo') {
+          if (media.fileId) {
+            await ctx.replyWithPhoto(media.fileId, {
+              caption: message,
+              reply_markup: keyboard,
+            });
+          } else if (media.url) {
+            await ctx.replyWithPhoto(media.url, {
+              caption: message,
+              reply_markup: keyboard,
+            });
+          }
+        } else if (media.type === 'video') {
+          if (media.fileId) {
+            await ctx.replyWithVideo(media.fileId, {
+              caption: message,
+              reply_markup: keyboard,
+            });
+          } else if (media.url) {
+            await ctx.replyWithVideo(media.url, {
+              caption: message,
+              reply_markup: keyboard,
+            });
+          }
+        } else if (media.type === 'document') {
+          if (media.fileId) {
+            await ctx.replyWithDocument(media.fileId, {
+              caption: message,
+              reply_markup: keyboard,
+            });
+          } else if (media.url) {
+            await ctx.replyWithDocument(media.url, {
+              caption: message,
+              reply_markup: keyboard,
+            });
+          }
+        }
+      } catch (err: any) {
+        debug('Failed to send media:', err.message);
+      }
+    }
+    return;
+  }
+
+  // 没有媒体时发送纯文本消息
   if (ctx.currentBot.isCreatedByAdmin) {
-    await ctx.reply(bot.message || '欢迎使用机器人', {
-      reply_markup: new InlineKeyboard().text('克隆', 'clone_start'),
+    await ctx.reply(message, {
+      reply_markup:
+        keyboard || new InlineKeyboard().text('克隆', 'clone_start'),
     });
   } else if (
     ctx.currentBot?.owner?.toString() === String(ctx.currentBotUser._id)
@@ -57,17 +130,17 @@ startCommand.command('start', async (ctx) => {
     // );
     const topicEnabled = ctx.currentBot.isTopicModeEnabled ?? false;
 
-    const keyboard = new InlineKeyboard()
-      .text('👋启动信息', `edit_message_${ctx.currentBot._id}`)
+    const ownerKeyboard = new InlineKeyboard()
+      .text('👋启动信息', `config_menu_${ctx.currentBot._id}`)
       .row()
       .text(
         topicEnabled ? '群组话题模式通信✅' : '群组话题模式通信❌',
         'subscribe',
       );
 
-    await ctx.reply('等待有用户向您通信', { reply_markup: keyboard });
+    await ctx.reply('等待有用户向您通信', { reply_markup: ownerKeyboard });
   } else {
-    await ctx.reply(ctx.currentBot.message || '请开始与我通信');
+    await ctx.reply(message, { reply_markup: keyboard });
   }
 });
 

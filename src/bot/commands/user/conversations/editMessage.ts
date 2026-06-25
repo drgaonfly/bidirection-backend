@@ -12,12 +12,48 @@ const debug = createDebug('bot:editMessage');
 
 const TIMEOUT = 5 * 60 * 1000; // 5 分钟超时
 
+/** 替换消息中的变量 */
+export function replaceVariables(message: string, ctx: MyContext): string {
+  const user = ctx.from;
+  if (!user) return message;
+
+  let result = message;
+  result = result.replace(/%firstname%/gi, user.first_name || '');
+  result = result.replace(/%lastname%/gi, user.last_name || '');
+  result = result.replace(/%username%/gi, user.username || '');
+  result = result.replace(/%userid%/gi, String(user.id));
+  result = result.replace(
+    /%fullname%/gi,
+    `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+  );
+
+  return result;
+}
+
 async function editMessageConversation(
   conversation: Conversation<MyContext>,
   ctx: MyContext,
   { bot }: { bot: IBot },
 ) {
   debug('Starting editMessage conversation');
+
+  await ctx.reply(
+    [
+      '请输入新的启动信息',
+      '',
+      '支持的变量：',
+      '%firstname% - 用户名',
+      '%lastname% - 姓',
+      '%username% - 用户名（@开头）',
+      '%userid% - 用户ID',
+      '%fullname% - 全名',
+      '',
+      '⏳ 此操作将在 5 分钟后过期',
+    ].join('\n'),
+    {
+      reply_markup: new InlineKeyboard().text('❌ 取消', 'close'),
+    },
+  );
 
   const result = await conversation.waitFor(
     ['message:text', 'callback_query:data'],
@@ -46,13 +82,13 @@ async function editMessageConversation(
 
 editMessageComposer.use(createConversation(editMessageConversation));
 
-// 响应 start.ts 里的 edit_message_<botId> 回调
+// 响应 config_menu 里的 edit_message_text 回调
 editMessageComposer.callbackQuery(
-  /^edit_message_/,
+  'edit_message_text',
   checkInBot,
   checkBotOwner,
   async (ctx) => {
-    debug('edit_message callback triggered');
+    debug('edit_message_text callback triggered');
 
     await ctx.reply(
       ['请输入新的启动信息', '', '⏳ 此操作将在 5 分钟后过期'].join('\n'),

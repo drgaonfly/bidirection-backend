@@ -15,6 +15,19 @@ export interface IBot extends Document {
 
   message: string;
   contact?: string;
+  /** 媒体文件（图片、视频等） */
+  medias?: Array<{
+    type: 'photo' | 'video' | 'document';
+    fileId?: string;
+    url?: string;
+  }>;
+  /** 按钮配置 */
+  buttons?: Array<{
+    text: string;
+    type: 'url' | 'callback' | 'alert';
+    value?: string; // URL 或 callback 数据
+    showAlert?: boolean; // 是否弹窗（仅 callback 类型）
+  }>;
 
   menus: IMenu[];
   isOnline: boolean;
@@ -81,6 +94,35 @@ const botSchema = new mongoose.Schema(
     menus: { type: [menuSchema], default: [] },
     session: { type: String, trim: true },
     contact: { type: String, trim: true },
+    medias: {
+      type: [
+        {
+          type: {
+            type: String,
+            enum: ['photo', 'video', 'document'],
+            required: true,
+          },
+          fileId: { type: String, trim: true },
+          url: { type: String, trim: true },
+        },
+      ],
+      default: [],
+    },
+    buttons: {
+      type: [
+        {
+          text: { type: String, required: true },
+          type: {
+            type: String,
+            enum: ['url', 'callback', 'alert'],
+            required: true,
+          },
+          value: { type: String, trim: true },
+          showAlert: { type: Boolean, default: false },
+        },
+      ],
+      default: [],
+    },
 
     type: { type: String, enum: ['public', 'custom'], default: 'custom' },
     clonedFrom: {

@@ -92,10 +92,7 @@ export async function sendStatusCard(
     ? `话题模式：已启动✅`
     : `话题模式：未启动❌`;
 
-  const text =
-    `📋 群组话题双向通信订阅\n\n` +
-    `${subscriptionStatus}\n\n` +
-    `【💳购买订阅】【🎉免费试用】`;
+  const text = `📋 群组话题双向通信订阅\n\n` + `${subscriptionStatus}\n\n`;
 
   const keyboard = new InlineKeyboard()
     .text('💳购买订阅', 'subscribe_pay')

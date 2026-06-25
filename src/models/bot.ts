@@ -15,7 +15,6 @@ export interface IBot extends Document {
 
   message: string;
   contact?: string;
-  advertisement?: string;
 
   menus: IMenu[];
   isOnline: boolean;
@@ -82,7 +81,6 @@ const botSchema = new mongoose.Schema(
     menus: { type: [menuSchema], default: [] },
     session: { type: String, trim: true },
     contact: { type: String, trim: true },
-    advertisement: { type: String, trim: true },
 
     type: { type: String, enum: ['public', 'custom'], default: 'custom' },
     clonedFrom: {

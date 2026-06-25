@@ -242,34 +242,6 @@ const logger: Middleware = async (ctx: MyContext, next) => {
           { message_thread_id: threadId } as any,
         );
 
-        // 检查是否是该话题的第一条消息，如果是则置顶
-        const topicData = (freshGroup.botUserTopics as any[]).find(
-          (t) => t.botUserId === ctx.currentBotUser.id,
-        );
-        const isFirstMessage = !topicData?.hasFirstMessage;
-
-        if (isFirstMessage) {
-          try {
-            await bot.api.pinChatMessage(freshGroup.id, forwarded.message_id, {
-              message_thread_id: threadId,
-              notify: true, // 通知所有人
-            } as any);
-            // 更新数据库标记已有第一条消息
-            await Group.findByIdAndUpdate(
-              freshGroup._id,
-              {
-                $set: { 'botUserTopics.$[elem].hasFirstMessage': true },
-              },
-              {
-                arrayFilters: [{ 'elem.botUserId': ctx.currentBotUser.id }],
-              },
-            );
-            debug(`已置顶话题 ${threadId} 的第一条消息`);
-          } catch (err: any) {
-            debug('置顶消息失败:', err?.description || err?.message);
-          }
-        }
-
         debug(
           `✅ 用户 ${ctx.currentBotUser.id} 的消息已转发到话题 ${threadId}`,
         );

@@ -49,7 +49,7 @@ export function isTopicSubscriptionActive(bot: any, proxyUser?: any): boolean {
 
 /**
  * 判断话题模式是否完整可用，同时满足以下三个条件才返回 topicGroup：
- *  1. activeTopicGroup 已配置且 setupStep === 4
+ *  1. activeTopicGroup 已配置且 setupStep === 3
  *  2. isTopicModeEnabled === true（owner 已手动开启）
  *  3. 订阅有效 或 在试用期内
  *
@@ -62,7 +62,7 @@ export function resolveTopicMode(botDoc: any, proxyUser?: any): IGroup | null {
   if (!botDoc) return null;
   const candidate = botDoc.activeTopicGroup as any;
   if (!candidate) return null;
-  if (candidate.setupStep !== 4) return null;
+  if (candidate.setupStep !== 3) return null;
   if (!botDoc.isTopicModeEnabled) return null;
   if (!isTopicSubscriptionActive(botDoc, proxyUser)) return null;
   return candidate as IGroup;

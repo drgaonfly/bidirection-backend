@@ -103,9 +103,13 @@ export async function refreshTopicSetupState(
   if (step === 3 && botMongoId) {
     await Bot.findOneAndUpdate(
       { _id: botMongoId, activeTopicGroup: null },
-      { activeTopicGroup: group._id },
+      {
+        activeTopicGroup: group._id,
+        isTopicModeEnabled: true,
+      },
     );
     debug(`bot ${botMongoId} activeTopicGroup 自动设为群组 ${group.id}`);
+    debug(`bot ${botMongoId} isTopicModeEnabled 自动开启`);
   }
 
   debug(

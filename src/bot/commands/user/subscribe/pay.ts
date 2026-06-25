@@ -91,7 +91,7 @@ payCallback.callbackQuery(
 
     // 检查botUser是否已使用过免费试用
     const botUser = await ctx.currentBotUser;
-    if (botUser.hasUsedFreeTrial) {
+    if (botUser.topicTrialStartedAt) {
       await ctx.reply(
         '❌ 您已经使用过免费试用，每个用户只能试用一次。\n\n' +
           '如需继续使用，请购买订阅。',
@@ -99,18 +99,15 @@ payCallback.callbackQuery(
       return;
     }
 
-    // 首次开启时设置试用期开始时间
-    if (!bot.topicTrialStartedAt) {
-      bot.topicTrialStartedAt = new Date();
+    // 首次开启时设置试用期开始时间（基于 botUser）
+    if (!botUser.topicTrialStartedAt) {
+      botUser.topicTrialStartedAt = new Date();
+      await botUser.save();
     }
 
     // 启用话题模式
     bot.isTopicModeEnabled = true;
     await bot.save();
-
-    // 标记botUser已使用免费试用
-    botUser.hasUsedFreeTrial = true;
-    await botUser.save();
 
     await ctx.reply(
       '✅ 免费试用已开启！\n\n' +

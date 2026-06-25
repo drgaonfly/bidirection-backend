@@ -235,7 +235,8 @@ const logger: Middleware = async (ctx: MyContext, next) => {
         );
       } else {
         // 将用户消息转发到对应话题
-        const forwarded = await bot.api.forwardMessage(
+        // 使用 copyMessage 而不是 forwardMessage 以确保未读计数正确更新
+        const forwarded = await bot.api.copyMessage(
           freshGroup.id,
           ctx.chat.id,
           message.message_id,

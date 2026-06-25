@@ -117,7 +117,11 @@ const logger: Middleware = async (ctx: MyContext, next) => {
     )
     .lean();
 
-  const topicGroup = resolveTopicMode(botDoc, ctx.currentProxyUser);
+  const topicGroup = resolveTopicMode(
+    botDoc,
+    ownerBotUser,
+    ctx.currentProxyUser,
+  );
   const isTopicMode = !!topicGroup;
 
   debug(

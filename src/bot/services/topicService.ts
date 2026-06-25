@@ -17,7 +17,7 @@
 import { Api } from 'grammy';
 import Group, { IGroup, IBotUserTopic } from '../../models/group';
 import Bot from '../../models/bot';
-import { IBotUser } from '../../models/botUser';
+import BotUser, { IBotUser } from '../../models/botUser';
 import User from '../../models/user';
 import { isTopicSubscriptionActive } from '../middlewares/checkTopicSubscription';
 import createDebug from 'debug';
@@ -110,11 +110,16 @@ export async function refreshTopicSetupState(
   if (step === 3 && botMongoId) {
     // 检查订阅状态，只在订阅有效时自动开启话题模式
     const bot = await Bot.findById(botMongoId)
-      .select('user topicSubscriptionExpiredAt topicTrialStartedAt')
+      .select('user owner topicSubscriptionExpiredAt topicTrialStartedAt')
       .lean();
 
     const proxyUser = await User.findById(bot?.user).lean();
-    const isSubscriptionActive = isTopicSubscriptionActive(bot, proxyUser);
+    const ownerBotUser = await BotUser.findById(bot?.owner).lean();
+    const isSubscriptionActive = isTopicSubscriptionActive(
+      bot,
+      ownerBotUser,
+      proxyUser,
+    );
 
     const updateData: any = { activeTopicGroup: group._id };
 
@@ -143,17 +148,22 @@ export async function refreshTopicSetupState(
   // 检查是否需要提示用户开启试用
   if (step === 3 && botMongoId) {
     const bot = await Bot.findById(botMongoId)
-      .select('user topicSubscriptionExpiredAt topicTrialStartedAt')
+      .select('user owner topicSubscriptionExpiredAt topicTrialStartedAt')
       .lean();
 
     const proxyUser = await User.findById(bot?.user).lean();
-    const isSubscriptionActive = isTopicSubscriptionActive(bot, proxyUser);
+    const ownerBotUser = await BotUser.findById(bot?.owner).lean();
+    const isSubscriptionActive = isTopicSubscriptionActive(
+      bot,
+      ownerBotUser,
+      proxyUser,
+    );
 
     // 如果订阅无效，但可试用且未试用，提示用户开启试用
     if (
       !isSubscriptionActive &&
       proxyUser?.topic_mode_trial_period > 0 &&
-      !bot?.topicTrialStartedAt
+      !ownerBotUser?.hasUsedFreeTrial
     ) {
       result.needsTrialPrompt = true;
     }

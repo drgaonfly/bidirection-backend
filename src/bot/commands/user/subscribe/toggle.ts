@@ -1,6 +1,7 @@
 import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
 import Bot from '../../../../models/bot';
+import BotUser from '../../../../models/botUser';
 import { isTopicSubscriptionActive } from '../../../middlewares/checkTopicSubscription';
 import { checkBotOwner } from '../../../middlewares/checkBotOwner';
 import { checkInBot } from '../../../middlewares/checkInBot';
@@ -24,13 +25,21 @@ toggleCallback.callbackQuery(
     const nextEnabled = !fresh.isTopicModeEnabled;
 
     if (nextEnabled) {
-      // 首次开启时设置试用期开始时间
-      if (!fresh.topicTrialStartedAt) {
-        fresh.topicTrialStartedAt = new Date();
+      // 获取 owner botUser
+      const ownerBotUser = await BotUser.findById(fresh.owner).lean();
+
+      // 首次开启时设置试用期开始时间（基于 botUser）
+      if (ownerBotUser && !ownerBotUser.topicTrialStartedAt) {
+        await BotUser.findByIdAndUpdate(fresh.owner, {
+          topicTrialStartedAt: new Date(),
+          hasUsedFreeTrial: true,
+        });
       }
 
       // 开启前：订阅必须有效（含试用期）
-      if (!isTopicSubscriptionActive(fresh, ctx.currentProxyUser)) {
+      if (
+        !isTopicSubscriptionActive(fresh, ownerBotUser, ctx.currentProxyUser)
+      ) {
         await ctx.answerCallbackQuery({
           text: '⚠️ 订阅已到期或未开通，请先续费后再开启话题模式',
           show_alert: true,

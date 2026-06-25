@@ -19,6 +19,7 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../types';
 import Bot from '../../models/bot';
+import BotUser from '../../models/botUser';
 import Group from '../../models/group';
 import User from '../../models/user';
 import { refreshTopicSetupState } from '../services/topicService';
@@ -116,15 +117,20 @@ topicSetupComposer.on('my_chat_member', async (ctx) => {
 
   // 先检查订阅状态，无月付无试用则不允许配置
   const bot = await Bot.findById(ctx.currentBot._id)
-    .select('user topicSubscriptionExpiredAt topicTrialStartedAt')
+    .select('user owner topicSubscriptionExpiredAt topicTrialStartedAt')
     .lean();
 
   const proxyUser = await User.findById(bot?.user).lean();
-  const isSubscriptionActive = isTopicSubscriptionActive(bot, proxyUser);
+  const ownerBotUser = await BotUser.findById(bot?.owner).lean();
+  const isSubscriptionActive = isTopicSubscriptionActive(
+    bot,
+    ownerBotUser,
+    proxyUser,
+  );
 
   if (
     !isSubscriptionActive &&
-    !(proxyUser?.topic_mode_trial_period > 0 && !bot?.topicTrialStartedAt)
+    !(proxyUser?.topic_mode_trial_period > 0 && !ownerBotUser?.hasUsedFreeTrial)
   ) {
     // 无月付无试用，不允许配置
     debug('无月付无试用，不允许配置话题模式');

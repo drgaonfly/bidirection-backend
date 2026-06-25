@@ -13,6 +13,8 @@ export interface IBotUser extends Document {
   displayName?: string; // 虚拟属性
   /** 是否已使用过免费试用（每个botUser只能试用一次） */
   hasUsedFreeTrial?: boolean;
+  /** 话题模式试用期开始时间（基于 botUser） */
+  topicTrialStartedAt?: Date;
   proxy: mongoose.Types.ObjectId | IUser;
   bots: mongoose.Types.ObjectId[] | IBot[];
   createdAt: Date;
@@ -28,6 +30,7 @@ const botUserSchema = new mongoose.Schema(
     messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BotUserMessage' }],
     isAuthorized: { type: Boolean, default: false }, // 默认未授权
     hasUsedFreeTrial: { type: Boolean, default: false }, // 是否已使用免费试用
+    topicTrialStartedAt: { type: Date }, // 话题模式试用期开始时间
     proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理归属
     bots: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Bot' }], // 用户绑定的机器人
   },

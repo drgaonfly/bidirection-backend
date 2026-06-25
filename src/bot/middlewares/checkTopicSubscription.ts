@@ -14,12 +14,17 @@ import { IGroup } from '../../models/group';
 /**
  * 检查话题双向通信是否可用，满足任一条件即放行：
  *  1. 订阅有效（bot.topicSubscriptionExpiredAt > now）
- *  2. 在试用期内（bot.topicTrialStartedAt + proxyUser.topic_mode_trial_period 天 > now）
+ *  2. 在试用期内（botUser.topicTrialStartedAt + proxyUser.topic_mode_trial_period 天 > now）
  *
- * @param bot        bot 文档（需含 topicSubscriptionExpiredAt、topicTrialStartedAt）
+ * @param bot        bot 文档（需含 topicSubscriptionExpiredAt）
+ * @param botUser    bot 的 owner botUser（需含 topicTrialStartedAt、hasUsedFreeTrial）
  * @param proxyUser  bot 所属的平台用户（需含 topic_mode_trial_period）
  */
-export function isTopicSubscriptionActive(bot: any, proxyUser?: any): boolean {
+export function isTopicSubscriptionActive(
+  bot: any,
+  botUser?: any,
+  proxyUser?: any,
+): boolean {
   const now = new Date();
 
   // 条件 1：正式订阅有效
@@ -30,10 +35,14 @@ export function isTopicSubscriptionActive(bot: any, proxyUser?: any): boolean {
     return true;
   }
 
-  // 条件 2：试用期有效（从首次开启话题模式时开始计算）
+  // 条件 2：试用期有效（基于 botUser，一个 Telegram 用户只能试用一次）
   const trialDays: number = proxyUser?.topic_mode_trial_period ?? 0;
-  if (trialDays > 0 && bot?.topicTrialStartedAt) {
-    const trialEnd = new Date(bot.topicTrialStartedAt);
+  if (
+    trialDays > 0 &&
+    botUser?.topicTrialStartedAt &&
+    !botUser?.hasUsedFreeTrial
+  ) {
+    const trialEnd = new Date(botUser.topicTrialStartedAt);
     trialEnd.setDate(trialEnd.getDate() + trialDays);
     if (trialEnd > now) {
       return true;
@@ -56,9 +65,14 @@ export function isTopicSubscriptionActive(bot: any, proxyUser?: any): boolean {
  * 任一不满足返回 null，调用方只需判断结果是否为 null。
  *
  * @param botDoc    bot 文档（已 populate activeTopicGroup）
+ * @param botUser   bot 的 owner botUser（需含 topicTrialStartedAt、hasUsedFreeTrial）
  * @param proxyUser bot 所属的平台用户
  */
-export function resolveTopicMode(botDoc: any, proxyUser?: any): IGroup | null {
+export function resolveTopicMode(
+  botDoc: any,
+  botUser?: any,
+  proxyUser?: any,
+): IGroup | null {
   if (!botDoc) {
     console.log('[resolveTopicMode] botDoc is null');
     return null;
@@ -76,7 +90,7 @@ export function resolveTopicMode(botDoc: any, proxyUser?: any): IGroup | null {
     console.log('[resolveTopicMode] isTopicModeEnabled is false');
     return null;
   }
-  if (!isTopicSubscriptionActive(botDoc, proxyUser)) {
+  if (!isTopicSubscriptionActive(botDoc, botUser, proxyUser)) {
     console.log('[resolveTopicMode] subscription is not active');
     return null;
   }

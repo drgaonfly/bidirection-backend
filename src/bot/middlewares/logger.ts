@@ -252,6 +252,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
           try {
             await bot.api.pinChatMessage(freshGroup.id, forwarded.message_id, {
               message_thread_id: threadId,
+              notify: true, // 通知所有人
             } as any);
             // 更新数据库标记已有第一条消息
             await Group.findByIdAndUpdate(

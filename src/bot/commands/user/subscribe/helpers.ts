@@ -77,7 +77,7 @@ export async function sendStatusCard(
       trialInfo = `\n⏰ 免费试用：已过期`;
     }
   } else if (trialDays > 0 && !bot.topicTrialStartedAt) {
-    trialInfo = `\n🎉 免费试用：${trialDays} 天（开启话题模式后开始计算）`;
+    trialInfo = `\n🎉 免费试用：${trialDays} 天`;
   }
 
   const subscriptionStatus = isActive

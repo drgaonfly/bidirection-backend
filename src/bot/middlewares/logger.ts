@@ -107,7 +107,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
 
   // ── 话题模式准入：三条件统一判断 ────────────────────────
   // resolveTopicMode 内部同时检查：
-  //   1. activeTopicGroup 已配置且 setupStep === 4
+  //   1. activeTopicGroup 已配置且 setupStep === 3
   //   2. isTopicModeEnabled === true
   //   3. 订阅有效
   const botDoc = await Bot.findById(ctx.currentBot._id)
@@ -119,6 +119,12 @@ const logger: Middleware = async (ctx: MyContext, next) => {
 
   const topicGroup = resolveTopicMode(botDoc, ctx.currentProxyUser);
   const isTopicMode = !!topicGroup;
+
+  debug(
+    `[Logger] topicGroup: ${
+      topicGroup ? topicGroup.id : null
+    }, isTopicMode: ${isTopicMode}`,
+  );
 
   // ── 话题订阅门控说明 ─────────────────────────────────────
   // resolveTopicMode 已包含订阅检查，到达这里说明要么话题模式完全可用，

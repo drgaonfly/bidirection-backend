@@ -59,11 +59,30 @@ export function isTopicSubscriptionActive(bot: any, proxyUser?: any): boolean {
  * @param proxyUser bot 所属的平台用户
  */
 export function resolveTopicMode(botDoc: any, proxyUser?: any): IGroup | null {
-  if (!botDoc) return null;
+  if (!botDoc) {
+    console.log('[resolveTopicMode] botDoc is null');
+    return null;
+  }
   const candidate = botDoc.activeTopicGroup as any;
-  if (!candidate) return null;
-  if (candidate.setupStep !== 3) return null;
-  if (!botDoc.isTopicModeEnabled) return null;
-  if (!isTopicSubscriptionActive(botDoc, proxyUser)) return null;
+  if (!candidate) {
+    console.log('[resolveTopicMode] activeTopicGroup is null');
+    return null;
+  }
+  if (candidate.setupStep !== 3) {
+    console.log('[resolveTopicMode] setupStep is not 3:', candidate.setupStep);
+    return null;
+  }
+  if (!botDoc.isTopicModeEnabled) {
+    console.log('[resolveTopicMode] isTopicModeEnabled is false');
+    return null;
+  }
+  if (!isTopicSubscriptionActive(botDoc, proxyUser)) {
+    console.log('[resolveTopicMode] subscription is not active');
+    return null;
+  }
+  console.log(
+    '[resolveTopicMode] all checks passed, returning topicGroup:',
+    candidate.id,
+  );
   return candidate as IGroup;
 }

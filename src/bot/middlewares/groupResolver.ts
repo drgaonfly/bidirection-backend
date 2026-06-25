@@ -112,8 +112,8 @@ const groupResolver: Middleware<MyContext> = async (ctx, next) => {
   debug('Added user to group botUsers:', ctx.currentBotUser._id);
 
   // ── 话题模式：周期性刷新配置状态（每次有消息时都检查，成本低）
-  // 只对非母机器人、且群组尚未完成配置（setupStep < 4）时才刷新
-  if (!ctx.currentBot.isCreatedByAdmin && ctx.currentGroup.setupStep < 4) {
+  // 始终刷新以检测配置状态变化（如关闭话题模式、降级权限等）
+  if (!ctx.currentBot.isCreatedByAdmin) {
     try {
       const botInfo = await ctx.api.getMe();
       await refreshTopicSetupState(

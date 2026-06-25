@@ -14,9 +14,9 @@ import { IGroup } from '../../models/group';
 /**
  * 检查话题双向通信是否可用，满足任一条件即放行：
  *  1. 订阅有效（bot.topicSubscriptionExpiredAt > now）
- *  2. 在试用期内（bot.createdAt + proxyUser.topic_mode_trial_period 天 > now）
+ *  2. 在试用期内（bot.topicTrialStartedAt + proxyUser.topic_mode_trial_period 天 > now）
  *
- * @param bot        bot 文档（需含 topicSubscriptionExpiredAt、createdAt）
+ * @param bot        bot 文档（需含 topicSubscriptionExpiredAt、topicTrialStartedAt）
  * @param proxyUser  bot 所属的平台用户（需含 topic_mode_trial_period）
  */
 export function isTopicSubscriptionActive(bot: any, proxyUser?: any): boolean {
@@ -30,10 +30,10 @@ export function isTopicSubscriptionActive(bot: any, proxyUser?: any): boolean {
     return true;
   }
 
-  // 条件 2：试用期有效
+  // 条件 2：试用期有效（从首次开启话题模式时开始计算）
   const trialDays: number = proxyUser?.topic_mode_trial_period ?? 0;
-  if (trialDays > 0 && bot?.createdAt) {
-    const trialEnd = new Date(bot.createdAt);
+  if (trialDays > 0 && bot?.topicTrialStartedAt) {
+    const trialEnd = new Date(bot.topicTrialStartedAt);
     trialEnd.setDate(trialEnd.getDate() + trialDays);
     if (trialEnd > now) {
       return true;

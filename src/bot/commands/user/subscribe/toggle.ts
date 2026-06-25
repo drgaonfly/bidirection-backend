@@ -23,6 +23,11 @@ toggleCallback.callbackQuery(
     const nextEnabled = !fresh.isTopicModeEnabled;
 
     if (nextEnabled) {
+      // 首次开启时设置试用期开始时间
+      if (!fresh.topicTrialStartedAt) {
+        fresh.topicTrialStartedAt = new Date();
+      }
+
       // 开启前：订阅必须有效（含试用期）
       if (!isTopicSubscriptionActive(fresh, ctx.currentProxyUser)) {
         await ctx.answerCallbackQuery({

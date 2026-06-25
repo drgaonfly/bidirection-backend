@@ -46,7 +46,9 @@ export async function sendStatusCard(
   edit = false,
 ): Promise<void> {
   const bot = await Bot.findById(ctx.currentBot._id)
-    .select('topicSubscriptionExpiredAt activeTopicGroup botName')
+    .select(
+      'topicSubscriptionExpiredAt activeTopicGroup botName isTopicModeEnabled topicTrialStartedAt',
+    )
     .lean();
 
   if (!bot) return;
@@ -57,18 +59,37 @@ export async function sendStatusCard(
     : null;
   const isActive = !!expiry && expiry > now;
   const fee = ctx.currentProxyUser?.topicSubscriptionMonthlyFee ?? 25;
+  const trialDays = ctx.currentProxyUser?.topic_mode_trial_period ?? 0;
+
+  // 计算试用期
+  let trialInfo = '';
+  if (trialDays > 0 && bot.topicTrialStartedAt) {
+    const trialEnd = new Date(bot.topicTrialStartedAt);
+    trialEnd.setDate(trialEnd.getDate() + trialDays);
+    const remainingDays = Math.ceil(
+      (trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+    );
+    if (remainingDays > 0) {
+      trialInfo = `\n🎉 <b>免费试用：</b>剩余 ${remainingDays} 天`;
+    } else {
+      trialInfo = `\n⏰ <b>免费试用：</b>已过期`;
+    }
+  } else if (trialDays > 0 && !bot.topicTrialStartedAt) {
+    trialInfo = `\n🎉 <b>免费试用：</b>${trialDays} 天（开启话题模式后开始计算）`;
+  }
 
   const recentPaid = await Subscription.find({ bot: bot._id, status: 'paid' })
     .sort({ paidAt: -1 })
     .limit(3)
     .lean();
 
-  const statusLine = isActive
-    ? `✅ <b>服务状态：</b>正常\n📅 <b>有效期至：</b>${expiry!.toLocaleString(
-        'zh-CN',
-        { hour12: false },
-      )}`
-    : `❌ <b>服务状态：</b>已到期或未开通`;
+  const subscriptionStatus = isActive
+    ? `✅ 服务期限：${expiry!.toLocaleDateString('zh-CN')}`
+    : `❌ 服务期限：已到期`;
+
+  const topicModeStatus = bot.isTopicModeEnabled
+    ? `话题模式：已启动✅`
+    : `话题模式：未启动❌`;
 
   const historyLines =
     recentPaid.length > 0
@@ -84,12 +105,13 @@ export async function sendStatusCard(
 
   const text =
     `📋 <b>话题双向通信订阅</b>\n\n` +
-    `${statusLine}\n\n` +
+    `${subscriptionStatus}\n` +
+    `${topicModeStatus}${trialInfo}\n\n` +
     `💰 <b>月费：</b>${fee} USDT（TRC20）\n\n` +
     `📜 <b>近期续费记录：</b>\n${historyLines}`;
 
   const keyboard = new InlineKeyboard()
-    .text('💳 发起续费', 'subscribe_pay')
+    .text('💳 购买订阅', 'subscribe_pay')
     .text('🔄 刷新状态', 'subscribe_refresh')
     .row()
     .text('❌ 关闭', 'close');

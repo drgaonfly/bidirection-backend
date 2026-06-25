@@ -39,6 +39,8 @@ export interface IBot extends Document {
   topicSubscriptionNotified?: boolean;
   /** 是否启用话题模式双向通信（owner 手动开关） */
   isTopicModeEnabled?: boolean;
+  /** 话题模式试用期开始时间（首次开启话题模式时设置） */
+  topicTrialStartedAt?: Date;
 }
 
 export interface IMenu extends Document {
@@ -109,6 +111,10 @@ const botSchema = new mongoose.Schema(
     isTopicModeEnabled: {
       type: Boolean,
       default: false,
+    },
+    topicTrialStartedAt: {
+      type: Date,
+      default: null,
     },
   },
   {

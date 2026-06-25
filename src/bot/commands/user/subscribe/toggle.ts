@@ -4,6 +4,7 @@ import Bot from '../../../../models/bot';
 import { isTopicSubscriptionActive } from '../../../middlewares/checkTopicSubscription';
 import { checkBotOwner } from '../../../middlewares/checkBotOwner';
 import { checkInBot } from '../../../middlewares/checkInBot';
+import { sendStatusCard } from './helpers';
 
 const toggleCallback = new Composer<MyContext>();
 
@@ -41,15 +42,8 @@ toggleCallback.callbackQuery(
     fresh.isTopicModeEnabled = nextEnabled;
     await fresh.save();
 
-    const statusText = nextEnabled ? '🟢 话题模式已开启' : '🔴 话题模式已关闭';
-
-    await ctx.editMessageReplyMarkup({
-      reply_markup: new InlineKeyboard()
-        .text('编辑启动信息', `edit_message_${ctx.currentBot._id}`)
-        .text('订阅话题模式通信', 'subscribe')
-        .row()
-        .text(statusText, 'toggle_topic_mode'),
-    });
+    // 重新显示订阅状态卡片
+    await sendStatusCard(ctx, true);
 
     await ctx.answerCallbackQuery({
       text: nextEnabled ? '✅ 话题模式已开启' : '✅ 话题模式已关闭',

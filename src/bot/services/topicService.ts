@@ -3,11 +3,10 @@
  * 话题模式服务
  *
  * 配置步骤：
- *  0 = 群组未公开（无 @username），需先设置公开链接
- *  1 = 已公开 supergroup，但话题模式未开启
- *  2 = 话题模式已开，机器人不是管理员
- *  3 = 机器人是管理员但缺 can_manage_topics 权限
- *  4 = 全部完成
+ *  0 = 话题模式未开启
+ *  1 = 话题模式已开，机器人不是管理员
+ *  2 = 机器人是管理员但缺 can_manage_topics 权限
+ *  3 = 全部完成
  *
  * 多群组支持：
  *  bot.activeTopicGroup 指向当前激活的话题群组。
@@ -71,7 +70,6 @@ export async function refreshTopicSetupState(
     return group.setupStep;
   }
 
-  const isPublic = !!(chat as any).username; // 有 @username = 公开
   const isSupergroup = chat.type === 'supergroup';
   const forumEnabled = !!(chat as any).is_forum;
 
@@ -85,12 +83,9 @@ export async function refreshTopicSetupState(
 
   // 推导步骤
   let step = 0;
-  if (isPublic && isSupergroup) step = 1;
-  if (isPublic && isSupergroup && forumEnabled) step = 2;
-  if (isPublic && isSupergroup && forumEnabled && isAdmin && !canManageTopics)
-    step = 3;
-  if (isPublic && isSupergroup && forumEnabled && isAdmin && canManageTopics)
-    step = 4;
+  if (forumEnabled) step = 1;
+  if (forumEnabled && isAdmin && !canManageTopics) step = 2;
+  if (forumEnabled && isAdmin && canManageTopics) step = 3;
 
   // 持久化
   await Group.findByIdAndUpdate(group._id, {
@@ -105,7 +100,7 @@ export async function refreshTopicSetupState(
   group.setupStep = step;
 
   // 配置完成：若 bot 还没有 activeTopicGroup，自动写入
-  if (step === 4 && botMongoId) {
+  if (step === 3 && botMongoId) {
     await Bot.findOneAndUpdate(
       { _id: botMongoId, activeTopicGroup: null },
       { activeTopicGroup: group._id },
@@ -114,7 +109,7 @@ export async function refreshTopicSetupState(
   }
 
   debug(
-    `群组 ${chatId}: step=${step}, public=${isPublic}, forum=${forumEnabled}, admin=${isAdmin}, manageTopics=${canManageTopics}`,
+    `群组 ${chatId}: step=${step}, supergroup=${isSupergroup}, forum=${forumEnabled}, admin=${isAdmin}, manageTopics=${canManageTopics}`,
   );
   return step;
 }

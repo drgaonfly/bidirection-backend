@@ -35,19 +35,7 @@ function stepText(step: number, botUsername: string): string {
   const steps = [
     // step 0
     [
-      '📋 *话题模式配置 — 第 1 步 / 共 4 步*',
-      '',
-      '需要将群组设置为**公开群组**（有 @username）。',
-      '',
-      '操作方法：',
-      '1. 打开群组设置（点击群名称 → 编辑）',
-      '2. 点击「群组类型」→ 选择「公开群组」',
-      '3. 设置唯一的 @username',
-      '4. 保存',
-    ],
-    // step 1
-    [
-      '📋 *话题模式配置 — 第 2 步 / 共 4 步*',
+      '📋 *话题模式配置 — 第 1 步 / 共 3 步*',
       '',
       '请开启群组的「话题」（Forum）模式。',
       '',
@@ -56,20 +44,22 @@ function stepText(step: number, botUsername: string): string {
       '2. 找到「话题」开关并启用',
       '3. 保存',
     ],
-    // step 2
+    // step 1
     [
-      '📋 *话题模式配置 — 第 3 步 / 共 4 步*',
+      '📋 *话题模式配置 — 第 2 步 / 共 3 步*',
       '',
       `请将 @${botUsername} 设置为管理员。`,
+      '',
+      '注意：设置管理员会自动将群组升级为超级群组',
       '',
       '操作方法：',
       '1. 打开群组成员列表',
       `2. 找到 @${botUsername} → 设置为管理员`,
       '3. 保存',
     ],
-    // step 3
+    // step 2
     [
-      '📋 *话题模式配置 — 第 4 步 / 共 4 步*',
+      '📋 *话题模式配置 — 第 3 步 / 共 3 步*',
       '',
       `请赋予 @${botUsername}「管理话题」权限。`,
       '',
@@ -110,7 +100,7 @@ function doneButton(): InlineKeyboard {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 机器人被加入群组 → 私聊通知 owner 启动引导
+// 机器人被加入群组 → 自动发送配置引导
 // ─────────────────────────────────────────────────────────────
 topicSetupComposer.on('my_chat_member', async (ctx) => {
   const newStatus = ctx.myChatMember?.new_chat_member?.status;
@@ -121,6 +111,41 @@ topicSetupComposer.on('my_chat_member', async (ctx) => {
   if (ctx.currentBot?.isCreatedByAdmin) return;
 
   debug('机器人被加入群组 chatId=%s', ctx.chat?.id);
+
+  // 等待 groupResolver 创建群组记录
+  // 延迟一下确保群组记录已创建
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  // 重新获取群组信息
+  const group = await Group.findOne({ id: ctx.chat?.id });
+  if (!group) {
+    debug('群组记录未找到，跳过配置引导');
+    return;
+  }
+
+  // 检查配置状态
+  const botInfo = await ctx.api.getMe();
+  const step = await refreshTopicSetupState(
+    ctx.api,
+    group,
+    botInfo.id,
+    ctx.currentBot._id,
+  );
+
+  debug('群组配置状态 step=%d', step);
+
+  // 如果配置未完成，在群组中发送配置引导
+  if (step < 3) {
+    try {
+      await ctx.reply(stepText(step, botInfo.username ?? '机器人'), {
+        parse_mode: 'Markdown',
+        reply_markup: nextButton(String(group._id)),
+      });
+      debug('已发送配置引导到群组');
+    } catch (err) {
+      debug('发送配置引导失败:', err);
+    }
+  }
 });
 
 // ─────────────────────────────────────────────────────────────
@@ -151,7 +176,7 @@ topicSetupComposer.command(
       ctx.currentBot._id,
     );
 
-    if (step === 4) {
+    if (step === 3) {
       await ctx.reply(doneText(), {
         parse_mode: 'Markdown',
         reply_markup: doneButton(),
@@ -191,7 +216,7 @@ topicSetupComposer.callbackQuery(/^topic_setup_next:/, async (ctx) => {
 
   debug(`[callback] groupId=${groupId} step=${step}`);
 
-  if (step === 4) {
+  if (step === 3) {
     await ctx.answerCallbackQuery();
     await ctx.editMessageText(doneText(), {
       parse_mode: 'Markdown',
@@ -244,7 +269,7 @@ topicSetupComposer.command(
     if (ctx.currentBot?.isCreatedByAdmin) return;
 
     const group = ctx.currentGroup;
-    if (!group || group.setupStep !== 4) {
+    if (!group || group.setupStep !== 3) {
       await ctx.reply(
         '❌ 本群组尚未完成话题模式配置，请先发送 /setup\\_topics。',
         { parse_mode: 'Markdown' },

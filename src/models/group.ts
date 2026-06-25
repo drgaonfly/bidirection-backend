@@ -31,11 +31,10 @@ export interface IGroup extends Document {
   canManageTopics: boolean;
   /**
    * 引导步骤：
-   *  0 = 未开始（普通 group，需升级为 supergroup）
-   *  1 = 已是 supergroup，等待开启话题模式
-   *  2 = 已开话题，等待设机器人为管理员
-   *  3 = 已是管理员，等待赋予管理话题权限
-   *  4 = 配置完成
+   *  0 = 未开始，等待开启话题模式
+   *  1 = 话题模式已开，等待设机器人为管理员
+   *  2 = 已是管理员，等待赋予管理话题权限
+   *  3 = 配置完成
    */
   setupStep: number;
   /** BotUser → threadId 映射表 */

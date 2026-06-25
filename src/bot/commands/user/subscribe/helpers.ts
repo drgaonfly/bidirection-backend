@@ -69,7 +69,7 @@ export async function sendStatusCard(
     // 有正式订阅且未过期
     subscriptionStatus = `服务期限： ${formatBeijingDate(expiry)}✅`;
   } else if (trialDays > 0 && bot.topicTrialStartedAt) {
-    // 没有正式订阅或已过期，但有试用期
+    // 没有正式订阅或已过期，但试用期已开始且有效
     const trialEnd = new Date(bot.topicTrialStartedAt);
     trialEnd.setDate(trialEnd.getDate() + trialDays);
     const remainingDays = Math.ceil(
@@ -80,11 +80,8 @@ export async function sendStatusCard(
     } else {
       subscriptionStatus = `服务期限：已到期❌`;
     }
-  } else if (trialDays > 0 && !bot.topicTrialStartedAt) {
-    // 有试用期但未开始
-    subscriptionStatus = `服务期限： ${trialDays} 天（未开始）❌`;
   } else {
-    // 没有任何订阅
+    // 没有正式订阅，试用期未开始或已过期
     subscriptionStatus = `服务期限：已到期❌`;
   }
 

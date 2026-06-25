@@ -1,4 +1,4 @@
-import { Composer, InlineKeyboard } from 'grammy';
+import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
 import Bot from '../../../../models/bot';
 import { isTopicSubscriptionActive } from '../../../middlewares/checkTopicSubscription';

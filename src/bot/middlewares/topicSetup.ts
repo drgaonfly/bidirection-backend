@@ -130,7 +130,10 @@ topicSetupComposer.on('my_chat_member', async (ctx) => {
 
   if (
     !isSubscriptionActive &&
-    !(proxyUser?.topic_mode_trial_period > 0 && !ownerBotUser?.hasUsedFreeTrial)
+    !(
+      proxyUser?.topic_mode_trial_period > 0 &&
+      !ownerBotUser?.topicTrialStartedAt
+    )
   ) {
     // 无月付无试用，不允许配置
     debug('无月付无试用，不允许配置话题模式');

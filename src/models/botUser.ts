@@ -11,9 +11,7 @@ export interface IBotUser extends Document {
   messages: mongoose.Types.ObjectId[] | IBotUserMessage[];
   isAuthorized: boolean; // 用户是否已授权
   displayName?: string; // 虚拟属性
-  /** 是否已使用过免费试用（每个botUser只能试用一次） */
-  hasUsedFreeTrial?: boolean;
-  /** 话题模式试用期开始时间（基于 botUser） */
+  /** 话题模式试用期开始时间（基于 botUser，一个 Telegram 用户只能试用一次） */
   topicTrialStartedAt?: Date;
   proxy: mongoose.Types.ObjectId | IUser;
   bots: mongoose.Types.ObjectId[] | IBot[];
@@ -29,7 +27,6 @@ const botUserSchema = new mongoose.Schema(
     lastName: { type: String, required: false },
     messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BotUserMessage' }],
     isAuthorized: { type: Boolean, default: false }, // 默认未授权
-    hasUsedFreeTrial: { type: Boolean, default: false }, // 是否已使用免费试用
     topicTrialStartedAt: { type: Date }, // 话题模式试用期开始时间
     proxy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // 代理归属
     bots: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Bot' }], // 用户绑定的机器人

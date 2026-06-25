@@ -32,7 +32,6 @@ toggleCallback.callbackQuery(
       if (ownerBotUser && !ownerBotUser.topicTrialStartedAt) {
         await BotUser.findByIdAndUpdate(fresh.owner, {
           topicTrialStartedAt: new Date(),
-          hasUsedFreeTrial: true,
         });
       }
 

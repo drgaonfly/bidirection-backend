@@ -163,7 +163,7 @@ export async function refreshTopicSetupState(
     if (
       !isSubscriptionActive &&
       proxyUser?.topic_mode_trial_period > 0 &&
-      !ownerBotUser?.hasUsedFreeTrial
+      !ownerBotUser?.topicTrialStartedAt
     ) {
       result.needsTrialPrompt = true;
     }

@@ -17,7 +17,7 @@ import { IGroup } from '../../models/group';
  *  2. 在试用期内（botUser.topicTrialStartedAt + proxyUser.topic_mode_trial_period 天 > now）
  *
  * @param bot        bot 文档（需含 topicSubscriptionExpiredAt）
- * @param botUser    bot 的 owner botUser（需含 topicTrialStartedAt、hasUsedFreeTrial）
+ * @param botUser    bot 的 owner botUser（需含 topicTrialStartedAt）
  * @param proxyUser  bot 所属的平台用户（需含 topic_mode_trial_period）
  */
 export function isTopicSubscriptionActive(
@@ -37,11 +37,7 @@ export function isTopicSubscriptionActive(
 
   // 条件 2：试用期有效（基于 botUser，一个 Telegram 用户只能试用一次）
   const trialDays: number = proxyUser?.topic_mode_trial_period ?? 0;
-  if (
-    trialDays > 0 &&
-    botUser?.topicTrialStartedAt &&
-    !botUser?.hasUsedFreeTrial
-  ) {
+  if (trialDays > 0 && botUser?.topicTrialStartedAt) {
     const trialEnd = new Date(botUser.topicTrialStartedAt);
     trialEnd.setDate(trialEnd.getDate() + trialDays);
     if (trialEnd > now) {
@@ -65,7 +61,7 @@ export function isTopicSubscriptionActive(
  * 任一不满足返回 null，调用方只需判断结果是否为 null。
  *
  * @param botDoc    bot 文档（已 populate activeTopicGroup）
- * @param botUser   bot 的 owner botUser（需含 topicTrialStartedAt、hasUsedFreeTrial）
+ * @param botUser   bot 的 owner botUser（需含 topicTrialStartedAt）
  * @param proxyUser bot 所属的平台用户
  */
 export function resolveTopicMode(

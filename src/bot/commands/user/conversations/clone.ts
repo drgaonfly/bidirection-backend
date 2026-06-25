@@ -3,7 +3,7 @@ import { createConversation, Conversation } from '@grammyjs/conversations';
 import { MyContext } from '../../../types';
 import { cancelKeyboard } from '../../../menus/inline/cacel';
 import { setWebhook } from '../../../../controllers/botController';
-import Bot from '../../../../models/bot';
+import Bot, { IBot } from '../../../../models/bot';
 import BotUser, { IBotUser } from '../../../../models/botUser';
 import createDebug from 'debug';
 
@@ -17,8 +17,10 @@ async function cloneBotConversation(
   ctx: MyContext,
   {
     botUser,
+    bot,
   }: {
     botUser: IBotUser;
+    bot: IBot;
   },
 ) {
   debug('等待用户输入token或取消');
@@ -59,6 +61,7 @@ async function cloneBotConversation(
     // 递归等待用户重新输入
     return await cloneBotConversation(conversation, ctx, {
       botUser,
+      bot,
     });
   }
 
@@ -68,7 +71,7 @@ async function cloneBotConversation(
 
   console.debug('克隆时 botUser:', botUser);
 
-  const addResult = await addBot(token, ctx, botUser);
+  const addResult = await addBot(token, ctx, botUser, bot);
 
   if (addResult && addResult.success) {
     await ctx.reply('✅ 克隆成功，请在机器人列表中查看。');
@@ -87,6 +90,7 @@ async function addBot(
   token: string,
   ctx: MyContext,
   botUser: IBotUser,
+  bot: IBot,
 ): Promise<{ success: boolean; message?: string }> {
   try {
     if (!botUser) {
@@ -117,7 +121,7 @@ async function addBot(
       owner: botUser._id,
       botUsers: [botUser._id],
       user: proxyUserId,
-      clonedFrom: ctx.currentBot._id,
+      clonedFrom: bot._id,
       isCreatedByAdmin: false,
     });
 
@@ -165,6 +169,7 @@ cloneConversationComposer.callbackQuery('clone_start', async (ctx) => {
 
   await ctx.conversation.enter('cloneBotConversation', {
     botUser: ctx.currentBotUser,
+    bot: ctx.currentBot,
   });
   await ctx.answerCallbackQuery();
 });

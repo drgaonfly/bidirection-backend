@@ -1,7 +1,7 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import { startClientAndGetSession } from '../../../services/gramClient';
-import { isTopicSubscriptionActive } from '../../../middlewares/checkTopicSubscription';
+// import { isTopicSubscriptionActive } from '../../../middlewares/checkTopicSubscription';
 import createDebug from 'debug';
 
 const startCommand = new Composer<MyContext>();
@@ -58,10 +58,10 @@ startCommand.command('start', async (ctx) => {
     ctx.currentBot?.owner?.toString() === String(ctx.currentBotUser._id)
   ) {
     // 从 ctx.currentBot 取订阅状态和话题开关（botResolver 已加载完整文档）
-    const hasActiveSubscription = isTopicSubscriptionActive(
-      ctx.currentBot,
-      ctx.currentProxyUser,
-    );
+    // const hasActiveSubscription = isTopicSubscriptionActive(
+    //   ctx.currentBot,
+    //   ctx.currentProxyUser,
+    // );
     const topicEnabled = ctx.currentBot.isTopicModeEnabled ?? false;
 
     const keyboard = new InlineKeyboard()

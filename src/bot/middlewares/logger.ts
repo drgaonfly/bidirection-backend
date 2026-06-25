@@ -235,12 +235,76 @@ const logger: Middleware = async (ctx: MyContext, next) => {
         );
       } else {
         // 将用户消息转发到对应话题
-        const forwarded = await bot.api.forwardMessage(
-          freshGroup.id,
-          ctx.chat.id,
-          message.message_id,
-          { message_thread_id: threadId } as any,
-        );
+        // 使用 sendMessage 构造消息，添加发送者信息
+        const senderInfo = `👤 ${
+          ctx.currentBotUser.firstName ||
+          ctx.currentBotUser.userName ||
+          `用户${ctx.currentBotUser.id}`
+        }`;
+
+        let forwarded;
+        if (message?.text) {
+          forwarded = await bot.api.sendMessage(
+            freshGroup.id,
+            `${senderInfo}\n\n${message.text}`,
+            { message_thread_id: threadId } as any,
+          );
+        } else if (message?.photo) {
+          const file = await ctx.getFile();
+          const fileUrl = `https://api.telegram.org/file/bot${ctx.currentBot.token}/${file.file_path}`;
+          const caption = message?.caption
+            ? `${senderInfo}\n\n${message.caption}`
+            : senderInfo;
+          forwarded = await bot.api.sendPhoto(freshGroup.id, fileUrl, {
+            caption,
+            message_thread_id: threadId,
+          } as any);
+        } else if (message?.video) {
+          const file = await ctx.getFile();
+          const fileUrl = `https://api.telegram.org/file/bot${ctx.currentBot.token}/${file.file_path}`;
+          const caption = message?.caption
+            ? `${senderInfo}\n\n${message.caption}`
+            : senderInfo;
+          forwarded = await bot.api.sendVideo(freshGroup.id, fileUrl, {
+            caption,
+            message_thread_id: threadId,
+          } as any);
+        } else if (message?.document) {
+          const file = await ctx.getFile();
+          const fileUrl = `https://api.telegram.org/file/bot${ctx.currentBot.token}/${file.file_path}`;
+          const caption = message?.caption
+            ? `${senderInfo}\n\n${message.caption}`
+            : senderInfo;
+          forwarded = await bot.api.sendDocument(freshGroup.id, fileUrl, {
+            caption,
+            message_thread_id: threadId,
+          } as any);
+        } else if (message?.voice) {
+          const file = await ctx.getFile();
+          const fileUrl = `https://api.telegram.org/file/bot${ctx.currentBot.token}/${file.file_path}`;
+          forwarded = await bot.api.sendVoice(freshGroup.id, fileUrl, {
+            caption: senderInfo,
+            message_thread_id: threadId,
+          } as any);
+        } else if (message?.sticker) {
+          const file = await ctx.getFile();
+          const fileUrl = `https://api.telegram.org/file/bot${ctx.currentBot.token}/${file.file_path}`;
+          forwarded = await bot.api.sendSticker(freshGroup.id, fileUrl, {
+            message_thread_id: threadId,
+          } as any);
+          // 贴纸后发送一条文本消息显示发送者
+          await bot.api.sendMessage(freshGroup.id, senderInfo, {
+            message_thread_id: threadId,
+          } as any);
+        } else {
+          // 其他类型回退到 forwardMessage
+          forwarded = await bot.api.forwardMessage(
+            freshGroup.id,
+            ctx.chat.id,
+            message.message_id,
+            { message_thread_id: threadId } as any,
+          );
+        }
 
         debug(
           `✅ 用户 ${ctx.currentBotUser.id} 的消息已转发到话题 ${threadId}`,

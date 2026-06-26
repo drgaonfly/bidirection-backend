@@ -243,20 +243,28 @@ const logger: Middleware = async (ctx: MyContext, next) => {
           freshGroup.id,
           ctx.chat.id,
           message.message_id,
-          {
-            message_thread_id: threadId,
-            disable_notification: false,
-          } as any,
+          { message_thread_id: threadId } as any,
         );
 
-        // forwardMessage 不会触发未读角标（Telegram 机制限制）。
-        // 在转发后额外发一条 @mention，强制产生未读通知给 owner。
-        if (ownerBotUser?.userName) {
+        // forwardMessage 不计入群组角标，需额外发一条 inline mention 触发未读。
+        // 用 HTML inline mention（tg://user?id=）才是 Telegram 真正识别的 mention，
+        // disable_notification=true 静默发送，只累加角标不产生推送音效。
+        if (ownerBotUser?.id) {
           try {
+            const displayName =
+              [ownerBotUser.firstName, ownerBotUser.lastName]
+                .filter(Boolean)
+                .join(' ')
+                .trim() || ownerBotUser.userName;
+
             await bot.api.sendMessage(
               freshGroup.id,
-              `@${ownerBotUser.userName}`,
-              { message_thread_id: threadId } as any,
+              `<a href="tg://user?id=${ownerBotUser.id}">${displayName}</a>`,
+              {
+                message_thread_id: threadId,
+                parse_mode: 'HTML',
+                disable_notification: false,
+              } as any,
             );
           } catch (mentionErr) {
             debug('发送 mention 通知失败:', mentionErr);

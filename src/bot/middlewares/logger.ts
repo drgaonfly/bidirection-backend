@@ -245,9 +245,23 @@ const logger: Middleware = async (ctx: MyContext, next) => {
           message.message_id,
           {
             message_thread_id: threadId,
-            disable_notification: false, // 确保发送通知
+            disable_notification: false,
           } as any,
         );
+
+        // forwardMessage 不会触发未读角标（Telegram 机制限制）。
+        // 在转发后额外发一条 @mention，强制产生未读通知给 owner。
+        if (ownerBotUser?.userName) {
+          try {
+            await bot.api.sendMessage(
+              freshGroup.id,
+              `@${ownerBotUser.userName}`,
+              { message_thread_id: threadId } as any,
+            );
+          } catch (mentionErr) {
+            debug('发送 mention 通知失败:', mentionErr);
+          }
+        }
 
         debug(
           `✅ 用户 ${ctx.currentBotUser.id} 的消息已转发到话题 ${threadId}`,

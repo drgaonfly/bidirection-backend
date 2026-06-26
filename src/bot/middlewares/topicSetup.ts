@@ -153,16 +153,25 @@ topicSetupComposer.on('my_chat_member', async (ctx) => {
     return;
   }
 
-  // 等待 groupResolver 创建群组记录
-  // 延迟一下确保群组记录已创建
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  // my_chat_member 事件不走 groupResolver，需要在这里确保群组记录存在
+  // 用 upsert 原子操作，避免并发时重复创建
+  const chatId = ctx.chat.id;
+  const group = await Group.findOneAndUpdate(
+    { id: chatId },
+    {
+      $setOnInsert: {
+        id: chatId,
+        title: ctx.chat.title ?? String(chatId),
+        type: ctx.chat.type,
+        bot: ctx.currentBot._id,
+        creator: ctx.currentBotUser._id,
+      },
+    },
+    { upsert: true, new: true },
+  );
 
-  // 重新获取群组信息
-  const group = await Group.findOne({ id: ctx.chat?.id });
-  if (!group) {
-    debug('群组记录未找到，跳过配置引导');
-    return;
-  }
+  // 把群组关联到 bot
+  await ctx.currentBot.updateOne({ $addToSet: { groups: group._id } });
 
   // 检查配置状态
   const botInfo = await ctx.api.getMe();

@@ -1,13 +1,13 @@
 import { MyContext } from '../types';
 import Bot from '../../models/bot';
-import { createBot } from '../../utils/createBotWithUser';
+import { createBotWithUser } from '../../utils/createBotWithUser';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:managedBotHandler');
 
 /**
  * 处理 managed_bot update。
- * 用户通过 https://t.me/newbot/${bot.userName} 在 BotFather 创建机器人后，
+ * 用户通过 https://t.me/newbot 在 BotFather 创建机器人后，
  * Telegram 自动把新 bot 的信息推送过来，无需用户手动复制 token。
  */
 async function handleManagedBot(ctx: MyContext) {
@@ -24,10 +24,7 @@ async function handleManagedBot(ctx: MyContext) {
     const botUser = managedBot.user;
     userId = botUser.id;
 
-    debug('[handleManagedBot] Received managed_bot update:', {
-      botId,
-      userId,
-    });
+    debug('[handleManagedBot] Received managed_bot update:', { botId, userId });
 
     // 检查是否已经创建过这个机器人
     const existingBot = await Bot.findOne({ id: String(botId) });
@@ -65,7 +62,7 @@ async function handleManagedBot(ctx: MyContext) {
       token.slice(0, 10) + '...',
     );
 
-    const result = await createBot(token, currentBot, currentBotUser);
+    const result = await createBotWithUser(token, currentBot, currentBotUser);
 
     if (result.success) {
       const { userName } = result.account!;

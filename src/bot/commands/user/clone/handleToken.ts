@@ -1,6 +1,6 @@
 import { Composer } from 'grammy';
 import { MyContext } from '../../../types';
-import { createBot } from '../../../../utils/createBotWithUser';
+import { createBotWithUser } from '../../../../utils/createBotWithUser';
 import { checkBotPublic } from '../../../middlewares/checkBotPublic';
 import createDebug from 'debug';
 
@@ -25,7 +25,7 @@ handleTokenComposer.hears(
 
     let result;
     try {
-      result = await createBot(token, bot, botUser);
+      result = await createBotWithUser(token, bot, botUser);
     } catch (e: any) {
       debug('createBotWithUser 异常:', e);
       await ctx.reply(`❌ 克隆失败：${e.message || '未知错误'}`);

@@ -16,6 +16,7 @@ import { redis } from '../utils/redis';
 import { conversations } from '@grammyjs/conversations';
 import proxyResolver from './middlewares/proxyResolver';
 import { handleReactionUpdate } from './middlewares/reactionRelay';
+import managedBotHandler from './middlewares/managedBotHandler';
 import createDebug from 'debug';
 
 const log = createDebug('bot:setup');
@@ -81,10 +82,8 @@ export const setupBot = (token: string) => {
   bot.use(userComposer.middleware());
   // bot.use(adminComposer.middleware());
 
-  // bot.command("start", (ctx) => ctx.reply("Welcome! Up and running."));
-
-  // 回复任何消息 "Hi there!"。
-  // bot.on('message', (ctx) => ctx.reply('Hi there!'));
+  // @ts-ignore - managed_bot is a new update type (grammy 1.45.1+)
+  bot.on('managed_bot', managedBotHandler);
 
   bot.callbackQuery('close', async (ctx) => {
     log('用户点击了按钮: close');

@@ -17,17 +17,22 @@ export const startWebHookBot = async () => {
 
       console.log('Bot 正在运行于生产模式');
 
-      // 始终重新设置 webhook 以确保 allowed_updates 是最新的
+      const allowedUpdates = [
+        'message',
+        'edited_message',
+        'callback_query',
+        'inline_query',
+        'message_reaction',
+        'message_reaction_count',
+        'my_chat_member',
+        'managed_bot',
+      ] as const;
+
+      // 强制重新设置 webhook，确保 allowed_updates 变更立即生效
+      await bot.api.deleteWebhook();
       await bot.api.setWebhook(`${WEBHOOK_URL}/bot-webhooks/${activeBot._id}`, {
-        allowed_updates: [
-          'message',
-          'edited_message',
-          'callback_query',
-          'inline_query',
-          'message_reaction',
-          'message_reaction_count',
-          'my_chat_member',
-        ],
+        // @ts-ignore - managed_bot is a new update type (grammy 1.45.1+)
+        allowed_updates: allowedUpdates,
       });
 
       console.log(

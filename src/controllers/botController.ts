@@ -149,6 +149,7 @@ export const setWebhook = async (botManager: IBot) => {
   await bot.api.deleteWebhook();
 
   await bot.api.setWebhook(`${WEBHOOK_URL}/bot-webhooks/${botManager._id}`, {
+    // @ts-ignore - managed_bot is a new update type (grammy 1.45.1+)
     allowed_updates: [
       'message',
       'edited_message',
@@ -157,6 +158,7 @@ export const setWebhook = async (botManager: IBot) => {
       'message_reaction',
       'message_reaction_count',
       'my_chat_member',
+      'managed_bot',
     ],
   });
 

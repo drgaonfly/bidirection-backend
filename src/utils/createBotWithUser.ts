@@ -70,7 +70,7 @@ export async function createBot(
     debug('[createBotWithUser] 新 Bot 已保存:', newBot._id);
 
     // 4. 异步设置 Webhook，不阻塞回复
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:5007';
+    const backendUrl = process.env.WEBHOOK_URL || 'http://localhost:5007';
     axios
       .post(`${backendUrl}/api/bots/${newBot._id}/set-webhook`)
       .catch((e: any) => {

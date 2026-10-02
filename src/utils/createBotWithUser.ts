@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Bot as GrammyBot } from 'grammy';
 import Bot, { IBot } from '../models/bot';
-import BotUser, { IBotUser } from '../models/botUser';
+import { IBotUser } from '../models/botUser';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:createBotWithUser');

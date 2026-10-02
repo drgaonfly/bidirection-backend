@@ -1,19 +1,19 @@
-import axios from 'axios';
 import { Bot as GrammyBot } from 'grammy';
 import Bot, { IBot } from '../models/bot';
 import { IBotUser } from '../models/botUser';
+import { setWebhook } from '../controllers/botController';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:createBotWithUser');
 
 /**
- * 克隆一个新 Bot：保存记录、绑定 owner、异步设置 webhook。
+ * 克隆一个新 Bot：保存记录、绑定 owner、设置 webhook。
  *
  * @param token      新机器人的 Telegram Bot Token
  * @param currentBot 母机器人（克隆来源）
  * @param botUser    操作者的 BotUser，自动成为新 bot 的 owner
  */
-export async function createBot(
+export async function createBotWithUser(
   token: string,
   currentBot: IBot | null,
   botUser: IBotUser | null,
@@ -69,13 +69,10 @@ export async function createBot(
     await newBot.save();
     debug('[createBotWithUser] 新 Bot 已保存:', newBot._id);
 
-    // 4. 异步设置 Webhook，不阻塞回复
-    const backendUrl = process.env.WEBHOOK_URL || 'http://localhost:5007';
-    axios
-      .post(`${backendUrl}/api/bots/${newBot._id}/set-webhook`)
-      .catch((e: any) => {
-        debug('[createBotWithUser] set-webhook 失败:', e?.message);
-      });
+    // 4. 设置 Webhook（异步，不阻塞回复）
+    setWebhook(newBot).catch((e: any) => {
+      debug('[createBotWithUser] setWebhook 失败:', e?.message);
+    });
 
     return {
       success: true,

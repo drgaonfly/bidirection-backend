@@ -116,9 +116,21 @@ startCommand.command('start', async (ctx) => {
 
   // 没有媒体时发送纯文本消息
   if (ctx.currentBot.isCreatedByAdmin) {
-    await ctx.reply(message, {
+    const cloneMessage = [
+      message,
+      '',
+      '🤖 直接发送机器人 API Token 即可克隆同款机器人，',
+      '或点击下方按钮一键创建。',
+    ].join('\n');
+
+    await ctx.reply(cloneMessage, {
+      parse_mode: 'HTML',
       reply_markup:
-        keyboard || new InlineKeyboard().text('克隆', 'clone_start'),
+        keyboard ||
+        new InlineKeyboard().url(
+          '🤖 克隆专属机器人',
+          `https://t.me/newbot/${bot.userName}`,
+        ),
     });
   } else if (
     ctx.currentBot?.owner?.toString() === String(ctx.currentBotUser._id)

@@ -1,0 +1,88 @@
+import axios from 'axios';
+import { Bot as GrammyBot } from 'grammy';
+import Bot, { IBot } from '../models/bot';
+import BotUser, { IBotUser } from '../models/botUser';
+import createDebug from 'debug';
+
+const debug = createDebug('bot:createBotWithUser');
+
+/**
+ * 克隆一个新 Bot：保存记录、绑定 owner、异步设置 webhook。
+ *
+ * @param token      新机器人的 Telegram Bot Token
+ * @param currentBot 母机器人（克隆来源）
+ * @param botUser    操作者的 BotUser，自动成为新 bot 的 owner
+ */
+export async function createBot(
+  token: string,
+  currentBot: IBot | null,
+  botUser: IBotUser | null,
+): Promise<{
+  success: boolean;
+  message?: string;
+  account?: { userName: string };
+}> {
+  try {
+    debug('[createBotWithUser] token:', token);
+
+    // 1. 检查 token 是否已被占用
+    const botExists = await Bot.findOne({ token });
+    if (botExists) {
+      return {
+        success: false,
+        message: '该 Bot Token 已被使用，请使用其他 Token',
+      };
+    }
+
+    // 2. 用 Grammy 调 Telegram API 获取机器人基本信息
+    let botInfo: { id?: string; username?: string; firstName?: string } | null =
+      null;
+    try {
+      const tempBot = new GrammyBot(token);
+      const me = await tempBot.api.getMe();
+      botInfo = {
+        id: String(me.id),
+        username: me.username || '',
+        firstName: me.first_name || '',
+      };
+      debug('[createBotWithUser] 获取机器人信息:', botInfo);
+    } catch (e) {
+      debug('[createBotWithUser] 获取机器人信息失败，继续创建:', e);
+    }
+
+    // 3. 创建新 Bot，类型固定为 custom（克隆产物）
+    const newBot = new Bot({
+      token,
+      clonedFrom: currentBot?._id ?? null,
+      owner: botUser?._id ?? null,
+      botUsers: botUser ? [botUser._id] : [],
+      user: botUser?.proxy ?? null,
+      isOnline: true,
+      isCreatedByAdmin: false,
+      type: 'custom',
+      ...(botInfo && {
+        id: botInfo.id || '',
+        userName: botInfo.username || '',
+        botName: botInfo.firstName || botInfo.username || '',
+      }),
+    });
+    await newBot.save();
+    debug('[createBotWithUser] 新 Bot 已保存:', newBot._id);
+
+    // 4. 异步设置 Webhook，不阻塞回复
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:5007';
+    axios
+      .post(`${backendUrl}/api/bots/${newBot._id}/set-webhook`)
+      .catch((e: any) => {
+        debug('[createBotWithUser] set-webhook 失败:', e?.message);
+      });
+
+    return {
+      success: true,
+      account: { userName: newBot.userName },
+    };
+  } catch (e: any) {
+    debug('[createBotWithUser] 异常:', e);
+    return { success: false, message: e?.message || '创建机器人失败' };
+  }
+}

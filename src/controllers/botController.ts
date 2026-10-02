@@ -148,18 +148,20 @@ export const setWebhook = async (botManager: IBot) => {
   console.log('删除 webhook');
   await bot.api.deleteWebhook();
 
+  const allowedUpdates = [
+    'message',
+    'edited_message',
+    'callback_query',
+    'inline_query',
+    'message_reaction',
+    'message_reaction_count',
+    'my_chat_member',
+    'managed_bot',
+  ] as const;
+
   await bot.api.setWebhook(`${WEBHOOK_URL}/bot-webhooks/${botManager._id}`, {
     // @ts-ignore - managed_bot is a new update type (grammy 1.45.1+)
-    allowed_updates: [
-      'message',
-      'edited_message',
-      'callback_query',
-      'inline_query',
-      'message_reaction',
-      'message_reaction_count',
-      'my_chat_member',
-      'managed_bot',
-    ],
+    allowed_updates: allowedUpdates,
   });
 
   console.log(

@@ -38,11 +38,19 @@ export const startWebHookBot = async () => {
       console.log(
         `${activeBot.userName} Webhook ${activeBot.token} 已设置为 ${WEBHOOK_URL}/webhook-${activeBot.token}`,
       );
-    } catch (err) {
-      console.error(
-        `设置 bot ${activeBot.userName} (${activeBot.token}) webhook 时出错:`,
-        err,
-      );
+    } catch (err: any) {
+      // Token 已失效（401），自动下线该 bot，避免每次重启都报错
+      if (err?.error_code === 401) {
+        console.error(
+          `Bot ${activeBot.userName} (${activeBot.token}) token 已失效，自动下线`,
+        );
+        await BotManager.findByIdAndUpdate(activeBot._id, { isOnline: false });
+      } else {
+        console.error(
+          `设置 bot ${activeBot.userName} (${activeBot.token}) webhook 时出错:`,
+          err,
+        );
+      }
       continue;
     }
   }

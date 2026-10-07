@@ -26,13 +26,14 @@ toggleCallback.callbackQuery(
 
     if (nextEnabled) {
       // 获取 owner botUser
-      const ownerBotUser = await BotUser.findById(fresh.owner).lean();
+      let ownerBotUser = await BotUser.findById(fresh.owner).lean();
 
-      // 首次开启时设置试用期开始时间（基于 botUser）
+      // 首次开启时设置试用期开始时间（基于 botUser），写完后重新读取确保判断用的是最新数据
       if (ownerBotUser && !ownerBotUser.topicTrialStartedAt) {
         await BotUser.findByIdAndUpdate(fresh.owner, {
           topicTrialStartedAt: new Date(),
         });
+        ownerBotUser = await BotUser.findById(fresh.owner).lean();
       }
 
       // 开启前：订阅必须有效（含试用期）

@@ -233,7 +233,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   const botDoc = await Bot.findById(ctx.currentBot._id)
     .populate('activeTopicGroup')
     .select(
-      'activeTopicGroup isTopicModeEnabled topicSubscriptionExpiredAt topicTrialStartedAt createdAt',
+      'activeTopicGroup isTopicModeEnabled topicSubscriptionExpiredAt createdAt',
     )
     .lean();
 
@@ -243,6 +243,14 @@ const logger: Middleware = async (ctx: MyContext, next) => {
     ctx.currentProxyUser,
   );
   const isTopicMode = !!topicGroup;
+
+  // 订阅/试用已过期但话题模式开关仍为 true → 自动关闭，避免残留状态
+  if (!isTopicMode && botDoc?.isTopicModeEnabled) {
+    Bot.findByIdAndUpdate(ctx.currentBot._id, {
+      isTopicModeEnabled: false,
+    }).catch((err: any) => debug('自动关闭话题模式失败:', err?.message));
+    debug('[Logger] 订阅已过期，自动关闭话题模式');
+  }
 
   debug(
     `[Logger] topicGroup: ${

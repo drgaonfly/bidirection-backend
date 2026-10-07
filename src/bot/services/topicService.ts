@@ -110,7 +110,7 @@ export async function refreshTopicSetupState(
   if (step === 3 && botMongoId) {
     // 检查订阅状态，只在订阅有效时自动开启话题模式
     const bot = await Bot.findById(botMongoId)
-      .select('user owner topicSubscriptionExpiredAt topicTrialStartedAt')
+      .select('user owner topicSubscriptionExpiredAt')
       .lean();
 
     const proxyUser = await User.findById(bot?.user).lean();
@@ -148,7 +148,7 @@ export async function refreshTopicSetupState(
   // 检查是否需要提示用户开启试用
   if (step === 3 && botMongoId) {
     const bot = await Bot.findById(botMongoId)
-      .select('user owner topicSubscriptionExpiredAt topicTrialStartedAt')
+      .select('user owner topicSubscriptionExpiredAt')
       .lean();
 
     const proxyUser = await User.findById(bot?.user).lean();

@@ -117,7 +117,7 @@ topicSetupComposer.on('my_chat_member', async (ctx) => {
 
   // 先检查订阅状态，无月付无试用则不允许配置
   const bot = await Bot.findById(ctx.currentBot._id)
-    .select('user owner topicSubscriptionExpiredAt topicTrialStartedAt')
+    .select('user owner topicSubscriptionExpiredAt')
     .lean();
 
   const proxyUser = await User.findById(bot?.user).lean();

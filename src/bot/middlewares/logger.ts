@@ -1,4 +1,4 @@
-import { Middleware } from 'grammy';
+import { Middleware, InlineKeyboard } from 'grammy';
 import BotUser from '../../models/botUser';
 import BotMessage from '../../models/botMessage';
 import { MyContext } from '../types';
@@ -47,10 +47,12 @@ function resolveMessageType(message: any): string {
 //   👤 Melanie Adams
 //   消息内容
 //
-// ownerMention 使用零宽空格作为链接文字，视觉不可见，
-// 但 Telegram 识别为真实 mention，会累加群组角标。
-// ────────────────────────────────────────────────────────────
-function buildHeader(ownerBotUser: any, senderBotUser: any): string {
+// ownerMention 使用指向当前话题的链接，点击通知后直接跳转到该话题。
+function buildHeader(
+  senderBotUser: any,
+  groupId: number,
+  threadId: number,
+): string {
   const senderName =
     [senderBotUser.firstName, senderBotUser.lastName]
       .filter(Boolean)
@@ -59,7 +61,11 @@ function buildHeader(ownerBotUser: any, senderBotUser: any): string {
     senderBotUser.userName ||
     `用户 ${senderBotUser.id}`;
 
-  const ownerMention = `<a href="tg://user?id=${ownerBotUser.id}">\u200b</a>`;
+  const topicUrl = `https://t.me/c/${String(groupId).replace(
+    '-100',
+    '',
+  )}/${threadId}`;
+  const ownerMention = `<a href="${topicUrl}">\u200b</a>`;
   const senderMention = `<a href="tg://user?id=${senderBotUser.id}">${senderName}</a>`;
 
   return `${ownerMention}👤 ${senderMention}`;
@@ -275,6 +281,13 @@ const logger: Middleware = async (ctx: MyContext, next) => {
       return;
     }
 
+    // 目标是机器人自身，忽略（General 话题或机器人自己的话题）
+    if (String(targetBotUserId) === String(ctx.me.id)) {
+      debug('targetBotUserId 是机器人自身，跳过转发');
+      await next();
+      return;
+    }
+
     try {
       const bot = setupBot(ctx.currentBot.token);
       let forwardedMsgId: number | undefined;
@@ -351,6 +364,10 @@ const logger: Middleware = async (ctx: MyContext, next) => {
       const freshGroup = await Group.findById(topicGroup._id);
       if (!freshGroup) throw new Error('话题群组不存在');
 
+      const isNewTopic = !freshGroup.botUserTopics?.some(
+        (t: any) => t.botUserId === ctx.currentBotUser.id,
+      );
+
       const threadId = await getOrCreateTopicForUser(
         bot.api,
         freshGroup,
@@ -367,7 +384,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
           messageType,
         );
       } else {
-        const header = buildHeader(ownerBotUser, ctx.currentBotUser);
+        const header = buildHeader(ctx.currentBotUser, freshGroup.id, threadId);
         const sentMsgId = await sendToTopic(
           bot.api,
           freshGroup.id,
@@ -375,6 +392,35 @@ const logger: Middleware = async (ctx: MyContext, next) => {
           message,
           header,
         );
+
+        // 首次建话题时，发一条带「进入话题」按钮的通知
+        if (isNewTopic) {
+          const senderName =
+            [ctx.currentBotUser.firstName, ctx.currentBotUser.lastName]
+              .filter(Boolean)
+              .join(' ')
+              .trim() ||
+            ctx.currentBotUser.userName ||
+            `用户 ${ctx.currentBotUser.id}`;
+
+          const topicUrl = `https://t.me/c/${String(freshGroup.id).replace(
+            '-100',
+            '',
+          )}/${threadId}`;
+          const kb = new InlineKeyboard().url(
+            `👤 进入「${senderName}」的话题`,
+            topicUrl,
+          );
+
+          await bot.api.sendMessage(
+            freshGroup.id,
+            `👤 新用户「${senderName}」发来一条消息`,
+            {
+              message_thread_id: threadId,
+              reply_markup: kb,
+            },
+          );
+        }
 
         debug(
           `✅ 用户 ${ctx.currentBotUser.id} 的消息已发送到话题 ${threadId}`,

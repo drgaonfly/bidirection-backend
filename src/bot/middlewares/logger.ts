@@ -281,13 +281,6 @@ const logger: Middleware = async (ctx: MyContext, next) => {
       return;
     }
 
-    // 目标是机器人自身，忽略（General 话题或机器人自己的话题）
-    if (String(targetBotUserId) === String(ctx.me.id)) {
-      debug('targetBotUserId 是机器人自身，跳过转发');
-      await next();
-      return;
-    }
-
     try {
       const bot = setupBot(ctx.currentBot.token);
       let forwardedMsgId: number | undefined;
@@ -416,7 +409,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
             freshGroup.id,
             `👤 新用户「${senderName}」发来一条消息`,
             {
-              message_thread_id: threadId,
+              // 发到 General 话题，让 owner 在群组首页看到通知
               reply_markup: kb,
             },
           );

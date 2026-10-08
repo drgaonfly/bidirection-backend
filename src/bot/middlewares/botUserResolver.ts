@@ -11,6 +11,12 @@ const botUserResolver: Middleware<MyContext> = async (ctx, next) => {
 
   const { id, username, first_name, last_name } = ctx.from!;
 
+  // 发送者是机器人自身，跳过（避免为机器人创建 BotUser 记录）
+  if (id === ctx.me.id) {
+    await next();
+    return;
+  }
+
   const { proxyUser } = await findBotProxy(ctx.currentBot);
 
   // 查找或创建关联用户

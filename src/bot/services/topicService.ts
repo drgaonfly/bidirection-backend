@@ -132,10 +132,7 @@ export async function refreshTopicSetupState(
       debug(`bot ${botMongoId} isTopicModeEnabled 未开启（订阅无效）`);
     }
 
-    await Bot.findOneAndUpdate(
-      { _id: botMongoId, activeTopicGroup: null },
-      updateData,
-    );
+    await Bot.findOneAndUpdate({ _id: botMongoId }, updateData);
     debug(`bot ${botMongoId} activeTopicGroup 自动设为群组 ${group.id}`);
   }
 

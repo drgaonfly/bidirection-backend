@@ -6,14 +6,18 @@
  *
  * 命令：
  *  /setup_topics   — 在群组中发送，显示当前步骤卡片
- *  /use_this_group — 将当前已完成配置的群组设为激活话题群组
+ *  /use_this_group — 手动将当前已完成配置的群组设为激活话题群组（多群组切换用）
  *
  * Callback：
  *  topic_setup_next:<groupId>  — 点「✅ 我已完成，检测下一步」时触发
  *  topic_setup_done:<groupId>  — 配置完成后的确认按钮
  *
  * 事件：
- *  my_chat_member — 机器人加入群组时，私聊通知 owner 启动引导
+ *  my_chat_member — 机器人加入群组时，自动发送配置引导
+ *
+ * 自动激活逻辑：
+ *  配置完成（step === 3）且订阅有效时，自动将当前群组设为 activeTopicGroup，
+ *  无需手动发送 /use_this_group。/use_this_group 仅在多群组场景下用于手动切换。
  */
 
 import { Composer, InlineKeyboard } from 'grammy';
@@ -100,6 +104,14 @@ function nextButton(groupId: string): InlineKeyboard {
 
 function doneButton(): InlineKeyboard {
   return new InlineKeyboard().text('🎉 知道了', 'topic_setup_close');
+}
+
+// ─────────────────────────────────────────────────────────────
+// 配置完成后将当前群组设为激活话题群组
+// ─────────────────────────────────────────────────────────────
+async function activateTopicGroup(botId: any, groupId: any): Promise<void> {
+  await Bot.findByIdAndUpdate(botId, { activeTopicGroup: groupId });
+  debug('bot %s activeTopicGroup 已自动切换 → 群组 %s', botId, groupId);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -197,7 +209,8 @@ topicSetupComposer.on('my_chat_member', async (ctx) => {
       debug('发送配置引导失败:', err);
     }
   } else if (result.needsTrialPrompt) {
-    // 配置完成但需要提示用户开启试用
+    // 配置完成但需要提示用户开启试用，同样自动激活目标群组
+    await activateTopicGroup(ctx.currentBot._id, group._id);
     try {
       await ctx.reply(
         '🎉 *话题模式配置完成！*\n\n' +
@@ -212,6 +225,9 @@ topicSetupComposer.on('my_chat_member', async (ctx) => {
     } catch (err) {
       debug('发送试用提示失败:', err);
     }
+  } else {
+    // 配置完成且订阅有效，自动将本群设为激活话题群组
+    await activateTopicGroup(ctx.currentBot._id, group._id);
   }
 });
 
@@ -287,6 +303,8 @@ topicSetupComposer.callbackQuery(/^topic_setup_next:/, async (ctx) => {
   debug(`[callback] groupId=${groupId} step=${step}`);
 
   if (step === 3) {
+    // 配置完成，自动将本群设为激活话题群组
+    await activateTopicGroup(ctx.currentBot._id, group._id);
     await ctx.answerCallbackQuery();
     await ctx.editMessageText(doneText(), {
       parse_mode: 'Markdown',

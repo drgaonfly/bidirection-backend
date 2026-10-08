@@ -357,6 +357,12 @@ const logger: Middleware = async (ctx: MyContext, next) => {
       const freshGroup = await Group.findById(topicGroup._id);
       if (!freshGroup) throw new Error('话题群组不存在');
 
+      // 发送者是机器人自身，跳过（避免创建机器人自己的话题）
+      if (String(ctx.currentBotUser.id) === String(ctx.me.id)) {
+        await next();
+        return;
+      }
+
       const isNewTopic = !freshGroup.botUserTopics?.some(
         (t: any) => t.botUserId === ctx.currentBotUser.id,
       );

@@ -297,6 +297,17 @@ const logger: Middleware = async (ctx: MyContext, next) => {
             '❌ 发送失败：用户还没有和机器人开始对话',
             { message_thread_id: threadId },
           );
+        } else if (
+          copyErr.error_code === 403 &&
+          copyErr.description?.includes(
+            "the bot can't send messages to the bot",
+          )
+        ) {
+          await bot.api.sendMessage(
+            ctx.chat.id,
+            '⚠️ 这是机器人自己的话题，无法向机器人自身形成双向客服',
+            { message_thread_id: threadId },
+          );
         } else {
           const errorMsg =
             copyErr?.message || copyErr?.description || String(copyErr);
@@ -436,6 +447,13 @@ const logger: Middleware = async (ctx: MyContext, next) => {
               copyErr.description?.includes('chat not found')
             ) {
               await ctx.reply('❌ 发送失败：用户还没有和机器人开始对话');
+            } else if (
+              copyErr.error_code === 403 &&
+              copyErr.description?.includes(
+                "the bot can't send messages to the bot",
+              )
+            ) {
+              await ctx.reply('⚠️ 这是机器人自己的话题，无法向自身发送消息');
             } else {
               const errorMsg =
                 copyErr?.message || copyErr?.description || String(copyErr);

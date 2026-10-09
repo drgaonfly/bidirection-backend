@@ -51,6 +51,10 @@ export interface IBot extends Document {
   topicSubscriptionNotified?: boolean;
   /** 是否启用话题模式双向通信（owner 手动开关） */
   isTopicModeEnabled?: boolean;
+  /** 克隆机器人欢迎消息是否已发送 */
+  welcomeSent?: boolean;
+
+  createdAt?: any;
 }
 
 export interface IMenu extends Document {
@@ -147,6 +151,10 @@ const botSchema = new mongoose.Schema(
       default: false,
     },
     isTopicModeEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    welcomeSent: {
       type: Boolean,
       default: false,
     },

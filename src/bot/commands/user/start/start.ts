@@ -1,8 +1,9 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import { startClientAndGetSession } from '../../../services/gramClient';
-// import { isTopicSubscriptionActive } from '../../../middlewares/checkTopicSubscription';
+import { isTopicSubscriptionActive } from '../../../middlewares/checkTopicSubscription';
 import { replaceVariables } from '../conversations/editMessage';
+import BotUser from '../../../../models/botUser';
 import createDebug from 'debug';
 
 const startCommand = new Composer<MyContext>();
@@ -140,7 +141,18 @@ startCommand.command('start', async (ctx) => {
     //   ctx.currentBot,
     //   ctx.currentProxyUser,
     // );
-    const topicEnabled = ctx.currentBot.isTopicModeEnabled ?? false;
+    const ownerBotUser = ctx.currentBot.owner
+      ? await BotUser.findById(ctx.currentBot.owner)
+          .select('topicTrialStartedAt')
+          .lean()
+      : null;
+    const topicEnabled =
+      (ctx.currentBot.isTopicModeEnabled ?? false) &&
+      isTopicSubscriptionActive(
+        ctx.currentBot,
+        ownerBotUser,
+        ctx.currentProxyUser,
+      );
 
     const ownerKeyboard = new InlineKeyboard()
       .text('👋启动信息', `config_menu_${ctx.currentBot._id}`)

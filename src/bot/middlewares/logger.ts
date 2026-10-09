@@ -259,23 +259,13 @@ const logger: Middleware = async (ctx: MyContext, next) => {
 
     // 私聊通知 owner
     if (ownerBotUser?.id) {
-      if (isCurrentUserOwner) {
-        // 触发者就是 owner，直接 reply
-        ctx
-          .reply(
-            '⚠️ 您的订阅已到期，群组话题通信高级功能已关闭，现已转为普通模式，消息将在机器人内收取。\n\n如需继续使用话题模式，请发送 /start 续费订阅。',
-          )
-          .catch((err: any) => debug('发送到期提醒失败:', err?.message));
-      } else {
-        // 触发者是普通用户，需要主动给 owner 发私聊
-        const bot = setupBot(ctx.currentBot.token);
-        bot.api
-          .sendMessage(
-            ownerBotUser.id,
-            '⚠️ 您的订阅已到期，群组话题通信高级功能已关闭，现已转为普通模式，消息将在机器人内收取。\n\n如需继续使用话题模式，请发送 /start 续费订阅。',
-          )
-          .catch((err: any) => debug('发送到期提醒失败:', err?.message));
-      }
+      const bot = setupBot(ctx.currentBot.token);
+      bot.api
+        .sendMessage(
+          ownerBotUser.id,
+          '⚠️ 您的订阅已到期，群组话题通信高级功能已关闭，现已转为普通模式，消息将在机器人内收取。\n\n如需继续使用话题模式，请发送 /start 续费订阅。',
+        )
+        .catch((err: any) => debug('发送到期提醒失败:', err?.message));
     }
   }
 

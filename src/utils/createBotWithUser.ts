@@ -1,6 +1,7 @@
 import { Bot as GrammyBot } from 'grammy';
 import Bot, { IBot } from '../models/bot';
 import { IBotUser } from '../models/botUser';
+import User from '../models/user';
 import { setWebhook } from '../controllers/botController';
 import createDebug from 'debug';
 
@@ -20,7 +21,7 @@ export async function createBotWithUser(
 ): Promise<{
   success: boolean;
   message?: string;
-  account?: { userName: string };
+  account?: { userName: string; trialDays: number };
 }> {
   try {
     debug('[createBotWithUser] token:', token);
@@ -75,9 +76,17 @@ export async function createBotWithUser(
       debug('[createBotWithUser] setWebhook 失败:', e?.message);
     });
 
+    // 5. 读取试用天数，用于告知调用方
+    const proxyUser = newBot.user
+      ? await User.findById(newBot.user)
+          .select('topic_mode_trial_period')
+          .lean()
+      : null;
+    const trialDays = proxyUser?.topic_mode_trial_period ?? 0;
+
     return {
       success: true,
-      account: { userName: newBot.userName },
+      account: { userName: newBot.userName, trialDays },
     };
   } catch (e: any) {
     debug('[createBotWithUser] 异常:', e);

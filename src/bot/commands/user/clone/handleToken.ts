@@ -33,22 +33,22 @@ handleTokenComposer.hears(
     }
 
     if (result.success) {
-      const { userName } = result.account!;
+      const { userName, trialDays } = result.account!;
 
-      await ctx.reply(
-        [
-          '✅ <b>克隆成功！</b>',
-          '',
-          '您的专属机器人已创建完成。',
-          '',
-          '请点击下方用户名打开您的机器人，并将其添加至群组，设置为管理员。',
-          '',
-          `您的机器人：@${userName}`,
-          '',
-          '🤖 机器人正在初始化，稍后即可正常使用。',
-        ].join('\n'),
-        { parse_mode: 'HTML' },
+      const lines = ['✅ <b>你的专属双向机器人创建成功！</b>', ''];
+      if (trialDays > 0) {
+        lines.push(
+          `🎉 已赠送 <b>${trialDays} 天</b>高级功能试用时间，可以用于群组话题通讯模式，请尽快使用！`,
+        );
+        lines.push('');
+      }
+      lines.push(
+        `您的机器人：@${userName}`,
+        '',
+        '🤖 机器人正在初始化，稍后即可正常使用。',
       );
+
+      await ctx.reply(lines.join('\n'), { parse_mode: 'HTML' });
     } else {
       await ctx.reply(`❌ 克隆失败：${result.message || '请稍后再试'}`);
     }

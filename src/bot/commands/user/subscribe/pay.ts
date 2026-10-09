@@ -1,7 +1,7 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
-import Bot from '../../../../models/bot';
 import Subscription from '../../../../models/subscription';
+import Bot from '../../../../models/bot';
 import { createPendingOrder, sendPaymentCard } from './helpers';
 import { checkInBot } from '../../../middlewares/checkInBot';
 import { checkBotOwner } from '../../../middlewares/checkBotOwner';
@@ -75,44 +75,6 @@ payCallback.callbackQuery(
     if (!match) return;
     const months = parseInt(match[1], 10);
     await handleSubscription(ctx, months);
-  },
-);
-
-// 处理免费试用
-payCallback.callbackQuery(
-  'subscribe_free_trial',
-  checkInBot,
-  checkBotOwner,
-  async (ctx) => {
-    await ctx.answerCallbackQuery();
-
-    const bot = await Bot.findById(ctx.currentBot._id);
-    if (!bot) return;
-
-    // 检查botUser是否已使用过免费试用
-    const botUser = await ctx.currentBotUser;
-    if (botUser.topicTrialStartedAt) {
-      await ctx.reply(
-        '❌ 您已经使用过免费试用，每个用户只能试用一次。\n\n' +
-          '如需继续使用，请购买订阅。',
-      );
-      return;
-    }
-
-    // 首次开启时设置试用期开始时间（基于 botUser）
-    if (!botUser.topicTrialStartedAt) {
-      botUser.topicTrialStartedAt = new Date();
-      await botUser.save();
-    }
-
-    // 启用话题模式
-    bot.isTopicModeEnabled = true;
-    await bot.save();
-
-    await ctx.reply(
-      '✅ 免费试用已开启！\n\n' +
-        '话题模式已启动，您可以开始使用群组话题双向通信功能。',
-    );
   },
 );
 

@@ -162,21 +162,6 @@ startCommand.command('start', async (ctx) => {
         'subscribe',
       );
 
-    // 克隆机器人首次 /start，发欢迎提醒（只发一次）
-    if (ctx.currentBot.clonedFrom && !ctx.currentBot.welcomeSent) {
-      const trialDays = ctx.currentProxyUser?.topic_mode_trial_period ?? 0;
-      const welcomeLines = ['✅ <b>机器人创建成功！</b>', ''];
-      if (trialDays > 0) {
-        welcomeLines.push(
-          `🎁 已赠送 <b>${trialDays} 天</b>群组话题通信高级功能试用时间，可用于群组话题通讯模式！`,
-        );
-        welcomeLines.push('');
-      }
-      welcomeLines.push(message);
-      await ctx.reply(welcomeLines.join('\n'), { parse_mode: 'HTML' });
-      await ctx.currentBot.updateOne({ welcomeSent: true });
-    }
-
     await ctx.reply('等待有用户向您通信', { reply_markup: ownerKeyboard });
   } else {
     await ctx.reply(message, { reply_markup: keyboard });

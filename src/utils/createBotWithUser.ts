@@ -60,6 +60,7 @@ export async function createBotWithUser(
       isOnline: true,
       isCreatedByAdmin: false,
       type: 'custom',
+      topicTrialStartedAt: new Date(), // 创建时自动赠送试用期
       ...(botInfo && {
         id: botInfo.id || '',
         userName: botInfo.username || '',

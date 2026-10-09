@@ -50,16 +50,11 @@ export async function sendStatusCard(
 ): Promise<void> {
   const bot = await Bot.findById(ctx.currentBot._id)
     .select(
-      'topicSubscriptionExpiredAt activeTopicGroup botName isTopicModeEnabled owner',
+      'topicSubscriptionExpiredAt activeTopicGroup botName isTopicModeEnabled topicTrialStartedAt',
     )
     .lean();
 
   if (!bot) return;
-
-  // 试用开始时间存在 owner BotUser 上，从那里读取
-  const ownerBotUser = bot.owner
-    ? await BotUser.findById(bot.owner).select('topicTrialStartedAt').lean()
-    : null;
 
   const now = new Date();
   const expiry = bot.topicSubscriptionExpiredAt
@@ -71,11 +66,9 @@ export async function sendStatusCard(
   // 计算服务期限（优先显示正式订阅，其次显示试用期）
   let subscriptionStatus = '';
   if (isActive) {
-    // 有正式订阅且未过期
     subscriptionStatus = `服务期限： ${formatBeijingDate(expiry)}✅`;
-  } else if (trialDays > 0 && ownerBotUser?.topicTrialStartedAt) {
-    // 没有正式订阅或已过期，试用期已开始——从 ownerBotUser 读取开始时间
-    const trialEnd = new Date(ownerBotUser.topicTrialStartedAt);
+  } else if (trialDays > 0 && bot.topicTrialStartedAt) {
+    const trialEnd = new Date(bot.topicTrialStartedAt);
     trialEnd.setDate(trialEnd.getDate() + trialDays);
     const remainingDays = Math.ceil(
       (trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
@@ -86,7 +79,6 @@ export async function sendStatusCard(
       subscriptionStatus = `服务期限：已到期❌`;
     }
   } else {
-    // 没有正式订阅，试用期未开始或已过期
     subscriptionStatus = `服务期限：已到期❌`;
   }
 
@@ -98,7 +90,6 @@ export async function sendStatusCard(
 
   const keyboard = new InlineKeyboard()
     .text('💳购买订阅', 'subscribe_pay')
-    .text('🎉免费试用', 'subscribe_free_trial')
     .row()
     .text(topicModeStatus, 'toggle_topic_mode');
 

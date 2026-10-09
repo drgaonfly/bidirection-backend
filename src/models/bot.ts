@@ -51,8 +51,9 @@ export interface IBot extends Document {
   topicSubscriptionNotified?: boolean;
   /** 是否启用话题模式双向通信（owner 手动开关） */
   isTopicModeEnabled?: boolean;
-  /** 克隆机器人欢迎消息是否已发送 */
-  welcomeSent?: boolean;
+
+  /** 话题模式试用期开始时间（每个 bot 独立计算，创建时自动赋值） */
+  topicTrialStartedAt?: Date;
 
   createdAt?: any;
 }
@@ -154,9 +155,9 @@ const botSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    welcomeSent: {
-      type: Boolean,
-      default: false,
+    topicTrialStartedAt: {
+      type: Date,
+      default: null,
     },
   },
   {

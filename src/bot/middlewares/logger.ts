@@ -250,12 +250,33 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   );
   const isTopicMode = !!topicGroup;
 
-  // 订阅/试用已过期但话题模式开关仍为 true → 自动关闭，避免残留状态
+  // 订阅/试用已过期但话题模式开关仍为 true → 自动关闭，并私聊通知 owner
   if (!isTopicMode && botDoc?.isTopicModeEnabled) {
     Bot.findByIdAndUpdate(ctx.currentBot._id, {
       isTopicModeEnabled: false,
     }).catch((err: any) => debug('自动关闭话题模式失败:', err?.message));
     debug('[Logger] 订阅已过期，自动关闭话题模式');
+
+    // 私聊通知 owner
+    if (ownerBotUser?.id) {
+      if (isCurrentUserOwner) {
+        // 触发者就是 owner，直接 reply
+        ctx
+          .reply(
+            '⚠️ 您的订阅已到期，群组话题通信高级功能已关闭，现已转为普通模式，消息将在机器人内收取。\n\n如需继续使用话题模式，请发送 /start 续费订阅。',
+          )
+          .catch((err: any) => debug('发送到期提醒失败:', err?.message));
+      } else {
+        // 触发者是普通用户，需要主动给 owner 发私聊
+        const bot = setupBot(ctx.currentBot.token);
+        bot.api
+          .sendMessage(
+            ownerBotUser.id,
+            '⚠️ 您的订阅已到期，群组话题通信高级功能已关闭，现已转为普通模式，消息将在机器人内收取。\n\n如需继续使用话题模式，请发送 /start 续费订阅。',
+          )
+          .catch((err: any) => debug('发送到期提醒失败:', err?.message));
+      }
+    }
   }
 
   debug(

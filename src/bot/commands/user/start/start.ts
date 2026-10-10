@@ -122,6 +122,8 @@ startCommand.command('start', async (ctx) => {
       '',
       '🤖 直接发送机器人 API Token 即可克隆同款机器人，',
       '或点击下方按钮一键创建。',
+      '',
+      `<a href="https://t.me/XRService1">虾仁双向机器人使用教程</a>`,
     ].join('\n');
 
     await ctx.reply(cloneMessage, {
@@ -162,7 +164,13 @@ startCommand.command('start', async (ctx) => {
         'subscribe',
       );
 
-    await ctx.reply('等待有用户向您通信', { reply_markup: ownerKeyboard });
+    await ctx.reply(
+      '<a href="https://t.me/XRService1">虾仁双向机器人使用教程</a>',
+      {
+        parse_mode: 'HTML',
+        reply_markup: ownerKeyboard,
+      },
+    );
   } else {
     await ctx.reply(message, { reply_markup: keyboard });
   }

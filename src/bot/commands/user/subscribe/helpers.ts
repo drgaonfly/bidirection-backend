@@ -86,7 +86,10 @@ export async function sendStatusCard(
     ? `话题模式：已启动✅`
     : `话题模式：未启动❌`;
 
-  const text = `📋 群组话题双向通信订阅\n\n` + `${subscriptionStatus}\n\n`;
+  const text =
+    `📋 群组话题双向通信订阅\n\n` +
+    `${subscriptionStatus}\n\n` +
+    `<a href="https://t.me/XRService1">虾仁双向机器人使用教程</a>\n\n`;
 
   const keyboard = new InlineKeyboard()
     .text('💳购买订阅', 'subscribe_pay')

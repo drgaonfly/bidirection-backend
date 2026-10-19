@@ -28,9 +28,9 @@ export interface IUser extends Document {
   // 话题双向通信免费试用期 (day)
   topic_mode_trial_period: number;
 
-  /** 订阅套餐配置（费用和月数） */
+  /** 订阅套餐配置（费用和天数） */
   subscriptionPlans?: Array<{
-    months: number;
+    days: number;
     price: number;
     label: string;
   }>;
@@ -101,15 +101,15 @@ const userSchema = new mongoose.Schema(
     subscriptionPlans: {
       type: [
         {
-          months: { type: Number, required: true },
+          days: { type: Number, required: true },
           price: { type: Number, required: true },
           label: { type: String, required: true },
         },
       ],
       default: [
-        { months: 1, price: 15, label: '包月' },
-        { months: 6, price: 70, label: '半年' },
-        { months: 12, price: 120, label: '一年' },
+        { days: 30, price: 15, label: '包月' },
+        { days: 180, price: 70, label: '半年' },
+        { days: 365, price: 120, label: '一年' },
       ],
     },
     advertisement: { type: String, trim: true },

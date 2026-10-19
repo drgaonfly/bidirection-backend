@@ -21,14 +21,13 @@ export async function createPendingOrder(
   proxy: any,
   fee: number,
   toAddress: string,
-  months: number = 1,
+  days: number = 30,
 ): Promise<any> {
   const orderExpiredAt = new Date();
   orderExpiredAt.setMinutes(
     orderExpiredAt.getMinutes() + ORDER_TIMEOUT_MINUTES,
   );
 
-  // 生成唯一尾数（0.01~0.99），用于精确匹配链上转账金额
   const tail = Math.floor(Math.random() * 99 + 1) / 100;
   const uniqueAmount = Math.round((fee + tail) * 100) / 100;
 
@@ -39,7 +38,7 @@ export async function createPendingOrder(
     toAddress,
     orderExpiredAt,
     status: 'pending',
-    months,
+    days,
   });
 }
 

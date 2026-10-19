@@ -28,21 +28,18 @@ payCallback.callbackQuery(
 
     const monthlyFee = proxy?.topicSubscriptionMonthlyFee ?? 25;
     const plans = proxy?.subscriptionPlans || [
-      { months: 1, price: 15, label: '包月' },
-      { months: 6, price: 70, label: '半年' },
-      { months: 12, price: 120, label: '一年' },
+      { days: 30, price: 15, label: '包月' },
+      { days: 180, price: 70, label: '半年' },
+      { days: 365, price: 120, label: '一年' },
     ];
 
-    const text =
-      `💳 <b>选择订阅套餐</b>\n\n` +
-      `💰 月费标准：${monthlyFee} USDT/月\n\n` +
-      `<b>请选择订阅时长：</b>`;
+    const text = `💳 <b>选择订阅套餐</b>\n\n` + `<b>请选择订阅时长：</b>`;
 
     const keyboard = new InlineKeyboard();
     plans.forEach((plan, index) => {
       keyboard.text(
         `${plan.label} ${plan.price}U`,
-        `subscribe_plan_${plan.months}`,
+        `subscribe_plan_${plan.days}`,
       );
       if (index < plans.length - 1) {
         keyboard.row();
@@ -73,12 +70,12 @@ payCallback.callbackQuery(
     await ctx.answerCallbackQuery();
     const match = ctx.callbackQuery?.data?.match(/^subscribe_plan_(\d+)$/);
     if (!match) return;
-    const months = parseInt(match[1], 10);
-    await handleSubscription(ctx, months);
+    const days = parseInt(match[1], 10);
+    await handleSubscription(ctx, days);
   },
 );
 
-async function handleSubscription(ctx: MyContext, months: number) {
+async function handleSubscription(ctx: MyContext, days: number) {
   const bot = await Bot.findById(ctx.currentBot._id)
     .select('botName topicSubscriptionExpiredAt activeTopicGroup')
     .lean();
@@ -88,11 +85,11 @@ async function handleSubscription(ctx: MyContext, months: number) {
   if (!bot) return;
 
   const plans = proxy?.subscriptionPlans || [
-    { months: 1, price: 15, label: '包月' },
-    { months: 6, price: 70, label: '半年' },
-    { months: 12, price: 120, label: '一年' },
+    { days: 30, price: 15, label: '包月' },
+    { days: 180, price: 70, label: '半年' },
+    { days: 365, price: 120, label: '一年' },
   ];
-  const plan = plans.find((p) => p.months === months);
+  const plan = plans.find((p) => p.days === days);
 
   if (!plan) {
     await ctx.reply('❌ 未找到对应的订阅套餐');
@@ -110,7 +107,7 @@ async function handleSubscription(ctx: MyContext, months: number) {
 
   const order =
     existing ??
-    (await createPendingOrder(bot, proxy, plan.price, toAddress, months));
+    (await createPendingOrder(bot, proxy, plan.price, toAddress, days));
 
   await sendPaymentCard(ctx, order, toAddress, true);
 }

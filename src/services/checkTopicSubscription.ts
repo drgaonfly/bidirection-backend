@@ -98,7 +98,9 @@ async function processOrder(order: any): Promise<void> {
         : now;
 
     const newExpiry = new Date(currentExpiry);
-    newExpiry.setDate(newExpiry.getDate() + order.months * 30);
+    // 兼容旧订单（months字段）和新订单（days字段）
+    const daysToAdd = order.days ?? (order.months ? order.months * 30 : 30);
+    newExpiry.setDate(newExpiry.getDate() + daysToAdd);
 
     await Subscription.findByIdAndUpdate(order._id, {
       status: 'paid',

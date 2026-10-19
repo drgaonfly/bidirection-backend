@@ -9,7 +9,12 @@ const botUserResolver: Middleware<MyContext> = async (ctx, next) => {
     return;
   }
 
-  const { id, username, first_name, last_name } = ctx.from!;
+  if (!ctx.from) {
+    await next();
+    return;
+  }
+
+  const { id, username, first_name, last_name } = ctx.from;
 
   const { proxyUser } = await findBotProxy(ctx.currentBot);
 

@@ -51,60 +51,67 @@ startCommand.command('start', async (ctx) => {
     ctx,
   );
 
-  // 构建按钮键盘
+  // 构建按钮键盘（只允许 url/callback/alert 三种合法类型）
   let keyboard: InlineKeyboard | undefined;
   if (ctx.currentBot.buttons && ctx.currentBot.buttons.length > 0) {
-    keyboard = new InlineKeyboard();
-    ctx.currentBot.buttons.forEach((button: any) => {
-      if (button.type === 'url') {
-        keyboard.url(button.text, button.value || '');
-      } else if (button.type === 'callback') {
-        keyboard.text(button.text, button.value || '');
-      } else if (button.type === 'alert') {
-        keyboard.text(button.text, button.value || '');
-      }
-      keyboard.row();
-    });
+    const validButtons = ctx.currentBot.buttons.filter((b: any) =>
+      ['url', 'callback', 'alert'].includes(b.type),
+    );
+    if (validButtons.length > 0) {
+      keyboard = new InlineKeyboard();
+      validButtons.forEach((button: any) => {
+        if (button.type === 'url') {
+          keyboard.url(button.text, button.value || '');
+        } else {
+          keyboard.text(button.text, button.value || '');
+        }
+        keyboard.row();
+      });
+    }
   }
 
   // 发送媒体（如果有）
   if (ctx.currentBot.medias && ctx.currentBot.medias.length > 0) {
+    // 母机器人不使用自定义 keyboard，只有克隆机器人才用
+    const mediaKeyboard = ctx.currentBot.isCreatedByAdmin
+      ? undefined
+      : keyboard;
     for (const media of ctx.currentBot.medias) {
       try {
         if (media.type === 'photo') {
           if (media.fileId) {
             await ctx.replyWithPhoto(media.fileId, {
               caption: message,
-              reply_markup: keyboard,
+              reply_markup: mediaKeyboard,
             });
           } else if (media.url) {
             await ctx.replyWithPhoto(media.url, {
               caption: message,
-              reply_markup: keyboard,
+              reply_markup: mediaKeyboard,
             });
           }
         } else if (media.type === 'video') {
           if (media.fileId) {
             await ctx.replyWithVideo(media.fileId, {
               caption: message,
-              reply_markup: keyboard,
+              reply_markup: mediaKeyboard,
             });
           } else if (media.url) {
             await ctx.replyWithVideo(media.url, {
               caption: message,
-              reply_markup: keyboard,
+              reply_markup: mediaKeyboard,
             });
           }
         } else if (media.type === 'document') {
           if (media.fileId) {
             await ctx.replyWithDocument(media.fileId, {
               caption: message,
-              reply_markup: keyboard,
+              reply_markup: mediaKeyboard,
             });
           } else if (media.url) {
             await ctx.replyWithDocument(media.url, {
               caption: message,
-              reply_markup: keyboard,
+              reply_markup: mediaKeyboard,
             });
           }
         }
@@ -128,12 +135,10 @@ startCommand.command('start', async (ctx) => {
 
     await ctx.reply(cloneMessage, {
       parse_mode: 'HTML',
-      reply_markup:
-        keyboard ||
-        new InlineKeyboard().url(
-          '🤖 克隆专属机器人',
-          `https://t.me/newbot/${bot.userName}`,
-        ),
+      reply_markup: new InlineKeyboard().url(
+        '🤖 克隆专属机器人',
+        `https://t.me/newbot/${bot.userName}`,
+      ),
     });
   } else if (
     ctx.currentBot?.owner?.toString() === String(ctx.currentBotUser._id)

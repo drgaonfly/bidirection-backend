@@ -40,7 +40,7 @@ function verifyInitData(
       .digest();
 
     const expectedHash = crypto
-      .createHmac('sha256', secretKey)
+      .createHmac('sha256', new Uint8Array(secretKey))
       .update(checkString)
       .digest('hex');
 

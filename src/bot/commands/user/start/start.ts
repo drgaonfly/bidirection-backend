@@ -130,55 +130,36 @@ startCommand.command('start', async (ctx) => {
     }
   }
 
-  // 发送媒体（如果有）
+  // 发送媒体（如果有），媒体不带任何按钮
   if (ctx.currentBot.medias && ctx.currentBot.medias.length > 0) {
     for (const media of ctx.currentBot.medias) {
       try {
         if (media.type === 'photo') {
           if (media.fileId) {
-            await ctx.replyWithPhoto(media.fileId, {
-              caption: message,
-              reply_markup: keyboard,
-            });
+            await ctx.replyWithPhoto(media.fileId);
           } else if (media.url) {
-            await ctx.replyWithPhoto(media.url, {
-              caption: message,
-              reply_markup: keyboard,
-            });
+            await ctx.replyWithPhoto(media.url);
           }
         } else if (media.type === 'video') {
           if (media.fileId) {
-            await ctx.replyWithVideo(media.fileId, {
-              caption: message,
-              reply_markup: keyboard,
-            });
+            await ctx.replyWithVideo(media.fileId);
           } else if (media.url) {
-            await ctx.replyWithVideo(media.url, {
-              caption: message,
-              reply_markup: keyboard,
-            });
+            await ctx.replyWithVideo(media.url);
           }
         } else if (media.type === 'document') {
           if (media.fileId) {
-            await ctx.replyWithDocument(media.fileId, {
-              caption: message,
-              reply_markup: keyboard,
-            });
+            await ctx.replyWithDocument(media.fileId);
           } else if (media.url) {
-            await ctx.replyWithDocument(media.url, {
-              caption: message,
-              reply_markup: keyboard,
-            });
+            await ctx.replyWithDocument(media.url);
           }
         }
       } catch (err: any) {
         debug('Failed to send media:', err.message);
       }
     }
-    return;
   }
 
-  // 没有媒体时发送纯文本消息
+  // 发送文本消息 + 按钮（有无媒体都发）
   await ctx.reply(message, { reply_markup: keyboard });
 });
 

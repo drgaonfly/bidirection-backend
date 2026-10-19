@@ -6,6 +6,10 @@ import { setupBot } from '../bot/botSetup';
 // 按 botId 缓存 bot 实例，避免每次请求重新创建
 const botCache = new Map<string, ReturnType<typeof setupBot>>();
 
+export const clearBotCache = (botId: string) => {
+  botCache.delete(botId);
+};
+
 export const handleBotWebhook = async (
   req: Request,
   res: Response,

@@ -3,6 +3,7 @@ import Bot, { IBot } from '../models/bot';
 import { IBotUser } from '../models/botUser';
 import User from '../models/user';
 import { setWebhook } from '../controllers/botController';
+import { clearBotCache } from '../controllers/botWebhookController';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:createBotWithUser');
@@ -64,6 +65,9 @@ export async function createBotWithUser(
         if (botInfo.id) oldBot.id = botInfo.id;
         if (botInfo.firstName) oldBot.botName = botInfo.firstName;
         await oldBot.save();
+
+        // 清除旧缓存，确保下次 webhook 使用新 token 的实例
+        clearBotCache(String(oldBot._id));
 
         setWebhook(oldBot).catch((e: any) => {
           debug('[createBotWithUser] 旧机器人重设 webhook 失败:', e?.message);

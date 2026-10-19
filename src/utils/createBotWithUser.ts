@@ -51,7 +51,38 @@ export async function createBotWithUser(
       debug('[createBotWithUser] 获取机器人信息失败，继续创建:', e);
     }
 
-    // 3. 创建新 Bot，类型固定为 custom（克隆产物）
+    // 3. 检查是否存在同 username 的旧机器人（用户在 BotFather 重置了 token）
+    //    直接更新旧机器人的 token 和基本信息，原有订阅/配置数据全部保留
+    if (botInfo?.username) {
+      const oldBot = await Bot.findOne({ userName: botInfo.username });
+      if (oldBot) {
+        debug(
+          '[createBotWithUser] 发现同 username 旧机器人，更新 token:',
+          oldBot._id,
+        );
+        oldBot.token = token;
+        if (botInfo.id) oldBot.id = botInfo.id;
+        if (botInfo.firstName) oldBot.botName = botInfo.firstName;
+        await oldBot.save();
+
+        setWebhook(oldBot).catch((e: any) => {
+          debug('[createBotWithUser] 旧机器人重设 webhook 失败:', e?.message);
+        });
+
+        const proxyUser = await User.findById(oldBot.user)
+          .select('topic_mode_trial_period')
+          .lean();
+
+        const trialDays = proxyUser?.topic_mode_trial_period ?? 0;
+
+        return {
+          success: true,
+          account: { userName: oldBot.userName, trialDays },
+        };
+      }
+    }
+
+    // 4. 创建新 Bot，类型固定为 custom（克隆产物）
     const newBot = new Bot({
       token,
       clonedFrom: currentBot?._id ?? null,
@@ -61,7 +92,7 @@ export async function createBotWithUser(
       isOnline: true,
       isCreatedByAdmin: false,
       type: 'custom',
-      topicTrialStartedAt: new Date(), // 创建时自动赠送试用期
+      topicTrialStartedAt: new Date(),
       ...(botInfo && {
         id: botInfo.id || '',
         userName: botInfo.username || '',

@@ -24,7 +24,7 @@ export interface IBot extends Document {
   /** 按钮配置 */
   buttons?: Array<{
     text: string;
-    type: 'url' | 'callback' | 'alert';
+    type: 'url' | 'callback' | 'copy';
     value?: string; // URL 或 callback 数据
     showAlert?: boolean; // 是否弹窗（仅 callback 类型）
   }>;
@@ -117,7 +117,7 @@ const botSchema = new mongoose.Schema(
           text: { type: String, required: true },
           type: {
             type: String,
-            enum: ['url', 'callback', 'alert'],
+            enum: ['url', 'callback', 'copy'],
             required: true,
           },
           value: { type: String, trim: true },

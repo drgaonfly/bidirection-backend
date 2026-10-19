@@ -26,8 +26,6 @@ configMenuComposer.callbackQuery(
     const keyboard = new InlineKeyboard()
       .webApp('✏️ 编辑启动信息', miniAppUrl)
       .row()
-      .text('完整预览', 'preview_full')
-      .row()
       .text('❌ 返回', 'close');
 
     try {

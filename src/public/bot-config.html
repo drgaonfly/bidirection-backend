@@ -213,7 +213,31 @@
       transition: opacity .15s;
     }
     .upload-btn:active { opacity: .7; }
-  </style>
+
+    /* Variable chips */
+    .var-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .var-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: var(--tg-theme-button-color, #2481cc);
+      color: var(--tg-theme-button-text-color, #fff);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity .15s, transform .1s;
+    }
+    .var-chip:active {
+      opacity: .7;
+      transform: scale(.95);
+    }  </style>
 </head>
 <body>
 
@@ -229,8 +253,13 @@
 <div id="tab-message" class="panel active">
   <label>启动消息文本</label>
   <textarea id="message-input" rows="6" placeholder="请开始与我通信"></textarea>
-  <div class="hint">
-    支持变量：%firstname% %lastname% %username% %userid% %fullname%
+  <div class="hint" style="margin-top:10px">点击变量插入到光标位置</div>
+  <div class="var-chips">
+    <span class="var-chip" onclick="insertVar('%firstname%')">名</span>
+    <span class="var-chip" onclick="insertVar('%lastname%')">姓</span>
+    <span class="var-chip" onclick="insertVar('%fullname%')">全名</span>
+    <span class="var-chip" onclick="insertVar('%username%')">@用户名</span>
+    <span class="var-chip" onclick="insertVar('%userid%')">ID</span>
   </div>
 </div>
 
@@ -493,6 +522,19 @@
       showToast('❌ ' + e.message);
       setTimeout(() => { progress.style.display = 'none'; }, 2000);
     }
+  }
+
+  // ── 插入变量 ──────────────────────────────────────────
+  function insertVar(variable) {
+    const ta = document.getElementById('message-input');
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const val = ta.value;
+    ta.value = val.slice(0, start) + variable + val.slice(end);
+    // 移动光标到插入内容末尾
+    const newPos = start + variable.length;
+    ta.setSelectionRange(newPos, newPos);
+    ta.focus();
   }
 
   // ── 工具 ──────────────────────────────────────────────

@@ -118,18 +118,10 @@ startCommand.command('start', async (ctx) => {
     const validButtons = ctx.currentBot.buttons.filter((b: any) =>
       ['url', 'callback', 'copy'].includes(b.type),
     );
-    const hasUrl = validButtons.some((b: any) => b.type === 'url');
-    const hasText = validButtons.some((b: any) => b.type !== 'url');
 
-    // 混用时只取 url 按钮，避免 Telegram 400 错误
-    const buttonsToRender =
-      hasUrl && hasText
-        ? validButtons.filter((b: any) => b.type === 'url')
-        : validButtons;
-
-    if (buttonsToRender.length > 0) {
+    if (validButtons.length > 0) {
       keyboard = new InlineKeyboard();
-      buttonsToRender.forEach((button: any) => {
+      validButtons.forEach((button: any) => {
         if (button.type === 'url') {
           keyboard.url(button.text, button.value || '');
         } else if (button.type === 'copy') {

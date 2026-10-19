@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>编辑启动信息</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--tg-theme-bg-color, #fff);
+      color: var(--tg-theme-text-color, #000);
+      padding: 16px;
+      padding-bottom: 80px;
+      font-size: 15px;
+    }
+
+    h2 { font-size: 17px; font-weight: 600; margin-bottom: 14px; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--tg-theme-hint-color, #ccc);
+      margin-bottom: 18px;
+    }
+    .tab {
+      flex: 1;
+      padding: 10px 0;
+      text-align: center;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--tg-theme-hint-color, #999);
+      border-bottom: 2px solid transparent;
+      transition: all .2s;
+    }
+    .tab.active {
+      color: var(--tg-theme-button-color, #2481cc);
+      border-bottom-color: var(--tg-theme-button-color, #2481cc);
+      font-weight: 600;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* Form */
+    label { display: block; font-size: 13px; color: var(--tg-theme-hint-color, #888); margin-bottom: 6px; }
+    textarea, input[type=text], input[type=url] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--tg-theme-hint-color, #ccc);
+      border-radius: 10px;
+      font-size: 15px;
+      background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+      color: var(--tg-theme-text-color, #000);
+      outline: none;
+      resize: vertical;
+    }
+    textarea:focus, input:focus {
+      border-color: var(--tg-theme-button-color, #2481cc);
+    }
+
+    /* Hint */
+    .hint {
+      font-size: 12px;
+      color: var(--tg-theme-hint-color, #888);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    /* Section card */
+    .card {
+      background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .card-title { font-weight: 600; font-size: 14px; }
+
+    /* Button */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: opacity .15s;
+    }
+    .btn:active { opacity: .7; }
+    .btn-primary {
+      background: var(--tg-theme-button-color, #2481cc);
+      color: var(--tg-theme-button-text-color, #fff);
+    }
+    .btn-danger {
+      background: #ff3b30;
+      color: #fff;
+    }
+    .btn-secondary {
+      background: var(--tg-theme-hint-color, #ccc);
+      color: #fff;
+    }
+    .btn-sm { padding: 5px 10px; font-size: 13px; }
+
+    /* List items */
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(0,0,0,.06);
+    }
+    .item:last-child { border-bottom: none; }
+    .item-info { flex: 1; min-width: 0; }
+    .item-title { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-sub { font-size: 12px; color: var(--tg-theme-hint-color, #888); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Badge */
+    .badge {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: var(--tg-theme-button-color, #2481cc);
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .badge.photo { background: #34c759; }
+    .badge.video { background: #ff9500; }
+    .badge.document { background: #5856d6; }
+    .badge.url { background: #2481cc; }
+    .badge.callback { background: #ff9500; }
+    .badge.alert { background: #5856d6; }
+
+    /* Add form */
+    .add-form {
+      background: var(--tg-theme-bg-color, #fff);
+      border: 1px solid var(--tg-theme-hint-color, #ddd);
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+    .add-form .row { margin-bottom: 10px; }
+    .add-form .row:last-child { margin-bottom: 0; }
+
+    .select-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .type-btn {
+      flex: 1;
+      padding: 8px 4px;
+      border: 1px solid var(--tg-theme-hint-color, #ccc);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--tg-theme-text-color, #000);
+      font-size: 13px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .type-btn.selected {
+      border-color: var(--tg-theme-button-color, #2481cc);
+      background: var(--tg-theme-button-color, #2481cc);
+      color: var(--tg-theme-button-text-color, #fff);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(0,0,0,.75);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      opacity: 0;
+      transition: all .3s;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 999;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .empty { text-align: center; color: var(--tg-theme-hint-color, #999); padding: 24px 0; font-size: 14px; }
+
+    .media-upload-hint {
+      border: 2px dashed var(--tg-theme-hint-color, #ccc);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      color: var(--tg-theme-hint-color, #999);
+      font-size: 13px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>编辑启动信息</h2>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('message')">📝 文本</div>
+  <div class="tab" onclick="switchTab('buttons')">🔘 按钮</div>
+  <div class="tab" onclick="switchTab('medias')">📷 媒体</div>
+</div>
+
+<!-- 文本 Tab -->
+<div id="tab-message" class="panel active">
+  <label>启动消息文本</label>
+  <textarea id="message-input" rows="6" placeholder="请开始与我通信"></textarea>
+  <div class="hint">
+    支持变量：%firstname% %lastname% %username% %userid% %fullname%
+  </div>
+</div>
+
+<!-- 按钮 Tab -->
+<div id="tab-buttons" class="panel">
+  <div id="buttons-list"></div>
+
+  <button class="btn btn-primary btn-sm" onclick="toggleAddButton()" style="margin-top:8px">
+    ＋ 添加按钮
+  </button>
+
+  <div id="add-button-form" class="add-form" style="display:none">
+    <div class="row">
+      <label>按钮类型</label>
+      <div class="select-row">
+        <button class="type-btn selected" onclick="selectBtnType('url', this)">🔗 链接</button>
+        <button class="type-btn" onclick="selectBtnType('callback', this)">🔘 回调</button>
+        <button class="type-btn" onclick="selectBtnType('alert', this)">💬 弹窗</button>
+      </div>
+    </div>
+    <div class="row">
+      <label>按钮文字</label>
+      <input type="text" id="btn-text" placeholder="按钮显示文字" />
+    </div>
+    <div class="row" id="btn-value-row">
+      <label id="btn-value-label">链接 URL</label>
+      <input type="text" id="btn-value" placeholder="https://..." />
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-primary btn-sm" onclick="addButton()">添加</button>
+      <button class="btn btn-secondary btn-sm" onclick="toggleAddButton()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 媒体 Tab -->
+<div id="tab-medias" class="panel">
+  <div id="medias-list"></div>
+  <div class="media-upload-hint">
+    📎 媒体文件需通过机器人聊天上传<br/>
+    在 Telegram 中发送图片/视频/文档给机器人后<br/>
+    系统会自动记录 file_id
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+
+  // 从 startParam 或 URL 参数获取 botId
+  const urlParams = new URLSearchParams(window.location.search);
+  const BOT_ID = tg.initDataUnsafe?.start_param || urlParams.get('botId') || '';
+  const API_BASE = window.location.origin;
+
+  let config = { message: '', medias: [], buttons: [] };
+  let newBtnType = 'url';
+
+  // ── 初始化 ──────────────────────────────────────────────
+  async function init() {
+    if (!BOT_ID) {
+      showToast('❌ 缺少机器人参数');
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/api/mini-app/config`, {
+        headers: {
+          'x-init-data': tg.initData,
+          'x-bot-id': BOT_ID,
+        },
+      });
+      if (!res.ok) throw new Error(await res.text());
+      config = await res.json();
+      renderAll();
+
+      // 设置主按钮
+      tg.MainButton.setText('💾 保存').show().onClick(save);
+    } catch (e) {
+      showToast('❌ 加载失败：' + e.message);
+    }
+  }
+
+  // ── 保存 ──────────────────────────────────────────────
+  async function save() {
+    config.message = document.getElementById('message-input').value.trim();
+    tg.MainButton.showProgress();
+    try {
+      const res = await fetch(`${API_BASE}/api/mini-app/config`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-init-data': tg.initData,
+          'x-bot-id': BOT_ID,
+        },
+        body: JSON.stringify(config),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      showToast('✅ 保存成功');
+      setTimeout(() => tg.close(), 1200);
+    } catch (e) {
+      showToast('❌ 保存失败：' + e.message);
+    } finally {
+      tg.MainButton.hideProgress();
+    }
+  }
+
+  // ── Tab 切换 ──────────────────────────────────────────
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      const names = ['message', 'buttons', 'medias'];
+      t.classList.toggle('active', names[i] === name);
+    });
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+  }
+
+  // ── 渲染 ──────────────────────────────────────────────
+  function renderAll() {
+    document.getElementById('message-input').value = config.message || '';
+    renderButtons();
+    renderMedias();
+  }
+
+  function renderButtons() {
+    const el = document.getElementById('buttons-list');
+    if (!config.buttons.length) {
+      el.innerHTML = '<div class="empty">暂无按钮</div>';
+      return;
+    }
+    el.innerHTML = config.buttons.map((b, i) => `
+      <div class="item">
+        <span class="badge ${b.type}">${b.type === 'url' ? '链接' : b.type === 'callback' ? '回调' : '弹窗'}</span>
+        <div class="item-info">
+          <div class="item-title">${escHtml(b.text)}</div>
+          ${b.value ? `<div class="item-sub">${escHtml(b.value)}</div>` : ''}
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="removeButton(${i})">删除</button>
+      </div>
+    `).join('');
+  }
+
+  function renderMedias() {
+    const el = document.getElementById('medias-list');
+    if (!config.medias.length) {
+      el.innerHTML = '<div class="empty">暂无媒体</div>';
+      return;
+    }
+    el.innerHTML = config.medias.map((m, i) => `
+      <div class="item">
+        <span class="badge ${m.type}">${m.type === 'photo' ? '图片' : m.type === 'video' ? '视频' : '文档'}</span>
+        <div class="item-info">
+          <div class="item-title">${m.type === 'photo' ? '📷 图片' : m.type === 'video' ? '🎥 视频' : '📄 文档'}</div>
+          <div class="item-sub">${escHtml(m.fileId || m.url || '')}</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="removeMedia(${i})">删除</button>
+      </div>
+    `).join('');
+  }
+
+  // ── 按钮操作 ──────────────────────────────────────────
+  function toggleAddButton() {
+    const form = document.getElementById('add-button-form');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    if (form.style.display === 'block') {
+      document.getElementById('btn-text').value = '';
+      document.getElementById('btn-value').value = '';
+    }
+  }
+
+  function selectBtnType(type, el) {
+    newBtnType = type;
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    const valueRow = document.getElementById('btn-value-row');
+    const valueLabel = document.getElementById('btn-value-label');
+    if (type === 'alert') {
+      valueRow.style.display = 'none';
+    } else {
+      valueRow.style.display = 'block';
+      valueLabel.textContent = type === 'url' ? '链接 URL' : '回调数据';
+      document.getElementById('btn-value').placeholder = type === 'url' ? 'https://...' : 'callback_data';
+    }
+  }
+
+  function addButton() {
+    const text = document.getElementById('btn-text').value.trim();
+    const value = document.getElementById('btn-value').value.trim();
+    if (!text) { showToast('请输入按钮文字'); return; }
+    if (newBtnType !== 'alert' && !value) { showToast('请输入值'); return; }
+    const btn = { type: newBtnType, text };
+    if (newBtnType !== 'alert') btn.value = value;
+    if (newBtnType === 'alert') btn.showAlert = true;
+    config.buttons.push(btn);
+    renderButtons();
+    toggleAddButton();
+    showToast('✅ 按钮已添加');
+  }
+
+  function removeButton(i) {
+    tg.showConfirm('确定删除这个按钮？', ok => {
+      if (!ok) return;
+      config.buttons.splice(i, 1);
+      renderButtons();
+    });
+  }
+
+  function removeMedia(i) {
+    tg.showConfirm('确定删除这个媒体？', ok => {
+      if (!ok) return;
+      config.medias.splice(i, 1);
+      renderMedias();
+    });
+  }
+
+  // ── 工具 ──────────────────────────────────────────────
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  let toastTimer;
+  function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+  }
+
+  init();
+</script>
+</body>
+</html>

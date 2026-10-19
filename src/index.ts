@@ -30,6 +30,7 @@ import walletRoutes from './routes/walletRoute';
 import groupMessageRoutes from './routes/groupMessageRoutes';
 import botUserConfigRoutes from './routes/botUserConfigRoutes';
 import subscriptionRoutes from './routes/subscriptionRoutes';
+import miniAppRoutes from './routes/miniAppRoutes';
 
 dotenv.config();
 
@@ -71,8 +72,10 @@ app.use('/api/wallets', walletRoutes);
 app.use('/api/group-messages', groupMessageRoutes);
 app.use('/api/bot-user-configs', botUserConfigRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/mini-app', miniAppRoutes);
 
-app.use('/api/static', express.static('tmp'));
+// Mini App 静态页面
+app.use('/mini-app', express.static('src/public'));
 
 setupDB();
 setupRedis();

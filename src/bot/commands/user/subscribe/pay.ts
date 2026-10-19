@@ -26,7 +26,7 @@ payCallback.callbackQuery(
       return;
     }
 
-    const monthlyFee = proxy?.topicSubscriptionMonthlyFee ?? 25;
+    // const monthlyFee = proxy?.topicSubscriptionMonthlyFee ?? 25;
     const plans = proxy?.subscriptionPlans || [
       { days: 30, price: 15, label: '包月' },
       { days: 180, price: 70, label: '半年' },

@@ -11,7 +11,7 @@ export const checkBotPublic = async (
 
   // 检查 bot 类型是否为 public
   const bot = ctx.currentBot;
-  if (bot.type !== 'public') {
+  if (!bot.isCreatedByAdmin) {
     debug('该功能仅对公共机器人开放');
     ctx.reply('该功能仅对公共机器人开放。\n本机器人是定制的。');
     return;

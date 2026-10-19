@@ -133,7 +133,7 @@ startCommand.command('start', async (ctx) => {
         if (button.type === 'url') {
           keyboard.url(button.text, button.value || '');
         } else if (button.type === 'copy') {
-          keyboard.text(button.text, `copy:${button.value || ''}`);
+          keyboard.copyText(button.text, button.value || '');
         } else {
           keyboard.text(button.text, button.value || '');
         }

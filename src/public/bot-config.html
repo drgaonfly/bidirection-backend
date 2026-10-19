@@ -465,18 +465,6 @@
     if (!text) { showToast('请输入按钮文字'); return; }
     if (!value) { showToast('请输入值'); return; }
 
-    // Telegram 限制：url 不能与 copy 混用，callback 可以随意混
-    const hasUrl = config.buttons.some(b => b.type === 'url');
-    const hasCopy = config.buttons.some(b => b.type === 'copy');
-    if (newBtnType === 'url' && hasCopy) {
-      showToast('❌ 链接按钮不能与复制按钮混用');
-      return;
-    }
-    if (newBtnType === 'copy' && hasUrl) {
-      showToast('❌ 复制按钮不能与链接按钮混用');
-      return;
-    }
-
     config.buttons.push({ type: newBtnType, text, value });
     renderButtons();
     toggleAddButton();

@@ -111,17 +111,29 @@ startCommand.command('start', async (ctx) => {
     ctx,
   );
 
-  // 构建按钮键盘（只允许 url/callback/alert 三种合法类型）
+  // 构建按钮键盘
+  // Telegram 限制：url 按钮不能与 callback/copy 按钮混用
   let keyboard: InlineKeyboard | undefined;
   if (ctx.currentBot.buttons && ctx.currentBot.buttons.length > 0) {
     const validButtons = ctx.currentBot.buttons.filter((b: any) =>
-      ['url', 'callback', 'alert'].includes(b.type),
+      ['url', 'callback', 'copy'].includes(b.type),
     );
-    if (validButtons.length > 0) {
+    const hasUrl = validButtons.some((b: any) => b.type === 'url');
+    const hasText = validButtons.some((b: any) => b.type !== 'url');
+
+    // 混用时只取 url 按钮，避免 Telegram 400 错误
+    const buttonsToRender =
+      hasUrl && hasText
+        ? validButtons.filter((b: any) => b.type === 'url')
+        : validButtons;
+
+    if (buttonsToRender.length > 0) {
       keyboard = new InlineKeyboard();
-      validButtons.forEach((button: any) => {
+      buttonsToRender.forEach((button: any) => {
         if (button.type === 'url') {
           keyboard.url(button.text, button.value || '');
+        } else if (button.type === 'copy') {
+          keyboard.text(button.text, `copy:${button.value || ''}`);
         } else {
           keyboard.text(button.text, button.value || '');
         }

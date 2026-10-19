@@ -139,7 +139,7 @@
     .badge.document { background: #5856d6; }
     .badge.url { background: #2481cc; }
     .badge.callback { background: #ff9500; }
-    .badge.alert { background: #5856d6; }
+    .badge.copy { background: #5856d6; }
 
     /* Add form */
     .add-form {
@@ -399,7 +399,7 @@
     }
     el.innerHTML = config.buttons.map((b, i) => `
       <div class="item">
-        <span class="badge ${b.type}">${b.type === 'url' ? '链接' : b.type === 'callback' ? '回调' : '弹窗'}</span>
+        <span class="badge ${b.type}">${b.type === 'url' ? '链接' : b.type === 'callback' ? '回调' : '复制'}</span>
         <div class="item-info">
           <div class="item-title">${escHtml(b.text)}</div>
           ${b.value ? `<div class="item-sub">${escHtml(b.value)}</div>` : ''}
@@ -443,12 +443,19 @@
     el.classList.add('selected');
     const valueRow = document.getElementById('btn-value-row');
     const valueLabel = document.getElementById('btn-value-label');
-    if (type === 'alert') {
-      valueRow.style.display = 'none';
-    } else {
+    if (type === 'copy') {
       valueRow.style.display = 'block';
-      valueLabel.textContent = type === 'url' ? '链接 URL' : '回调数据';
-      document.getElementById('btn-value').placeholder = type === 'url' ? 'https://...' : 'callback_data';
+      valueLabel.textContent = '复制内容';
+      document.getElementById('btn-value').placeholder = '点击按钮后复制的文字';
+    } else if (type === 'url') {
+      valueRow.style.display = 'block';
+      valueLabel.textContent = '链接 URL';
+      document.getElementById('btn-value').placeholder = 'https://...';
+    } else {
+      // callback
+      valueRow.style.display = 'block';
+      valueLabel.textContent = '回调数据';
+      document.getElementById('btn-value').placeholder = 'callback_data';
     }
   }
 
@@ -456,11 +463,21 @@
     const text = document.getElementById('btn-text').value.trim();
     const value = document.getElementById('btn-value').value.trim();
     if (!text) { showToast('请输入按钮文字'); return; }
-    if (newBtnType !== 'alert' && !value) { showToast('请输入值'); return; }
-    const btn = { type: newBtnType, text };
-    if (newBtnType !== 'alert') btn.value = value;
-    if (newBtnType === 'alert') btn.showAlert = true;
-    config.buttons.push(btn);
+    if (!value) { showToast('请输入值'); return; }
+
+    // Telegram 限制：url 按钮不能与 callback/copy 混用
+    const hasUrl = config.buttons.some(b => b.type === 'url');
+    const hasText = config.buttons.some(b => b.type !== 'url');
+    if (newBtnType === 'url' && hasText) {
+      showToast('❌ 链接按钮不能与回调/复制按钮混用');
+      return;
+    }
+    if ((newBtnType === 'callback' || newBtnType === 'copy') && hasUrl) {
+      showToast('❌ 回调/复制按钮不能与链接按钮混用');
+      return;
+    }
+
+    config.buttons.push({ type: newBtnType, text, value });
     renderButtons();
     toggleAddButton();
     showToast('✅ 按钮已添加');

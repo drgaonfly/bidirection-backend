@@ -40,6 +40,66 @@ startCommand.command('start', async (ctx) => {
     return;
   }
 
+  // 母机器人 start（isCreatedByAdmin）
+  if (ctx.currentBot.isCreatedByAdmin) {
+    const message = replaceVariables(
+      ctx.currentBot.message || '请开始与我通信',
+      ctx,
+    );
+    const cloneMessage = [
+      message,
+      '',
+      '🤖 直接发送机器人 API Token 即可克隆同款机器人，',
+      '或点击下方按钮一键创建。',
+      '',
+      `<a href="https://t.me/XRService1">虾仁双向机器人使用教程</a>`,
+    ].join('\n');
+
+    await ctx.reply(cloneMessage, {
+      parse_mode: 'HTML',
+      reply_markup: new InlineKeyboard().url(
+        '🤖 克隆专属机器人',
+        `https://t.me/newbot/${bot.userName}`,
+      ),
+    });
+    return;
+  }
+
+  // Owner start：直接返回配置菜单，不走启动信息逻辑
+  if (ctx.currentBot?.owner?.toString() === String(ctx.currentBotUser._id)) {
+    const ownerBotUser = ctx.currentBot.owner
+      ? await BotUser.findById(ctx.currentBot.owner)
+          .select('topicTrialStartedAt')
+          .lean()
+      : null;
+    const topicEnabled =
+      (ctx.currentBot.isTopicModeEnabled ?? false) &&
+      isTopicSubscriptionActive(
+        ctx.currentBot,
+        ownerBotUser,
+        ctx.currentProxyUser,
+      );
+
+    const ownerKeyboard = new InlineKeyboard()
+      .text('👋启动信息', `config_menu_${ctx.currentBot._id}`)
+      .row()
+      .text(
+        topicEnabled ? '群组话题模式通信✅' : '群组话题模式通信❌',
+        'subscribe',
+      );
+
+    await ctx.reply(
+      '<a href="https://t.me/XRService1">虾仁双向机器人使用教程</a>',
+      {
+        parse_mode: 'HTML',
+        reply_markup: ownerKeyboard,
+      },
+    );
+    return;
+  }
+
+  // 普通用户 start：广告位 + 启动信息（message + keyboard + 媒体）
+
   // 广告位 ---- 平台机器人一定有发, 发给客户看
   if (ctx.currentProxyUser?.advertisement) {
     await ctx.reply(ctx.currentProxyUser.advertisement);
@@ -72,46 +132,42 @@ startCommand.command('start', async (ctx) => {
 
   // 发送媒体（如果有）
   if (ctx.currentBot.medias && ctx.currentBot.medias.length > 0) {
-    // 母机器人不使用自定义 keyboard，只有克隆机器人才用
-    const mediaKeyboard = ctx.currentBot.isCreatedByAdmin
-      ? undefined
-      : keyboard;
     for (const media of ctx.currentBot.medias) {
       try {
         if (media.type === 'photo') {
           if (media.fileId) {
             await ctx.replyWithPhoto(media.fileId, {
               caption: message,
-              reply_markup: mediaKeyboard,
+              reply_markup: keyboard,
             });
           } else if (media.url) {
             await ctx.replyWithPhoto(media.url, {
               caption: message,
-              reply_markup: mediaKeyboard,
+              reply_markup: keyboard,
             });
           }
         } else if (media.type === 'video') {
           if (media.fileId) {
             await ctx.replyWithVideo(media.fileId, {
               caption: message,
-              reply_markup: mediaKeyboard,
+              reply_markup: keyboard,
             });
           } else if (media.url) {
             await ctx.replyWithVideo(media.url, {
               caption: message,
-              reply_markup: mediaKeyboard,
+              reply_markup: keyboard,
             });
           }
         } else if (media.type === 'document') {
           if (media.fileId) {
             await ctx.replyWithDocument(media.fileId, {
               caption: message,
-              reply_markup: mediaKeyboard,
+              reply_markup: keyboard,
             });
           } else if (media.url) {
             await ctx.replyWithDocument(media.url, {
               caption: message,
-              reply_markup: mediaKeyboard,
+              reply_markup: keyboard,
             });
           }
         }
@@ -123,62 +179,7 @@ startCommand.command('start', async (ctx) => {
   }
 
   // 没有媒体时发送纯文本消息
-  if (ctx.currentBot.isCreatedByAdmin) {
-    const cloneMessage = [
-      message,
-      '',
-      '🤖 直接发送机器人 API Token 即可克隆同款机器人，',
-      '或点击下方按钮一键创建。',
-      '',
-      `<a href="https://t.me/XRService1">虾仁双向机器人使用教程</a>`,
-    ].join('\n');
-
-    await ctx.reply(cloneMessage, {
-      parse_mode: 'HTML',
-      reply_markup: new InlineKeyboard().url(
-        '🤖 克隆专属机器人',
-        `https://t.me/newbot/${bot.userName}`,
-      ),
-    });
-  } else if (
-    ctx.currentBot?.owner?.toString() === String(ctx.currentBotUser._id)
-  ) {
-    // 从 ctx.currentBot 取订阅状态和话题开关（botResolver 已加载完整文档）
-    // const hasActiveSubscription = isTopicSubscriptionActive(
-    //   ctx.currentBot,
-    //   ctx.currentProxyUser,
-    // );
-    const ownerBotUser = ctx.currentBot.owner
-      ? await BotUser.findById(ctx.currentBot.owner)
-          .select('topicTrialStartedAt')
-          .lean()
-      : null;
-    const topicEnabled =
-      (ctx.currentBot.isTopicModeEnabled ?? false) &&
-      isTopicSubscriptionActive(
-        ctx.currentBot,
-        ownerBotUser,
-        ctx.currentProxyUser,
-      );
-
-    const ownerKeyboard = new InlineKeyboard()
-      .text('👋启动信息', `config_menu_${ctx.currentBot._id}`)
-      .row()
-      .text(
-        topicEnabled ? '群组话题模式通信✅' : '群组话题模式通信❌',
-        'subscribe',
-      );
-
-    await ctx.reply(
-      '<a href="https://t.me/XRService1">虾仁双向机器人使用教程</a>',
-      {
-        parse_mode: 'HTML',
-        reply_markup: ownerKeyboard,
-      },
-    );
-  } else {
-    await ctx.reply(message, { reply_markup: keyboard });
-  }
+  await ctx.reply(message, { reply_markup: keyboard });
 });
 
 export default startCommand;

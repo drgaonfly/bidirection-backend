@@ -21,7 +21,7 @@ const debug = createDebug('bot:logger');
 function resolveMessageType(message: any): string {
   // 检查特殊类型
   if (message?.entities?.some((e: any) => e.type === 'bot_command')) {
-    return 'bot_command';
+    return 'command';
   }
   if (message?.entities?.some((e: any) => e.type === 'mention')) {
     return 'mention';
@@ -43,11 +43,11 @@ function resolveMessageType(message: any): string {
     case !!message?.location:
       return 'location';
     case !!message?.animation:
-      return 'animation';
+      return 'image';
     case !!message?.audio:
       return 'audio';
     case !!message?.video_note:
-      return 'video_note';
+      return 'other';
     default:
       return 'other';
   }

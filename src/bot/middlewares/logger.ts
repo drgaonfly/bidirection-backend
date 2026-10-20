@@ -19,6 +19,14 @@ const debug = createDebug('bot:logger');
 // 消息类型解析
 // ────────────────────────────────────────────────────────────
 function resolveMessageType(message: any): string {
+  // 检查特殊类型
+  if (message?.entities?.some((e: any) => e.type === 'bot_command')) {
+    return 'bot_command';
+  }
+  if (message?.entities?.some((e: any) => e.type === 'mention')) {
+    return 'mention';
+  }
+
   switch (true) {
     case !!message?.text:
       return 'text';
@@ -34,10 +42,14 @@ function resolveMessageType(message: any): string {
       return 'sticker';
     case !!message?.location:
       return 'location';
-    case !!message?.entities?.some((e: any) => e.type === 'mention'):
-      return 'mention';
+    case !!message?.animation:
+      return 'animation';
+    case !!message?.audio:
+      return 'audio';
+    case !!message?.video_note:
+      return 'video_note';
     default:
-      return '未知消息类型';
+      return 'other';
   }
 }
 
@@ -180,20 +192,35 @@ const logger: Middleware = async (ctx: MyContext, next) => {
 
   const messageType = resolveMessageType(message);
 
-  let messageContent = message?.text;
+  // 根据消息类型获取内容
+  let messageContent: string | undefined;
 
-  if (
+  if (message?.text) {
+    messageContent = message.text;
+  } else if (message?.caption) {
+    messageContent = message.caption;
+  } else if (
     message?.photo ||
     message?.video ||
     message?.document ||
-    message?.animation
+    message?.animation ||
+    message?.audio
   ) {
     try {
       const file = await ctx.getFile();
       messageContent = `https://api.telegram.org/file/bot${ctx.currentBot.token}/${file.file_path}`;
     } catch (err) {
       debug('获取文件路径失败:', err);
+      messageContent = `[${messageType}]`;
     }
+  } else if (messageType === 'bot_command') {
+    // 提取命令
+    const commandMatch = message?.text?.match(/^\/\w+/);
+    messageContent = commandMatch ? commandMatch[0] : '[command]';
+  } else if (messageType === 'voice' || messageType === 'video_note') {
+    messageContent = `[${messageType}]`;
+  } else {
+    messageContent = `[${messageType}]`;
   }
 
   // mention 附加信息（仅 debug）
@@ -485,7 +512,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
               id: originalUserId.toString(),
             });
           } catch (err) {
-            console.error('获取原始用户信息失败:', err);
+            debug('获取原始用户信息失败:', err);
           }
 
           let forwardedMsgId: number | undefined;
@@ -496,7 +523,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
               message.message_id,
             );
             forwardedMsgId = copied.message_id;
-            console.log(`✅ owner 回复已转发给用户: ${originalUserId}`);
+            debug(`✅ owner 回复已转发给用户: ${originalUserId}`);
           } catch (copyErr: any) {
             if (
               copyErr.error_code === 400 &&
@@ -510,6 +537,11 @@ const logger: Middleware = async (ctx: MyContext, next) => {
               )
             ) {
               await ctx.reply('⚠️ 这是机器人自己的话题，无法向自身发送消息');
+            } else if (
+              copyErr.error_code === 400 &&
+              copyErr.description?.includes('protected content')
+            ) {
+              await ctx.reply('⚠️ 此消息受保护，无法转发给用户');
             } else {
               const errorMsg =
                 copyErr?.message || copyErr?.description || String(copyErr);
@@ -533,13 +565,16 @@ const logger: Middleware = async (ctx: MyContext, next) => {
               raw: message,
             });
           } catch (saveErr: any) {
-            console.error('保存 owner 回复失败:', saveErr.message || saveErr);
+            debug('保存 owner 回复失败:', saveErr.message || saveErr);
           }
         }
       }
     } catch (err: any) {
       const errorMsg = err?.message || err?.description || String(err);
-      await ctx.reply(`❌ 发送失败：${errorMsg}`);
+      debug(`❌ 发送失败：${errorMsg}`);
+      await ctx.reply(`❌ 发送失败：${errorMsg}`).catch((replyErr) => {
+        debug('回复错误消息失败:', replyErr?.message || replyErr);
+      });
     }
 
     await next();
@@ -569,6 +604,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
 
 // ────────────────────────────────────────────────────────────
 // 辅助：回退到私聊转发（话题模式失败时使用）
+// 使用 forwardMessage，受保护内容时用 copyMessage 作为备选
 // ────────────────────────────────────────────────────────────
 async function fallbackForwardToOwner(
   ctx: MyContext,
@@ -577,18 +613,53 @@ async function fallbackForwardToOwner(
   messageContent: string | undefined,
   messageType: string,
 ): Promise<void> {
-  console.log('messageType', messageType);
+  debug(`[fallbackForwardToOwner] messageType: ${messageType}`);
   try {
     const bot = setupBot(ctx.currentBot.token);
-    const forwarded = await bot.api.forwardMessage(
-      ownerBotUser.id,
-      ctx.chat.id,
-      message.message_id,
-    );
-    debug(
-      `✅ 用户 ${ctx.currentBotUser.id} 的消息已转发给 owner: ${ownerBotUser.id}`,
-    );
-    if (messageContent) {
+    let forwarded;
+
+    try {
+      // 转发消息
+      forwarded = await bot.api.forwardMessage(
+        ownerBotUser.id,
+        ctx.chat.id,
+        message.message_id,
+      );
+      debug(
+        `✅ 用户 ${ctx.currentBotUser.id} 的消息已转发给 owner: ${ownerBotUser.id}`,
+      );
+    } catch (fwdErr: any) {
+      // 如果是受保护内容，尝试 copyMessage 作为备选
+      if (
+        fwdErr?.error_code === 400 &&
+        fwdErr?.description?.includes('protected content')
+      ) {
+        debug(
+          `⚠️ 消息受保护，尝试 copyMessage 作为备选 from user ${ctx.currentBotUser.id}`,
+        );
+        try {
+          forwarded = await bot.api.copyMessage(
+            ownerBotUser.id,
+            ctx.chat.id,
+            message.message_id,
+          );
+          debug(
+            `✅ 用户 ${ctx.currentBotUser.id} 的消息已通过 copyMessage 转发给 owner: ${ownerBotUser.id}`,
+          );
+        } catch (copyErr: any) {
+          debug(
+            `❌ copyMessage 也失败: ${
+              copyErr?.description || copyErr?.message
+            }`,
+          );
+          throw copyErr;
+        }
+      } else {
+        throw fwdErr;
+      }
+    }
+
+    if (messageContent && forwarded) {
       await BotMessage.findOneAndUpdate(
         {
           bot: ctx.currentBot._id,
@@ -604,9 +675,8 @@ async function fallbackForwardToOwner(
       );
     }
   } catch (fwdErr: any) {
-    console.error(
-      '转发消息给 owner 失败:',
-      fwdErr?.message || fwdErr?.description,
+    debug(
+      `❌ 转发消息给 owner 失败: ${fwdErr?.description || fwdErr?.message}`,
     );
   }
 }

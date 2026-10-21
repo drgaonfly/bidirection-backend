@@ -100,8 +100,13 @@ startCommand.command('start', async (ctx) => {
 
   // 普通用户 start：广告位 + 启动信息（message + keyboard + 媒体）
 
-  // 广告位 ---- 平台机器人一定有发, 发给客户看
-  if (ctx.currentProxyUser?.advertisement) {
+  // 广告位 ---- 仅向未订阅（话题模式订阅未激活）的用户发送
+  const isSubscribed = isTopicSubscriptionActive(
+    ctx.currentBot,
+    undefined,
+    ctx.currentProxyUser,
+  );
+  if (ctx.currentProxyUser?.advertisement && !isSubscribed) {
     await ctx.reply(ctx.currentProxyUser.advertisement);
   }
 

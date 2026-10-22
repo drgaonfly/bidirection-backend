@@ -25,8 +25,9 @@ export interface IBot extends Document {
   buttons?: Array<{
     text: string;
     type: 'url' | 'callback' | 'copy';
-    value?: string; // URL 或 callback 数据
-    showAlert?: boolean; // 是否弹窗（仅 callback 类型）
+    value?: string;
+    showAlert?: boolean;
+    row?: number; // 所在行号，从 1 开始，默认 1；同一行号的按钮并排显示
   }>;
 
   menus: IMenu[];
@@ -122,6 +123,7 @@ const botSchema = new mongoose.Schema(
           },
           value: { type: String, trim: true },
           showAlert: { type: Boolean, default: false },
+          row: { type: Number, default: 1 },
         },
       ],
       default: [],

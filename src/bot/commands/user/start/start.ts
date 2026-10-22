@@ -121,7 +121,8 @@ startCommand.command('start', async (ctx) => {
   );
 
   // 构建按钮键盘
-  // Telegram 限制：url 按钮不能与 callback/copy 按钮混用
+  // buttons 为一维数组，每个按钮带 row 字段（默认 1）
+  // 相同 row 值的按钮排在同一行，按 row 升序排列
   let keyboard: InlineKeyboard | undefined;
   if (ctx.currentBot.buttons && ctx.currentBot.buttons.length > 0) {
     const validButtons = ctx.currentBot.buttons.filter((b: any) =>
@@ -129,16 +130,32 @@ startCommand.command('start', async (ctx) => {
     );
 
     if (validButtons.length > 0) {
+      // 按 row 分组，保持插入顺序
+      const rowMap = new Map<number, typeof validButtons>();
+      for (const btn of validButtons) {
+        const r = (btn as any).row ?? 1;
+        if (!rowMap.has(r)) rowMap.set(r, []);
+        rowMap.get(r)!.push(btn);
+      }
+      // 按行号升序排列
+      const sortedRows = [...rowMap.entries()]
+        .sort(([a], [b]) => a - b)
+        .map(([, btns]) => btns);
+
       keyboard = new InlineKeyboard();
-      validButtons.forEach((button: any) => {
-        if (button.type === 'url') {
-          keyboard.url(button.text, button.value || '');
-        } else if (button.type === 'copy') {
-          keyboard.copyText(button.text, button.value || '');
-        } else {
-          keyboard.text(button.text, button.value || '');
+      sortedRows.forEach((row, rowIndex) => {
+        row.forEach((button: any) => {
+          if (button.type === 'url') {
+            keyboard!.url(button.text, button.value || '');
+          } else if (button.type === 'copy') {
+            keyboard!.copyText(button.text, button.value || '');
+          } else {
+            keyboard!.text(button.text, button.value || '');
+          }
+        });
+        if (rowIndex < sortedRows.length - 1) {
+          keyboard!.row();
         }
-        keyboard.row();
       });
     }
   }

@@ -19,21 +19,15 @@
 
     h2 { font-size: 17px; font-weight: 600; margin-bottom: 14px; }
 
-    /* Tabs */
     .tabs {
       display: flex;
       border-bottom: 1px solid var(--tg-theme-hint-color, #ccc);
       margin-bottom: 18px;
     }
     .tab {
-      flex: 1;
-      padding: 10px 0;
-      text-align: center;
-      cursor: pointer;
-      font-size: 14px;
-      color: var(--tg-theme-hint-color, #999);
-      border-bottom: 2px solid transparent;
-      transition: all .2s;
+      flex: 1; padding: 10px 0; text-align: center; cursor: pointer;
+      font-size: 14px; color: var(--tg-theme-hint-color, #999);
+      border-bottom: 2px solid transparent; transition: all .2s;
     }
     .tab.active {
       color: var(--tg-theme-button-color, #2481cc);
@@ -44,95 +38,32 @@
     .panel { display: none; }
     .panel.active { display: block; }
 
-    /* Form */
     label { display: block; font-size: 13px; color: var(--tg-theme-hint-color, #888); margin-bottom: 6px; }
-    textarea, input[type=text], input[type=url] {
-      width: 100%;
-      padding: 10px 12px;
+    textarea, input[type=text] {
+      width: 100%; padding: 10px 12px;
       border: 1px solid var(--tg-theme-hint-color, #ccc);
-      border-radius: 10px;
-      font-size: 15px;
+      border-radius: 10px; font-size: 15px;
       background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-      color: var(--tg-theme-text-color, #000);
-      outline: none;
-      resize: vertical;
+      color: var(--tg-theme-text-color, #000); outline: none; resize: vertical;
     }
-    textarea:focus, input:focus {
-      border-color: var(--tg-theme-button-color, #2481cc);
-    }
+    textarea:focus, input:focus { border-color: var(--tg-theme-button-color, #2481cc); }
 
-    /* Hint */
-    .hint {
-      font-size: 12px;
-      color: var(--tg-theme-hint-color, #888);
-      margin-top: 6px;
-      line-height: 1.5;
-    }
+    .hint { font-size: 12px; color: var(--tg-theme-hint-color, #888); margin-top: 6px; line-height: 1.5; }
 
-    /* Section card */
-    .card {
-      background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 12px;
-    }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .card-title { font-weight: 600; font-size: 14px; }
-
-    /* Button */
     .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      transition: opacity .15s;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 10px; border: none;
+      cursor: pointer; font-size: 14px; font-weight: 500; transition: opacity .15s;
     }
     .btn:active { opacity: .7; }
-    .btn-primary {
-      background: var(--tg-theme-button-color, #2481cc);
-      color: var(--tg-theme-button-text-color, #fff);
-    }
-    .btn-danger {
-      background: #ff3b30;
-      color: #fff;
-    }
-    .btn-secondary {
-      background: var(--tg-theme-hint-color, #ccc);
-      color: #fff;
-    }
+    .btn-primary { background: var(--tg-theme-button-color, #2481cc); color: var(--tg-theme-button-text-color, #fff); }
+    .btn-danger { background: #ff3b30; color: #fff; }
+    .btn-secondary { background: var(--tg-theme-hint-color, #ccc); color: #fff; }
     .btn-sm { padding: 5px 10px; font-size: 13px; }
 
-    /* List items */
-    .item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(0,0,0,.06);
-    }
-    .item:last-child { border-bottom: none; }
-    .item-info { flex: 1; min-width: 0; }
-    .item-title { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .item-sub { font-size: 12px; color: var(--tg-theme-hint-color, #888); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    /* Badge */
     .badge {
-      font-size: 11px;
-      padding: 2px 7px;
-      border-radius: 20px;
-      background: var(--tg-theme-button-color, #2481cc);
-      color: #fff;
-      flex-shrink: 0;
+      font-size: 11px; padding: 2px 7px; border-radius: 20px;
+      background: var(--tg-theme-button-color, #2481cc); color: #fff; flex-shrink: 0;
     }
     .badge.photo { background: #34c759; }
     .badge.video { background: #ff9500; }
@@ -141,32 +72,44 @@
     .badge.callback { background: #ff9500; }
     .badge.copy { background: #5856d6; }
 
-    /* Add form */
+    /* ── 按钮行布局 ── */
+    .btn-rows { margin-bottom: 8px; }
+    .btn-row-card {
+      background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+      border-radius: 12px; padding: 10px 12px; margin-bottom: 10px;
+    }
+    .btn-row-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+    }
+    .btn-row-label { font-size: 12px; color: var(--tg-theme-hint-color, #888); font-weight: 500; }
+    .btn-row-actions { display: flex; gap: 6px; }
+
+    .btn-row-preview { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+    .btn-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 10px; border-radius: 8px;
+      background: var(--tg-theme-bg-color, #fff);
+      border: 1px solid var(--tg-theme-hint-color, #ddd); font-size: 13px;
+    }
+    .btn-chip-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; }
+    .btn-chip-del {
+      flex-shrink: 0; background: none; border: none; color: #ff3b30;
+      cursor: pointer; font-size: 15px; line-height: 1; padding: 0 2px;
+    }
+
+    /* 添加表单 */
     .add-form {
       background: var(--tg-theme-bg-color, #fff);
       border: 1px solid var(--tg-theme-hint-color, #ddd);
-      border-radius: 12px;
-      padding: 14px;
-      margin-top: 12px;
+      border-radius: 12px; padding: 14px; margin-top: 10px;
     }
     .add-form .row { margin-bottom: 10px; }
-    .add-form .row:last-child { margin-bottom: 0; }
-
-    .select-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
+    .select-row { display: flex; gap: 8px; margin-bottom: 10px; }
     .type-btn {
-      flex: 1;
-      padding: 8px 4px;
+      flex: 1; padding: 8px 4px;
       border: 1px solid var(--tg-theme-hint-color, #ccc);
-      border-radius: 8px;
-      background: transparent;
-      color: var(--tg-theme-text-color, #000);
-      font-size: 13px;
-      cursor: pointer;
-      text-align: center;
+      border-radius: 8px; background: transparent;
+      color: var(--tg-theme-text-color, #000); font-size: 13px; cursor: pointer; text-align: center;
     }
     .type-btn.selected {
       border-color: var(--tg-theme-button-color, #2481cc);
@@ -174,70 +117,57 @@
       color: var(--tg-theme-button-text-color, #fff);
     }
 
-    /* Toast */
-    .toast {
-      position: fixed;
-      bottom: 90px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: rgba(0,0,0,.75);
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-size: 14px;
-      opacity: 0;
-      transition: all .3s;
-      pointer-events: none;
-      white-space: nowrap;
-      z-index: 999;
+    /* 新增行按钮 */
+    .add-row-btn {
+      width: 100%; padding: 10px;
+      border: 2px dashed var(--tg-theme-button-color, #2481cc);
+      border-radius: 10px; background: transparent;
+      color: var(--tg-theme-button-color, #2481cc);
+      font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity .15s;
     }
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
+    .add-row-btn:active { opacity: .7; }
 
-    .empty { text-align: center; color: var(--tg-theme-hint-color, #999); padding: 24px 0; font-size: 14px; }
+    /* 媒体列表 */
+    .item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,.06);
+    }
+    .item:last-child { border-bottom: none; }
+    .item-info { flex: 1; min-width: 0; }
+    .item-title { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-sub { font-size: 12px; color: var(--tg-theme-hint-color, #888); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .upload-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: 12px;
-      padding: 14px;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 12px; padding: 14px;
       border: 2px dashed var(--tg-theme-button-color, #2481cc);
-      border-radius: 12px;
-      color: var(--tg-theme-button-color, #2481cc);
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: opacity .15s;
+      border-radius: 12px; color: var(--tg-theme-button-color, #2481cc);
+      font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity .15s;
     }
     .upload-btn:active { opacity: .7; }
 
-    /* Variable chips */
-    .var-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
+    .toast {
+      position: fixed; bottom: 90px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(0,0,0,.75); color: #fff;
+      padding: 10px 20px; border-radius: 20px; font-size: 14px;
+      opacity: 0; transition: all .3s; pointer-events: none; white-space: nowrap; z-index: 999;
     }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .empty { text-align: center; color: var(--tg-theme-hint-color, #999); padding: 24px 0; font-size: 14px; }
+
+    .var-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
     .var-chip {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 12px;
-      border-radius: 20px;
+      display: inline-flex; align-items: center;
+      padding: 4px 12px; border-radius: 20px;
       background: var(--tg-theme-button-color, #2481cc);
       color: var(--tg-theme-button-text-color, #fff);
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      user-select: none;
+      font-size: 13px; font-weight: 500; cursor: pointer; user-select: none;
       transition: opacity .15s, transform .1s;
     }
-    .var-chip:active {
-      opacity: .7;
-      transform: scale(.95);
-    }  </style>
+    .var-chip:active { opacity: .7; transform: scale(.95); }
+  </style>
 </head>
 <body>
 
@@ -265,13 +195,14 @@
 
 <!-- 按钮 Tab -->
 <div id="tab-buttons" class="panel">
-  <div id="buttons-list"></div>
+  <div id="buttons-list" class="btn-rows"></div>
+  <button class="add-row-btn" onclick="addRow()">＋ 新增一行</button>
 
-  <button class="btn btn-primary btn-sm" onclick="toggleAddButton()" style="margin-top:8px">
-    ＋ 添加按钮
-  </button>
-
+  <!-- 添加按钮表单（动态插入到对应行下方） -->
   <div id="add-button-form" class="add-form" style="display:none">
+    <div style="font-size:13px;color:var(--tg-theme-hint-color,#888);margin-bottom:10px">
+      正在向 <strong id="add-form-row-label"></strong> 添加按钮
+    </div>
     <div class="row">
       <label>按钮类型</label>
       <div class="select-row">
@@ -289,8 +220,8 @@
       <input type="text" id="btn-value" placeholder="https://..." />
     </div>
     <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn btn-primary btn-sm" onclick="addButton()">添加</button>
-      <button class="btn btn-secondary btn-sm" onclick="toggleAddButton()">取消</button>
+      <button class="btn btn-primary btn-sm" onclick="confirmAddButton()">添加</button>
+      <button class="btn btn-secondary btn-sm" onclick="closeAddForm()">取消</button>
     </div>
   </div>
 </div>
@@ -298,7 +229,6 @@
 <!-- 媒体 Tab -->
 <div id="tab-medias" class="panel">
   <div id="medias-list"></div>
-
   <label class="upload-btn" for="file-input">
     <span>＋ 上传图片 / 视频 / 文档</span>
     <input type="file" id="file-input" accept="image/*,video/*,application/pdf,application/zip,application/msword,.doc,.docx" style="display:none" onchange="uploadFile(this)" />
@@ -318,39 +248,34 @@
   tg.ready();
   tg.expand();
 
-  // 从 startParam 或 URL 参数获取 botId
   const urlParams = new URLSearchParams(window.location.search);
   const BOT_ID = tg.initDataUnsafe?.start_param || urlParams.get('botId') || '';
   const API_BASE = window.location.origin;
 
+  // buttons 保持一维数组，每个按钮带 row 字段（默认 1）
   let config = { message: '', medias: [], buttons: [] };
   let newBtnType = 'url';
+  let addTargetRow = -1; // 当前正在向哪一行添加
 
-  // ── 初始化 ──────────────────────────────────────────────
+  // ── 初始化 ─────────────────────────────────────────────
   async function init() {
-    if (!BOT_ID) {
-      showToast('❌ 缺少机器人参数');
-      return;
-    }
+    if (!BOT_ID) { showToast('❌ 缺少机器人参数'); return; }
     try {
       const res = await fetch(`${API_BASE}/api/mini-app/config`, {
-        headers: {
-          'x-init-data': tg.initData,
-          'x-bot-id': BOT_ID,
-        },
+        headers: { 'x-init-data': tg.initData, 'x-bot-id': BOT_ID },
       });
       if (!res.ok) throw new Error(await res.text());
       config = await res.json();
+      config.buttons = config.buttons || [];
+      config.medias  = config.medias  || [];
       renderAll();
-
-      // 设置主按钮
       tg.MainButton.setText('💾 保存').show().onClick(save);
     } catch (e) {
       showToast('❌ 加载失败：' + e.message);
     }
   }
 
-  // ── 保存 ──────────────────────────────────────────────
+  // ── 保存 ───────────────────────────────────────────────
   async function save() {
     config.message = document.getElementById('message-input').value.trim();
     tg.MainButton.showProgress();
@@ -374,47 +299,70 @@
     }
   }
 
-  // ── Tab 切换 ──────────────────────────────────────────
+  // ── Tab 切换 ───────────────────────────────────────────
   function switchTab(name) {
     document.querySelectorAll('.tab').forEach((t, i) => {
-      const names = ['message', 'buttons', 'medias'];
-      t.classList.toggle('active', names[i] === name);
+      t.classList.toggle('active', ['message','buttons','medias'][i] === name);
     });
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
   }
 
-  // ── 渲染 ──────────────────────────────────────────────
+  // ── 渲染 ───────────────────────────────────────────────
   function renderAll() {
     document.getElementById('message-input').value = config.message || '';
     renderButtons();
     renderMedias();
   }
 
+  // 获取所有行号（去重、升序）
+  function getRows() {
+    const rowNums = [...new Set(config.buttons.map(b => b.row ?? 1))].sort((a, b) => a - b);
+    return rowNums;
+  }
+
   function renderButtons() {
     const el = document.getElementById('buttons-list');
-    if (!config.buttons.length) {
-      el.innerHTML = '<div class="empty">暂无按钮</div>';
+    const rows = getRows();
+
+    if (!rows.length) {
+      el.innerHTML = '<div class="empty">暂无按钮，点击下方"新增一行"开始添加</div>';
       return;
     }
-    el.innerHTML = config.buttons.map((b, i) => `
-      <div class="item">
-        <span class="badge ${b.type}">${b.type === 'url' ? '链接' : b.type === 'callback' ? '回调' : '复制'}</span>
-        <div class="item-info">
-          <div class="item-title">${escHtml(b.text)}</div>
-          ${b.value ? `<div class="item-sub">${escHtml(b.value)}</div>` : ''}
+
+    el.innerHTML = rows.map(rowNum => {
+      const btns = config.buttons.filter(b => (b.row ?? 1) === rowNum);
+      const chips = btns.map((b, localIdx) => {
+        const globalIdx = config.buttons.indexOf(b);
+        return `
+          <div class="btn-chip">
+            <span class="badge ${b.type}" style="font-size:10px">${b.type === 'url' ? '链' : b.type === 'callback' ? '回' : '复'}</span>
+            <span class="btn-chip-text" title="${escHtml(b.text)}">${escHtml(b.text)}</span>
+            <button class="btn-chip-del" onclick="removeButton(${globalIdx})">×</button>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="btn-row-card" id="btn-row-${rowNum}">
+          <div class="btn-row-header">
+            <span class="btn-row-label">第 ${rowNum} 行 · ${btns.length} 个按钮</span>
+            <div class="btn-row-actions">
+              <button class="btn btn-primary btn-sm" onclick="openAddForm(${rowNum})">＋ 添加按钮</button>
+              <button class="btn btn-danger btn-sm" onclick="removeRow(${rowNum})">删除行</button>
+            </div>
+          </div>
+          <div class="btn-row-preview">
+            ${btns.length ? chips : '<span style="font-size:13px;color:var(--tg-theme-hint-color,#aaa)">此行暂无按钮</span>'}
+          </div>
         </div>
-        <button class="btn btn-danger btn-sm" onclick="removeButton(${i})">删除</button>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   function renderMedias() {
     const el = document.getElementById('medias-list');
-    if (!config.medias.length) {
-      el.innerHTML = '<div class="empty">暂无媒体</div>';
-      return;
-    }
+    if (!config.medias.length) { el.innerHTML = '<div class="empty">暂无媒体</div>'; return; }
     el.innerHTML = config.medias.map((m, i) => `
       <div class="item">
         <span class="badge ${m.type}">${m.type === 'photo' ? '图片' : m.type === 'video' ? '视频' : '文档'}</span>
@@ -427,47 +375,87 @@
     `).join('');
   }
 
-  // ── 按钮操作 ──────────────────────────────────────────
-  function toggleAddButton() {
+  // ── 行操作 ─────────────────────────────────────────────
+  function addRow() {
+    const rows = getRows();
+    const newRowNum = rows.length ? Math.max(...rows) + 1 : 1;
+    // 新行暂时没有按钮，直接打开添加表单
+    // 先插入一个占位结构（通过 openAddForm 渲染后再展示），
+    // 但为了让行卡片出现，先塞一个空按钮再移除不合适；
+    // 这里直接 openAddForm 并记录目标行号即可，添加第一个按钮时该行自然出现。
+    openAddForm(newRowNum, true);
+  }
+
+  function removeRow(rowNum) {
+    const count = config.buttons.filter(b => (b.row ?? 1) === rowNum).length;
+    tg.showConfirm(`确定删除第 ${rowNum} 行（含 ${count} 个按钮）？`, ok => {
+      if (!ok) return;
+      config.buttons = config.buttons.filter(b => (b.row ?? 1) !== rowNum);
+      closeAddForm();
+      renderButtons();
+    });
+  }
+
+  // ── 按钮操作 ───────────────────────────────────────────
+  function openAddForm(rowNum, isNewRow = false) {
+    addTargetRow = rowNum;
+    newBtnType = 'url';
+    document.getElementById('btn-text').value = '';
+    document.getElementById('btn-value').value = '';
+    document.querySelectorAll('.type-btn').forEach((b, i) => b.classList.toggle('selected', i === 0));
+    document.getElementById('btn-value-label').textContent = '链接 URL';
+    document.getElementById('btn-value').placeholder = 'https://...';
+    document.getElementById('add-form-row-label').textContent = `第 ${rowNum} 行`;
+
     const form = document.getElementById('add-button-form');
-    form.style.display = form.style.display === 'none' ? 'block' : 'none';
-    if (form.style.display === 'block') {
-      document.getElementById('btn-text').value = '';
-      document.getElementById('btn-value').value = '';
+    form.style.display = 'block';
+
+    if (isNewRow) {
+      // 新行：表单放在所有行卡片之后、新增行按钮之前
+      const addRowBtn = document.querySelector('.add-row-btn');
+      addRowBtn.parentNode.insertBefore(form, addRowBtn);
+    } else {
+      const rowCard = document.getElementById(`btn-row-${rowNum}`);
+      if (rowCard) rowCard.parentNode.insertBefore(form, rowCard.nextSibling);
     }
+
+    document.getElementById('btn-text').focus();
+  }
+
+  function closeAddForm() {
+    addTargetRow = -1;
+    const form = document.getElementById('add-button-form');
+    form.style.display = 'none';
+    document.getElementById('tab-buttons').appendChild(form);
   }
 
   function selectBtnType(type, el) {
     newBtnType = type;
     document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
     el.classList.add('selected');
-    const valueRow = document.getElementById('btn-value-row');
-    const valueLabel = document.getElementById('btn-value-label');
+    const label = document.getElementById('btn-value-label');
+    const input = document.getElementById('btn-value');
     if (type === 'copy') {
-      valueRow.style.display = 'block';
-      valueLabel.textContent = '复制内容';
-      document.getElementById('btn-value').placeholder = '点击按钮后复制的文字';
+      label.textContent = '复制内容';
+      input.placeholder = '点击按钮后复制的文字';
     } else if (type === 'url') {
-      valueRow.style.display = 'block';
-      valueLabel.textContent = '链接 URL';
-      document.getElementById('btn-value').placeholder = 'https://...';
+      label.textContent = '链接 URL';
+      input.placeholder = 'https://...';
     } else {
-      // callback
-      valueRow.style.display = 'block';
-      valueLabel.textContent = '回调数据';
-      document.getElementById('btn-value').placeholder = 'callback_data';
+      label.textContent = '回调数据';
+      input.placeholder = 'callback_data';
     }
   }
 
-  function addButton() {
-    const text = document.getElementById('btn-text').value.trim();
+  function confirmAddButton() {
+    const text  = document.getElementById('btn-text').value.trim();
     const value = document.getElementById('btn-value').value.trim();
-    if (!text) { showToast('请输入按钮文字'); return; }
+    if (!text)  { showToast('请输入按钮文字'); return; }
     if (!value) { showToast('请输入值'); return; }
 
-    config.buttons.push({ type: newBtnType, text, value });
+    config.buttons.push({ type: newBtnType, text, value, row: addTargetRow });
+    closeAddForm();
     renderButtons();
-    toggleAddButton();
     showToast('✅ 按钮已添加');
   }
 
@@ -487,15 +475,15 @@
     });
   }
 
-  // ── 上传媒体 ──────────────────────────────────────────
+  // ── 上传媒体 ───────────────────────────────────────────
   async function uploadFile(input) {
     const file = input.files[0];
     if (!file) return;
     input.value = '';
 
     const progress = document.getElementById('upload-progress');
-    const bar = document.getElementById('upload-bar');
-    const status = document.getElementById('upload-status');
+    const bar      = document.getElementById('upload-bar');
+    const status   = document.getElementById('upload-status');
     progress.style.display = 'block';
     bar.style.width = '30%';
     status.textContent = '上传中...';
@@ -507,10 +495,7 @@
       bar.style.width = '60%';
       const res = await fetch(`${API_BASE}/api/mini-app/upload`, {
         method: 'POST',
-        headers: {
-          'x-init-data': tg.initData,
-          'x-bot-id': BOT_ID,
-        },
+        headers: { 'x-init-data': tg.initData, 'x-bot-id': BOT_ID },
         body: formData,
       });
       bar.style.width = '90%';
@@ -529,26 +514,21 @@
     }
   }
 
-  // ── 插入变量 ──────────────────────────────────────────
+  // ── 插入变量 ───────────────────────────────────────────
   function insertVar(variable) {
     const ta = document.getElementById('message-input');
-    const start = ta.selectionStart;
-    const end = ta.selectionEnd;
-    const val = ta.value;
-    ta.value = val.slice(0, start) + variable + val.slice(end);
-    // 移动光标到插入内容末尾
-    const newPos = start + variable.length;
-    ta.setSelectionRange(newPos, newPos);
+    const start = ta.selectionStart, end = ta.selectionEnd;
+    ta.value = ta.value.slice(0, start) + variable + ta.value.slice(end);
+    const pos = start + variable.length;
+    ta.setSelectionRange(pos, pos);
     ta.focus();
   }
 
-  // ── 工具 ──────────────────────────────────────────────
+  // ── 工具 ───────────────────────────────────────────────
   function escHtml(str) {
     return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
   let toastTimer;

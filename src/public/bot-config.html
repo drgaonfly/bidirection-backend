@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>编辑启动信息</title>
+  <title>机器人配置</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -13,12 +13,14 @@
       background: var(--tg-theme-bg-color, #fff);
       color: var(--tg-theme-text-color, #000);
       padding: 16px;
-      padding-bottom: 80px;
+      /* 底部导航 + 主按钮各留空间 */
+      padding-bottom: 130px;
       font-size: 15px;
     }
 
     h2 { font-size: 17px; font-weight: 600; margin-bottom: 14px; }
 
+    /* ── 顶部 Tab（启动信息内部子页） ── */
     .tabs {
       display: flex;
       border-bottom: 1px solid var(--tg-theme-hint-color, #ccc);
@@ -38,18 +40,45 @@
     .panel { display: none; }
     .panel.active { display: block; }
 
+    /* ── 底部主导航 ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 56px;
+      background: var(--tg-theme-bg-color, #fff);
+      border-top: 1px solid var(--tg-theme-hint-color, #e0e0e0);
+      display: flex;
+      z-index: 100;
+    }
+    .nav-item {
+      flex: 1;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 3px; cursor: pointer; font-size: 11px;
+      color: var(--tg-theme-hint-color, #999);
+      transition: color .2s;
+    }
+    .nav-item.active { color: var(--tg-theme-button-color, #2481cc); }
+    .nav-item svg { width: 22px; height: 22px; }
+
+    /* ── 主页面切换 ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── 通用表单 ── */
     label { display: block; font-size: 13px; color: var(--tg-theme-hint-color, #888); margin-bottom: 6px; }
     textarea, input[type=text] {
       width: 100%; padding: 10px 12px;
       border: 1px solid var(--tg-theme-hint-color, #ccc);
       border-radius: 10px; font-size: 15px;
       background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-      color: var(--tg-theme-text-color, #000); outline: none; resize: vertical;
+      color: var(--tg-theme-text-color, #000);
+      outline: none; resize: vertical;
     }
     textarea:focus, input:focus { border-color: var(--tg-theme-button-color, #2481cc); }
 
     .hint { font-size: 12px; color: var(--tg-theme-hint-color, #888); margin-top: 6px; line-height: 1.5; }
 
+    /* ── 按钮 ── */
     .btn {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 8px 14px; border-radius: 10px; border: none;
@@ -57,20 +86,23 @@
     }
     .btn:active { opacity: .7; }
     .btn-primary { background: var(--tg-theme-button-color, #2481cc); color: var(--tg-theme-button-text-color, #fff); }
-    .btn-danger { background: #ff3b30; color: #fff; }
+    .btn-danger  { background: #ff3b30; color: #fff; }
     .btn-secondary { background: var(--tg-theme-hint-color, #ccc); color: #fff; }
     .btn-sm { padding: 5px 10px; font-size: 13px; }
 
+    /* ── Badge ── */
     .badge {
       font-size: 11px; padding: 2px 7px; border-radius: 20px;
       background: var(--tg-theme-button-color, #2481cc); color: #fff; flex-shrink: 0;
     }
-    .badge.photo { background: #34c759; }
-    .badge.video { background: #ff9500; }
+    .badge.photo    { background: #34c759; }
+    .badge.video    { background: #ff9500; }
     .badge.document { background: #5856d6; }
-    .badge.url { background: #2481cc; }
+    .badge.url      { background: #2481cc; }
     .badge.callback { background: #ff9500; }
-    .badge.copy { background: #5856d6; }
+    .badge.copy     { background: #5856d6; }
+    .badge.exact    { background: #34c759; }
+    .badge.fuzzy    { background: #ff9500; }
 
     /* ── 按钮行布局 ── */
     .btn-rows { margin-bottom: 8px; }
@@ -83,7 +115,6 @@
     }
     .btn-row-label { font-size: 12px; color: var(--tg-theme-hint-color, #888); font-weight: 500; }
     .btn-row-actions { display: flex; gap: 6px; }
-
     .btn-row-preview { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
     .btn-chip {
       display: inline-flex; align-items: center; gap: 5px;
@@ -97,7 +128,51 @@
       cursor: pointer; font-size: 15px; line-height: 1; padding: 0 2px;
     }
 
-    /* 添加表单 */
+    /* ── 自动回复列表 ── */
+    .reply-card {
+      background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+      border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;
+    }
+    .reply-card-header {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+    }
+    .reply-card-info { flex: 1; min-width: 0; }
+    .reply-keyword {
+      font-size: 14px; font-weight: 600;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .reply-text {
+      font-size: 13px; color: var(--tg-theme-hint-color, #888);
+      margin-top: 4px;
+      display: -webkit-box; -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .reply-card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    /* ── Toggle 开关 ── */
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0;
+    }
+    .toggle-label { font-size: 14px; }
+    .toggle {
+      position: relative; width: 44px; height: 26px;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0;
+      background: var(--tg-theme-hint-color, #ccc);
+      border-radius: 26px; cursor: pointer; transition: background .2s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute;
+      height: 20px; width: 20px; left: 3px; bottom: 3px;
+      background: #fff; border-radius: 50%; transition: transform .2s;
+    }
+    .toggle input:checked + .toggle-slider { background: var(--tg-theme-button-color, #2481cc); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+    /* ── 添加表单 ── */
     .add-form {
       background: var(--tg-theme-bg-color, #fff);
       border: 1px solid var(--tg-theme-hint-color, #ddd);
@@ -117,17 +192,18 @@
       color: var(--tg-theme-button-text-color, #fff);
     }
 
-    /* 新增行按钮 */
-    .add-row-btn {
+    /* ── 虚线新增按钮 ── */
+    .add-dashed-btn {
       width: 100%; padding: 10px;
       border: 2px dashed var(--tg-theme-button-color, #2481cc);
       border-radius: 10px; background: transparent;
       color: var(--tg-theme-button-color, #2481cc);
       font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity .15s;
+      margin-top: 4px;
     }
-    .add-row-btn:active { opacity: .7; }
+    .add-dashed-btn:active { opacity: .7; }
 
-    /* 媒体列表 */
+    /* ── 媒体列表 ── */
     .item {
       display: flex; align-items: center; gap: 10px;
       padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,.06);
@@ -137,6 +213,7 @@
     .item-title { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .item-sub { font-size: 12px; color: var(--tg-theme-hint-color, #888); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+    /* ── 上传 ── */
     .upload-btn {
       display: flex; align-items: center; justify-content: center;
       margin-top: 12px; padding: 14px;
@@ -146,8 +223,9 @@
     }
     .upload-btn:active { opacity: .7; }
 
+    /* ── Toast ── */
     .toast {
-      position: fixed; bottom: 90px; left: 50%;
+      position: fixed; bottom: 72px; left: 50%;
       transform: translateX(-50%) translateY(20px);
       background: rgba(0,0,0,.75); color: #fff;
       padding: 10px 20px; border-radius: 20px; font-size: 14px;
@@ -157,6 +235,7 @@
 
     .empty { text-align: center; color: var(--tg-theme-hint-color, #999); padding: 24px 0; font-size: 14px; }
 
+    /* ── 变量 chips ── */
     .var-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
     .var-chip {
       display: inline-flex; align-items: center;
@@ -171,75 +250,135 @@
 </head>
 <body>
 
-<h2>编辑启动信息</h2>
+<!-- ══════════════════════════════════════════
+     页面 1：启动信息
+     ══════════════════════════════════════════ -->
+<div id="page-start" class="page active">
+  <h2>启动信息</h2>
 
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('message')">📝 文本</div>
-  <div class="tab" onclick="switchTab('buttons')">🔘 按钮</div>
-  <div class="tab" onclick="switchTab('medias')">📷 媒体</div>
-</div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('message')">📝 文本</div>
+    <div class="tab" onclick="switchTab('buttons')">🔘 按钮</div>
+    <div class="tab" onclick="switchTab('medias')">📷 媒体</div>
+  </div>
 
-<!-- 文本 Tab -->
-<div id="tab-message" class="panel active">
-  <label>启动消息文本</label>
-  <textarea id="message-input" rows="6" placeholder="请开始与我通信"></textarea>
-  <div class="hint" style="margin-top:10px">点击变量插入到光标位置</div>
-  <div class="var-chips">
-    <span class="var-chip" onclick="insertVar('%firstname%')">名</span>
-    <span class="var-chip" onclick="insertVar('%lastname%')">姓</span>
-    <span class="var-chip" onclick="insertVar('%fullname%')">全名</span>
-    <span class="var-chip" onclick="insertVar('%username%')">@用户名</span>
-    <span class="var-chip" onclick="insertVar('%userid%')">ID</span>
+  <!-- 文本 -->
+  <div id="tab-message" class="panel active">
+    <label>启动消息文本</label>
+    <textarea id="message-input" rows="6" placeholder="请开始与我通信"></textarea>
+    <div class="hint" style="margin-top:10px">点击变量插入到光标位置</div>
+    <div class="var-chips">
+      <span class="var-chip" onclick="insertVar('%firstname%')">名</span>
+      <span class="var-chip" onclick="insertVar('%lastname%')">姓</span>
+      <span class="var-chip" onclick="insertVar('%fullname%')">全名</span>
+      <span class="var-chip" onclick="insertVar('%username%')">@用户名</span>
+      <span class="var-chip" onclick="insertVar('%userid%')">ID</span>
+    </div>
+  </div>
+
+  <!-- 按钮 -->
+  <div id="tab-buttons" class="panel">
+    <div id="buttons-list" class="btn-rows"></div>
+    <button class="add-dashed-btn" onclick="addRow()">＋ 新增一行</button>
+
+    <div id="add-button-form" class="add-form" style="display:none">
+      <div style="font-size:13px;color:var(--tg-theme-hint-color,#888);margin-bottom:10px">
+        正在向 <strong id="add-form-row-label"></strong> 添加按钮
+      </div>
+      <div class="row">
+        <label>按钮类型</label>
+        <div class="select-row">
+          <button class="type-btn selected" onclick="selectBtnType('url', this)">🔗 链接</button>
+          <button class="type-btn" onclick="selectBtnType('callback', this)">🔘 回调</button>
+          <button class="type-btn" onclick="selectBtnType('copy', this)">📋 复制</button>
+        </div>
+      </div>
+      <div class="row">
+        <label>按钮文字</label>
+        <input type="text" id="btn-text" placeholder="按钮显示文字" />
+      </div>
+      <div class="row" id="btn-value-row">
+        <label id="btn-value-label">链接 URL</label>
+        <input type="text" id="btn-value" placeholder="https://..." />
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-primary btn-sm" onclick="confirmAddButton()">添加</button>
+        <button class="btn btn-secondary btn-sm" onclick="closeAddForm()">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 媒体 -->
+  <div id="tab-medias" class="panel">
+    <div id="medias-list"></div>
+    <label class="upload-btn" for="file-input">
+      <span>＋ 上传图片 / 视频 / 文档</span>
+      <input type="file" id="file-input"
+        accept="image/*,video/*,application/pdf,application/zip,application/msword,.doc,.docx"
+        style="display:none" onchange="uploadFile(this)" />
+    </label>
+    <div id="upload-progress" style="display:none;margin-top:10px">
+      <div style="height:4px;background:var(--tg-theme-hint-color,#ddd);border-radius:4px;overflow:hidden">
+        <div id="upload-bar" style="height:100%;width:0;background:var(--tg-theme-button-color,#2481cc);transition:width .3s"></div>
+      </div>
+      <div style="font-size:12px;color:var(--tg-theme-hint-color,#888);margin-top:4px;text-align:center" id="upload-status">上传中...</div>
+    </div>
   </div>
 </div>
 
-<!-- 按钮 Tab -->
-<div id="tab-buttons" class="panel">
-  <div id="buttons-list" class="btn-rows"></div>
-  <button class="add-row-btn" onclick="addRow()">＋ 新增一行</button>
+<!-- ══════════════════════════════════════════
+     页面 2：自动回复
+     ══════════════════════════════════════════ -->
+<div id="page-reply" class="page">
+  <h2>自动回复</h2>
 
-  <!-- 添加按钮表单（动态插入到对应行下方） -->
-  <div id="add-button-form" class="add-form" style="display:none">
-    <div style="font-size:13px;color:var(--tg-theme-hint-color,#888);margin-bottom:10px">
-      正在向 <strong id="add-form-row-label"></strong> 添加按钮
+  <div id="replies-list"></div>
+
+  <button class="add-dashed-btn" onclick="openReplyForm(-1)">＋ 添加规则</button>
+
+  <!-- 添加 / 编辑 自动回复表单 -->
+  <div id="add-reply-form" class="add-form" style="display:none;margin-top:12px">
+    <div class="row">
+      <label>关键词</label>
+      <input type="text" id="reply-keyword" placeholder="触发关键词" />
     </div>
     <div class="row">
-      <label>按钮类型</label>
-      <div class="select-row">
-        <button class="type-btn selected" onclick="selectBtnType('url', this)">🔗 链接</button>
-        <button class="type-btn" onclick="selectBtnType('callback', this)">🔘 回调</button>
-        <button class="type-btn" onclick="selectBtnType('copy', this)">📋 复制</button>
+      <div class="toggle-row" style="padding:0">
+        <span class="toggle-label" style="font-size:13px;color:var(--tg-theme-hint-color,#888)">模糊匹配（消息含关键词即触发）</span>
+        <label class="toggle">
+          <input type="checkbox" id="reply-fuzzy" />
+          <span class="toggle-slider"></span>
+        </label>
       </div>
     </div>
     <div class="row">
-      <label>按钮文字</label>
-      <input type="text" id="btn-text" placeholder="按钮显示文字" />
-    </div>
-    <div class="row" id="btn-value-row">
-      <label id="btn-value-label">链接 URL</label>
-      <input type="text" id="btn-value" placeholder="https://..." />
+      <label>回复内容</label>
+      <textarea id="reply-content" rows="4" placeholder="机器人回复的内容"></textarea>
     </div>
     <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn btn-primary btn-sm" onclick="confirmAddButton()">添加</button>
-      <button class="btn btn-secondary btn-sm" onclick="closeAddForm()">取消</button>
+      <button class="btn btn-primary btn-sm" onclick="confirmReply()">保存</button>
+      <button class="btn btn-secondary btn-sm" onclick="closeReplyForm()">取消</button>
     </div>
   </div>
 </div>
 
-<!-- 媒体 Tab -->
-<div id="tab-medias" class="panel">
-  <div id="medias-list"></div>
-  <label class="upload-btn" for="file-input">
-    <span>＋ 上传图片 / 视频 / 文档</span>
-    <input type="file" id="file-input" accept="image/*,video/*,application/pdf,application/zip,application/msword,.doc,.docx" style="display:none" onchange="uploadFile(this)" />
-  </label>
-  <div id="upload-progress" style="display:none;margin-top:10px">
-    <div style="height:4px;background:var(--tg-theme-hint-color,#ddd);border-radius:4px;overflow:hidden">
-      <div id="upload-bar" style="height:100%;width:0;background:var(--tg-theme-button-color,#2481cc);transition:width .3s"></div>
-    </div>
-    <div style="font-size:12px;color:var(--tg-theme-hint-color,#888);margin-top:4px;text-align:center" id="upload-status">上传中...</div>
+<!-- ══════════════════════════════════════════
+     底部导航
+     ══════════════════════════════════════════ -->
+<nav class="bottom-nav">
+  <div class="nav-item active" id="nav-start" onclick="switchPage('start')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+    启动信息
   </div>
-</div>
+  <div class="nav-item" id="nav-reply" onclick="switchPage('reply')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/>
+    </svg>
+    自动回复
+  </div>
+</nav>
 
 <div class="toast" id="toast"></div>
 
@@ -249,15 +388,19 @@
   tg.expand();
 
   const urlParams = new URLSearchParams(window.location.search);
-  const BOT_ID = tg.initDataUnsafe?.start_param || urlParams.get('botId') || '';
+  const BOT_ID   = tg.initDataUnsafe?.start_param || urlParams.get('botId') || '';
   const API_BASE = window.location.origin;
 
-  // buttons 保持一维数组，每个按钮带 row 字段（默认 1）
-  let config = { message: '', medias: [], buttons: [] };
-  let newBtnType = 'url';
-  let addTargetRow = -1; // 当前正在向哪一行添加
+  // ── 数据 ──────────────────────────────────────────────
+  let config = { message: '', medias: [], buttons: [], autoReplies: [] };
+  let newBtnType    = 'url';
+  let addTargetRow  = -1;
+  let editReplyIdx  = -1;   // -1 = 新增，>=0 = 编辑已有规则
 
-  // ── 初始化 ─────────────────────────────────────────────
+  // ── 当前页 ────────────────────────────────────────────
+  let currentPage = 'start';
+
+  // ── 初始化 ────────────────────────────────────────────
   async function init() {
     if (!BOT_ID) { showToast('❌ 缺少机器人参数'); return; }
     try {
@@ -265,9 +408,11 @@
         headers: { 'x-init-data': tg.initData, 'x-bot-id': BOT_ID },
       });
       if (!res.ok) throw new Error(await res.text());
-      config = await res.json();
-      config.buttons = config.buttons || [];
-      config.medias  = config.medias  || [];
+      const data = await res.json();
+      config.message    = data.message    || '';
+      config.medias     = data.medias     || [];
+      config.buttons    = data.buttons    || [];
+      config.autoReplies= data.autoReplies|| [];
       renderAll();
       tg.MainButton.setText('💾 保存').show().onClick(save);
     } catch (e) {
@@ -275,9 +420,11 @@
     }
   }
 
-  // ── 保存 ───────────────────────────────────────────────
+  // ── 保存（根据当前页保存对应数据） ─────────────────────
   async function save() {
-    config.message = document.getElementById('message-input').value.trim();
+    if (currentPage === 'start') {
+      config.message = document.getElementById('message-input').value.trim();
+    }
     tg.MainButton.showProgress();
     try {
       const res = await fetch(`${API_BASE}/api/mini-app/config`, {
@@ -299,7 +446,19 @@
     }
   }
 
-  // ── Tab 切换 ───────────────────────────────────────────
+  // ── 页面切换 ──────────────────────────────────────────
+  function switchPage(name) {
+    currentPage = name;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    document.getElementById('nav-'  + name).classList.add('active');
+    // 关闭所有浮层
+    closeAddForm();
+    closeReplyForm();
+  }
+
+  // ── 顶部 Tab（启动信息子页） ──────────────────────────
   function switchTab(name) {
     document.querySelectorAll('.tab').forEach((t, i) => {
       t.classList.toggle('active', ['message','buttons','medias'][i] === name);
@@ -308,41 +467,40 @@
     document.getElementById('tab-' + name).classList.add('active');
   }
 
-  // ── 渲染 ───────────────────────────────────────────────
+  // ── 渲染 ──────────────────────────────────────────────
   function renderAll() {
     document.getElementById('message-input').value = config.message || '';
     renderButtons();
     renderMedias();
+    renderReplies();
   }
 
-  // 获取所有行号（去重、升序）
+  // ───────────────────────────────────────────────────────
+  // 启动信息 - 按钮
+  // ───────────────────────────────────────────────────────
   function getRows() {
-    const rowNums = [...new Set(config.buttons.map(b => b.row ?? 1))].sort((a, b) => a - b);
-    return rowNums;
+    const nums = [...new Set(config.buttons.map(b => b.row ?? 1))].sort((a, b) => a - b);
+    return nums;
   }
 
   function renderButtons() {
     const el = document.getElementById('buttons-list');
     const rows = getRows();
-
     if (!rows.length) {
       el.innerHTML = '<div class="empty">暂无按钮，点击下方"新增一行"开始添加</div>';
       return;
     }
-
     el.innerHTML = rows.map(rowNum => {
-      const btns = config.buttons.filter(b => (b.row ?? 1) === rowNum);
-      const chips = btns.map((b, localIdx) => {
-        const globalIdx = config.buttons.indexOf(b);
+      const btns  = config.buttons.filter(b => (b.row ?? 1) === rowNum);
+      const chips = btns.map(b => {
+        const gi = config.buttons.indexOf(b);
         return `
           <div class="btn-chip">
-            <span class="badge ${b.type}" style="font-size:10px">${b.type === 'url' ? '链' : b.type === 'callback' ? '回' : '复'}</span>
+            <span class="badge ${b.type}" style="font-size:10px">${b.type==='url'?'链':b.type==='callback'?'回':'复'}</span>
             <span class="btn-chip-text" title="${escHtml(b.text)}">${escHtml(b.text)}</span>
-            <button class="btn-chip-del" onclick="removeButton(${globalIdx})">×</button>
-          </div>
-        `;
+            <button class="btn-chip-del" onclick="removeButton(${gi})">×</button>
+          </div>`;
       }).join('');
-
       return `
         <div class="btn-row-card" id="btn-row-${rowNum}">
           <div class="btn-row-header">
@@ -355,34 +513,13 @@
           <div class="btn-row-preview">
             ${btns.length ? chips : '<span style="font-size:13px;color:var(--tg-theme-hint-color,#aaa)">此行暂无按钮</span>'}
           </div>
-        </div>
-      `;
+        </div>`;
     }).join('');
   }
 
-  function renderMedias() {
-    const el = document.getElementById('medias-list');
-    if (!config.medias.length) { el.innerHTML = '<div class="empty">暂无媒体</div>'; return; }
-    el.innerHTML = config.medias.map((m, i) => `
-      <div class="item">
-        <span class="badge ${m.type}">${m.type === 'photo' ? '图片' : m.type === 'video' ? '视频' : '文档'}</span>
-        <div class="item-info">
-          <div class="item-title">${m.type === 'photo' ? '📷 图片' : m.type === 'video' ? '🎥 视频' : '📄 文档'}</div>
-          <div class="item-sub">${escHtml(m.fileId || m.url || '')}</div>
-        </div>
-        <button class="btn btn-danger btn-sm" onclick="removeMedia(${i})">删除</button>
-      </div>
-    `).join('');
-  }
-
-  // ── 行操作 ─────────────────────────────────────────────
   function addRow() {
     const rows = getRows();
     const newRowNum = rows.length ? Math.max(...rows) + 1 : 1;
-    // 新行暂时没有按钮，直接打开添加表单
-    // 先插入一个占位结构（通过 openAddForm 渲染后再展示），
-    // 但为了让行卡片出现，先塞一个空按钮再移除不合适；
-    // 这里直接 openAddForm 并记录目标行号即可，添加第一个按钮时该行自然出现。
     openAddForm(newRowNum, true);
   }
 
@@ -396,29 +533,25 @@
     });
   }
 
-  // ── 按钮操作 ───────────────────────────────────────────
   function openAddForm(rowNum, isNewRow = false) {
     addTargetRow = rowNum;
-    newBtnType = 'url';
-    document.getElementById('btn-text').value = '';
+    newBtnType   = 'url';
+    document.getElementById('btn-text').value  = '';
     document.getElementById('btn-value').value = '';
     document.querySelectorAll('.type-btn').forEach((b, i) => b.classList.toggle('selected', i === 0));
     document.getElementById('btn-value-label').textContent = '链接 URL';
-    document.getElementById('btn-value').placeholder = 'https://...';
+    document.getElementById('btn-value').placeholder       = 'https://...';
     document.getElementById('add-form-row-label').textContent = `第 ${rowNum} 行`;
 
     const form = document.getElementById('add-button-form');
     form.style.display = 'block';
-
     if (isNewRow) {
-      // 新行：表单放在所有行卡片之后、新增行按钮之前
-      const addRowBtn = document.querySelector('.add-row-btn');
-      addRowBtn.parentNode.insertBefore(form, addRowBtn);
+      const addBtn = document.querySelector('#page-start .add-dashed-btn');
+      addBtn.parentNode.insertBefore(form, addBtn);
     } else {
       const rowCard = document.getElementById(`btn-row-${rowNum}`);
       if (rowCard) rowCard.parentNode.insertBefore(form, rowCard.nextSibling);
     }
-
     document.getElementById('btn-text').focus();
   }
 
@@ -435,16 +568,9 @@
     el.classList.add('selected');
     const label = document.getElementById('btn-value-label');
     const input = document.getElementById('btn-value');
-    if (type === 'copy') {
-      label.textContent = '复制内容';
-      input.placeholder = '点击按钮后复制的文字';
-    } else if (type === 'url') {
-      label.textContent = '链接 URL';
-      input.placeholder = 'https://...';
-    } else {
-      label.textContent = '回调数据';
-      input.placeholder = 'callback_data';
-    }
+    if (type === 'copy') { label.textContent = '复制内容'; input.placeholder = '点击按钮后复制的文字'; }
+    else if (type === 'url') { label.textContent = '链接 URL'; input.placeholder = 'https://...'; }
+    else { label.textContent = '回调数据'; input.placeholder = 'callback_data'; }
   }
 
   function confirmAddButton() {
@@ -452,7 +578,6 @@
     const value = document.getElementById('btn-value').value.trim();
     if (!text)  { showToast('请输入按钮文字'); return; }
     if (!value) { showToast('请输入值'); return; }
-
     config.buttons.push({ type: newBtnType, text, value, row: addTargetRow });
     closeAddForm();
     renderButtons();
@@ -467,6 +592,23 @@
     });
   }
 
+  // ───────────────────────────────────────────────────────
+  // 启动信息 - 媒体
+  // ───────────────────────────────────────────────────────
+  function renderMedias() {
+    const el = document.getElementById('medias-list');
+    if (!config.medias.length) { el.innerHTML = '<div class="empty">暂无媒体</div>'; return; }
+    el.innerHTML = config.medias.map((m, i) => `
+      <div class="item">
+        <span class="badge ${m.type}">${m.type==='photo'?'图片':m.type==='video'?'视频':'文档'}</span>
+        <div class="item-info">
+          <div class="item-title">${m.type==='photo'?'📷 图片':m.type==='video'?'🎥 视频':'📄 文档'}</div>
+          <div class="item-sub">${escHtml(m.fileId||m.url||'')}</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="removeMedia(${i})">删除</button>
+      </div>`).join('');
+  }
+
   function removeMedia(i) {
     tg.showConfirm('确定删除这个媒体？', ok => {
       if (!ok) return;
@@ -475,22 +617,17 @@
     });
   }
 
-  // ── 上传媒体 ───────────────────────────────────────────
   async function uploadFile(input) {
     const file = input.files[0];
     if (!file) return;
     input.value = '';
-
     const progress = document.getElementById('upload-progress');
     const bar      = document.getElementById('upload-bar');
     const status   = document.getElementById('upload-status');
     progress.style.display = 'block';
-    bar.style.width = '30%';
-    status.textContent = '上传中...';
-
+    bar.style.width = '30%'; status.textContent = '上传中...';
     const formData = new FormData();
     formData.append('file', file);
-
     try {
       bar.style.width = '60%';
       const res = await fetch(`${API_BASE}/api/mini-app/upload`, {
@@ -503,18 +640,98 @@
       const { fileId, type } = await res.json();
       config.medias.push({ type, fileId });
       renderMedias();
-      bar.style.width = '100%';
-      status.textContent = '✅ 上传成功';
+      bar.style.width = '100%'; status.textContent = '✅ 上传成功';
       setTimeout(() => { progress.style.display = 'none'; bar.style.width = '0'; }, 1500);
     } catch (e) {
-      bar.style.width = '0';
-      status.textContent = '❌ 上传失败';
+      bar.style.width = '0'; status.textContent = '❌ 上传失败';
       showToast('❌ ' + e.message);
       setTimeout(() => { progress.style.display = 'none'; }, 2000);
     }
   }
 
-  // ── 插入变量 ───────────────────────────────────────────
+  // ───────────────────────────────────────────────────────
+  // 自动回复
+  // ───────────────────────────────────────────────────────
+  function renderReplies() {
+    const el = document.getElementById('replies-list');
+    if (!config.autoReplies.length) {
+      el.innerHTML = '<div class="empty">暂无规则，点击下方按钮添加</div>';
+      return;
+    }
+    el.innerHTML = config.autoReplies.map((r, i) => `
+      <div class="reply-card">
+        <div class="reply-card-header">
+          <div class="reply-card-info">
+            <div class="reply-keyword">
+              <span class="badge ${r.fuzzy ? 'fuzzy' : 'exact'}" style="font-size:11px;margin-right:6px">${r.fuzzy ? '模糊' : '精确'}</span>${escHtml(r.keyword)}
+            </div>
+            <div class="reply-text">${escHtml(r.reply)}</div>
+          </div>
+          <div class="reply-card-actions">
+            <button class="btn btn-secondary btn-sm" onclick="openReplyForm(${i})">编辑</button>
+            <button class="btn btn-danger btn-sm" onclick="removeReply(${i})">删除</button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  function openReplyForm(idx) {
+    editReplyIdx = idx;
+    const form = document.getElementById('add-reply-form');
+    if (idx >= 0) {
+      // 编辑模式：填入现有值
+      const r = config.autoReplies[idx];
+      document.getElementById('reply-keyword').value  = r.keyword;
+      document.getElementById('reply-fuzzy').checked  = r.fuzzy;
+      document.getElementById('reply-content').value  = r.reply;
+    } else {
+      // 新增模式：清空
+      document.getElementById('reply-keyword').value  = '';
+      document.getElementById('reply-fuzzy').checked  = false;
+      document.getElementById('reply-content').value  = '';
+    }
+    form.style.display = 'block';
+    document.getElementById('reply-keyword').focus();
+    // 把表单插到新增按钮前
+    const addBtn = document.querySelector('#page-reply .add-dashed-btn');
+    addBtn.parentNode.insertBefore(form, addBtn);
+  }
+
+  function closeReplyForm() {
+    editReplyIdx = -1;
+    const form = document.getElementById('add-reply-form');
+    form.style.display = 'none';
+    document.getElementById('page-reply').appendChild(form);
+  }
+
+  function confirmReply() {
+    const keyword = document.getElementById('reply-keyword').value.trim();
+    const fuzzy   = document.getElementById('reply-fuzzy').checked;
+    const reply   = document.getElementById('reply-content').value.trim();
+    if (!keyword) { showToast('请输入关键词'); return; }
+    if (!reply)   { showToast('请输入回复内容'); return; }
+
+    if (editReplyIdx >= 0) {
+      config.autoReplies[editReplyIdx] = { keyword, fuzzy, reply };
+    } else {
+      config.autoReplies.push({ keyword, fuzzy, reply });
+    }
+    closeReplyForm();
+    renderReplies();
+    showToast(editReplyIdx >= 0 ? '✅ 规则已更新' : '✅ 规则已添加');
+  }
+
+  function removeReply(i) {
+    tg.showConfirm('确定删除这条自动回复规则？', ok => {
+      if (!ok) return;
+      config.autoReplies.splice(i, 1);
+      renderReplies();
+    });
+  }
+
+  // ───────────────────────────────────────────────────────
+  // 插入变量
+  // ───────────────────────────────────────────────────────
   function insertVar(variable) {
     const ta = document.getElementById('message-input');
     const start = ta.selectionStart, end = ta.selectionEnd;
@@ -524,7 +741,9 @@
     ta.focus();
   }
 
-  // ── 工具 ───────────────────────────────────────────────
+  // ───────────────────────────────────────────────────────
+  // 工具
+  // ───────────────────────────────────────────────────────
   function escHtml(str) {
     return String(str)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;')

@@ -581,6 +581,29 @@ const logger: Middleware = async (ctx: MyContext, next) => {
     return;
   }
 
+  // C2: 普通用户发消息，先检查自动回复规则，命中则回复后结束
+  if (!isCurrentUserOwner && message?.text && ownerBotUser?.id) {
+    const rules = ctx.currentBot.autoReplies || [];
+    if (rules.length > 0) {
+      const lower = message.text.trim().toLowerCase();
+      const matched = rules.find((rule: any) => {
+        if (!rule.keyword || !rule.reply) return false;
+        const kw = rule.keyword.toLowerCase();
+        return rule.fuzzy ? lower.includes(kw) : lower === kw;
+      });
+      if (matched) {
+        debug(
+          'autoReply hit keyword=%s fuzzy=%s',
+          matched.keyword,
+          matched.fuzzy,
+        );
+        await ctx.reply(matched.reply);
+        await next();
+        return;
+      }
+    }
+  }
+
   // C2: 普通用户发消息，转发给 owner 私聊
   if (!isCurrentUserOwner && message && ownerBotUser?.id) {
     await fallbackForwardToOwner(

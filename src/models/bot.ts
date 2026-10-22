@@ -56,6 +56,13 @@ export interface IBot extends Document {
   /** 话题模式试用期开始时间（每个 bot 独立计算，创建时自动赋值） */
   topicTrialStartedAt?: Date;
 
+  /** 自动回复规则 */
+  autoReplies?: Array<{
+    keyword: string; // 触发关键词
+    fuzzy: boolean; // true = 包含匹配，false = 完全匹配
+    reply: string; // 回复内容（纯文本）
+  }>;
+
   createdAt?: any;
 }
 
@@ -160,6 +167,16 @@ const botSchema = new mongoose.Schema(
     topicTrialStartedAt: {
       type: Date,
       default: null,
+    },
+    autoReplies: {
+      type: [
+        {
+          keyword: { type: String, required: true, trim: true },
+          fuzzy: { type: Boolean, default: false },
+          reply: { type: String, required: true, trim: true },
+        },
+      ],
+      default: [],
     },
   },
   {

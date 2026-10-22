@@ -71,7 +71,7 @@ export const getConfig = async (req: Request, res: Response) => {
   }
 
   const bot = await Bot.findById(botId)
-    .select('token message medias buttons owner')
+    .select('token message medias buttons autoReplies owner')
     .lean();
   if (!bot) return res.status(404).json({ message: '机器人不存在' });
 
@@ -92,6 +92,7 @@ export const getConfig = async (req: Request, res: Response) => {
     message: bot.message || '',
     medias: bot.medias || [],
     buttons: bot.buttons || [],
+    autoReplies: bot.autoReplies || [],
   });
 };
 
@@ -118,12 +119,13 @@ export const saveConfig = async (req: Request, res: Response) => {
     return res.status(403).json({ message: '无权限' });
   }
 
-  const { message, medias, buttons } = req.body;
+  const { message, medias, buttons, autoReplies } = req.body;
 
   const updateData: any = {};
   if (message !== undefined) updateData.message = message;
   if (medias !== undefined) updateData.medias = medias;
   if (buttons !== undefined) updateData.buttons = buttons;
+  if (autoReplies !== undefined) updateData.autoReplies = autoReplies;
 
   await Bot.findByIdAndUpdate(botId, updateData);
 
@@ -224,4 +226,68 @@ export const uploadMedia = async (req: Request, res: Response) => {
     debug('uploadMedia error:', e.message);
     return res.status(500).json({ message: e.message });
   }
+};
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/mini-app/auto-replies
+// ─────────────────────────────────────────────────────────────
+export const getAutoReplies = async (req: Request, res: Response) => {
+  const initData = req.headers['x-init-data'] as string;
+  const botId = req.headers['x-bot-id'] as string;
+
+  if (!initData || !botId) {
+    return res.status(400).json({ message: '缺少必要参数' });
+  }
+
+  const bot = await Bot.findById(botId)
+    .select('token owner autoReplies')
+    .lean();
+  if (!bot) return res.status(404).json({ message: '机器人不存在' });
+
+  const data = verifyInitData(initData, bot.token);
+  if (!data) return res.status(401).json({ message: 'initData 验证失败' });
+
+  const telegramUserId = JSON.parse(data.user || '{}').id;
+  const ownerBotUser = await BotUser.findById(bot.owner).lean();
+  if (!ownerBotUser || String(ownerBotUser.id) !== String(telegramUserId)) {
+    return res.status(403).json({ message: '无权限' });
+  }
+
+  debug('getAutoReplies botId=%s', botId);
+  return res.json({ autoReplies: bot.autoReplies || [] });
+};
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/mini-app/auto-replies
+// Body: { autoReplies: Array<{ keyword, fuzzy, reply }> }
+// ─────────────────────────────────────────────────────────────
+export const saveAutoReplies = async (req: Request, res: Response) => {
+  const initData = req.headers['x-init-data'] as string;
+  const botId = req.headers['x-bot-id'] as string;
+
+  if (!initData || !botId) {
+    return res.status(400).json({ message: '缺少必要参数' });
+  }
+
+  const bot = await Bot.findById(botId).select('token owner').lean();
+  if (!bot) return res.status(404).json({ message: '机器人不存在' });
+
+  const data = verifyInitData(initData, bot.token);
+  if (!data) return res.status(401).json({ message: 'initData 验证失败' });
+
+  const telegramUserId = JSON.parse(data.user || '{}').id;
+  const ownerBotUser = await BotUser.findById(bot.owner).lean();
+  if (!ownerBotUser || String(ownerBotUser.id) !== String(telegramUserId)) {
+    return res.status(403).json({ message: '无权限' });
+  }
+
+  const { autoReplies } = req.body;
+  if (!Array.isArray(autoReplies)) {
+    return res.status(400).json({ message: 'autoReplies 必须是数组' });
+  }
+
+  await Bot.findByIdAndUpdate(botId, { autoReplies });
+
+  debug('saveAutoReplies botId=%s count=%d', botId, autoReplies.length);
+  return res.json({ success: true });
 };

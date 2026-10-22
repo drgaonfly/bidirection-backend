@@ -66,7 +66,7 @@ startCommand.command('start', async (ctx) => {
     return;
   }
 
-  // Owner start：直接返回配置菜单，不走启动信息逻辑
+  // Owner start：直接返回配置菜单，Mini App 按钮直接打开编辑器
   if (ctx.currentBot?.owner?.toString() === String(ctx.currentBotUser._id)) {
     const ownerBotUser = ctx.currentBot.owner
       ? await BotUser.findById(ctx.currentBot.owner)
@@ -81,8 +81,10 @@ startCommand.command('start', async (ctx) => {
         ctx.currentProxyUser,
       );
 
+    const miniAppUrl = `${process.env.WEBHOOK_URL}/mini-app/bot-config.html?botId=${ctx.currentBot._id}`;
+
     const ownerKeyboard = new InlineKeyboard()
-      .text('👋启动信息', `config_menu_${ctx.currentBot._id}`)
+      .webApp('⚙️ 编辑机器人', miniAppUrl)
       .row()
       .text(
         topicEnabled ? '群组话题模式通信✅' : '群组话题模式通信❌',

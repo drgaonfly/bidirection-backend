@@ -2,6 +2,7 @@ import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../../../types';
 import { startClientAndGetSession } from '../../../services/gramClient';
 import { isTopicSubscriptionActive } from '../../../middlewares/checkTopicSubscription';
+import { htmlToTelegramHtml } from '../../../../utils/handleHtmlToTelegramHtml';
 import { replaceVariables } from '../conversations/editMessage';
 import BotUser from '../../../../models/botUser';
 import createDebug from 'debug';
@@ -107,7 +108,10 @@ startCommand.command('start', async (ctx) => {
     ctx.currentProxyUser,
   );
   if (ctx.currentProxyUser?.advertisement && !isSubscribed) {
-    await ctx.reply(ctx.currentProxyUser.advertisement);
+    const adText = htmlToTelegramHtml(ctx.currentProxyUser.advertisement);
+    if (adText) {
+      await ctx.reply(adText, { parse_mode: 'HTML' });
+    }
   }
 
   // 替换消息中的变量

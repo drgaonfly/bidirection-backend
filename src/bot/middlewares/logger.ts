@@ -258,8 +258,18 @@ const logger: Middleware = async (ctx: MyContext, next) => {
     isCurrentUserOwner = await isBotOwner(ctx);
   }
 
+  // 群成员判断：在群组中发消息（非私聊）且不是 bot 自身，即视为有权回复
+  const isGroupMemberReplying =
+    !isCurrentUserOwner &&
+    ctx.chat?.type !== 'private' &&
+    message?.message_thread_id != null &&
+    String(ctx.currentBotUser.id) !== String(ctx.me.id);
+
+  // 有权在话题群组里回复用户的人：owner 或群组成员
+  const isAuthorizedReplier = isCurrentUserOwner || isGroupMemberReplying;
+
   debug(
-    `[Logger] user ${ctx.currentBotUser.id}, isOwner: ${isCurrentUserOwner}`,
+    `[Logger] user ${ctx.currentBotUser.id}, isOwner: ${isCurrentUserOwner}, isGroupMember: ${isGroupMemberReplying}`,
   );
 
   // ── 话题模式准入：三条件统一判断 ────────────────────────
@@ -303,11 +313,11 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   );
 
   // ────────────────────────────────────────────────────────
-  // 分支 A：话题模式 + owner 在群组话题中发消息 → 转发给对应用户
+  // 分支 A：话题模式 + owner 或群组成员在话题中发消息 → 转发给对应用户
   // ────────────────────────────────────────────────────────
   if (
     isTopicMode &&
-    isCurrentUserOwner &&
+    isAuthorizedReplier &&
     message?.message_thread_id &&
     ctx.chat?.type !== 'private'
   ) {
@@ -387,7 +397,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   // ────────────────────────────────────────────────────────
   // 分支 B：话题模式 + 普通用户私聊发消息 → 发送到群组对应话题
   // ────────────────────────────────────────────────────────
-  if (isTopicMode && !isCurrentUserOwner && message && ownerBotUser?.id) {
+  if (isTopicMode && !isAuthorizedReplier && message && ownerBotUser?.id) {
     try {
       const bot = setupBot(ctx.currentBot.token);
 
@@ -487,8 +497,8 @@ const logger: Middleware = async (ctx: MyContext, next) => {
     return;
   }
 
-  // 话题模式下，非 owner 在群组里发消息 → 忽略
-  if (isTopicMode && !isCurrentUserOwner && ctx.chat?.type !== 'private') {
+  // 话题模式下，非群组回复者在群组里发消息 → 忽略
+  if (isTopicMode && !isAuthorizedReplier && ctx.chat?.type !== 'private') {
     await next();
     return;
   }

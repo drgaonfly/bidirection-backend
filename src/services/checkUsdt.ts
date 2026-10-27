@@ -28,7 +28,7 @@ interface TransferResponse {
  */
 export async function getUSDTTransfers(
   address: string,
-  minutes: number = process.env.NODE_ENV === 'development' ? 30 * 24 * 60 : 15,
+  minutes: number = process.env.NODE_ENV === 'development' ? 30 * 24 * 60 : 90,
   maxPages: number = 3,
   pageSize: number = 50,
   minIntervalMs: number = 500,

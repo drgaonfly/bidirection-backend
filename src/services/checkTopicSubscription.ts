@@ -60,10 +60,40 @@ export async function checkTopicSubscription(): Promise<void> {
     }
   }
 
+  // ── 3. 兜底：扫描 2 小时内刚超时的 timeout 订单 ──────────────
+  // 用户可能在订单超时前几秒才转账，链上确认时已被标为 timeout，
+  // 需要在超时后继续扫描一段时间，确保不漏单。
+  const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+  const recentTimeoutOrders = await Subscription.find({
+    status: 'timeout',
+    orderExpiredAt: { $gt: twoHoursAgo, $lte: now },
+  })
+    .populate({
+      path: 'bot',
+      select: 'botName token owner topicSubscriptionExpiredAt user',
+      populate: [
+        { path: 'owner', select: 'id' },
+        { path: 'user', select: 'trx20_address topicSubscriptionMonthlyFee' },
+      ],
+    })
+    .lean();
+
+  debug(
+    `[checkTopicSubscription] ${recentTimeoutOrders.length} 个 timeout 订单进行兜底检查`,
+  );
+
+  for (const order of recentTimeoutOrders) {
+    try {
+      await processOrder(order, true);
+    } catch (err: any) {
+      debug(`timeout 订单 ${order._id} 兜底处理失败:`, err?.message || err);
+    }
+  }
+
   debug('[checkTopicSubscription] 完成');
 }
 
-async function processOrder(order: any): Promise<void> {
+async function processOrder(order: any, isRecovery = false): Promise<void> {
   const bot = order.bot;
   if (!bot) return;
 
@@ -73,8 +103,11 @@ async function processOrder(order: any): Promise<void> {
 
   const requiredAmount: number = order.amount;
 
-  // 查询收款地址最近 15 分钟的 USDT 入账（默认窗口）
-  const transfers = await getUSDTTransfers(toAddress);
+  // 兜底模式：查询窗口扩展到订单创建时间前后共 3 小时，确保不漏链上慢确认的交易
+  const queryMinutes = isRecovery ? 180 : undefined;
+
+  // 查询收款地址的 USDT 入账
+  const transfers = await getUSDTTransfers(toAddress, queryMinutes);
 
   for (const transfer of transfers) {
     // 只处理入账方向
@@ -117,14 +150,22 @@ async function processOrder(order: any): Promise<void> {
       topicSubscriptionExpiredAt: newExpiry,
     });
 
-    debug(
-      `[checkTopicSubscription] 订单 ${order._id} 已付款，bot ${
-        bot.botName
-      } 续期至 ${newExpiry.toLocaleString()}`,
-    );
+    if (isRecovery) {
+      debug(
+        `[checkTopicSubscription] 兜底恢复：timeout 订单 ${
+          order._id
+        } 已识别到账，bot ${bot.botName} 续期至 ${newExpiry.toLocaleString()}`,
+      );
+    } else {
+      debug(
+        `[checkTopicSubscription] 订单 ${order._id} 已付款，bot ${
+          bot.botName
+        } 续期至 ${newExpiry.toLocaleString()}`,
+      );
+    }
 
     // 通知 owner（owner 已 populate，直接取 id）
-    await notifyOwner(bot, transfer.money, newExpiry);
+    await notifyOwner(bot, transfer.money, newExpiry, isRecovery);
 
     break; // 一笔 txHash 只匹配一个订单
   }
@@ -134,20 +175,27 @@ async function notifyOwner(
   bot: any,
   amount: number,
   expiry: Date,
+  isRecovery = false,
 ): Promise<void> {
   try {
     const ownerId = bot.owner?.id;
     if (!ownerId) return;
 
     const botInstance = setupBot(bot.token);
+
+    const recoveryNote = isRecovery
+      ? `\n⚠️ 您的付款在订单超时后被系统识别，已自动补录并激活。\n`
+      : '';
+
     await botInstance.api.sendMessage(
       ownerId,
       `✅ <b>话题双向通信</b> 续费成功！\n\n` +
         `金额：<b>${amount} USDT</b>\n` +
         `服务有效期至：<b>${expiry.toLocaleString('zh-CN', {
           hour12: false,
-        })}</b>\n\n` +
-        `感谢您的使用，到期前我们会提前提醒您续费。`,
+        })}</b>\n` +
+        recoveryNote +
+        `\n感谢您的使用，到期前我们会提前提醒您续费。`,
       { parse_mode: 'HTML' },
     );
   } catch (err: any) {

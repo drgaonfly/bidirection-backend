@@ -23,7 +23,7 @@ export async function notifyTopicSubscriptionExpiration(): Promise<void> {
 
   // ── 1. 标记已到期的订阅记录 ──────────────────────────────
   const expiredResult = await Subscription.updateMany(
-    { status: 'active', endDate: { $lte: now } },
+    { status: 'paid', endDate: { $lte: now } },
     { $set: { status: 'expired' } },
   );
   debug(

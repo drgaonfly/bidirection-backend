@@ -97,7 +97,7 @@ async function notifyOwner(bot: any): Promise<void> {
   )?.subscriptionPlans?.length
     ? (proxyUser as any).subscriptionPlans
     : defaultPlans;
-  const minPrice = Math.min(...plans.map((p) => p.price));
+  // const minPrice = Math.min(...plans.map((p) => p.price));
   const planDesc = plans.map((p) => `${p.label} ${p.price}U`).join(' / ');
 
   const address = proxyUser?.trx20_address || '（未配置收款地址）';

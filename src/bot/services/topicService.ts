@@ -110,14 +110,13 @@ export async function refreshTopicSetupState(
   if (step === 3 && botMongoId) {
     // 检查订阅状态，只在订阅有效时自动开启话题模式
     const bot = await Bot.findById(botMongoId)
-      .select('user owner topicSubscriptionExpiredAt')
+      .select('user owner topicSubscriptionExpiredAt topicTrialStartedAt')
       .lean();
 
     const proxyUser = await User.findById(bot?.user).lean();
-    const ownerBotUser = await BotUser.findById(bot?.owner).lean();
     const isSubscriptionActive = isTopicSubscriptionActive(
       bot,
-      ownerBotUser,
+      undefined,
       proxyUser,
     );
 
@@ -145,14 +144,13 @@ export async function refreshTopicSetupState(
   // 检查是否需要提示用户开启试用
   if (step === 3 && botMongoId) {
     const bot = await Bot.findById(botMongoId)
-      .select('user owner topicSubscriptionExpiredAt')
+      .select('user owner topicSubscriptionExpiredAt topicTrialStartedAt')
       .lean();
 
     const proxyUser = await User.findById(bot?.user).lean();
-    const ownerBotUser = await BotUser.findById(bot?.owner).lean();
     const isSubscriptionActive = isTopicSubscriptionActive(
       bot,
-      ownerBotUser,
+      undefined,
       proxyUser,
     );
 
@@ -160,7 +158,7 @@ export async function refreshTopicSetupState(
     if (
       !isSubscriptionActive &&
       proxyUser?.topic_mode_trial_period > 0 &&
-      !ownerBotUser?.topicTrialStartedAt
+      !bot?.topicTrialStartedAt
     ) {
       result.needsTrialPrompt = true;
     }

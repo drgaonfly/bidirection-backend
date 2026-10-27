@@ -129,23 +129,19 @@ topicSetupComposer.on('my_chat_member', async (ctx) => {
 
   // 先检查订阅状态，无月付无试用则不允许配置
   const bot = await Bot.findById(ctx.currentBot._id)
-    .select('user owner topicSubscriptionExpiredAt')
+    .select('user owner topicSubscriptionExpiredAt topicTrialStartedAt')
     .lean();
 
   const proxyUser = await User.findById(bot?.user).lean();
-  const ownerBotUser = await BotUser.findById(bot?.owner).lean();
   const isSubscriptionActive = isTopicSubscriptionActive(
     bot,
-    ownerBotUser,
+    undefined,
     proxyUser,
   );
 
   if (
     !isSubscriptionActive &&
-    !(
-      proxyUser?.topic_mode_trial_period > 0 &&
-      !ownerBotUser?.topicTrialStartedAt
-    )
+    !(proxyUser?.topic_mode_trial_period > 0 && !bot?.topicTrialStartedAt)
   ) {
     // 无月付无试用，不允许配置
     debug('无月付无试用，不允许配置话题模式');

@@ -41,7 +41,7 @@ export const getSubscriptions = handleAsync(
         select: 'botName userName topicSubscriptionExpiredAt user',
         populate: {
           path: 'user',
-          select: 'trx20_address topicSubscriptionMonthlyFee',
+          select: 'trx20_address subscriptionPlans',
         },
       })
       .sort('-createdAt')
@@ -64,7 +64,7 @@ export const getSubscriptions = handleAsync(
 // ── POST /subscriptions — 后台手动为 bot 创建 pending 订单（测试 / 代操作）
 export const createSubscription = handleAsync(
   async (req: RequestCustom, res: Response) => {
-    const { botId, timeoutMinutes = 60 } = req.body;
+    const { botId, timeoutMinutes = 60, days = 30 } = req.body;
 
     const bot = await Bot.findById(botId)
       .select('botName activeTopicGroup user')
@@ -75,9 +75,9 @@ export const createSubscription = handleAsync(
       throw new Error('Bot 不存在');
     }
 
-    // 从 bot 所属用户取收款配置
+    // 从 bot 所属用户取收款配置及套餐列表
     const proxyUser = await User.findById(bot.user)
-      .select('trx20_address topicSubscriptionMonthlyFee')
+      .select('trx20_address subscriptionPlans')
       .lean();
 
     if (!proxyUser?.trx20_address) {
@@ -106,18 +106,33 @@ export const createSubscription = handleAsync(
       return;
     }
 
+    // 从套餐列表中找到对应天数的价格，找不到则取第一个套餐，再找不到默认 30 天 15U
+    const defaultPlans = [
+      { days: 30, price: 15, label: '包月' },
+      { days: 180, price: 70, label: '半年' },
+      { days: 365, price: 120, label: '一年' },
+    ];
+    const plans: Array<{ days: number; price: number; label: string }> = (
+      proxyUser as any
+    ).subscriptionPlans?.length
+      ? (proxyUser as any).subscriptionPlans
+      : defaultPlans;
+
+    const plan = plans.find((p) => p.days === Number(days)) ?? plans[0];
+
     const orderExpiredAt = new Date();
     orderExpiredAt.setMinutes(
       orderExpiredAt.getMinutes() + Number(timeoutMinutes),
     );
 
-    const baseFee = proxyUser.topicSubscriptionMonthlyFee ?? 25;
+    // 加随机尾数区分同地址并发订单
     const tail = Math.floor(Math.random() * 99 + 1) / 100;
-    const uniqueAmount = Math.round((baseFee + tail) * 100) / 100;
+    const uniqueAmount = Math.round((plan.price + tail) * 100) / 100;
 
     const order = await Subscription.create({
       bot: botId,
       amount: uniqueAmount,
+      days: plan.days,
       toAddress: proxyUser.trx20_address,
       orderExpiredAt,
       status: 'pending',

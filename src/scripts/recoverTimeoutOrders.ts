@@ -17,10 +17,6 @@ import Subscription from '../models/subscription';
 import Bot from '../models/bot';
 import { getUSDTTransfers } from '../services/checkUsdt';
 import { setupBot } from '../bot/botSetup';
-import createDebug from 'debug';
-
-const debug = createDebug('script:recoverTimeoutOrders');
-
 // 默认往前追溯 30 小时，覆盖昨晚 8 点付款的情况
 const RECOVER_HOURS = Number(process.env.RECOVER_HOURS ?? 30);
 
@@ -51,7 +47,7 @@ async function main() {
       select: 'botName userName token owner topicSubscriptionExpiredAt user',
       populate: [
         { path: 'owner', select: 'id' },
-        { path: 'user', select: 'trx20_address topicSubscriptionMonthlyFee' },
+        { path: 'user', select: 'trx20_address subscriptionPlans' },
       ],
     })
     .lean();

@@ -86,11 +86,20 @@ async function notifyOwner(bot: any): Promise<void> {
     ? await User.findById(
         typeof bot.user === 'object' ? bot.user._id : bot.user,
       )
-        .select('trx20_address topicSubscriptionMonthlyFee')
+        .select('trx20_address subscriptionPlans')
         .lean()
     : null;
 
-  const fee = proxyUser?.topicSubscriptionMonthlyFee ?? 25;
+  // 取套餐中最低价格作为提示金额
+  const defaultPlans = [{ days: 30, price: 15, label: '包月' }];
+  const plans: Array<{ days: number; price: number; label: string }> = (
+    proxyUser as any
+  )?.subscriptionPlans?.length
+    ? (proxyUser as any).subscriptionPlans
+    : defaultPlans;
+  const minPrice = Math.min(...plans.map((p) => p.price));
+  const planDesc = plans.map((p) => `${p.label} ${p.price}U`).join(' / ');
+
   const address = proxyUser?.trx20_address || '（未配置收款地址）';
 
   const expiry = new Date(bot.topicSubscriptionExpiredAt);
@@ -103,8 +112,8 @@ async function notifyOwner(bot: any): Promise<void> {
       `到期时间：<b>${expiry.toLocaleString('zh-CN', {
         hour12: false,
       })}</b>\n\n` +
-      `请及时向收款地址转入 <b>${fee} USDT</b> 完成续费，` +
-      `转账后系统将自动识别并延期。\n\n` +
+      `请及时向收款地址续费，转账后系统将自动识别并延期。\n\n` +
+      `套餐：${planDesc}\n` +
       `收款地址：<code>${address}</code>`,
     { parse_mode: 'HTML' },
   );

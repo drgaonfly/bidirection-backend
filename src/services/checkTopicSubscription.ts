@@ -43,7 +43,7 @@ export async function checkTopicSubscription(): Promise<void> {
       select: 'botName token owner topicSubscriptionExpiredAt user',
       populate: [
         { path: 'owner', select: 'id' },
-        { path: 'user', select: 'trx20_address topicSubscriptionMonthlyFee' },
+        { path: 'user', select: 'trx20_address subscriptionPlans' },
       ],
     })
     .lean();
@@ -73,7 +73,7 @@ export async function checkTopicSubscription(): Promise<void> {
       select: 'botName token owner topicSubscriptionExpiredAt user',
       populate: [
         { path: 'owner', select: 'id' },
-        { path: 'user', select: 'trx20_address topicSubscriptionMonthlyFee' },
+        { path: 'user', select: 'trx20_address subscriptionPlans' },
       ],
     })
     .lean();

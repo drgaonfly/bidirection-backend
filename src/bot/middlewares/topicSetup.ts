@@ -23,7 +23,6 @@
 import { Composer, InlineKeyboard } from 'grammy';
 import { MyContext } from '../types';
 import Bot from '../../models/bot';
-import BotUser from '../../models/botUser';
 import Group from '../../models/group';
 import User from '../../models/user';
 import { refreshTopicSetupState } from '../services/topicService';

@@ -17,7 +17,7 @@
 import { Api } from 'grammy';
 import Group, { IGroup, IBotUserTopic } from '../../models/group';
 import Bot from '../../models/bot';
-import BotUser, { IBotUser } from '../../models/botUser';
+import { IBotUser } from '../../models/botUser';
 import User from '../../models/user';
 import { isTopicSubscriptionActive } from '../middlewares/checkTopicSubscription';
 import createDebug from 'debug';

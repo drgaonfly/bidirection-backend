@@ -85,8 +85,11 @@ async function main() {
       )}`,
     );
 
-    // 查询链上转账，窗口扩展到追溯的全部时间（RECOVER_HOURS + 1 小时缓冲）
-    const transfers = await getUSDTTransfers(toAddress, RECOVER_HOURS + 1);
+    // 查询链上转账，窗口扩展到追溯的全部时间，注意 getUSDTTransfers 参数单位是分钟
+    const transfers = await getUSDTTransfers(
+      toAddress,
+      (RECOVER_HOURS + 1) * 60,
+    );
 
     let matched = false;
     for (const transfer of transfers) {

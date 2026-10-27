@@ -47,7 +47,10 @@ export async function sendStatusCard(
   ctx: MyContext,
   edit = false,
 ): Promise<void> {
-  const bot = await Bot.findById(ctx.currentBot._id)
+  const trialDays = ctx.currentProxyUser?.topic_mode_trial_period ?? 0;
+
+  // 查询 bot 当前状态
+  let bot = await Bot.findById(ctx.currentBot._id)
     .select(
       'topicSubscriptionExpiredAt activeTopicGroup botName isTopicModeEnabled topicTrialStartedAt',
     )
@@ -55,14 +58,29 @@ export async function sendStatusCard(
 
   if (!bot) return;
 
+  // 有试用资格且还没开始过 → 自动启动试用，从现在开始计时
+  if (trialDays > 0 && !bot.topicTrialStartedAt) {
+    await Bot.findByIdAndUpdate(ctx.currentBot._id, {
+      topicTrialStartedAt: new Date(),
+    });
+    bot = await Bot.findById(ctx.currentBot._id)
+      .select(
+        'topicSubscriptionExpiredAt activeTopicGroup botName isTopicModeEnabled topicTrialStartedAt',
+      )
+      .lean();
+    if (!bot) return;
+    debug('bot %s 试用期已自动启动', ctx.currentBot._id);
+  }
+
   const now = new Date();
+
+  // 正式订阅是否有效
   const expiry = bot.topicSubscriptionExpiredAt
     ? new Date(bot.topicSubscriptionExpiredAt)
     : null;
   const isActive = !!expiry && expiry > now;
-  const trialDays = ctx.currentProxyUser?.topic_mode_trial_period ?? 0;
 
-  // 计算服务期限（优先显示正式订阅，其次显示试用期）
+  // 计算服务期限展示文案
   let subscriptionStatus = '';
   if (isActive) {
     subscriptionStatus = `服务期限： ${formatBeijingDate(expiry)}✅`;

@@ -96,7 +96,7 @@ export async function createBotWithUser(
       isOnline: true,
       isCreatedByAdmin: false,
       type: 'custom',
-      topicTrialStartedAt: new Date(),
+      // topicTrialStartedAt 不在创建时赋值，等用户主动开启试用时再设置
       ...(botInfo && {
         id: botInfo.id || '',
         userName: botInfo.username || '',

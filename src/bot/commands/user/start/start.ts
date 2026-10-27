@@ -4,7 +4,6 @@ import { startClientAndGetSession } from '../../../services/gramClient';
 import { isTopicSubscriptionActive } from '../../../middlewares/checkTopicSubscription';
 import { htmlToTelegramHtml } from '../../../../utils/handleHtmlToTelegramHtml';
 import { replaceVariables } from '../conversations/editMessage';
-import BotUser from '../../../../models/botUser';
 import createDebug from 'debug';
 
 const startCommand = new Composer<MyContext>();
@@ -66,18 +65,13 @@ startCommand.command('start', async (ctx) => {
     return;
   }
 
-  // Owner start：直接返回配置菜单，Mini App 按钮直接打开编辑器
+  // Owner start：直接返回配置菜单
   if (ctx.currentBot?.owner?.toString() === String(ctx.currentBotUser._id)) {
-    const ownerBotUser = ctx.currentBot.owner
-      ? await BotUser.findById(ctx.currentBot.owner)
-          .select('topicTrialStartedAt')
-          .lean()
-      : null;
     const topicEnabled =
       (ctx.currentBot.isTopicModeEnabled ?? false) &&
       isTopicSubscriptionActive(
         ctx.currentBot,
-        ownerBotUser,
+        undefined,
         ctx.currentProxyUser,
       );
 
@@ -101,9 +95,9 @@ startCommand.command('start', async (ctx) => {
     return;
   }
 
-  // 普通用户 start：广告位 + 启动信息（message + keyboard + 媒体）
+  // 普通用户 start：广告位 + 启动信息
 
-  // 广告位 ---- 仅向未订阅（话题模式订阅未激活）的用户发送
+  // 广告位：仅向订阅未激活的用户发送
   const isSubscribed = isTopicSubscriptionActive(
     ctx.currentBot,
     undefined,
@@ -123,8 +117,6 @@ startCommand.command('start', async (ctx) => {
   );
 
   // 构建按钮键盘
-  // buttons 为一维数组，每个按钮带 row 字段（默认 1）
-  // 相同 row 值的按钮排在同一行，按 row 升序排列
   let keyboard: InlineKeyboard | undefined;
   if (ctx.currentBot.buttons && ctx.currentBot.buttons.length > 0) {
     const validButtons = ctx.currentBot.buttons.filter((b: any) =>
@@ -132,14 +124,12 @@ startCommand.command('start', async (ctx) => {
     );
 
     if (validButtons.length > 0) {
-      // 按 row 分组，保持插入顺序
       const rowMap = new Map<number, typeof validButtons>();
       for (const btn of validButtons) {
         const r = (btn as any).row ?? 1;
         if (!rowMap.has(r)) rowMap.set(r, []);
         rowMap.get(r)!.push(btn);
       }
-      // 按行号升序排列
       const sortedRows = [...rowMap.entries()]
         .sort(([a], [b]) => a - b)
         .map(([, btns]) => btns);
@@ -162,7 +152,7 @@ startCommand.command('start', async (ctx) => {
     }
   }
 
-  // 发送媒体（如果有），媒体不带任何按钮
+  // 发送媒体
   if (ctx.currentBot.medias && ctx.currentBot.medias.length > 0) {
     for (const media of ctx.currentBot.medias) {
       try {
@@ -191,7 +181,7 @@ startCommand.command('start', async (ctx) => {
     }
   }
 
-  // 发送文本消息 + 按钮（有无媒体都发）
+  // 发送文本消息 + 按钮
   await ctx.reply(message, { reply_markup: keyboard });
 });
 

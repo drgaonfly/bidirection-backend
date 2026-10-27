@@ -121,6 +121,10 @@ async function main() {
       if (Math.abs(transfer.money - requiredAmount) > AMOUNT_TOLERANCE)
         continue;
 
+      // 转账时间必须在订单创建之后
+      const orderCreatedAt = new Date(order.createdAt).getTime() / 1000;
+      if (transfer.time < orderCreatedAt) continue;
+
       // 防止同一笔 txHash 被多个订单认领
       const alreadyClaimed = await Subscription.exists({
         txHash: transfer.trade_id,

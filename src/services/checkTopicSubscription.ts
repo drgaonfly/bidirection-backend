@@ -116,6 +116,10 @@ async function processOrder(order: any, isRecovery = false): Promise<void> {
     // 金额精确匹配（允许 ±0.005 浮点误差）
     if (Math.abs(transfer.money - requiredAmount) > 0.005) continue;
 
+    // 转账时间必须在订单创建之后（order.createdAt 单位秒）
+    const orderCreatedAt = new Date(order.createdAt).getTime() / 1000;
+    if (transfer.time < orderCreatedAt) continue;
+
     // 防止同一笔 txHash 被多个订单认领（全局唯一）
     const alreadyClaimed = await Subscription.exists({
       txHash: transfer.trade_id,

@@ -12,7 +12,7 @@ import setupDB from '../utils/db';
 import { setupRedis } from '../utils/redis';
 import { updateBotExpiration } from './cron/updateBotExpiration';
 import { notifyBotExpiration } from './cron/notifyBotExpiration';
-import { sendGroupMessages } from './cron/groupMessager';
+// import { sendGroupMessages } from './cron/groupMessager';
 import createDebug from 'debug';
 
 const debug = createDebug('cron:task');
@@ -39,16 +39,6 @@ async function bootstrap() {
       await notifyBotExpiration();
     } catch (err: any) {
       console.error('[cron] notifyBotExpiration 失败:', err?.message || err);
-    }
-  });
-
-  // ── 每小时 :30：群发消息 ──────────────────────────────────────
-  cron.schedule('30 * * * *', async () => {
-    debug('[cron] sendGroupMessages 触发');
-    try {
-      await sendGroupMessages();
-    } catch (err: any) {
-      console.error('[cron] sendGroupMessages 失败:', err?.message || err);
     }
   });
 

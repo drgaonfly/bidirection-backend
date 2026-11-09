@@ -9,8 +9,8 @@
 
 import Bot from '../../models/bot';
 import Subscription from '../../models/subscription';
-import User from '../../models/user';
 import { setupBot } from '../../bot/botSetup';
+import { InlineKeyboard } from 'grammy';
 import createDebug from 'debug';
 
 const debug = createDebug('cron:notifyTopicSubscriptionExpiration');
@@ -81,29 +81,10 @@ async function notifyOwner(bot: any): Promise<void> {
   const ownerId = bot.owner?.id;
   if (!ownerId) return;
 
-  // 从 bot 所属用户（proxyUser）取收款配置
-  const proxyUser = bot.user
-    ? await User.findById(
-        typeof bot.user === 'object' ? bot.user._id : bot.user,
-      )
-        .select('trx20_address subscriptionPlans')
-        .lean()
-    : null;
-
-  // 取套餐中最低价格作为提示金额
-  const defaultPlans = [{ days: 30, price: 15, label: '包月' }];
-  const plans: Array<{ days: number; price: number; label: string }> = (
-    proxyUser as any
-  )?.subscriptionPlans?.length
-    ? (proxyUser as any).subscriptionPlans
-    : defaultPlans;
-  // const minPrice = Math.min(...plans.map((p) => p.price));
-  const planDesc = plans.map((p) => `${p.label} ${p.price}U`).join(' / ');
-
-  const address = proxyUser?.trx20_address || '（未配置收款地址）';
-
   const expiry = new Date(bot.topicSubscriptionExpiredAt);
   const botInstance = setupBot(bot.token);
+
+  const keyboard = new InlineKeyboard().text('💳 立即续费', 'subscribe_pay');
 
   await botInstance.api.sendMessage(
     ownerId,
@@ -112,9 +93,7 @@ async function notifyOwner(bot: any): Promise<void> {
       `到期时间：<b>${expiry.toLocaleString('zh-CN', {
         hour12: false,
       })}</b>\n\n` +
-      `请及时向收款地址续费，转账后系统将自动识别并延期。\n\n` +
-      `套餐：${planDesc}\n` +
-      `收款地址：<code>${address}</code>`,
-    { parse_mode: 'HTML' },
+      `请点击下方按钮选择套餐续费，系统将自动生成专属转账金额并识别到账。`,
+    { parse_mode: 'HTML', reply_markup: keyboard },
   );
 }

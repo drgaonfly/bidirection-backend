@@ -34,6 +34,11 @@ import miniAppRoutes from './routes/miniAppRoutes';
 
 dotenv.config();
 
+// 单个未捕获的 rejection 不应让整个服务（所有机器人）重启
+process.on('unhandledRejection', (reason: any) => {
+  console.error('unhandledRejection:', reason?.error ?? reason);
+});
+
 const app: Express = express();
 const server = http.createServer(app);
 

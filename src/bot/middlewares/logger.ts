@@ -394,7 +394,13 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   // ────────────────────────────────────────────────────────
   // 分支 B：话题模式 + 普通用户私聊发消息 → 发送到群组对应话题
   // ────────────────────────────────────────────────────────
-  if (isTopicMode && !isAuthorizedReplier && message && ownerBotUser?.id) {
+  if (
+    isTopicMode &&
+    !isAuthorizedReplier &&
+    ctx.chat?.type === 'private' &&
+    message &&
+    ownerBotUser?.id
+  ) {
     try {
       // 重新从数据库获取 topicGroup，确保 botUserTopics 是最新的
       const freshGroup = await Group.findById(topicGroup._id);
@@ -455,12 +461,13 @@ const logger: Middleware = async (ctx: MyContext, next) => {
           );
         }
 
+        let activeThreadId = threadId;
         let sent = await sendToTopic(
           ctx.api,
           freshGroup.id,
-          threadId,
+          activeThreadId,
           message,
-          buildHeader(ctx.currentBotUser, freshGroup.id, threadId),
+          buildHeader(ctx.currentBotUser, freshGroup.id, activeThreadId),
         );
 
         // 话题被删除 → 重建一次再发
@@ -468,6 +475,9 @@ const logger: Middleware = async (ctx: MyContext, next) => {
           typeof sent !== 'number' &&
           String(sent?.description).includes('thread not found')
         ) {
+          debug(
+            `⚠️ 话题 ${activeThreadId} 已被删除，重建用户 ${ctx.currentBotUser.id} 的话题`,
+          );
           const newThreadId = await getOrCreateTopicForUser(
             ctx.api,
             freshGroup,
@@ -475,18 +485,21 @@ const logger: Middleware = async (ctx: MyContext, next) => {
             true,
           );
           if (newThreadId !== null) {
+            activeThreadId = newThreadId;
             sent = await sendToTopic(
               ctx.api,
               freshGroup.id,
-              newThreadId,
+              activeThreadId,
               message,
-              buildHeader(ctx.currentBotUser, freshGroup.id, newThreadId),
+              buildHeader(ctx.currentBotUser, freshGroup.id, activeThreadId),
             );
           }
         }
 
         if (typeof sent === 'number') {
-          debug(`✅ 用户 ${ctx.currentBotUser.id} 的消息已发送到话题`);
+          debug(
+            `✅ 用户 ${ctx.currentBotUser.id} 的消息已发到话题 threadId=${activeThreadId}，msgId=${sent}（群组 ${freshGroup.id}）`,
+          );
           if (messageContent) {
             await BotMessage.findOneAndUpdate(
               {
@@ -503,7 +516,10 @@ const logger: Middleware = async (ctx: MyContext, next) => {
             );
           }
         } else {
-          debug('话题消息发送失败，回退到私聊转发:', sent?.description);
+          debug(
+            `❌ 用户 ${ctx.currentBotUser.id} 的话题消息发送失败（threadId=${activeThreadId}），回退私聊转发:`,
+            sent?.description,
+          );
           await fallbackForwardToOwner(
             ctx,
             ownerBotUser,

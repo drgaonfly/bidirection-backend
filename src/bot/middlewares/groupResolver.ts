@@ -52,8 +52,8 @@ const groupResolver: Middleware<MyContext> = async (ctx, next) => {
     ctx.currentGroup = null;
     return await next();
   }
-  if (!ctx.chat || ctx.chat.type === 'private') {
-    debug('请在群组中使用此命令');
+  // 频道不按群组处理：机器人一般没有频道发言权限，回复会直接 400
+  if (!ctx.chat || ctx.chat.type === 'private' || ctx.chat.type === 'channel') {
     ctx.currentGroup = null;
     return await next();
   }

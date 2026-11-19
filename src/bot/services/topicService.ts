@@ -214,7 +214,11 @@ export async function getOrCreateTopicForUser(
       topics.push(entry);
     }
 
-    debug(`为用户 ${botUserId} 创建新话题 threadId=${threadId}`);
+    debug(
+      `${
+        replace ? '重建' : '创建'
+      }用户 ${botUserId} 的话题 threadId=${threadId}`,
+    );
     return threadId;
   } catch (err: any) {
     debug('创建话题失败:', err?.description || err?.message || err);

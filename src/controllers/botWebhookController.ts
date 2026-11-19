@@ -37,13 +37,19 @@ export const handleBotWebhook = async (
     }
 
     // 处理超时或失败也照常应答 200：Telegram 收不到 2xx 会反复重投同一条
-    // update，并阻塞该 bot 的后续消息。错误本身由 bot.catch 记录。
-    return webhookCallback(bot!, 'express', (err) => {
+    // update，并阻塞该 bot 的后续消息。
+    const callback = webhookCallback(bot!, 'express', (err) => {
+      console.error(`[webhook] bot ${botId} 处理超时:`, err?.error ?? err);
+    });
+    try {
+      await callback(req, res);
+    } catch (err: any) {
       console.error(
-        `[webhook] bot ${botId} 处理 update 失败或超时:`,
+        `[webhook] bot ${botId} update ${req.body?.update_id} 处理失败，已应答:`,
         err?.error ?? err,
       );
-    })(req, res);
+      if (!res.headersSent) res.sendStatus(200);
+    }
   } catch (err) {
     next(err);
   }

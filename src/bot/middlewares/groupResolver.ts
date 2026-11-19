@@ -6,6 +6,10 @@ import { refreshTopicSetupState } from '../services/topicService';
 
 const debug = createDebug('bot:group');
 
+// 话题配置刷新结果缓存：每条群消息都调 getChat/getChatMember 太贵
+const TOPIC_SETUP_REFRESH_TTL_MS = 3 * 60 * 1000;
+const topicSetupRefreshedAt = new Map<string, number>();
+
 const groupResolver: Middleware<MyContext> = async (ctx, next) => {
   // 处理群组升级为 supergroup 的迁移事件
   if (ctx.message?.migrate_to_chat_id) {
@@ -111,20 +115,23 @@ const groupResolver: Middleware<MyContext> = async (ctx, next) => {
 
   debug('Added user to group botUsers:', ctx.currentBotUser._id);
 
-  // ── 话题模式：周期性刷新配置状态（每次有消息时都检查，成本低）
-  // 始终刷新以检测配置状态变化（如关闭话题模式、降级权限等）
+  // ── 话题模式：周期性刷新配置状态（权限变更、关停等）
   if (!ctx.currentBot.isCreatedByAdmin) {
-    try {
-      const botInfo = await ctx.api.getMe();
-      const result = await refreshTopicSetupState(
-        ctx.api,
-        ctx.currentGroup,
-        botInfo.id,
-        ctx.currentBot._id,
-      );
-      debug('话题配置状态已刷新, step=%d', result.step);
-    } catch (err) {
-      debug('刷新话题配置状态失败:', err);
+    const cacheKey = `${ctx.currentGroup._id}:${ctx.currentBot._id}`;
+    const lastRefreshedAt = topicSetupRefreshedAt.get(cacheKey) ?? 0;
+    if (Date.now() - lastRefreshedAt > TOPIC_SETUP_REFRESH_TTL_MS) {
+      try {
+        const result = await refreshTopicSetupState(
+          ctx.api,
+          ctx.currentGroup,
+          ctx.me.id,
+          ctx.currentBot._id,
+        );
+        topicSetupRefreshedAt.set(cacheKey, Date.now());
+        debug('话题配置状态已刷新, step=%d', result.step);
+      } catch (err) {
+        debug('刷新话题配置状态失败:', err);
+      }
     }
   }
 

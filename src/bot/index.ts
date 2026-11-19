@@ -24,16 +24,8 @@ const setWebhookWithRetry = async (
     'managed_bot',
   ] as const;
 
-  // deleteWebhook 失败不阻断，直接尝试 setWebhook
-  try {
-    await bot.api.deleteWebhook();
-  } catch (delErr: any) {
-    console.warn(
-      `${activeBot.userName} deleteWebhook 失败，跳过继续 setWebhook:`,
-      delErr?.message,
-    );
-  }
-
+  // 不能先 deleteWebhook：一旦 setWebhook 连续失败，机器人会在下一次定时任务前
+  // 完全没有 webhook，这段时间用户消息会全部积压。
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       await bot.api.setWebhook(`${WEBHOOK_URL}/bot-webhooks/${activeBot._id}`, {

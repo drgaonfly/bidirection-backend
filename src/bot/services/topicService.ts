@@ -175,6 +175,8 @@ export async function getOrCreateTopicForUser(
   api: Api,
   group: IGroup,
   botUser: IBotUser,
+  /** true = 忽略已有映射强制重建（话题被删除后使用） */
+  replace = false,
 ): Promise<number | null> {
   const botUserId = botUser.id;
 
@@ -182,7 +184,7 @@ export async function getOrCreateTopicForUser(
   const existing = (group.botUserTopics as IBotUserTopic[]).find(
     (t) => t.botUserId === botUserId,
   );
-  if (existing) {
+  if (existing && !replace) {
     debug(`复用已有话题 threadId=${existing.threadId} for user ${botUserId}`);
     return existing.threadId;
   }
@@ -197,15 +199,20 @@ export async function getOrCreateTopicForUser(
     const topic = await (api as any).createForumTopic(group.id, displayName);
     const threadId: number = topic.message_thread_id;
 
+    const entry = { botUserId, threadId, topicName: displayName };
+    // 重建时先摘掉旧映射；没有旧映射时 $pull 不产生任何变化
     await Group.findByIdAndUpdate(group._id, {
-      $push: { botUserTopics: { botUserId, threadId, topicName: displayName } },
+      $pull: { botUserTopics: { botUserId } },
+      $push: { botUserTopics: entry },
     });
 
-    (group.botUserTopics as IBotUserTopic[]).push({
-      botUserId,
-      threadId,
-      topicName: displayName,
-    });
+    const topics = group.botUserTopics as IBotUserTopic[];
+    const staleIndex = topics.findIndex((t) => t.botUserId === botUserId);
+    if (staleIndex >= 0) {
+      topics[staleIndex] = entry;
+    } else {
+      topics.push(entry);
+    }
 
     debug(`为用户 ${botUserId} 创建新话题 threadId=${threadId}`);
     return threadId;

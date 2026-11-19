@@ -36,9 +36,14 @@ export const handleBotWebhook = async (
       console.log(`[webhook] bot ${botId} cached`);
     }
 
-    // webhookCallback 是 grammY 官方推荐的 webhook 处理方式：
-    // 它会自动处理 handleUpdate 并回复 200，无需手动调用
-    return webhookCallback(bot, 'express')(req, res);
+    // 处理超时或失败也照常应答 200：Telegram 收不到 2xx 会反复重投同一条
+    // update，并阻塞该 bot 的后续消息。错误本身由 bot.catch 记录。
+    return webhookCallback(bot!, 'express', (err) => {
+      console.error(
+        `[webhook] bot ${botId} 处理 update 失败或超时:`,
+        err?.error ?? err,
+      );
+    })(req, res);
   } catch (err) {
     next(err);
   }

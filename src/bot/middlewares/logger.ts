@@ -2,7 +2,6 @@ import { Middleware, InlineKeyboard } from 'grammy';
 import BotUser from '../../models/botUser';
 import BotMessage from '../../models/botMessage';
 import { MyContext } from '../types';
-import { setupBot } from '../botSetup';
 import createDebug from 'debug';
 import Group from '../../models/group';
 import Bot from '../../models/bot';
@@ -85,7 +84,7 @@ function buildHeader(
 
 // ────────────────────────────────────────────────────────────
 // 将用户消息发送到群组话题（sendMessage/sendPhoto/... 替代 forwardMessage）
-// 返回发出消息的 message_id，失败返回 undefined
+// 成功返回 message_id，失败返回 Telegram 错误对象
 // ────────────────────────────────────────────────────────────
 async function sendToTopic(
   botApi: any,
@@ -93,7 +92,7 @@ async function sendToTopic(
   threadId: number,
   message: any,
   header: string,
-): Promise<number | undefined> {
+): Promise<number | any> {
   const opts = {
     message_thread_id: threadId,
     parse_mode: 'HTML' as const,
@@ -179,7 +178,7 @@ async function sendToTopic(
     return sent.message_id;
   } catch (err: any) {
     debug('sendToTopic 失败:', err?.description || err?.message);
-    return undefined;
+    return err;
   }
 }
 
@@ -276,7 +275,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   const botDoc = await Bot.findById(ctx.currentBot._id)
     .populate('activeTopicGroup')
     .select(
-      'activeTopicGroup isTopicModeEnabled topicSubscriptionExpiredAt createdAt',
+      'activeTopicGroup isTopicModeEnabled topicSubscriptionExpiredAt topicTrialStartedAt createdAt',
     )
     .lean();
 
@@ -296,8 +295,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
 
     // 私聊通知 owner
     if (ownerBotUser?.id) {
-      const bot = setupBot(ctx.currentBot.token);
-      bot.api
+      ctx.api
         .sendMessage(
           ownerBotUser.id,
           '⚠️ 您的订阅已到期，群组话题通信高级功能已关闭，现已转为普通模式，消息将在机器人内收取。\n\n如需继续使用话题模式，请发送 /start 续费订阅。',
@@ -330,11 +328,10 @@ const logger: Middleware = async (ctx: MyContext, next) => {
     }
 
     try {
-      const bot = setupBot(ctx.currentBot.token);
       let forwardedMsgId: number | undefined;
 
       try {
-        const copied = await bot.api.copyMessage(
+        const copied = await ctx.api.copyMessage(
           Number(targetBotUserId),
           ctx.chat.id,
           message.message_id,
@@ -346,7 +343,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
           copyErr.error_code === 400 &&
           copyErr.description?.includes('chat not found')
         ) {
-          await bot.api.sendMessage(
+          await ctx.api.sendMessage(
             ctx.chat.id,
             '❌ 发送失败：用户还没有和机器人开始对话',
             { message_thread_id: threadId },
@@ -357,7 +354,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
             "the bot can't send messages to the bot",
           )
         ) {
-          await bot.api.sendMessage(
+          await ctx.api.sendMessage(
             ctx.chat.id,
             '⚠️ 这是机器人自己的话题，无法向机器人自身形成双向客服',
             { message_thread_id: threadId },
@@ -365,7 +362,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
         } else {
           const errorMsg =
             copyErr?.message || copyErr?.description || String(copyErr);
-          await bot.api.sendMessage(ctx.chat.id, `❌ 发送失败：${errorMsg}`, {
+          await ctx.api.sendMessage(ctx.chat.id, `❌ 发送失败：${errorMsg}`, {
             message_thread_id: threadId,
           });
         }
@@ -399,8 +396,6 @@ const logger: Middleware = async (ctx: MyContext, next) => {
   // ────────────────────────────────────────────────────────
   if (isTopicMode && !isAuthorizedReplier && message && ownerBotUser?.id) {
     try {
-      const bot = setupBot(ctx.currentBot.token);
-
       // 重新从数据库获取 topicGroup，确保 botUserTopics 是最新的
       const freshGroup = await Group.findById(topicGroup._id);
       if (!freshGroup) throw new Error('话题群组不存在');
@@ -416,7 +411,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
       );
 
       const threadId = await getOrCreateTopicForUser(
-        bot.api,
+        ctx.api,
         freshGroup,
         ctx.currentBotUser,
       );
@@ -431,15 +426,6 @@ const logger: Middleware = async (ctx: MyContext, next) => {
           messageType,
         );
       } else {
-        const header = buildHeader(ctx.currentBotUser, freshGroup.id, threadId);
-        const sentMsgId = await sendToTopic(
-          bot.api,
-          freshGroup.id,
-          threadId,
-          message,
-          header,
-        );
-
         // 首次建话题时，发一条带「进入话题」按钮的通知
         if (isNewTopic) {
           const senderName =
@@ -459,7 +445,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
             topicUrl,
           );
 
-          await bot.api.sendMessage(
+          await ctx.api.sendMessage(
             freshGroup.id,
             `👤 新用户「${senderName}」发来一条消息`,
             {
@@ -469,23 +455,61 @@ const logger: Middleware = async (ctx: MyContext, next) => {
           );
         }
 
-        debug(
-          `✅ 用户 ${ctx.currentBotUser.id} 的消息已发送到话题 ${threadId}`,
+        let sent = await sendToTopic(
+          ctx.api,
+          freshGroup.id,
+          threadId,
+          message,
+          buildHeader(ctx.currentBotUser, freshGroup.id, threadId),
         );
 
-        if (messageContent && sentMsgId !== undefined) {
-          await BotMessage.findOneAndUpdate(
-            {
-              bot: ctx.currentBot._id,
-              botUser: ctx.currentBotUser._id,
-              telegramMessageId: message.message_id,
-            },
-            {
-              $set: {
-                forwardedMessageId: sentMsgId,
-                forwardedToChatId: freshGroup.id,
+        // 话题被删除 → 重建一次再发
+        if (
+          typeof sent !== 'number' &&
+          String(sent?.description).includes('thread not found')
+        ) {
+          const newThreadId = await getOrCreateTopicForUser(
+            ctx.api,
+            freshGroup,
+            ctx.currentBotUser,
+            true,
+          );
+          if (newThreadId !== null) {
+            sent = await sendToTopic(
+              ctx.api,
+              freshGroup.id,
+              newThreadId,
+              message,
+              buildHeader(ctx.currentBotUser, freshGroup.id, newThreadId),
+            );
+          }
+        }
+
+        if (typeof sent === 'number') {
+          debug(`✅ 用户 ${ctx.currentBotUser.id} 的消息已发送到话题`);
+          if (messageContent) {
+            await BotMessage.findOneAndUpdate(
+              {
+                bot: ctx.currentBot._id,
+                botUser: ctx.currentBotUser._id,
+                telegramMessageId: message.message_id,
               },
-            },
+              {
+                $set: {
+                  forwardedMessageId: sent,
+                  forwardedToChatId: freshGroup.id,
+                },
+              },
+            );
+          }
+        } else {
+          debug('话题消息发送失败，回退到私聊转发:', sent?.description);
+          await fallbackForwardToOwner(
+            ctx,
+            ownerBotUser,
+            message,
+            messageContent,
+            messageType,
           );
         }
       }
@@ -514,8 +538,6 @@ const logger: Middleware = async (ctx: MyContext, next) => {
       if (replyMsg.forward_from || replyMsg.forward_from_chat) {
         const originalUserId: number | undefined = replyMsg.forward_from?.id;
         if (originalUserId) {
-          const bot = setupBot(ctx.currentBot.token);
-
           let originalBotUser: any = null;
           try {
             originalBotUser = await BotUser.findOne({
@@ -527,7 +549,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
 
           let forwardedMsgId: number | undefined;
           try {
-            const copied = await bot.api.copyMessage(
+            const copied = await ctx.api.copyMessage(
               originalUserId,
               ctx.chat.id,
               message.message_id,
@@ -648,12 +670,11 @@ async function fallbackForwardToOwner(
 ): Promise<void> {
   debug(`[fallbackForwardToOwner] messageType: ${messageType}`);
   try {
-    const bot = setupBot(ctx.currentBot.token);
     let forwarded;
 
     try {
       // 转发消息
-      forwarded = await bot.api.forwardMessage(
+      forwarded = await ctx.api.forwardMessage(
         ownerBotUser.id,
         ctx.chat.id,
         message.message_id,
@@ -671,7 +692,7 @@ async function fallbackForwardToOwner(
           `⚠️ 消息受保护，尝试 copyMessage 作为备选 from user ${ctx.currentBotUser.id}`,
         );
         try {
-          forwarded = await bot.api.copyMessage(
+          forwarded = await ctx.api.copyMessage(
             ownerBotUser.id,
             ctx.chat.id,
             message.message_id,

@@ -29,6 +29,10 @@ export const printWebhookInfo = async (bot: Bot) => {
   return info;
 };
 
+// grammY 默认 500s 才中断一次 API 调用，卡住的中间件链会在后台一直挂着，
+// 后续消息以并行链跑同一段逻辑（话题映射此时还没落库），导致重复建话题。
+const API_TIMEOUT_SECONDS = 60;
+
 export const setupBot = (token: string) => {
   const storage = new RedisAdapter({
     instance: redis,
@@ -47,6 +51,7 @@ export const setupBot = (token: string) => {
     // 使用代理初始化 Bot
     bot = new Bot<MyContext>(token, {
       client: {
+        timeoutSeconds: API_TIMEOUT_SECONDS,
         baseFetchConfig: {
           agent: socksAgent,
           compress: true,
@@ -57,7 +62,9 @@ export const setupBot = (token: string) => {
     log('Bot 正在使用 SOCKS 代理：', SOCKS_PROXY_URL);
   } else {
     // 未设置代理，正常初始化 Bot
-    bot = new Bot<MyContext>(token);
+    bot = new Bot<MyContext>(token, {
+      client: { timeoutSeconds: API_TIMEOUT_SECONDS },
+    });
     log('Bot 未使用代理。');
   }
 

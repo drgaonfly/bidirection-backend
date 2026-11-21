@@ -483,6 +483,7 @@ const logger: Middleware = async (ctx: MyContext, next) => {
             freshGroup,
             ctx.currentBotUser,
             true,
+            activeThreadId,
           );
           if (newThreadId !== null) {
             activeThreadId = newThreadId;

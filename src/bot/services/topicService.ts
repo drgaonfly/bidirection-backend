@@ -20,6 +20,7 @@ import Bot from '../../models/bot';
 import { IBotUser } from '../../models/botUser';
 import User from '../../models/user';
 import { isTopicSubscriptionActive } from '../middlewares/checkTopicSubscription';
+import { withLock } from '../../utils/lock';
 import createDebug from 'debug';
 
 const debug = createDebug('bot:topicService');
@@ -170,13 +171,29 @@ export async function refreshTopicSetupState(
 
 // ────────────────────────────────────────────────────────────
 // 4. 获取或创建某个 BotUser 的专属话题，返回 threadId
+//
+// 并发/重复投递下必须保证「一个用户只有一个话题」：createForumTopic 不是
+// 幂等接口，读判写之间又隔着一次网络往返，因此整段临界区用 Redis 锁串行，
+// 并在锁内以数据库为准重新判定，避免同一用户的多个消息各建一个话题。
 // ────────────────────────────────────────────────────────────
+function rememberTopic(group: IGroup, entry: IBotUserTopic): void {
+  const topics = group.botUserTopics as IBotUserTopic[];
+  const staleIndex = topics.findIndex((t) => t.botUserId === entry.botUserId);
+  if (staleIndex >= 0) {
+    topics[staleIndex] = entry;
+  } else {
+    topics.push(entry);
+  }
+}
+
 export async function getOrCreateTopicForUser(
   api: Api,
   group: IGroup,
   botUser: IBotUser,
   /** true = 忽略已有映射强制重建（话题被删除后使用） */
   replace = false,
+  /** 重建时传入已失效的 threadId；若他人已重建则直接复用新话题 */
+  staleThreadId?: number,
 ): Promise<number | null> {
   const botUserId = botUser.id;
 
@@ -195,35 +212,84 @@ export async function getOrCreateTopicForUser(
     botUser.userName ||
     `用户 ${botUserId}`;
 
-  try {
-    const topic = await (api as any).createForumTopic(group.id, displayName);
-    const threadId: number = topic.message_thread_id;
+  const threadId = await withLock(
+    `topic:create:${group.id}:${botUserId}`,
+    async () => {
+      // 锁内重读数据库：等待期间可能已有别的请求建好并落库
+      const live = await Group.findById(group._id).select('botUserTopics');
+      const fresh = (live?.botUserTopics ?? []).find(
+        (t) => t.botUserId === botUserId,
+      );
+      // 已有映射，或他人已把失效话题重建成了新话题 → 复用
+      const alreadyRebuilt =
+        fresh !== undefined &&
+        staleThreadId !== undefined &&
+        fresh.threadId !== staleThreadId;
+      if (fresh && (!replace || alreadyRebuilt)) {
+        rememberTopic(group, {
+          botUserId,
+          threadId: fresh.threadId,
+          topicName: fresh.topicName ?? displayName,
+        });
+        debug(`复用已有话题 threadId=${fresh.threadId} for user ${botUserId}`);
+        return fresh.threadId;
+      }
 
-    const entry = { botUserId, threadId, topicName: displayName };
-    // 重建时先摘掉旧映射；没有旧映射时 $pull 不产生任何变化
-    await Group.findByIdAndUpdate(group._id, {
-      $pull: { botUserTopics: { botUserId } },
-      $push: { botUserTopics: entry },
-    });
+      let newThreadId: number;
+      try {
+        const topic = await (api as any).createForumTopic(
+          group.id,
+          displayName,
+        );
+        newThreadId = topic.message_thread_id;
+      } catch (err: any) {
+        debug('创建话题失败:', err?.description || err?.message || err);
+        return null;
+      }
 
-    const topics = group.botUserTopics as IBotUserTopic[];
-    const staleIndex = topics.findIndex((t) => t.botUserId === botUserId);
-    if (staleIndex >= 0) {
-      topics[staleIndex] = entry;
-    } else {
-      topics.push(entry);
-    }
+      const entry = {
+        botUserId,
+        threadId: newThreadId,
+        topicName: displayName,
+      };
+      // $pull 与 $push 同时作用于 botUserTopics 会被 MongoDB 判为路径冲突而整条
+      // update 失败，映射永远存不下去 → 每条私信都会再建一个新话题。
+      // 这里拆成两句，每句只用一个算子：已有条目原位替换，没有则追加。
+      try {
+        const replaced = await Group.updateOne(
+          { _id: group._id, botUserTopics: { $elemMatch: { botUserId } } },
+          { $set: { 'botUserTopics.$': entry } },
+        );
+        if (replaced.matchedCount === 0) {
+          await Group.updateOne(
+            { _id: group._id },
+            { $push: { botUserTopics: entry } },
+          );
+        }
+      } catch (err: any) {
+        debug(
+          `⚠️ 话题 threadId=${newThreadId} 已建但映射落库失败:`,
+          err?.code || err?.message || err,
+        );
+        return null;
+      }
 
-    debug(
-      `${
-        replace ? '重建' : '创建'
-      }用户 ${botUserId} 的话题 threadId=${threadId}`,
-    );
-    return threadId;
-  } catch (err: any) {
-    debug('创建话题失败:', err?.description || err?.message || err);
+      rememberTopic(group, entry);
+      debug(
+        `${
+          replace ? '重建' : '创建'
+        }用户 ${botUserId} 的话题 threadId=${newThreadId}`,
+      );
+      return newThreadId;
+    },
+    { ttlMs: 120_000, waitMs: 25_000 },
+  );
+
+  if (threadId === undefined) {
+    debug(`用户 ${botUserId} 的话题正被其他请求创建，本次不重复创建`);
     return null;
   }
+  return threadId;
 }
 
 // ────────────────────────────────────────────────────────────

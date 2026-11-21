@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { webhookCallback } from 'grammy';
 import { default as BotManager } from '../models/bot';
 import { setupBot } from '../bot/botSetup';
+import { claimOnce } from '../utils/lock';
 
 // 按 botId 缓存 bot 实例，避免每次请求重新创建
 const botCache = new Map<string, ReturnType<typeof setupBot>>();
@@ -9,6 +10,10 @@ const botCache = new Map<string, ReturnType<typeof setupBot>>();
 export const clearBotCache = (botId: string) => {
   botCache.delete(botId);
 };
+
+// Telegram 投递失败后会退避重投同一条 update，nginx 超时重试也会复制 POST，
+// 重复处理会重复建话题、重复转发。update_id 全局唯一，认领一次即可。
+const UPDATE_DEDUP_TTL_MS = 6 * 60 * 60 * 1000;
 
 export const handleBotWebhook = async (
   req: Request,
@@ -34,6 +39,21 @@ export const handleBotWebhook = async (
       bot = setupBot(botManager.token);
       botCache.set(botId, bot);
       console.log(`[webhook] bot ${botId} cached`);
+    }
+
+    const updateId = (req.body as { update_id?: number })?.update_id;
+    if (typeof updateId === 'number') {
+      const isFirstDelivery = await claimOnce(
+        `webhook:update:${botId}:${updateId}`,
+        UPDATE_DEDUP_TTL_MS,
+      );
+      if (!isFirstDelivery) {
+        console.warn(
+          `[webhook] bot ${botId} update ${updateId} 重复投递，已忽略`,
+        );
+        res.sendStatus(200);
+        return;
+      }
     }
 
     // 处理超时或失败也照常应答 200：Telegram 收不到 2xx 会反复重投同一条
